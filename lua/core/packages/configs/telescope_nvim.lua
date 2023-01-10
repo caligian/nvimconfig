@@ -72,10 +72,3 @@ vim.api.nvim_set_keymap(
   '',
   { noremap = true, callback = telescope.extensions.project.project }
 )
-
-vim.api.nvim_set_keymap(
-  "n",
-  "<leader>fb",
-  ":Telescope file_browser",
-  { noremap = true }
-)

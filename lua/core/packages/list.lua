@@ -1,5 +1,10 @@
 return {
     {'wbthomason/packer.nvim'},
+    {'justinmk/vim-sneak'},
+    {
+        'lervag/vimtex',
+        ft = 'tex',
+    },
     {
         'vim-airline/vim-airline',
         requires = {{'vim-airline/vim-airline-themes'}},
@@ -12,6 +17,7 @@ return {
     },
     {
         'iamcco/markdown-preview.nvim',
+        ft = 'markdown',
         run = 'cd app && yarn install',
         cmd = 'MarkdownPreview'
     },
@@ -27,11 +33,11 @@ return {
     },
     { 'nvim-lua/plenary.nvim' },
     { 'tpope/vim-surround' },
-    { 
+    {
         'SirVer/ultisnips',
         requires = {{'honza/vim-snippets'}},
         config = function()
-            vim.g.UltiSnipsExpandTrigger = '<tab>'
+            vim.g.UltiSnipsExpandTrigger = '<C-o>'
             vim.g.UltiSnipsJumpForwardTrigger = '<C-b>'
             vim.g.UltiSnipsJumpBackwardTrigger = '<C-z>'
             vim.g.UltiSnipsEditSplit = 'vertical'

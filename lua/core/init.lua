@@ -2,7 +2,7 @@ user = {}
 user.builtin = {}
 user.config = {}
 
-inspect = function (...) 
+inspect = function (...)
     local final_s = ''
 
     for _, obj in ipairs({...}) do
@@ -13,3 +13,6 @@ inspect = function (...)
 end
 
 require 'core.packages'
+require 'core.keybindings.defaults'
+require 'core.autocmds.defaults'
+

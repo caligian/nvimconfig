@@ -21,7 +21,7 @@ vim.o.inccommand = 'split'
 vim.o.background = 'dark'
 vim.g.mapleader = " "
 vim.g.maplocalleader = ","
-vim.o.guifont = 'DejaVuSans Mono:h15'
+vim.o.guifont = 'Liberation Mono 13'
 vim.o.laststatus = 2
 
 -- Fixing ESC in terminal
@@ -44,7 +44,7 @@ vim.api.nvim_set_keymap('n', '<leader>fv', '', {
 
 -- File keybindings
 vim.cmd('noremap <leader>fs :w<CR>')
-vim.cmd('noremap <leader>fr :e!<CR>')
+vim.cmd('noremap <leader>f! :e!<CR>')
 vim.cmd('noremap <leader>fV :source %<CR>')
 
 function join_path(...) return table.concat({...}, "/") end
