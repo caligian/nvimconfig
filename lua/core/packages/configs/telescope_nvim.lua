@@ -31,44 +31,44 @@ end
 
 local builtin = get_picker('builtin')
 local builtin_keybindings = {
-    ['.'] = 'buffers',
-    ['/'] = 'grep_string',
-    ['?'] = 'live_grep',
-    ['\''] = 'marks',
-    ['<space>'] = 'resume',
-    ho = 'vim_options',
-    ff = 'find_files',
-    gf = 'git_files',
-    bb = 'buffers',
-    fr = 'oldfiles',
-    bt = 'tags',
-    hm = 'man_pages',
-    ht = 'colorscheme',
-    lr = 'lsp_references',
-    ls = 'lsp_document_symbols',
-    lS = 'lsp_workspace_symbols',
-    ld = 'diagnostics',
-    gC = 'git_commits',
-    gB = 'git_bcommits',
-    ['g?'] = 'git_status',
-    ['l/'] = 'treesitter',
+    ['.'] = {'buffers', 'Show buffers'},
+    ['/'] = {'grep_string', 'Grep string in workspace'},
+    ['?'] = {'live_grep', 'Live grep in workspace'},
+    ['\''] = {'marks', 'Show marks'},
+    ['<space>'] = {'resume', 'Resume telescope'},
+    ho = {'vim_options', 'Show vim options'},
+    ff = {'find_files', 'Find files in workspace'},
+    gf = {'git_files', 'Do git ls-files'},
+    bb = {'buffers', 'Show buffers'},
+    fr = {'oldfiles', 'Show recently opened files'},
+    bt = {'tags', 'Show tags'},
+    hm = {'man_pages', 'Show man pages'},
+    ht = {'colorscheme', 'Select colorscheme'},
+    lr = {'lsp_references', 'Show references'},
+    ls = {'lsp_document_symbols', 'Buffer symbols'},
+    lS = {'lsp_workspace_symbols', 'Workspace symbols'},
+    ld = {'diagnostics', 'Show LSP diagnostics'},
+    gC = {'git_commits', 'Show commimts'},
+    gB = {'git_bcommits', 'Show branch commits'},
+    ['g?'] = {'git_status', 'Git status'},
 }
 
 for keys, picker in pairs(builtin_keybindings) do
-    local cb = builtin(picker)
-    vim.api.nvim_set_keymap('n', '<leader>' .. keys, '', {callback=cb, noremap=true})
+    local p, desc = unpack(picker)
+    local cb = builtin(p)
+    vim.api.nvim_set_keymap('n', '<leader>' .. keys, '', {callback=cb, noremap=true, desc=desc})
 end
 
 vim.api.nvim_set_keymap(
   "n",
   "<leader>fF",
   '',
-  { noremap = true, callback=telescope.extensions.file_browser.file_browser }
+  { noremap = true, callback=telescope.extensions.file_browser.file_browser, desc='Open file browser' }
 )
 
 vim.api.nvim_set_keymap(
   "n",
   "<leader>p",
   '',
-  { noremap = true, callback = telescope.extensions.project.project }
+  { noremap = true, callback = telescope.extensions.project.project, desc='Project management' }
 )

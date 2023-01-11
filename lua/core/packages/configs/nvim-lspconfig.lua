@@ -6,19 +6,26 @@ user.builtin.lsp = {
     capabilities = require('cmp_nvim_lsp').default_capabilities(),
     sumneko_lua = {
         settings = {
-            Lua = {diagnostics={globals={'vim'}}},
+            Lua = {diagnostics={globals={'vim', 'unpack', 'loadfile'}}},
         }
     },
 }
+
 local cmp = require('cmp')
 local lsp = user.builtin.lsp
-local config_lsp = user.config.lsp or {}
-local config = vim.tbl_extend("force", lsp, config_lsp)
+local config = user.config.lsp or {}
 local cmp_ultisnips_mappings = require("cmp_nvim_ultisnips.mappings")
 
 -- Setup nvim-cmp
 cmp.setup {
     mapping = {
+        ['<C-b>'] = cmp.mapping.scroll_docs(-4),
+        ['<C-f>'] = cmp.mapping.scroll_docs(4),
+        ['<C-j>'] = cmp.mapping.select_next_item(),
+        ['<C-k>'] = cmp.mapping.select_prev_item(),
+        ['<C-Space>'] = cmp.mapping.complete(),
+        ['<C-e>'] = cmp.mapping.abort(),
+        ['<CR>'] = cmp.mapping.confirm({ select = true }),
         ["<Tab>"] = cmp.mapping(function(fallback)
             cmp_ultisnips_mappings.expand_or_jump_forwards(fallback)
         end,
@@ -35,7 +42,7 @@ cmp.setup {
     },
     sources = {
         { name = 'path' },
-        { name = 'ultisnips' }, 
+        { name = 'ultisnips' },
         { name = 'buffer' },
         { name = 'treesitter' },
         { name = 'nvim_lsp' },
@@ -56,11 +63,11 @@ cmp.setup {
 
 -- Mappings.
 -- See `:help vim.diagnostic.*` for documentation on any of the below functions
-local opts = { noremap=true, silent=true }
-vim.keymap.set('n', '<leader>ld', vim.diagnostic.open_float, opts)
-vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
-vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
-vim.keymap.set('n', '<leader>lq', vim.diagnostic.setloclist, opts)
+user.builtin.kbd.noremap_with_options({silent=true},
+{'n', '<leader>ld', vim.diagnostic.open_float, {desc='LSP diagnostic float'}},
+{'n', '[d', vim.diagnostic.goto_prev, {desc='LSP go to previous diagnostic'}},
+{'n', ']d', vim.diagnostic.goto_next, {desc='LSP go to next diagnostic'}},
+{'n', '<leader>lq', vim.diagnostic.setloclist, {desc='LSP set loclist'}})
 
 -- Use an on_attach function to only map the following keys
 -- after the language server attaches to the current buffer
@@ -70,34 +77,31 @@ function lsp.on_attach(client, bufnr)
 
   -- Mappings.
   -- See `:help vim.lsp.*` for documentation on any of the below functions
-  local bufopts = { noremap=true, silent=true, buffer=bufnr }
-  vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
-  vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
-  vim.keymap.set('n', 'K', vim.lsp.buf.hover, bufopts)
-  vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, bufopts)
-  vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, bufopts)
-  vim.keymap.set('n', '<leader>lwa', vim.lsp.buf.add_workspace_folder, bufopts)
-  vim.keymap.set('n', '<leader>lwr', vim.lsp.buf.remove_workspace_folder, bufopts)
-  vim.keymap.set('n', '<leader>lwl', function()
-    print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
-  end, bufopts)
-  vim.keymap.set('n', '<leader>lD', vim.lsp.buf.type_definition, bufopts)
-  vim.keymap.set('n', '<leader>lR', vim.lsp.buf.rename, bufopts)
-  vim.keymap.set('n', '<leader>la', vim.lsp.buf.code_action, bufopts)
-  vim.keymap.set('n', 'gr', vim.lsp.buf.references, bufopts)
-  vim.keymap.set('n', '<leader>lf', function() vim.lsp.buf.format { async = true } end, bufopts)
+  user.builtin.kbd.noremap_with_options({buffer=bufnr, silent=true},
+  {'n', 'gD', vim.lsp.buf.declaration, {desc='Buffer declarations'}},
+  {'n', 'gd', vim.lsp.buf.definition, {desc='Buffer definitions'}},
+  {'n', 'K', vim.lsp.buf.hover, {desc='Show float UI'}},
+  {'n', 'gi', vim.lsp.buf.implementation, {desc='Show implementations'}},
+  {'n', '<C-k>', vim.lsp.buf.signature_help, {desc='Signatures'}},
+  {'n', '<leader>lwa', vim.lsp.buf.add_workspace_folder, {desc='Add workspace folder'}},
+  {'n', '<leader>lwr', vim.lsp.buf.remove_workspace_folder, {desc='Remove workspace folder'}},
+  {'n', '<leader>lwl', function() print(vim.inspect(vim.lsp.buf.list_workspace_folders())) end, {desc='List workspace folders'}},
+  {'n', '<leader>lD', vim.lsp.buf.type_definition, {desc='Show type definitions'}},
+  {'n', '<leader>lR', vim.lsp.buf.rename, {desc='Rename buffer'}},
+  {'n', '<leader>la', vim.lsp.buf.code_action, {desc='Show code actions'}},
+  {'n', 'gr', vim.lsp.buf.references, {desc='Show buffer references'}},
+  {'n', '<leader>lf', function() vim.lsp.buf.format { async = true } end, {desc='Format buffer'}})
 end
 
 function lsp.setup_server(server, opts)
     opts = opts or {}
-    opts.capabilities = opts.capabilities or config.capabilities
-    opts.on_attach = opts.on_attach or config.on_attach
-    opts.flags = opts.flags or config.flags
-
+    local capabilities = opts.capabilities or config.capabilities or lsp.capabilities
+    local on_attach = opts.on_attach or config.on_attach or lsp.on_attach
+    local flags = opts.flags or config.flags or lsp.flags
     local default_conf = {
-        capabilities=opts.capabilities,
-        on_attach=opts.on_attach,
-        flags=opts.flags
+        capabilities=capabilities,
+        on_attach=on_attach,
+        flags=flags
     }
 
     if lsp[server] then

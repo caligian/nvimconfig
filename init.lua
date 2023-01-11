@@ -1,4 +1,5 @@
 vim.o.foldenable = false
+vim.o.timeoutlen = 200
 vim.o.completeopt = "menu,menuone,noselect"
 vim.o.mouse = "a"
 vim.o.history = 1000
@@ -30,6 +31,7 @@ vim.cmd('tnoremap <Esc> <C-\\><C-n>')
 -- Source lua buffer
 vim.api.nvim_set_keymap('n', '<leader>fv', '', {
     noremap = true,
+    desc = 'Lua source buffer contents',
     callback = function ()
         local s = vim.api.nvim_buf_get_lines(0, 0, -1, false)
         s = table.concat(s, "\n")

@@ -2,6 +2,21 @@ return {
     {'wbthomason/packer.nvim'},
     {'justinmk/vim-sneak'},
     {
+        'tpope/vim-fugitive',
+        config = function ()
+            user.builtin.kbd.noremap(
+            {'n', '<leader>gs', ':Git stage<CR>'},
+            {'n', '<leader>gc', ':Git commit<CR>'},
+            {'n', '<leader>gp', ':Git push<CR>'})
+        end
+    },
+    {
+        'preservim/tagbar',
+        config = function ()
+            vim.keymap.set('n', '<C-t>', ':TagbarToggle<CR>', {desc='Toggle tagbar'})
+        end
+    },
+    {
         'lervag/vimtex',
         ft = 'tex',
     },
@@ -14,6 +29,10 @@ return {
             vim.cmd("let g:airline#extensions#tabline#formatter = 'unique_tail_improved'")
             vim.cmd('let g:airline_theme = "solarized"')
         end
+    },
+    {
+        'folke/which-key.nvim',
+        config = function () require('core.packages.configs.which-key_nvim') end
     },
     {
         'iamcco/markdown-preview.nvim',
@@ -38,11 +57,12 @@ return {
         requires = {{'honza/vim-snippets'}},
         config = function()
             vim.g.UltiSnipsExpandTrigger = '<C-o>'
-            vim.g.UltiSnipsJumpForwardTrigger = '<C-b>'
-            vim.g.UltiSnipsJumpBackwardTrigger = '<C-z>'
+            vim.g.UltiSnipsJumpForwardTrigger = '<C-j>'
+            vim.g.UltiSnipsJumpBackwardTrigger = '<C-k>'
             vim.g.UltiSnipsEditSplit = 'vertical'
         end
     },
+
     {
         'neovim/nvim-lspconfig',
         requires = {

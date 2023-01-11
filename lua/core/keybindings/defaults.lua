@@ -1,13 +1,29 @@
-local opts = {noremap=true, silent=true}
+user.builtin.kbd.noremap_with_options(
+{silent=true},
+{'n', '<leader>fs', ':w %<CR>', {desc='Save buffer'}},
+{'n', '<leader>fe', ':e!<CR>', {desc='Reload buffer'}},
+{'n', '<leader>bk', ':hide<CR>', {desc='Hide window'}},
+{'n', '<leader>bp', ':bprev<CR>', {desc='Previous buffer'}},
+{'n', '<leader>bn', ':bnext<CR>', {desc='Next buffer'}},
+{'n', '<leader>b0', ':bfirst', {desc='First buffer'}},
+{'n', '<leader>b$', ':blast', {desc='Last buffer'}},
+{'n', '<leader>bq', ':bwipeout %<CR>', {desc='Wipeout buffer'}},
+{'n', '<leader>tt', ':tabnew<CR>', {desc='New tab'}},
+{'n', '<leader>tn', ':tabnext<CR>', {desc='Next tab'}},
+{'n', '<leader>tp', ':tabprev<CR>', {desc='Previous tab'}},
+{'n', '<leader>te', ':tabedit<CR>', {desc='Open file in new tab'}},
+{'n', '<leader>tk', ':tabclose<CR>', {desc='Close tab'}},
+{'n', '<leader>t1', ':tabnext 1<CR>', {desc='Tab 1'}},
+{'n', '<leader>t2', ':tabnext 2<CR>', {desc='Tab 2'}},
+{'n', '<leader>t3', ':tabnext 3<CR>', {desc='Tab 3'}},
+{'n', '<leader>t4', ':tabnext 4<CR>', {desc='Tab 4'}},
+{'n', '<leader>t5', ':tabnext 5<CR>', {desc='Tab 5'}},
+{'n', '<leader>t6', ':tabnext 6<CR>', {desc='Tab 6'}},
+{'n', '<leader>t7', ':tabnext 7<CR>', {desc='Tab 7'}},
+{'n', '<leader>t8', ':tabnext 8<CR>', {desc='Tab 8'}},
+{'n', '<leader>t9', ':tabnext 9<CR>', {desc='Tab 9'}},
+{'n', '<leader>t0', ':tabnext 10<CR>', {desc='Tab 10'}},
+{'n', '<leader>ws', ':split <bar> wincmd k<CR>', {desc='Split below'}},
+{'n', '<leader>wv', ':vsplit <bar> wincmd h<CR>', {desc='Split right'}})
 
-vim.keymap.set('n', '<leader>fs', ':w %<CR>', opts)
-vim.keymap.set('n', '<leader>fe', ':e!<CR>', opts)
-vim.keymap.set('n', '<leader>bk', ':hide<CR>', opts)
-vim.keymap.set('n', '<leader>bq', ':bwipeout %<CR>', opts)
-vim.keymap.set('n', '<leader>tt', ':tabnew<CR>', opts)
-vim.keymap.set('n', '<leader>tn', ':tabnext<CR>', opts)
-vim.keymap.set('n', '<leader>tp', ':tabprev<CR>', opts)
-vim.keymap.set('n', '<leader>te', ':tabedit NAME', opts)
-vim.keymap.set('n', '<leader>w', '<C-w>', {})
-vim.keymap.set('n', '<leader>ws', ':split <bar> wincmd k<CR>', {noremap=true})
-vim.keymap.set('n', '<leader>wv', ':vsplit <bar> wincmd h<CR>', {noremap=true})
+user.builtin.kbd.map({'n', '<leader>w', '<C-w>', {silent=true, desc='Window commands'}})
