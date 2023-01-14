@@ -27,3 +27,16 @@ user.builtin.kbd.noremap_with_options(
 {'n', '<leader>wv', ':vsplit <bar> wincmd h<CR>', {desc='Split right'}})
 
 user.builtin.kbd.map({'n', '<leader>w', '<C-w>', {silent=true, desc='Window commands'}})
+
+user.builtin.kbd.noremap({'n', '<leader>fv', function ()
+    local s = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+    s = table.concat(s, "\n")
+    local f, err = loadstring(s)
+    if f then
+        f()
+    else
+        print(err)
+    end
+end, {desc='Lua source buffer'}})
+
+user.builtin.kbd.noremap({'t', '<Esc>', '<C-\\><C-n>', {desc='Go to normal mode'}})

@@ -1,5 +1,5 @@
 vim.o.foldenable = false
-vim.o.timeoutlen = 200
+vim.o.timeoutlen = 350
 vim.o.completeopt = "menu,menuone,noselect"
 vim.o.mouse = "a"
 vim.o.history = 1000
@@ -22,38 +22,13 @@ vim.o.inccommand = 'split'
 vim.o.background = 'dark'
 vim.g.mapleader = " "
 vim.g.maplocalleader = ","
-vim.o.guifont = 'Liberation Mono 13'
+vim.o.guifont = 'Liberation Mono 11'
 vim.o.laststatus = 2
 
--- Fixing ESC in terminal
-vim.cmd('tnoremap <Esc> <C-\\><C-n>')
-
--- Source lua buffer
-vim.api.nvim_set_keymap('n', '<leader>fv', '', {
-    noremap = true,
-    desc = 'Lua source buffer contents',
-    callback = function ()
-        local s = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-        s = table.concat(s, "\n")
-        local f, err = loadstring(s)
-        if f then
-            f()
-        else
-            print(err)
-        end
-    end
-})
-
--- File keybindings
-vim.cmd('noremap <leader>fs :w<CR>')
-vim.cmd('noremap <leader>f! :e!<CR>')
-vim.cmd('noremap <leader>fV :source %<CR>')
-
-function join_path(...) return table.concat({...}, "/") end
 local data_dir = vim.fn.stdpath('data')
-vim.o.backupdir = join_path(data_dir, 'temp', 'backups')
-vim.o.directory = join_path(data_dir, 'temp', 'tmp')
-vim.o.undodir = join_path(data_dir, 'temp', 'undo')
+vim.o.backupdir = data_dir .. '/temp/backups'
+vim.o.directory = data_dir .. '/temp/tmp'
+vim.o.undodir = data_dir .. '/temp/undo'
 
 local config_dir = vim.fn.stdpath('config')
 package.path = package.path .. ';' .. config_dir .. '/luarocks/share/lua/5.1/?.lua'
@@ -61,6 +36,11 @@ package.path = package.path .. ';' .. config_dir .. '/luarocks/share/lua/5.1/?/i
 package.path = package.path .. ';' .. config_dir .. '/luarocks/share/lua/5.1/?/?.lua'
 package.cpath = package.cpath .. ';' .. config_dir .. '/luarocks/share/lua/5.1/?.so'
 package.cpath = package.cpath .. ';' .. config_dir .. '/luarocks/lib/lua/5.1/?.so'
+
+-- ~/.nvim is the user configuration directory
+-- ~/.nvim/lua is added to the path
+-- You should put your configuration in ~/.nvim/lua/user as your configs can be required by require 'user.<...>'
+package.path = package.path .. ';' .. os.getenv('HOME') .. '/.nvim/lua/?/init.lua'
 
 -- Load the additional framework
 require 'core'

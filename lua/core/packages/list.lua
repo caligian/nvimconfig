@@ -1,10 +1,13 @@
 return {
     {'wbthomason/packer.nvim'},
     {'justinmk/vim-sneak'},
+    {'tpope/vim-commentary', keys = {{'v', 'g'}}},
     {
         'tpope/vim-fugitive',
+        keys = {{'n', '<leader>gg'}},
         config = function ()
             user.builtin.kbd.noremap(
+            {'n', '<leader>gg', ':Git<CR>'},
             {'n', '<leader>gs', ':Git stage<CR>'},
             {'n', '<leader>gc', ':Git commit<CR>'},
             {'n', '<leader>gp', ':Git push<CR>'})
@@ -12,6 +15,7 @@ return {
     },
     {
         'preservim/tagbar',
+        keys = {{'n', '<C-t>'}},
         config = function ()
             vim.keymap.set('n', '<C-t>', ':TagbarToggle<CR>', {desc='Toggle tagbar'})
         end
@@ -24,14 +28,15 @@ return {
         'vim-airline/vim-airline',
         requires = {{'vim-airline/vim-airline-themes'}},
         config = function ()
-            vim.cmd('let g:airline_powerline_fonts = 1')
+            vim.cmd('let g:airline_powerline_fonts = 0')
             vim.cmd('let g:airline#extensions#tabline#enabled = 1')
             vim.cmd("let g:airline#extensions#tabline#formatter = 'unique_tail_improved'")
-            vim.cmd('let g:airline_theme = "solarized"')
+            vim.cmd('let g:airline_theme = "gotham256"')
         end
     },
     {
         'folke/which-key.nvim',
+        keys = {{'n', '<leader>'}},
         config = function () require('core.packages.configs.which-key_nvim') end
     },
     {
@@ -42,7 +47,8 @@ return {
     },
     {
         'rafi/awesome-vim-colorschemes',
-        config = function() vim.cmd('colorscheme solarized8_flat') end
+        config = function() vim.cmd('colorscheme gotham256') end
+
     },
     {
         'nvim-treesitter/nvim-treesitter',

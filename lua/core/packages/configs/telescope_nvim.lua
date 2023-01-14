@@ -1,3 +1,4 @@
+vim.cmd('packadd! telescope.nvim')
 local telescope = require 'telescope'
 local ivy = require('telescope.themes').get_ivy()
 ivy.disable_devicons = true

@@ -1,19 +1,23 @@
-user.builtin.lsp = {
+update(user.builtin, {'lsp'}, {
     flags = {
-        -- This is the default in Nvim 0.7+
-       debounce_text_changes = 150,
+        debounce_text_changes = 150,
     },
     capabilities = require('cmp_nvim_lsp').default_capabilities(),
-    sumneko_lua = {
-        settings = {
-            Lua = {diagnostics={globals={'vim', 'unpack', 'loadfile'}}},
-        }
+    servers = {
+        sumneko_lua = {
+            settings = {
+                Lua = {diagnostics={globals={'vim', 'unpack', 'loadfile', 'user'}}},
+            }
+        },
+        pyright = true,
+        solargraph = true,
+        texlab = true,
     },
-}
+})
 
 local cmp = require('cmp')
 local lsp = user.builtin.lsp
-local config = user.config.lsp or {}
+user.config.lsp = user.config.lsp or lsp
 local cmp_ultisnips_mappings = require("cmp_nvim_ultisnips.mappings")
 
 -- Setup nvim-cmp
@@ -95,22 +99,20 @@ end
 
 function lsp.setup_server(server, opts)
     opts = opts or {}
-    local capabilities = opts.capabilities or config.capabilities or lsp.capabilities
-    local on_attach = opts.on_attach or config.on_attach or lsp.on_attach
-    local flags = opts.flags or config.flags or lsp.flags
-    local default_conf = {
-        capabilities=capabilities,
-        on_attach=on_attach,
-        flags=flags
-    }
-
-    if lsp[server] then
-        default_conf = vim.tbl_extend('force', default_conf, lsp[server])
-    end
+    local user_config = user.config.lsp or {}
+    user_config = extend('keep', user.config.lsp, lsp)
+    local capabilities = opts.capabilities or user_config.capabilties
+    local on_attach = opts.on_attach or user_config.on_attach
+    local flags = opts.flags or user_config.flags
+    local default_conf = { capabilities = capabilities, on_attach = on_attach, flags = flags }
+    local server_conf = get(user_config, {'servers', server}) or lsp.servers[server]
+    server_conf = server_conf == true and default_conf or server_conf
+    default_conf = extend('keep', server_conf, default_conf)
 
     require('lspconfig')[server].setup(default_conf)
 end
 
-lsp.setup_server('pyright')
-lsp.setup_server('solargraph')
-lsp.setup_server('sumneko_lua')
+local servers = extend('keep', user.config.lsp.servers or {}, lsp.servers)
+for server, conf in pairs(servers) do
+    lsp.setup_server(server, conf == true and {})
+end

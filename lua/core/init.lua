@@ -1,9 +1,10 @@
-user = {}
-user.builtin = {}
-user.config = {}
-
 require 'core.utils'
+require 'core.globals'
+require 'core.utils.autocmd'
 require 'core.keybindings'
 require 'core.packages'
+require 'core.repl'
 require 'core.keybindings.defaults'
+require 'core.repl.keybindings'
+require 'core.repl.autocmds'
 require 'core.autocmds.defaults'
