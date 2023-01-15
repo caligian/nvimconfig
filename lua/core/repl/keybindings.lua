@@ -8,7 +8,7 @@ user.builtin.kbd.noremap(
     if not cmd then
         printf('No command defined for current buffer filetype %s', name)
     else
-        repl.open_terminal(name, cmd)
+        repl.open_terminal({name=name})
         repl.split_terminal(name, 's')
     end
 end, {desc = 'Start shell'}},
@@ -53,7 +53,7 @@ end, {desc = 'Send current line to shell'}},
 {'n', '<leader>xq', function ()
     local name = 'sh'
     repl.stop_terminal(name)
-end, {desc = 'Hide shell window'}},
+end, {desc = 'Kill shell'}},
 {'n', '<leader>xk', function ()
     local name = 'sh'
     repl.hide_terminal(name)
@@ -66,7 +66,7 @@ user.builtin.kbd.noremap(
     if not cmd then
         printf('No command defined for current buffer filetype %s', name)
     else
-        repl.open_terminal(name, cmd)
+        repl.open_terminal({name=name})
         repl.split_terminal(name, 's')
     end
 end, {desc = 'Start REPL for buffer'}},
@@ -111,8 +111,10 @@ end, {desc = 'Send current line to REPL'}},
 {'n', '<leader>rq', function ()
     local name = vim.bo.filetype
     repl.stop_terminal(name)
-end, {desc = 'Hide REPL window'}},
+end, {desc = 'Kill REPL'}},
 {'n', '<leader>rk', function ()
     local name = vim.bo.filetype
     repl.hide_terminal(name)
-end, {desc = 'Hide REPL window'}})
+end, {desc = 'Hide REPL window'}},
+{'n', '<leader>rQ', repl.stop_all_terminals,
+{desc = 'Kill all REPLs'}})

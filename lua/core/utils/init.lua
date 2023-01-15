@@ -27,7 +27,7 @@ end
 function map_with_index(f, t)
     local out = {}
     for index, value in ipairs(t) do
-        out[index] = f(value)
+        out[index] = f(index, value)
     end
 
     return out
@@ -65,8 +65,10 @@ function assert_type(e, t)
 end
 
 function append(t, ...)
+    local idx = 1
     for _, value in ipairs({...}) do
-        t[#t+1] = value
+        t[idx] = value
+        idx = idx + 1
     end
 
     return t
@@ -82,8 +84,10 @@ end
 
 function shift(t, times)
     local new = {}
+    local idx = 1
     for i=times, #t do
-        new[#new+1] = t[i]
+        new[idx] = t[i]
+        idx = idx + 1
     end
 
     return new
@@ -91,8 +95,10 @@ end
 
 function unshift(t, ...)
     local new = {...}
+    local idx = 1
     for _, value in ipairs(t) do
-        new[#new+1] = value
+        new[idx] = value
+        idx = idx + 1
     end
 
     return new
@@ -169,7 +175,6 @@ end
 function update(tbl, keys, value)
     local len_ks = #keys
     local t = tbl
-    local prev = nil
 
     for idx, k in ipairs(keys) do
         local v = t[k]
@@ -178,7 +183,6 @@ function update(tbl, keys, value)
             t[k] = value
             return value, t, tbl
         elseif type(v) == 'table' then
-            prev = t
             t = t[k]
         else
             return
@@ -195,7 +199,7 @@ function rpartial(f, ...)
             inner[len+idx] = a
         end
 
-        return f(unpack(outer))
+        return f(unpack(inner))
     end
 end
 
@@ -275,7 +279,7 @@ function merge_keepleft(a, b)
         end
 
         if type(bv) == 'table' and type(av) == 'table' then
-            merge(at[key], value)
+            merge_keepleft(at[key], value)
         elseif value ~= nil then
             at[key] = value
         end
@@ -286,4 +290,15 @@ end
 
 function printf(...)
     print(string.format(...))
+end
+
+function with_open(fname, mode, callback)
+    local fh = io.open(fname, mode)
+    local out = nil
+    if fh then
+        out = callback(fh)
+        fh:close()
+    end
+
+    return out
 end

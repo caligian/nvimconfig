@@ -42,11 +42,39 @@ function repl.is_interrupted(id)
     return repl.status(id) == 'interrupted'
 end
 
-function repl.open_terminal(name, cmd)
+function repl.stop_terminal(id)
+    if not repl.is_running(id) then return end
+    local r = repl.ids[id]
+    id = r.id
+    vim.fn.chanclose(id)
+    r.running = false
+    repl.hide_terminal(id)
+
+    if vim.fn.bufexists(r.buffer) == 1 then
+        vim.api.nvim_buf_delete(r.buffer, {force=true})
+    end
+end
+
+function repl.stop_all_terminals()
+    for _, r in pairs(repl.buffers) do
+        repl.stop_terminal(r.id)
+    end
+end
+
+
+function repl.open_terminal(opts)
+    opts = opts or {}
+    opts.name = opts.name or vim.bo.filetype
+    opts.cmd = opts.cmd or repl.commands[opts.name]
+    local name, cmd = opts.name, opts.cmd
+
+    assert(cmd, 'No command provided')
+
     if repl.ids[name] and repl.ids[name].running then
         return repl.ids[name]
     end
 
+    local current_buf = vim.fn.bufnr(0)
     local buf = vim.api.nvim_create_buf(false, true)
     local id = nil
 
@@ -59,16 +87,18 @@ function repl.open_terminal(name, cmd)
         vim.api.nvim_chan_send(id, cmd .. "\r")
     end)
 
-    repl.ids[id] = {
+    local r = {
         id = id,
         running = true,
         command = cmd,
         buffer = buf,
         name = name,
     }
-    repl.ids[name] = repl.ids[id]
+    repl.ids[id] = r
+    repl.ids[name] = r
+    repl.buffers[buf] = r
 
-    return repl.ids[name]
+    return r
 end
 
 function repl.split_terminal(id, direction)
@@ -79,9 +109,13 @@ function repl.split_terminal(id, direction)
     direction = direction or 's'
     local terminal_buf = repl.ids[id].buffer
     if direction == 's' then
-        vim.cmd('split | wincmd j | b ' .. terminal_buf)
+        local height = vim.fn.winheight(0) / 3
+        local count = math.floor(height)
+        vim.cmd('split | wincmd j | b ' .. terminal_buf .. ' | resize ' .. count)
     else
-        vim.cmd('vsplit | wincmd l | b ' .. terminal_buf)
+        local width = vim.fn.winwidth(0) / 3
+        local count = math.floor(width)
+        vim.cmd('vsplit | wincmd l | b ' .. terminal_buf .. ' | vertical resize ' .. count)
     end
 end
 
@@ -144,14 +178,6 @@ function repl.send_visual(id, buf)
             repl.send_string(id, vim.api.nvim_buf_get_text(buf, start_pos[2]-1, start_pos[3]-1, end_pos[2]-1, end_pos[3], {}))
         end
     end)
-end
-
-function repl.stop_terminal(id)
-    if not repl.is_running(id) then return end
-    id = repl.ids[id].id
-    vim.fn.chanclose(id)
-    repl.ids[id].running = false
-    repl.hide_terminal(id)
 end
 
 return repl
