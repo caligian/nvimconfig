@@ -1,6 +1,1 @@
-vim.api.nvim_create_autocmd({'BufEnter'}, {
-    pattern = '*tex',
-    callback = function()
-        vim.wo.wrap = true
-    end
-})
+user.builtin.autocmd.create('BufEnter', '*tex', function() vim.wo.wrap = true end, { name = 'enable_window_wrap_in_tex' })

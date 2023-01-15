@@ -1,4 +1,5 @@
 add_global('user', {
+    log = {},
     builtin = {
         lsp = {},
         treesitter = {},

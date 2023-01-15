@@ -1,4 +1,5 @@
 flatten = vim.tbl_flatten
+substr = string.sub
 sprintf = string.format
 filter = vim.tbl_filter
 extend = vim.tbl_extend
@@ -36,18 +37,18 @@ end
 function inspect(...)
     local final_s = ''
 
-    for _, obj in ipairs({...}) do
+    for _, obj in ipairs({ ... }) do
         final_s = final_s .. vim.inspect(obj) .. "\n\n"
     end
 
-    vim.api.nvim_echo({{final_s}}, false, {})
+    vim.api.nvim_echo({ { final_s } }, false, {})
 end
 
 function ensure_list(e, force)
     if force then
-        return {e}
+        return { e }
     elseif type(a) ~= 'table' then
-        return {e}
+        return { e }
     else
         return e
     end
@@ -66,7 +67,7 @@ end
 
 function append(t, ...)
     local idx = 1
-    for _, value in ipairs({...}) do
+    for _, value in ipairs({ ... }) do
         t[idx] = value
         idx = idx + 1
     end
@@ -75,7 +76,7 @@ function append(t, ...)
 end
 
 function append_at_index(t, idx, ...)
-    for _, value in ipairs({...}) do
+    for _, value in ipairs({ ... }) do
         table.insert(t, idx, value)
     end
 
@@ -85,7 +86,7 @@ end
 function shift(t, times)
     local new = {}
     local idx = 1
-    for i=times, #t do
+    for i = times, #t do
         new[idx] = t[i]
         idx = idx + 1
     end
@@ -94,7 +95,7 @@ function shift(t, times)
 end
 
 function unshift(t, ...)
-    local new = {...}
+    local new = { ... }
     local idx = 1
     for _, value in ipairs(t) do
         new[idx] = value
@@ -106,7 +107,7 @@ end
 
 -- For multiple patterns, OR matching will be used
 function match(s, ...)
-    for _, value in ipairs({...}) do
+    for _, value in ipairs({ ... }) do
         local m = s:match(value)
         if m then
             return m
@@ -123,7 +124,7 @@ end
 function butlast(t)
     local new = {}
 
-    for i=1, #t-1 do
+    for i = 1, #t - 1 do
         new[i] = t[i]
     end
 
@@ -135,7 +136,7 @@ function last(t, n)
         local len = #t
         local new = {}
         local idx = 1
-        for i=len-n+1,len do
+        for i = len - n + 1, len do
             new[idx] = t[i]
             idx = idx + 1
         end
@@ -149,7 +150,7 @@ end
 function first(t, n)
     if n then
         local new = {}
-        for i=1,n do
+        for i = 1, n do
             new[i] = t[i]
         end
 
@@ -164,7 +165,7 @@ function rest(t)
     local len = #t
     local idx = 1
 
-    for i=2, len do
+    for i = 2, len do
         new[idx] = t[i]
         idx = idx + 1
     end
@@ -191,12 +192,12 @@ function update(tbl, keys, value)
 end
 
 function rpartial(f, ...)
-    local outer = {...}
+    local outer = { ... }
     return function(...)
-        local inner = {...}
+        local inner = { ... }
         local len = #outer
         for idx, a in ipairs(outer) do
-            inner[len+idx] = a
+            inner[len + idx] = a
         end
 
         return f(unpack(inner))
@@ -204,12 +205,12 @@ function rpartial(f, ...)
 end
 
 function partial(f, ...)
-    local outer = {...}
+    local outer = { ... }
     return function(...)
-        local inner = {...}
+        local inner = { ... }
         local len = #outer
         for idx, a in ipairs(inner) do
-            outer[len+idx] = a
+            outer[len + idx] = a
         end
 
         return f(unpack(outer))
@@ -218,7 +219,7 @@ end
 
 function get(tbl, ks, create_path)
     if type(ks) ~= 'table' then
-        ks = {ks}
+        ks = { ks }
     end
 
     local len_ks = #ks
@@ -298,6 +299,20 @@ function with_open(fname, mode, callback)
     if fh then
         out = callback(fh)
         fh:close()
+    end
+
+    return out
+end
+
+function slice(t, from, till)
+    till = till or #t
+    assert(till > from, 'End index cannot be bigger than start index')
+
+    local out = {}
+    local idx = 1
+    for i = from, till do
+        out[idx] = t[i]
+        idx = idx + 1
     end
 
     return out
