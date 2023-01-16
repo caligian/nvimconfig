@@ -1,4 +1,3 @@
-user.builtin.kbd = {}
 local kbd = user.builtin.kbd
 kbd.autocmds = {}
 

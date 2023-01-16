@@ -1,4 +1,3 @@
-vim.cmd('packadd! which-key.nvim')
 local wk = require('which-key')
 
 wk.setup {
@@ -82,6 +81,6 @@ wk.register({
     l = { name = 'LSP management', t = { name = 'Trouble' }, w = { name = 'Workspaces' } },
     t = { name = 'Tab management' },
     b = { name = 'Buffer management' },
-    x = { name = 'Shell operations'},
-    c = { name = 'Compile buffer'}
+    x = { name = 'Shell operations' },
+    c = { name = 'Compile buffer' }
 }, { prefix = '<leader>' })

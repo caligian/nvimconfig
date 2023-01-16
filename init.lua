@@ -11,7 +11,7 @@ vim.o.wildmenu = true
 vim.o.termguicolors = true
 vim.o.laststatus = 2
 vim.o.mousefocus = true
-vim.o.shell = "/bin/bash"
+vim.o.shell = "/usr/bin/zsh"
 vim.o.backspace = "indent,eol,start"
 vim.o.number = true
 vim.o.tabstop = 4
@@ -22,7 +22,7 @@ vim.o.inccommand = 'split'
 vim.o.background = 'dark'
 vim.g.mapleader = " "
 vim.g.maplocalleader = ","
-vim.o.guifont = 'Liberation Mono 11'
+vim.o.guifont = 'UbuntuMono Nerd Font:h13'
 vim.o.laststatus = 2
 
 local data_dir = vim.fn.stdpath('data')

@@ -2,6 +2,7 @@ return {
     { 'wbthomason/packer.nvim' },
     { 'justinmk/vim-sneak' },
     { 'tpope/vim-commentary', keys = { { 'v', 'g' } } },
+    { 'jasonccox/vim-wayland-clipboard' },
     {
         'tpope/vim-fugitive',
         keys = { { 'n', '<leader>gg' } },
@@ -25,13 +26,14 @@ return {
         ft = 'tex',
     },
     {
-        'vim-airline/vim-airline',
-        requires = { { 'vim-airline/vim-airline-themes' } },
+        'beauwilliams/statusline.lua',
         config = function()
-            vim.cmd('let g:airline_powerline_fonts = 0')
-            vim.cmd('let g:airline#extensions#tabline#enabled = 1')
-            vim.cmd("let g:airline#extensions#tabline#formatter = 'unique_tail_improved'")
-            vim.cmd('let g:airline_theme = "gotham256"')
+            vim.o.laststatus = 3
+        end
+    },
+    {
+        'flazz/vim-colorschemes',
+        config = function()
         end
     },
     {
@@ -43,10 +45,6 @@ return {
         ft = 'markdown',
         run = 'cd app && yarn install',
         cmd = 'MarkdownPreview'
-    },
-    {
-        'rafi/awesome-vim-colorschemes',
-        config = function() vim.cmd('colorscheme gotham256') end
     },
     {
         'nvim-treesitter/nvim-treesitter',

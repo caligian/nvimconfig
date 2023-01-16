@@ -1,6 +1,5 @@
 require 'core.utils'
 require 'core.globals'
-require 'core.logger'
 
 user.require 'core.utils.autocmd'
 user.require 'core.keybindings'

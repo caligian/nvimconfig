@@ -1,22 +1,7 @@
-update(user.builtin, { 'lsp' }, {
-    flags = {
-        debounce_text_changes = 150,
-    },
-    capabilities = require('cmp_nvim_lsp').default_capabilities(),
-    servers = {
-        sumneko_lua = {
-            settings = {
-                Lua = { diagnostics = { globals = { 'vim', 'unpack', 'loadfile', 'user' } } },
-            }
-        },
-        pyright = true,
-        solargraph = true,
-        texlab = true,
-    },
-})
 local cmp = require('cmp')
 local lsp = user.builtin.lsp
-user.config.lsp = user.config.lsp or lsp
+lsp.capabilties = require('cmp_nvim_lsp').default_capabilities()
+user.config['lsp'] = merge_keepleft(user.config.lsp or {}, lsp)
 local cmp_ultisnips_mappings = require("cmp_nvim_ultisnips.mappings")
 
 -- Mason.vim
@@ -136,8 +121,7 @@ end
 
 function lsp.setup_server(server, opts)
     opts = opts or {}
-    local user_config = user.config.lsp or {}
-    user_config = extend('keep', user.config.lsp, lsp)
+    local user_config = user.config.lsp
     local capabilities = opts.capabilities or user_config.capabilties
     local on_attach = opts.on_attach or user_config.on_attach
     local flags = opts.flags or user_config.flags
@@ -149,9 +133,6 @@ function lsp.setup_server(server, opts)
     require('lspconfig')[server].setup(default_conf)
 end
 
-local user_setup = get(user.config, { 'lsp', 'servers' }, true)
-local servers = merge_keepleft(user_setup, lsp.servers)
-for server, conf in pairs(servers) do
+for server, conf in pairs(user.config.lsp.servers) do
     lsp.setup_server(server, conf == true and {} or conf)
 end
-lsp.setup_server('sumneko_lua')

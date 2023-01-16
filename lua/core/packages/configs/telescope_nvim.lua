@@ -37,7 +37,7 @@ local builtin_keybindings = {
     ['\''] = { 'marks', 'Show marks' },
     ['<space>'] = { 'resume', 'Resume telescope' },
     ho = { 'vim_options', 'Show vim options' },
-    ff = { 'find_files', 'Find files in workspace' },
+    fw = { 'find_files', 'Find files in workspace' },
     gf = { 'git_files', 'Do git ls-files' },
     bb = { 'buffers', 'Show buffers' },
     fr = { 'oldfiles', 'Show recently opened files' },
@@ -60,5 +60,5 @@ for keys, picker in pairs(builtin_keybindings) do
 end
 
 user.builtin.kbd.noremap(
-    { 'n', '<leader>fF', telescope.extensions.file_browser.file_browser, desc = 'Open file browser' },
+    { 'n', '<leader>ff', telescope.extensions.file_browser.file_browser, desc = 'Open file browser' },
     { "n", "<leader>p", telescope.extensions.project.project, { desc = 'Project management' } })
