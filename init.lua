@@ -22,7 +22,7 @@ vim.o.inccommand = 'split'
 vim.o.background = 'dark'
 vim.g.mapleader = " "
 vim.g.maplocalleader = ","
-vim.o.guifont = 'UbuntuMono Nerd Font:h13'
+vim.o.guifont = 'Hack Nerd Font:h13'
 vim.o.laststatus = 2
 
 local data_dir = vim.fn.stdpath('data')

@@ -16,6 +16,10 @@ function repl.is_visible(id)
 end
 
 function repl.status(id)
+    if not repl.ids[id] then
+        return false
+    end
+
     if type(id) == 'string'  then
         id = repl.ids[id].id
     end

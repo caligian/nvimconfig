@@ -34,6 +34,7 @@ return {
     {
         'flazz/vim-colorschemes',
         config = function()
+            vim.cmd('colorscheme ' .. user.builtin.colorscheme or user.config.colorscheme )
         end
     },
     {
@@ -89,7 +90,7 @@ return {
             { 'nvim-telescope/telescope-project.nvim' },
             { 'nvim-telescope/telescope-fzf-native.nvim', run = 'make' },
         },
-        config = function()
+        config = function ()
             user.require 'core.packages.configs.telescope_nvim'
         end
     },

@@ -1,22 +1,19 @@
 local telescope = require 'telescope'
 local ivy = require('telescope.themes').get_ivy()
 ivy.disable_devicons = true
+ivy.layout_config.height = 0.5
 ivy.previewer = false
-
+local file_browser_config = {
+    disable_devicons = true,
+}
+local project_config = {
+    hidden_files = false,
+    order_by = "desc",
+    search_by = "title",
+    sync_with_nvim_tree = true,
+}
 telescope.setup {
-    extensions = {
-        project = {
-            hidden_files = true,
-            order_by = "asc",
-            search_by = "title",
-            sync_with_nvim_tree = true,
-            theme = 'ivy',
-        },
-        file_browser = {
-            theme = 'ivy',
-            disable_devicons = true,
-        },
-    }
+    extensions = { project = project_config, file_browser = file_browser_config}
 }
 telescope.load_extension('file_browser')
 telescope.load_extension('project')
@@ -60,5 +57,11 @@ for keys, picker in pairs(builtin_keybindings) do
 end
 
 user.builtin.kbd.noremap(
-    { 'n', '<leader>ff', telescope.extensions.file_browser.file_browser, desc = 'Open file browser' },
-    { "n", "<leader>p", telescope.extensions.project.project, { desc = 'Project management' } })
+    { 'n', '<leader>ff', 
+    function ()
+        telescope.extensions.file_browser.file_browser(ivy)
+    end, desc = 'Open file browser' },
+    { "n", "<leader>p", 
+    function ()
+        telescope.extensions.project.project(ivy)
+    end, { desc = 'Project management' } })

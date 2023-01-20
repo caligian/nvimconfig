@@ -114,7 +114,7 @@ user = {
         autocmd = {},
         repl = {},
         shell = '/usr/bin/zsh',
-        colorscheme = 'colorsbox-stblue',
+        colorscheme = 'OceanicNextLight',
         font = 'Hack Nerd Font:h13'
     },
     config = {},
@@ -125,5 +125,5 @@ if success then
     user.config = config
 end
 
-local font = user.config.font or user.builtin.font or 'Hack Nerd Font:h13'
+local font = user.config.font or user.builtin.font or 'Hack Nerd Font:h12'
 vim.o.guifont = font
