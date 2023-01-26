@@ -57,11 +57,11 @@ for keys, picker in pairs(builtin_keybindings) do
 end
 
 user.builtin.kbd.noremap(
-    { 'n', '<leader>ff', 
+    { 'n', '<leader>ff',
     function ()
         telescope.extensions.file_browser.file_browser(ivy)
     end, desc = 'Open file browser' },
-    { "n", "<leader>p", 
+    { "n", "<leader>p",
     function ()
         telescope.extensions.project.project(ivy)
     end, { desc = 'Project management' } })

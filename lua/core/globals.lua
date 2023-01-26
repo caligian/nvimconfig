@@ -26,6 +26,7 @@ user = {
                 pyright = true,
                 solargraph = true,
                 texlab = true,
+                bashls = true,
             },
         },
         treesitter = {
@@ -114,8 +115,8 @@ user = {
         autocmd = {},
         repl = {},
         shell = '/usr/bin/zsh',
-        colorscheme = 'OceanicNextLight',
-        font = 'Hack Nerd Font:h13'
+        colorscheme = 'OceanicNext',
+        font = 'UbuntuMono Nerd Font:h13'
     },
     config = {},
 }

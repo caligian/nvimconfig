@@ -25,7 +25,10 @@ user.builtin.kbd.noremap_with_options(
 {'n', '<leader>t9', ':tabnext 9<CR>', {desc='Tab 9'}},
 {'n', '<leader>t0', ':tabnext 10<CR>', {desc='Tab 10'}},
 {'n', '<leader>ws', ':split <bar> wincmd k<CR>', {desc='Split below'}},
-{'n', '<leader>wv', ':vsplit <bar> wincmd h<CR>', {desc='Split right'}})
+{'n', '<leader>wv', ':vsplit <bar> wincmd h<CR>', {desc='Split right'}},
+{'n', '<localleader>,', partial(open_scratch_buffer, {split='s', overwrite=true}), {desc='Open scratch buffer in split'}},
+{'n', '<localleader><', partial(open_scratch_buffer, {split='v'}), {desc='Open scratch buffer in vsplit'}},
+{'n', '<localleader>>', partial(open_scratch_buffer, {split='t'}), {desc='Open scratch buffer in new tab'}})
 
 user.builtin.kbd.map({'n', '<leader>w', '<C-w>', {silent=true, desc='Window commands'}})
 

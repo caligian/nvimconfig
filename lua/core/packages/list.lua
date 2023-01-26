@@ -1,5 +1,6 @@
 return {
     { 'wbthomason/packer.nvim' },
+    { 'Olical/conjure' },
     { 'justinmk/vim-sneak' },
     { 'tpope/vim-commentary', keys = { { 'v', 'g' } } },
     { 'jasonccox/vim-wayland-clipboard' },
@@ -16,7 +17,6 @@ return {
     },
     {
         'preservim/tagbar',
-        keys = { { 'n', '<C-t>' } },
         config = function()
             user.builtin.kbd.noremap({ 'n', '<C-t>', ':TagbarToggle<CR>', { desc = 'Toggle tagbar' } })
         end

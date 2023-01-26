@@ -317,3 +317,66 @@ function slice(t, from, till)
 
     return out
 end
+
+function index(t, item, test)
+    for key, v in pairs(t) do
+        if test then
+            if test(v, item) then
+                return key
+            end
+        elseif item == v then
+            return key
+        end
+    end
+end
+
+function buffer_has_keymap(bufnr, mode, lhs)
+    bufnr = bufnr or 0
+    local keymaps = vim.api.nvim_buf_get_keymap(bufnr, mode)
+    lhs = lhs:gsub('<leader>', vim.g.mapleader)
+    lhs = lhs:gsub('<localleader>', vim.g.maplocalleader)
+
+    return index(keymaps, lhs, function (t, item)
+        return t.lhs == item
+    end)
+end
+
+function open_scratch_buffer(opts)
+    opts = opts or {}
+    opts.name = opts.name or 'scratch_buffer'
+    opts.ft = opts.ft or vim.bo.filetype or 'lua'
+    opts.split = opts.split or 's'
+    local bufnr = vim.fn.bufnr(opts.name)
+
+    if vim.fn.bufexists(opts.name) == 0 then
+        bufnr = vim.fn.bufadd(opts.name)
+    end
+    vim.api.nvim_buf_call(bufnr, function ()
+        vim.cmd('set buftype=nofile')
+        vim.cmd('set nobuflisted')
+        vim.cmd('set ft=' .. opts.ft)
+    end)
+
+    if opts.callback then
+        opts.keys = opts.keys or '<C-c><C-c>'
+        vim.api.nvim_buf_set_var(bufnr, 'callback_keymap', opts.keys)
+
+        local ok, _ = pcall(vim.api.nvim_buf_get_var, bufnr, 'is_keymap_set')
+        if not ok or opts.overwrite then
+            vim.api.nvim_buf_set_var(bufnr, 'is_keymap_set', true)
+            vim.keymap.set('n', opts.keys, function ()
+                opts.callback(vim.api.nvim_buf_get_lines(0, 0, -1, false))
+            end, {buffer=bufnr})
+        end
+    end
+
+    if opts.switch then
+        vim.cmd('b ' .. opts.name)
+    elseif opts.split == 's' then
+        vim.cmd('split | wincmd j | b ' .. opts.name)
+    elseif opts.split == 'v' then
+        vim.cmd('vsplit | wincmd l | b ' .. opts.name)
+    else
+        vim.cmd('tabnew ' .. opts.name)
+    end
+end

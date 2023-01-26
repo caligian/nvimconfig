@@ -86,7 +86,7 @@ cmp.setup {
 -- Mappings.
 -- See `:help vim.diagnostic.*` for documentation on any of the below functions
 user.builtin.kbd.noremap_with_options({ silent = true },
-    { 'n', '<leader>ld', vim.diagnostic.open_float, { desc = 'LSP diagnostic float' } },
+    { 'n', '<leader>li', partial(vim.diagnostic.open_float, {scope='l', focus=false}), { desc = 'LSP diagnostic float' } },
     { 'n', '[d', vim.diagnostic.goto_prev, { desc = 'LSP go to previous diagnostic' } },
     { 'n', ']d', vim.diagnostic.goto_next, { desc = 'LSP go to next diagnostic' } },
     { 'n', '<leader>lq', vim.diagnostic.setloclist, { desc = 'LSP set loclist' } })
@@ -136,3 +136,6 @@ end
 for server, conf in pairs(user.config.lsp.servers) do
     lsp.setup_server(server, conf == true and {} or conf)
 end
+
+vim.diagnostic.config({ virtual_text = false })
+vim.o.updatetime = 300
