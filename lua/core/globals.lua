@@ -1,5 +1,3 @@
-require 'logging.file'
-
 user = {
     logger = logging.file {filename=vim.fn.stdpath('config') .. '/nvim.log'},
     log = {},

@@ -1,5 +1,6 @@
 require 'core.utils'
 require 'core.globals'
+require 'core.options'
 
 user.require 'core.utils.autocmd'
 user.require 'core.keybindings'
