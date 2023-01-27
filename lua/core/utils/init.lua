@@ -47,7 +47,7 @@ end
 function ensure_list(e, force)
     if force then
         return { e }
-    elseif type(a) ~= 'table' then
+    elseif type(e) ~= 'table' then
         return { e }
     else
         return e
@@ -379,4 +379,21 @@ function open_scratch_buffer(opts)
     else
         vim.cmd('tabnew ' .. opts.name)
     end
+end
+
+function join_path(...)
+    return table.concat({...}, '/')
+end
+
+function basename(s)
+    s = vim.split(s, '/')
+    return s[#s]
+end
+
+function get_visual_range(bufnr)
+    bufnr = bufnr or 0
+    local start_pos = vim.fn.getpos("'<")
+    local end_pos = vim.fn.getpos("'>")
+
+    return vim.api.nvim_buf_get_text(bufnr, start_pos[2]-1, start_pos[3]-1, end_pos[2]-1, end_pos[3], {})
 end

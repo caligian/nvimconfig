@@ -28,19 +28,51 @@ user.builtin.kbd.noremap_with_options(
 {'n', '<leader>wv', ':vsplit <bar> wincmd h<CR>', {desc='Split right'}},
 {'n', '<localleader>,', partial(open_scratch_buffer, {split='s', overwrite=true}), {desc='Open scratch buffer in split'}},
 {'n', '<localleader><', partial(open_scratch_buffer, {split='v'}), {desc='Open scratch buffer in vsplit'}},
-{'n', '<localleader>>', partial(open_scratch_buffer, {split='t'}), {desc='Open scratch buffer in new tab'}})
+{'n', '<localleader>>', partial(open_scratch_buffer, {split='t'}), {desc='Open scratch buffer in new tab'}},
+{'t', '<Esc>', '<C-\\><C-n>', {desc='Go to normal mode'}})
 
 user.builtin.kbd.map({'n', '<leader>w', '<C-w>', {silent=true, desc='Window commands'}})
 
-user.builtin.kbd.noremap({'n', '<leader>fv', function ()
-    local s = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-    s = table.concat(s, "\n")
-    local f, err = loadstring(s)
-    if f then
-        f()
-    else
-        print(err)
-    end
-end, {desc='Lua source buffer'}})
+local function loadstring_from_buffer(opts)
+    return function ()
+        opts = opts or {}
+        if opts.bufnr == true or opts.bufnr == nil then
+            opts.bufnr = vim.fn.bufnr()
+        end
+        local s = {}
 
-user.builtin.kbd.noremap({'t', '<Esc>', '<C-\\><C-n>', {desc='Go to normal mode'}})
+        if opts.buffer then
+            s = vim.api.nvim_buf_get_lines(opts.bufnr, 0, -1, false)
+        elseif opts.visual then
+            s = get_visual_range(opts.bufnr)
+        elseif opts.line then
+            if opts.line == true then
+                s = vim.api.nvim_buf_call(opts.bufnr, function ()
+                    return vim.fn.getline('.')
+                end)
+            else
+                s = vim.api.nvim_buf_call(opts.bufnr, function ()
+                    return vim.fn.getline(opts.line)
+                end)
+            end
+        elseif opts.till_point then
+            s = vim.api.nvim_buf_call(opts.bufnr, function()
+                local line = vim.fn.line('.')
+                return vim.api.nvim_buf_get_lines(opts.bufnr, 0, line-1, false)
+            end)
+        end
+
+        local compiled = loadstring(table.concat(ensure_list(s), "\n"))
+        if is_type(compiled, 'function') then
+           compiled()
+        else
+            vim.api.nvim_err_writeln(inspect(compiled))
+        end
+    end
+end
+
+user.builtin.kbd.noremap(
+{'n', '<leader>eb', loadstring_from_buffer {buffer=true}, {desc='Lua source buffer'}},
+{'n', '<leader>ee', loadstring_from_buffer {line=true}, {desc='Lua source current line'}},
+{'n', '<leader>e.', loadstring_from_buffer {till_point=true}, {desc='Lua source till point'}},
+{'v', '<leader>ee', loadstring_from_buffer {visual=true}, {desc='Lua source visual range'}})
