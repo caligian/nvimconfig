@@ -1,20 +1,10 @@
 local cmp = require('cmp')
-local lsp = user.builtin.lsp
-lsp.capabilties = require('cmp_nvim_lsp').default_capabilities()
-user.config['lsp'] = merge_keepleft(user.config.lsp or {}, lsp)
 local cmp_ultisnips_mappings = require("cmp_nvim_ultisnips.mappings")
+local lsp = user.lsp
 
--- Mason.vim
-require('mason').setup()
+lsp.capabilties = require('cmp_nvim_lsp').default_capabilities()
 
--- Ultisnips
-vim.g.UltiSnipsExpandTrigger = '<C-o>'
-vim.g.UltiSnipsJumpForwardTrigger = '<C-j>'
-vim.g.UltiSnipsJumpBackwardTrigger = '<C-k>'
-vim.g.UltiSnipsEditSplit = 'vertical'
-
--- Trouble.nvim
-require('trouble').setup {
+lsp.trouble = {
     icons = false,
     fold_open = "v",
     fold_closed = ">",
@@ -29,17 +19,18 @@ require('trouble').setup {
     },
 }
 
-user.builtin.kbd.noremap_with_options({ silent = true },
-    { "n", "<leader>ltt", "<cmd>TroubleToggle<cr>", { desc = 'Toggle trouble' } },
-    { "n", "<leader>ltw", "<cmd>TroubleToggle workspace_diagnostics<cr>", { desc = 'Workspace diagnostics' } },
-    { "n", "<leader>ltd", "<cmd>TroubleToggle document_diagnostics<cr>", { desc = 'Document diagnostics' } },
-    { "n", "<leader>ltl", "<cmd>TroubleToggle loclist<cr>", { desc = 'Show loclist' } },
-    { "n", "<leader>ltq", "<cmd>TroubleToggle quickfix<cr>", { desc = 'Show qflist' } },
-    { "n", "gR", "<cmd>TroubleToggle lsp_references<cr>", { desc = 'LSP references' } })
+lsp.snippet = {
+    expand_trigger = '<C-o>',
+    jump_forward_trigger = '<C-j>',
+    jump_backward_trigger = '<C-k>',
+    edit_split = 'vertical',
+}
 
+lsp.diagnostic = {
+    virtual_text = false
+}
 
--- nvim-cmp
-cmp.setup {
+lsp.cmp = {
     mapping = {
         ['<C-b>'] = cmp.mapping.scroll_docs(-4),
         ['<C-f>'] = cmp.mapping.scroll_docs(4),
@@ -83,16 +74,9 @@ cmp.setup {
     },
 }
 
--- Mappings.
--- See `:help vim.diagnostic.*` for documentation on any of the below functions
-user.builtin.kbd.noremap_with_options({ silent = true },
-    { 'n', '<leader>li', partial(vim.diagnostic.open_float, {scope='l', focus=false}), { desc = 'LSP diagnostic float' } },
-    { 'n', '[d', vim.diagnostic.goto_prev, { desc = 'LSP go to previous diagnostic' } },
-    { 'n', ']d', vim.diagnostic.goto_next, { desc = 'LSP go to next diagnostic' } },
-    { 'n', '<leader>lq', vim.diagnostic.setloclist, { desc = 'LSP set loclist' } })
+-- Load user overrides
+user.require 'user.pkg.configs.nvim-lspconfig'
 
--- Use an on_attach function to only map the following keys
--- after the language server attaches to the current buffer
 function lsp.on_attach(client, bufnr)
     -- Enable completion triggered by <c-x><c-o>
     vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
@@ -102,7 +86,7 @@ function lsp.on_attach(client, bufnr)
 
     -- Mappings.
     -- See `:help vim.lsp.*` for documentation on any of the below functions
-    user.builtin.kbd.noremap_with_options({ buffer = bufnr, silent = true },
+    user.kbd.noremap_with_options({ buffer = bufnr, silent = true },
         { 'n', 'gD', vim.lsp.buf.declaration, { desc = 'Buffer declarations' } },
         { 'n', 'gd', vim.lsp.buf.definition, { desc = 'Buffer definitions' } },
         { 'n', 'K', vim.lsp.buf.hover, { desc = 'Show float UI' } },
@@ -121,21 +105,55 @@ end
 
 function lsp.setup_server(server, opts)
     opts = opts or {}
-    local user_config = user.config.lsp
-    local capabilities = opts.capabilities or user_config.capabilties
-    local on_attach = opts.on_attach or user_config.on_attach
-    local flags = opts.flags or user_config.flags
+    local capabilities = opts.capabilities or lsp.capabilties
+    local on_attach = opts.on_attach or lsp.on_attach
+    local flags = opts.flags or lsp.flags
     local default_conf = { capabilities = capabilities, on_attach = on_attach, flags = flags }
-    local server_conf = get(user_config, { 'servers', server }) or lsp.servers[server]
+    local server_conf = builtin.get(lsp, { 'servers', server }) or lsp.servers[server]
     server_conf = server_conf == true and default_conf or server_conf
-    default_conf = extend('keep', server_conf, default_conf)
+    default_conf = builtin.merge(server_conf, default_conf)
 
     require('lspconfig')[server].setup(default_conf)
 end
 
-for server, conf in pairs(user.config.lsp.servers) do
-    lsp.setup_server(server, conf == true and {} or conf)
+function lsp.setup()
+    -- Mason.vim, trouble and lsp autoformatting
+    require('mason').setup()
+    require('trouble').setup(lsp.trouble)
+    require('lsp-format').setup()
+
+    -- Ultisnips
+    vim.g.UltiSnipsExpandTrigger = lsp.snippet.expand_trigger
+    vim.g.UltiSnipsJumpForwardTrigger = lsp.snippet.jump_forward_trigger
+    vim.g.UltiSnipsJumpBackwardTrigger = lsp.snippet.jump_backward_trigger
+    vim.g.UltiSnipsEditSplit = lsp.snippet.edit_split
+
+    -- Other settings
+    vim.diagnostic.config(lsp.diagnostic)
+
+    -- nvim-cmp
+    cmp.setup(lsp.cmp)
+
+    -- Setup lsp servers
+    for server, conf in pairs(lsp.servers) do
+        lsp.setup_server(server, conf == true and {} or conf)
+    end
 end
 
-vim.diagnostic.config({ virtual_text = false })
-vim.o.updatetime = 300
+-- Trouble mappings
+user.kbd.noremap_with_options({ silent = true },
+    { "n", "<leader>ltt", "<cmd>TroubleToggle<cr>", { desc = 'Toggle trouble' } },
+    { "n", "<leader>ltw", "<cmd>TroubleToggle workspace_diagnostics<cr>", { desc = 'Workspace diagnostics' } },
+    { "n", "<leader>ltd", "<cmd>TroubleToggle document_diagnostics<cr>", { desc = 'Document diagnostics' } },
+    { "n", "<leader>ltl", "<cmd>TroubleToggle loclist<cr>", { desc = 'Show loclist' } },
+    { "n", "<leader>ltq", "<cmd>TroubleToggle quickfix<cr>", { desc = 'Show qflist' } },
+    { "n", "gR", "<cmd>TroubleToggle lsp_references<cr>", { desc = 'LSP references' } })
+
+-- Mappings.
+-- See `:help vim.diagnostic.*` for documentation on any of the below functions
+user.kbd.noremap_with_options({ silent = true },
+    { 'n', '<leader>li', builtin.partial(vim.diagnostic.open_float, { scope = 'l', focus = false }),
+        { desc = 'LSP diagnostic float' } },
+    { 'n', '[d', vim.diagnostic.goto_prev, { desc = 'LSP go to previous diagnostic' } },
+    { 'n', ']d', vim.diagnostic.goto_next, { desc = 'LSP go to next diagnostic' } },
+    { 'n', '<leader>lq', vim.diagnostic.setloclist, { desc = 'LSP set loclist' } })

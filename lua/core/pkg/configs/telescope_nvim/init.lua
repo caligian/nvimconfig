@@ -1,23 +1,60 @@
 local telescope = require 'telescope'
 local ivy = require('telescope.themes').get_ivy()
+local file_browser_actions = require 'core.pkg.configs.telescope_nvim.file_browser'
+local buffer_actions = require 'core.pkg.configs.telescope_nvim.buffers'
+
+-- To seem more like emacs ivy
 ivy.disable_devicons = true
-ivy.layout_config.height = 0.5
+ivy.layout_config.height = 0.3
 ivy.previewer = false
+
 local file_browser_config = {
     disable_devicons = true,
+    mappings = {
+        n = {
+            d = file_browser_actions.delete_recursively,
+            l = file_browser_actions.luafile,
+            ['<C-g>'] = file_browser_actions.git_init,
+            ['<C-d>'] = file_browser_actions.open_in_netrw,
+            ['<C-t>'] = file_browser_actions.touch,
+        }
+    }
 }
+
 local project_config = {
     hidden_files = false,
     order_by = "desc",
     search_by = "title",
     sync_with_nvim_tree = true,
 }
-telescope.setup {
-    extensions = { project = project_config, file_browser = file_browser_config}
-}
-telescope.load_extension('file_browser')
-telescope.load_extension('project')
 
+builtin.merge(file_browser_config, ivy)
+builtin.merge(project_config, ivy)
+
+-- Setup telescope
+require('telescope').setup {
+    pickers = {
+        buffers = {
+            mappings = {
+                n = {
+                    x = buffer_actions.bwipeout,
+                    ['!'] = buffer_actions.nomodified,
+                    w = buffer_actions.save,
+                    r = buffer_actions.readonly,
+                },
+            }
+        },
+    },
+    extensions = {
+        project = project_config,
+        file_browser = file_browser_config
+    },
+}
+-- Load file browser and project
+require('telescope').load_extension('file_browser')
+require('telescope').load_extension('project')
+
+-- Convenience functions for getting pickers
 local function get_picker(picker_type)
     return function(picker)
         return function()
@@ -53,15 +90,16 @@ local builtin_keybindings = {
 for keys, picker in pairs(builtin_keybindings) do
     local p, desc = unpack(picker)
     local cb = builtin(p)
-    user.builtin.kbd.noremap({ 'n', '<leader>' .. keys, cb, { desc = desc } })
+    user.kbd.noremap({ 'n', '<leader>' .. keys, cb, { desc = desc } })
 end
 
-user.builtin.kbd.noremap(
+-- Map extensions
+user.kbd.noremap(
     { 'n', '<leader>ff',
-    function ()
-        telescope.extensions.file_browser.file_browser(ivy)
-    end, desc = 'Open file browser' },
+        function()
+            telescope.extensions.file_browser.file_browser(ivy)
+        end, desc = 'Open file browser' },
     { "n", "<leader>p",
-    function ()
-        telescope.extensions.project.project(ivy)
-    end, { desc = 'Project management' } })
+        function()
+            telescope.extensions.project.project(ivy)
+        end, { desc = 'Project management' } })

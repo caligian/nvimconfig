@@ -1,4 +1,4 @@
-user.builtin.kbd.noremap_with_options(
+user.kbd.noremap_with_options(
 {silent=true},
 {'n', '\\\\', ':noh<CR>', {desc='No highlight'}},
 {'n', '<leader>fs', ':w %<CR>', {desc='Save buffer'}},
@@ -26,12 +26,12 @@ user.builtin.kbd.noremap_with_options(
 {'n', '<leader>t0', ':tabnext 10<CR>', {desc='Tab 10'}},
 {'n', '<leader>ws', ':split <bar> wincmd k<CR>', {desc='Split below'}},
 {'n', '<leader>wv', ':vsplit <bar> wincmd h<CR>', {desc='Split right'}},
-{'n', '<localleader>,', partial(open_scratch_buffer, {split='s', overwrite=true}), {desc='Open scratch buffer in split'}},
-{'n', '<localleader><', partial(open_scratch_buffer, {split='v'}), {desc='Open scratch buffer in vsplit'}},
-{'n', '<localleader>>', partial(open_scratch_buffer, {split='t'}), {desc='Open scratch buffer in new tab'}},
+{'n', '<localleader>,', builtin.partial(open_scratch_buffer, {split='s', overwrite=true}), {desc='Open scratch buffer in split'}},
+{'n', '<localleader><', builtin.partial(open_scratch_buffer, {split='v'}), {desc='Open scratch buffer in vsplit'}},
+{'n', '<localleader>>', builtin.partial(open_scratch_buffer, {split='t'}), {desc='Open scratch buffer in new tab'}},
 {'t', '<Esc>', '<C-\\><C-n>', {desc='Go to normal mode'}})
 
-user.builtin.kbd.map({'n', '<leader>w', '<C-w>', {silent=true, desc='Window commands'}})
+user.kbd.map({'n', '<leader>w', '<C-w>', {silent=true, desc='Window commands'}})
 
 local function loadstring_from_buffer(opts)
     return function ()
@@ -44,7 +44,7 @@ local function loadstring_from_buffer(opts)
         if opts.buffer then
             s = vim.api.nvim_buf_get_lines(opts.bufnr, 0, -1, false)
         elseif opts.visual then
-            s = get_visual_range(opts.bufnr)
+            s = builtin.get_visual_range(opts.bufnr)
         elseif opts.line then
             if opts.line == true then
                 s = vim.api.nvim_buf_call(opts.bufnr, function ()
@@ -62,16 +62,16 @@ local function loadstring_from_buffer(opts)
             end)
         end
 
-        local compiled = loadstring(table.concat(ensure_list(s), "\n"))
-        if is_type(compiled, 'function') then
+        local compiled = loadstring(table.concat(builtin.ensure_list(s), "\n"))
+        if builtin.is_type(compiled, 'function') then
            compiled()
         else
-            vim.api.nvim_err_writeln(inspect(compiled))
+            builtin.nvim_err(inspect(compiled))
         end
     end
 end
 
-user.builtin.kbd.noremap(
+user.kbd.noremap(
 {'n', '<leader>eb', loadstring_from_buffer {buffer=true}, {desc='Lua source buffer'}},
 {'n', '<leader>ee', loadstring_from_buffer {line=true}, {desc='Lua source current line'}},
 {'n', '<leader>e.', loadstring_from_buffer {till_point=true}, {desc='Lua source till point'}},

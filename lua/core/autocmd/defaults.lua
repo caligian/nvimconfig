@@ -1,4 +1,4 @@
-user.builtin.autocmd.create(
+user.autocmd.create(
 'BufEnter',
 '*tex',
 function() vim.wo.wrap = true end,

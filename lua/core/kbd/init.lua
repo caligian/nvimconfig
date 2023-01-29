@@ -1,5 +1,4 @@
-local kbd = user.builtin.kbd
-kbd.autocmds = {}
+local kbd = {autocmd = {}}
 
 function kbd.map(...)
     for _, form in ipairs({...}) do
@@ -8,11 +7,11 @@ function kbd.map(...)
         local autocmd_opts = {}
         local kbd_opts = {}
         local event, pattern = opts.event, opts.pattern
-        mode = ensure_list(mode)
+        mode = builtin.ensure_list(mode)
         local buffer = opts.buffer
 
         for key, value in pairs(opts) do
-            if key == 'event' or key == 'pattern' or key == 'once' or key == 'nested' then
+            if builtin.match('event', 'pattern', 'once', 'nested') then
                 autocmd_opts[key] = value
             else
                 kbd_opts[key] = value
@@ -31,7 +30,7 @@ function kbd.map(...)
                 end
             })
 
-            kbd.autocmds[id] = {
+            kbd.autocmd[id] = {
                 autocmd_id = id,
                 mode = mode,
                 lhs = lhs,
@@ -51,7 +50,7 @@ function kbd.map(...)
 
             for _, m in ipairs(mode) do
                 kbd[m] = kbd[m] or {}
-                kbd[m][id] = kbd.autocmds[id]
+                kbd[m][id] = kbd.autocmd[id]
             end
         else
             vim.keymap.set(mode, lhs, rhs, opts)
@@ -103,7 +102,7 @@ end
 function kbd.noremap_with_options(opts, ...)
     opts = opts or {}
     for _, form in ipairs({...}) do
-        local options = extend('force', form[4] or {}, opts)
+        local options = builtin.merge(form[4] or {}, opts)
         form[4] = options
         kbd.noremap(form)
     end
@@ -112,8 +111,11 @@ end
 function kbd.map_with_options(opts, ...)
     opts = opts or {}
     for _, form in ipairs({...}) do
-        local options = extend('force', form[4] or {}, opts)
+        local options = builtin.merge(form[4] or {}, opts)
         form[4] = options
         kbd.map(form)
     end
 end
+
+user.kbd = kbd
+return kbd

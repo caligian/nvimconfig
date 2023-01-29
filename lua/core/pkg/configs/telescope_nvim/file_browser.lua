@@ -8,7 +8,7 @@ function mod.delete_recursively(prompt_bufnr)
     local path = selected[1]
     local cwd = selected.cwd
 
-    job:new({ command = '/sbin/rm', args = {'-r', path}, cwd=cwd}):start()
+    job:new({ command = '/sbin/rm', args = { '-r', path }, cwd = cwd }):start()
 
     print('Attempting to delete ' .. path)
     actions.close(prompt_bufnr)
@@ -28,7 +28,7 @@ function mod.git_init(bufnr)
     local sel = action_state.get_selected_entry()
     local cwd = sel.cwd
 
-    job:new({command='/usr/bin/git', args={'init'}, cwd=cwd}):start()
+    job:new({ command = '/usr/bin/git', args = { 'init' }, cwd = cwd }):start()
 
     actions.close(bufnr)
 end
@@ -40,6 +40,18 @@ function mod.open_in_netrw(bufnr)
     vim.cmd('Ntree ' .. cwd)
 
     actions.close(bufnr)
+end
+
+function mod.touch(bufnr)
+    local sel = action_state.get_selected_entry()
+    local cwd = sel.cwd
+    local fname = vim.fn.input('touch > ')
+    fname = str.strip(fname)
+    fname = path.join(cwd, fname)
+
+    assert(#fname ~= 0, 'No filename provided')
+
+    vim.cmd('! touch ' .. fname)
 end
 
 return mod

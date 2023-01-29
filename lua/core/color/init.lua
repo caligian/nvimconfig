@@ -1,5 +1,5 @@
-user.builtin.color = {}
-local color = user.builtin.color
+user.color = {}
+local color = user.color
 
 function color.get_highlight_colors(hi)
     local c = {}

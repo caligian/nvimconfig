@@ -1,7 +1,7 @@
 require 'core.repl'
-local repl = user.builtin.repl
+local repl = user.repl
 
-user.builtin.kbd.noremap(
+user.kbd.noremap(
 {'n', '<leader>xi', function ()
     local name = 'sh'
     local cmd = repl.commands[name]
@@ -59,7 +59,7 @@ end, {desc = 'Kill shell'}},
     repl.hide_terminal(name)
 end, {desc = 'Hide shell window'}})
 
-user.builtin.kbd.noremap(
+user.kbd.noremap(
 {'n', '<leader>ri', function ()
     local name = vim.bo.filetype
     local cmd = repl.commands[name]

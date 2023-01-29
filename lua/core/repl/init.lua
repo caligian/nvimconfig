@@ -1,14 +1,14 @@
-get(user.builtin.repl, 'ids', true)
-get(user.builtin.repl, 'buffers', true)
-update(user.builtin.repl, {'commands'}, {
+builtin.get(user.repl, 'ids', true)
+builtin.get(user.repl, 'buffers', true)
+builtin.update(user.repl, {'commands'}, {
     python = 'ipython3 -q',
     ruby = 'irb --inf-ruby-mode',
     lua = 'lua5.1',
     sh = 'zsh',
 })
 user.config.repl = user.config.repl or {}
-local repl = user.builtin.repl
-merge(repl, user.config.repl)
+local repl = user.repl
+builtin.merge(repl, user.config.repl)
 
 function repl.is_visible(id)
     local winnr = vim.fn.bufwinnr(repl.ids[id].buffer)
@@ -140,7 +140,7 @@ function repl.send_string(id, s)
     if not repl.is_running(id) then return end
 
     id = repl.ids[id].id
-    if is_type(s, 'table')  then
+    if builtin.is_type(s, 'table')  then
         s = table.concat(s, "\n")
     end
     s = s .. "\r"

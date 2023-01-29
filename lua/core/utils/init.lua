@@ -1,31 +1,46 @@
-flatten = vim.tbl_flatten
-substr = string.sub
-sprintf = string.format
-filter = vim.tbl_filter
-extend = vim.tbl_extend
-deep_copy = vim.deepcopy
-is_empty = vim.tbl_isempty
-is_list = vim.tbl_islist
-keys = vim.tbl_keys
-values = vim.tbl_values
-map = vim.tbl_map
-trim = vim.trim
-validate_params = vim.validate
-ui_select = vim.ui.select
+builtin = {globals = {}}
+builtin.flatten = vim.tbl_flatten
+builtin.substr = string.sub
+builtin.sprintf = string.format
+builtin.filter = vim.tbl_filter
+builtin.deep_copy = vim.deepcopy
+builtin.is_empty = vim.tbl_isempty
+builtin.is_list = vim.tbl_islist
+builtin.keys = vim.tbl_keys
+builtin.values = vim.tbl_values
+builtin.map = vim.tbl_map
+builtin.trim = vim.trim
+builtin.validate = vim.validate
 
-function each(f, t)
+function builtin.extend(tbl, ...)
+    local idx = #tbl
+    for _, t in ipairs({...}) do
+        if type(t) == 'table' then
+            for _, value in ipairs(t) do
+                tbl[idx+1] = value
+            end
+        else
+            tbl[idx+1] = t
+        end
+        idx = idx + 1
+    end
+
+    return tbl
+end
+
+function builtin.each(f, t)
     for _, value in ipairs(t) do
         f(value)
     end
 end
 
-function each_with_index(f, t)
+function builtin.each_with_index(f, t)
     for idx, value in ipairs(t) do
         f(idx, value)
     end
 end
 
-function map_with_index(f, t)
+function builtin.map_with_index(f, t)
     local out = {}
     for index, value in ipairs(t) do
         out[index] = f(index, value)
@@ -34,7 +49,7 @@ function map_with_index(f, t)
     return out
 end
 
-function inspect(...)
+function builtin.inspect(...)
     local final_s = ''
 
     for _, obj in ipairs({ ... }) do
@@ -43,8 +58,9 @@ function inspect(...)
 
     vim.api.nvim_echo({ { final_s } }, false, {})
 end
+inspect = builtin.inspect
 
-function ensure_list(e, force)
+function builtin.ensure_list(e, force)
     if force then
         return { e }
     elseif type(e) ~= 'table' then
@@ -54,18 +70,18 @@ function ensure_list(e, force)
     end
 end
 
-function is_type(e, t)
+function builtin.is_type(e, t)
     return type(e) == t
 end
 
-function assert_type(e, t)
-    local out = is_type(e)
+function builtin.assert_type(e, t)
+    local out = builtin.is_type(e)
     assert(out)
 
     return out
 end
 
-function append(t, ...)
+function builtin.append(t, ...)
     local idx = 1
     for _, value in ipairs({ ... }) do
         t[idx] = value
@@ -75,7 +91,7 @@ function append(t, ...)
     return t
 end
 
-function append_at_index(t, idx, ...)
+function builtin.append_at_index(t, idx, ...)
     for _, value in ipairs({ ... }) do
         table.insert(t, idx, value)
     end
@@ -83,7 +99,7 @@ function append_at_index(t, idx, ...)
     return t
 end
 
-function shift(t, times)
+function builtin.shift(t, times)
     local new = {}
     local idx = 1
     for i = times, #t do
@@ -94,7 +110,7 @@ function shift(t, times)
     return new
 end
 
-function unshift(t, ...)
+function builtin.unshift(t, ...)
     local new = { ... }
     local idx = 1
     for _, value in ipairs(t) do
@@ -106,7 +122,7 @@ function unshift(t, ...)
 end
 
 -- For multiple patterns, OR matching will be used
-function match(s, ...)
+function builtin.match(s, ...)
     for _, value in ipairs({ ... }) do
         local m = s:match(value)
         if m then
@@ -115,13 +131,31 @@ function match(s, ...)
     end
 end
 
-function add_global(varname, value, overwrite)
-    if overwrite or (not _G[varname]) then
-        _G[varname] = value
+-- If varname in [varname] = var is prefixed with '!' then it will be overwritten
+function builtin.global(vars)
+    for var, value in pairs(vars) do
+        if var:match('^!') then
+            _G[var] = value
+        elseif _G[var] == nil then
+            _G[var] = value
+        end
+        builtin.globals[var] = value
     end
 end
 
-function butlast(t)
+function builtin.range(from, till, step)
+    local index = from
+    step = step or 1
+
+    return function ()
+	    index = index + step
+	    if index <= till then
+		    return index
+	    end
+    end
+end
+
+function builtin.butlast(t)
     local new = {}
 
     for i = 1, #t - 1 do
@@ -131,7 +165,7 @@ function butlast(t)
     return new
 end
 
-function last(t, n)
+function builtin.last(t, n)
     if n then
         local len = #t
         local new = {}
@@ -147,7 +181,7 @@ function last(t, n)
     end
 end
 
-function first(t, n)
+function builtin.first(t, n)
     if n then
         local new = {}
         for i = 1, n do
@@ -160,7 +194,7 @@ function first(t, n)
     end
 end
 
-function rest(t)
+function builtin.rest(t)
     local new = {}
     local len = #t
     local idx = 1
@@ -173,7 +207,7 @@ function rest(t)
     return new
 end
 
-function update(tbl, keys, value)
+function builtin.update(tbl, keys, value)
     local len_ks = #keys
     local t = tbl
 
@@ -191,7 +225,7 @@ function update(tbl, keys, value)
     end
 end
 
-function rpartial(f, ...)
+function builtin.rpartial(f, ...)
     local outer = { ... }
     return function(...)
         local inner = { ... }
@@ -204,7 +238,7 @@ function rpartial(f, ...)
     end
 end
 
-function partial(f, ...)
+function builtin.partial(f, ...)
     local outer = { ... }
     return function(...)
         local inner = { ... }
@@ -217,7 +251,7 @@ function partial(f, ...)
     end
 end
 
-function get(tbl, ks, create_path)
+function builtin.get(tbl, ks, create_path)
     if type(ks) ~= 'table' then
         ks = { ks }
     end
@@ -245,7 +279,7 @@ function get(tbl, ks, create_path)
     return v, t, tbl
 end
 
-function merge(a, b)
+function builtin.merge(a, b)
     local at = a
     local bt = b
 
@@ -258,7 +292,7 @@ function merge(a, b)
         end
 
         if type(bv) == 'table' and type(av) == 'table' then
-            merge(at[key], value)
+            builtin.merge(at[key], value)
         else
             at[key] = value
         end
@@ -267,7 +301,7 @@ function merge(a, b)
     return a
 end
 
-function merge_keepleft(a, b)
+function builtin.merge_keepleft(a, b)
     local at = a
     local bt = b
 
@@ -280,7 +314,7 @@ function merge_keepleft(a, b)
         end
 
         if type(bv) == 'table' and type(av) == 'table' then
-            merge_keepleft(at[key], value)
+            builtin.merge_keepleft(at[key], value)
         elseif value ~= nil then
             at[key] = value
         end
@@ -289,11 +323,11 @@ function merge_keepleft(a, b)
     return a
 end
 
-function printf(...)
+function builtin.printf(...)
     print(string.format(...))
 end
 
-function with_open(fname, mode, callback)
+function builtin.with_open(fname, mode, callback)
     local fh = io.open(fname, mode)
     local out = nil
     if fh then
@@ -304,7 +338,7 @@ function with_open(fname, mode, callback)
     return out
 end
 
-function slice(t, from, till)
+function builtin.slice(t, from, till)
     till = till or #t
     assert(till > from, 'End index cannot be bigger than start index')
 
@@ -318,7 +352,7 @@ function slice(t, from, till)
     return out
 end
 
-function index(t, item, test)
+function builtin.index(t, item, test)
     for key, v in pairs(t) do
         if test then
             if test(v, item) then
@@ -330,18 +364,18 @@ function index(t, item, test)
     end
 end
 
-function buffer_has_keymap(bufnr, mode, lhs)
+function builtin.buffer_has_keymap(bufnr, mode, lhs)
     bufnr = bufnr or 0
     local keymaps = vim.api.nvim_buf_get_keymap(bufnr, mode)
     lhs = lhs:gsub('<leader>', vim.g.mapleader)
     lhs = lhs:gsub('<localleader>', vim.g.maplocalleader)
 
-    return index(keymaps, lhs, function (t, item)
+    return builtin.index(keymaps, lhs, function (t, item)
         return t.lhs == item
     end)
 end
 
-function open_scratch_buffer(opts)
+function builtin.open_scratch_buffer(opts)
     opts = opts or {}
     opts.name = opts.name or 'scratch_buffer'
     opts.ft = opts.ft or vim.bo.filetype or 'lua'
@@ -351,6 +385,13 @@ function open_scratch_buffer(opts)
     if vim.fn.bufexists(opts.name) == 0 then
         bufnr = vim.fn.bufadd(opts.name)
     end
+
+    if opts.insert then
+        if types.is_type(opts.insert, 'table') then
+            opts.insert = table.concat(opts.insert, opts.sep or "\n")
+        end
+    end
+
     vim.api.nvim_buf_call(bufnr, function ()
         vim.cmd('set buftype=nofile')
         vim.cmd('set nobuflisted')
@@ -381,19 +422,60 @@ function open_scratch_buffer(opts)
     end
 end
 
-function join_path(...)
+function builtin.join_path(...)
     return table.concat({...}, '/')
 end
 
-function basename(s)
+function builtin.basename(s)
     s = vim.split(s, '/')
     return s[#s]
 end
 
-function get_visual_range(bufnr)
+function builtin.get_visual_range(bufnr)
     bufnr = bufnr or 0
     local start_pos = vim.fn.getpos("'<")
     local end_pos = vim.fn.getpos("'>")
 
     return vim.api.nvim_buf_get_text(bufnr, start_pos[2]-1, start_pos[3]-1, end_pos[2]-1, end_pos[3], {})
+end
+
+function builtin.add_package_cpath(...)
+    for _, value in ipairs({...}) do
+        package.cpath = package.cpath .. ';' .. value
+    end
+end
+
+function builtin.add_package_path(...)
+    for _, value in ipairs({...}) do
+        package.path = package.path .. ';' .. value
+    end
+end
+
+function builtin.require_rock(...)
+    local missing_rocks = {}
+    for _, rock in ipairs({...}) do
+        if not pcall(require, rock) then
+            missing_rocks[#missing_rocks+1] = rock
+        end
+    end
+
+    return missing_rocks
+end
+
+function builtin.nvim_err(...)
+    for _, s in ipairs({...}) do
+       vim.api.nvim_err_writeln(s)
+    end
+end
+
+function builtin.is_a(e, c)
+	if type(c) == 'string' then
+		return type(e) == c
+	elseif type(e) == 'table' then
+		if e.is_a and e.is_a(c) then
+			return true
+		else
+			return 'table' == c
+		end
+	end
 end

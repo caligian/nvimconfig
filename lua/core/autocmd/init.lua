@@ -1,7 +1,7 @@
-user.builtin.autocmd = {}
-local au = user.builtin.autocmd
-get(au, 'ids', true)
-get(au, 'groups', true)
+user.autocmd = {}
+local au = user.autocmd
+builtin.get(au, 'ids', true)
+builtin.get(au, 'groups', true)
 
 function au.create_augroup(group, clear)
     local id = vim.api.nvim_create_augroup(group, { clear = clear })
@@ -13,7 +13,7 @@ function au.create(event, pattern, callback, opts)
     opts = opts or {}
     opts.pattern = pattern
     opts.callback = callback
-    local name = deep_copy(opts.name)
+    local name = builtin.deep_copy(opts.name)
     local augroup_id = nil
 
     assert(name, "No autocmd name provided")

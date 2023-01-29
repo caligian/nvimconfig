@@ -1,14 +1,19 @@
 return {
     { 'wbthomason/packer.nvim' },
+    { 'jaawerth/fennel.vim' },
     { 'Olical/conjure' },
     { 'justinmk/vim-sneak' },
-    { 'tpope/vim-commentary', keys = { { 'v', 'g' } } },
+    { 'Raimondi/delimitMate' },
+    { 'tpope/vim-commentary' },
+    { 'nvim-lua/plenary.nvim' },
+    { 'tpope/vim-surround' },
     { 'jasonccox/vim-wayland-clipboard' },
+    { 'beauwilliams/statusline.lua' },
     {
         'tpope/vim-fugitive',
         keys = { { 'n', '<leader>gg' } },
         config = function()
-            user.builtin.kbd.noremap(
+            user.kbd.noremap(
                 { 'n', '<leader>gg', ':Git<CR>' },
                 { 'n', '<leader>gs', ':Git stage<CR>' },
                 { 'n', '<leader>gc', ':Git commit<CR>' },
@@ -18,7 +23,7 @@ return {
     {
         'preservim/tagbar',
         config = function()
-            user.builtin.kbd.noremap({ 'n', '<C-t>', ':TagbarToggle<CR>', { desc = 'Toggle tagbar' } })
+            user.kbd.noremap({ 'n', '<C-t>', ':TagbarToggle<CR>', { desc = 'Toggle tagbar' } })
         end
     },
     {
@@ -26,20 +31,16 @@ return {
         ft = 'tex',
     },
     {
-        'beauwilliams/statusline.lua',
-        config = function()
-            vim.o.laststatus = 3
-        end
-    },
-    {
         'flazz/vim-colorschemes',
         config = function()
-            vim.cmd('colorscheme ' .. user.builtin.colorscheme or user.config.colorscheme )
+            vim.cmd('colorscheme ' .. user.colorscheme or user.config.colorscheme)
         end
     },
     {
         'folke/which-key.nvim',
-        config = function() user.require('core.packages.configs.which-key_nvim') end
+        config = function()
+            user.require('core.pkg.configs.which-key_nvim')
+        end
     },
     {
         'iamcco/markdown-preview.nvim',
@@ -50,11 +51,9 @@ return {
     {
         'nvim-treesitter/nvim-treesitter',
         config = function()
-            user.require('core.packages.configs.nvim-treesitter')
+            user.require('core.pkg.configs.nvim-treesitter')
         end
     },
-    { 'nvim-lua/plenary.nvim' },
-    { 'tpope/vim-surround' },
     {
         'neovim/nvim-lspconfig',
         requires = {
@@ -79,7 +78,7 @@ return {
             },
         },
         config = function()
-            user.require 'core.packages.configs.nvim-lspconfig'
+            user.require 'core.pkg.configs.nvim-lspconfig'
         end,
     },
     {
@@ -90,11 +89,9 @@ return {
             { 'nvim-telescope/telescope-project.nvim' },
             { 'nvim-telescope/telescope-fzf-native.nvim', run = 'make' },
         },
-        config = function ()
-            user.require 'core.packages.configs.telescope_nvim'
+        config = function()
+            user.require 'core.pkg.configs.telescope_nvim'
+            user.require 'core.pkg.configs.telescope_nvim.keybindings'
         end
-    },
-    {
-        'Raimondi/delimitMate'
     },
 }
