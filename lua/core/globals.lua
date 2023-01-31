@@ -1,6 +1,6 @@
 user = {
     log = {},
-    require = function (s)
+    require = function(s)
         local success, err = pcall(require, s)
         if not success then
             logger:debug(err)
@@ -16,7 +16,9 @@ user = {
         servers = {
             sumneko_lua = {
                 settings = {
-                    Lua = { diagnostics = { globals = { 'vim', 'unpack', 'loadfile', 'builtin' } } },
+                    Lua = { diagnostics = { globals = { 'vim', 'unpack', 'loadfile', 'builtin', 'yaml', 'path',
+                        'listcomp', 'str', 'seq', 'dict', 'operator', 'json', 'logging', 'logger', 'user', 'Date', 'List',
+                        'Map', 'MultiMap', 'OrderedMap', 'String', 'Seq', 'File' } } },
                 }
             },
             pyright = true,

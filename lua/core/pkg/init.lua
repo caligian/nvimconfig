@@ -1,5 +1,8 @@
 local package_list = require 'core.pkg.list'
-user.pkg = builtin.merge_keepleft(user. require('user.pkg') or {}, package_list)
+
+builtin.require('user.pkg')
+
+user.pkg = user.pkg
 user.packer = require 'packer'
 
 user.packer.startup(function(use)

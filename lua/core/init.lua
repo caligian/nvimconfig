@@ -1,18 +1,15 @@
 -- These are extremely important
 require 'core.utils'
-local fennel = require 'core.fennel-utils'
-
--- Now fnl files in ~/.config/nvim/lua/ are visible
-fennel.set_paths()
 
 -- Require other stuff
-require 'core.globals'; user.fennel = fennel
+require 'core.globals'
 require 'core.option'
-user.require 'core.autocmd'
-user.require 'core.kbd'
-user.require 'core.pkg'
-user.require 'core.repl'
-user.require 'core.kbd.defaults'
-user.require 'core.repl.keybindings'
-user.require 'core.repl.autocmds'
-user.require 'core.autocmd.defaults'
+
+builtin.require 'core.autocmd'
+builtin.require 'core.kbd'
+builtin.require 'core.pkg'
+builtin.require 'core.repl'
+builtin.require 'core.kbd.defaults'
+builtin.require 'core.repl.keybindings'
+builtin.require 'core.repl.autocmds'
+builtin.require 'core.autocmd.defaults'

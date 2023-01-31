@@ -75,7 +75,7 @@ lsp.cmp = {
 }
 
 -- Load user overrides
-user.require 'user.pkg.configs.nvim-lspconfig'
+builtin.require 'user.pkg.configs.nvim-lspconfig'
 
 function lsp.on_attach(client, bufnr)
     -- Enable completion triggered by <c-x><c-o>
@@ -157,3 +157,6 @@ user.kbd.noremap_with_options({ silent = true },
     { 'n', '[d', vim.diagnostic.goto_prev, { desc = 'LSP go to previous diagnostic' } },
     { 'n', ']d', vim.diagnostic.goto_next, { desc = 'LSP go to next diagnostic' } },
     { 'n', '<leader>lq', vim.diagnostic.setloclist, { desc = 'LSP set loclist' } })
+
+-- Setup LSP
+lsp.setup()

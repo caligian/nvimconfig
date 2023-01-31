@@ -1,7 +1,13 @@
-builtin = {globals = {}}
+local fennel = require 'fennel'
+table.insert(package.loaders or package.searchers, fennel.searcher)
+
+if not builtin then builtin = {} end
+if not builtin.globals then builtin.globals = {} end
+builtin.stdpath = vim.fn.stdpath
 builtin.flatten = vim.tbl_flatten
 builtin.substr = string.sub
 builtin.sprintf = string.format
+sprintf = builtin.sprintf
 builtin.filter = vim.tbl_filter
 builtin.deep_copy = vim.deepcopy
 builtin.is_empty = vim.tbl_isempty
@@ -14,13 +20,13 @@ builtin.validate = vim.validate
 
 function builtin.extend(tbl, ...)
     local idx = #tbl
-    for _, t in ipairs({...}) do
+    for _, t in ipairs({ ... }) do
         if type(t) == 'table' then
             for _, value in ipairs(t) do
-                tbl[idx+1] = value
+                tbl[idx + 1] = value
             end
         else
-            tbl[idx+1] = t
+            tbl[idx + 1] = t
         end
         idx = idx + 1
     end
@@ -58,6 +64,7 @@ function builtin.inspect(...)
 
     vim.api.nvim_echo({ { final_s } }, false, {})
 end
+
 inspect = builtin.inspect
 
 function builtin.ensure_list(e, force)
@@ -135,6 +142,7 @@ end
 function builtin.global(vars)
     for var, value in pairs(vars) do
         if var:match('^!') then
+            var = var:gsub('^!', '')
             _G[var] = value
         elseif _G[var] == nil then
             _G[var] = value
@@ -147,11 +155,11 @@ function builtin.range(from, till, step)
     local index = from
     step = step or 1
 
-    return function ()
-	    index = index + step
-	    if index <= till then
-		    return index
-	    end
+    return function()
+        index = index + step
+        if index <= till then
+            return index
+        end
     end
 end
 
@@ -370,7 +378,7 @@ function builtin.buffer_has_keymap(bufnr, mode, lhs)
     lhs = lhs:gsub('<leader>', vim.g.mapleader)
     lhs = lhs:gsub('<localleader>', vim.g.maplocalleader)
 
-    return builtin.index(keymaps, lhs, function (t, item)
+    return builtin.index(keymaps, lhs, function(t, item)
         return t.lhs == item
     end)
 end
@@ -392,7 +400,7 @@ function builtin.open_scratch_buffer(opts)
         end
     end
 
-    vim.api.nvim_buf_call(bufnr, function ()
+    vim.api.nvim_buf_call(bufnr, function()
         vim.cmd('set buftype=nofile')
         vim.cmd('set nobuflisted')
         vim.cmd('set ft=' .. opts.ft)
@@ -405,9 +413,9 @@ function builtin.open_scratch_buffer(opts)
         local ok, _ = pcall(vim.api.nvim_buf_get_var, bufnr, 'is_keymap_set')
         if not ok or opts.overwrite then
             vim.api.nvim_buf_set_var(bufnr, 'is_keymap_set', true)
-            vim.keymap.set('n', opts.keys, function ()
+            vim.keymap.set('n', opts.keys, function()
                 opts.callback(vim.api.nvim_buf_get_lines(0, 0, -1, false))
-            end, {buffer=bufnr})
+            end, { buffer = bufnr })
         end
     end
 
@@ -423,7 +431,7 @@ function builtin.open_scratch_buffer(opts)
 end
 
 function builtin.join_path(...)
-    return table.concat({...}, '/')
+    return table.concat({ ... }, '/')
 end
 
 function builtin.basename(s)
@@ -436,26 +444,26 @@ function builtin.get_visual_range(bufnr)
     local start_pos = vim.fn.getpos("'<")
     local end_pos = vim.fn.getpos("'>")
 
-    return vim.api.nvim_buf_get_text(bufnr, start_pos[2]-1, start_pos[3]-1, end_pos[2]-1, end_pos[3], {})
+    return vim.api.nvim_buf_get_text(bufnr, start_pos[2] - 1, start_pos[3] - 1, end_pos[2] - 1, end_pos[3], {})
 end
 
 function builtin.add_package_cpath(...)
-    for _, value in ipairs({...}) do
+    for _, value in ipairs({ ... }) do
         package.cpath = package.cpath .. ';' .. value
     end
 end
 
 function builtin.add_package_path(...)
-    for _, value in ipairs({...}) do
+    for _, value in ipairs({ ... }) do
         package.path = package.path .. ';' .. value
     end
 end
 
 function builtin.require_rock(...)
     local missing_rocks = {}
-    for _, rock in ipairs({...}) do
+    for _, rock in ipairs({ ... }) do
         if not pcall(require, rock) then
-            missing_rocks[#missing_rocks+1] = rock
+            missing_rocks[#missing_rocks + 1] = rock
         end
     end
 
@@ -463,19 +471,167 @@ function builtin.require_rock(...)
 end
 
 function builtin.nvim_err(...)
-    for _, s in ipairs({...}) do
-       vim.api.nvim_err_writeln(s)
+    for _, s in ipairs({ ... }) do
+        vim.api.nvim_err_writeln(s)
     end
 end
 
 function builtin.is_a(e, c)
-	if type(c) == 'string' then
-		return type(e) == c
-	elseif type(e) == 'table' then
-		if e.is_a and e.is_a(c) then
-			return true
-		else
-			return 'table' == c
-		end
-	end
+    if type(c) == 'string' then
+        return type(e) == c
+    elseif type(e) == 'table' then
+        if e.is_a and e:is_a(c) then
+            return true
+        else
+            return 'table' == c
+        end
+    end
 end
+
+-- If multiple keys are supplied, the table is going to be assumed to be nested
+function builtin.has_key(tbl, ...)
+    return (builtin.get(tbl, { ... }))
+end
+
+function builtin.make_tpath(tbl, ks)
+    return builtin.get(tbl, ks, true)
+end
+
+-- Compiles fennel files to lua
+-- Saves them in ~/.config/nvim/lua/compiled
+function builtin.compile(src, dest)
+    local s = file.read(p)
+    local s = fennel.compileString(s)
+    file.write(dest, s)
+end
+
+function builtin.compile_buffer(bufnr, eval)
+    bufnr = bufnr or vim.fn.bufnr()
+    local bufname = vim.api.nvim_buf_call(bufnr, function()
+        return vim.fn.expand('%:p')
+    end)
+
+    if not bufname:match('fnl$') then
+        error('Buffer %d is not a fennel buffer', bufnr)
+    end
+
+    local home = path.join(os.getenv('HOME'), '.nvim', 'lua', 'user')
+    local stdpath = path.join(vim.fn.stdpath('config'), 'lua')
+    local is_user = bufname:match(home)
+    local is_sys = bufname:match(stdpath)
+    local dest = ''
+
+    assert(is_user or is_sys, 'Only nvim configuration fennel buffers can be compiled')
+
+    if is_user then
+        dest = bufname:gsub(home, '')
+    else
+        dest = bufname:gsub(stdpath, '')
+    end
+    dest = dest:gsub('fnl$', 'lua')
+    dest = 'compiled' .. dest
+
+    if is_user then
+        dest = home .. '/' .. dest
+    else
+        dest = stdpath .. '/' .. dest
+    end
+
+    local s = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+    s = table.concat(s, "\n\r")
+
+    local parent = path.dirname(dest)
+    if not path.exists(parent) then
+        dir.makepath(parent)
+    end
+    file.write(dest, fennel.compileString(s))
+
+    if eval then
+        fennel.eval(s)
+    end
+end
+
+function builtin.require(req, opts)
+    opts = opts or {}
+    local is_user
+    if req:match('^user') or opts.is_user then
+        is_user = true
+    end
+    req = str.split(req, '.')
+    local compiled = opts.compiled == nil and true or opts.compiled
+    local user_dir = path.join(os.getenv('HOME'), '.nvim')
+    local stdpath = vim.fn.stdpath('config')
+    local cp, fp, p, p1, p2, fp1, fp2, cp1, cp2
+
+    if is_user then
+        cp = path.join(user_dir, 'lua', 'compiled', unpack(req))
+        fp = path.join(user_dir, 'lua', unpack(req))
+        p = fp
+    else
+        cp = path.join(stdpath, 'lua', 'compiled', unpack(req))
+        fp = path.join(stdpath, 'lua', unpack(req))
+        p = fp
+    end
+
+    cp1 = path.join(cp, 'init.lua')
+    cp2 = cp .. '.lua'
+    p1 = path.join(p, 'init.lua')
+    p2 = p .. '.lua'
+    fp1 = path.join(fp, 'init.fnl')
+    fp2 = fp .. '.fnl'
+    local p_exists, fp_exists, cp_exists = false, false, false
+
+    if path.exists(p2) and path.exists(p1) then
+        p = p2
+        p_exists = true
+    elseif path.exists(p1) then
+        p = p1
+        p_exists = true
+    elseif path.exists(p2) then
+        p = p2
+        p_exists = true
+    end
+
+    if path.exists(cp2) and path.exists(cp1) then
+        cp_exists = true
+        cp = cp2
+    elseif path.exists(cp1) then
+        cp_exists = true
+        cp = cp1
+    elseif path.exists(cp2) then
+        cp_exists = true
+        cp = cp2
+    end
+
+    if path.exists(fp2) and path.exists(fp1) then
+        fp_exists = true
+        fp = fp2
+    elseif path.exists(fp1) then
+        fp_exists = true
+        fp = fp1
+    elseif path.exists(fp2) then
+        fp_exists = true
+        fp = fp2
+    end
+
+    req = table.concat(req, '.')
+    if cp_exists and compiled then
+        if opts.load then
+            return loadfile('compiled.' .. req)
+        else
+            return require('compiled.' .. req)
+        end
+    elseif opts.load then
+        if fp_exists then
+            return loadfile(fp)
+        else
+            return loadfile(p)
+        end
+    elseif p_exists then
+        return require(req)
+    else
+        return false
+    end
+end
+
+printf = builtin.printf
