@@ -3,6 +3,7 @@ table.insert(package.loaders or package.searchers, fennel.searcher)
 
 if not builtin then builtin = {} end
 if not builtin.globals then builtin.globals = {} end
+if not builtin.logs then builtin.logs = {} end
 builtin.stdpath = vim.fn.stdpath
 builtin.flatten = vim.tbl_flatten
 builtin.substr = string.sub
@@ -89,7 +90,7 @@ function builtin.assert_type(e, t)
 end
 
 function builtin.append(t, ...)
-    local idx = 1
+    local idx = #t
     for _, value in ipairs({ ... }) do
         t[idx] = value
         idx = idx + 1
@@ -395,9 +396,10 @@ function builtin.open_scratch_buffer(opts)
     end
 
     if opts.insert then
-        if types.is_type(opts.insert, 'table') then
-            opts.insert = table.concat(opts.insert, opts.sep or "\n")
+        if types.is_type(opts.insert, 'string') then
+            opts.insert = vim.split(opts.insert, opts.sep or "\n")
         end
+        vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, opts.insert)
     end
 
     vim.api.nvim_buf_call(bufnr, function()
@@ -440,11 +442,15 @@ function builtin.basename(s)
 end
 
 function builtin.get_visual_range(bufnr)
-    bufnr = bufnr or 0
-    local start_pos = vim.fn.getpos("'<")
-    local end_pos = vim.fn.getpos("'>")
-
-    return vim.api.nvim_buf_get_text(bufnr, start_pos[2] - 1, start_pos[3] - 1, end_pos[2] - 1, end_pos[3], {})
+    return vim.api.nvim_buf_call(bufnr or vim.fn.bufnr(), function()
+        local _, csrow, cscol, _ = unpack(vim.fn.getpos("'<"))
+        local _, cerow, cecol, _ = unpack(vim.fn.getpos("'>"))
+        if csrow < cerow or (csrow == cerow and cscol <= cecol) then
+            return vim.api.nvim_buf_get_text(0, csrow - 1, cscol - 1, cerow - 1, cecol, {})
+        else
+            return vim.api.nvim_buf_get_text(0, csrow - 1, cscol - 1, cerow - 1, cscol, {})
+        end
+    end)
 end
 
 function builtin.add_package_cpath(...)
@@ -512,7 +518,7 @@ function builtin.compile_buffer(bufnr, eval)
     end)
 
     if not bufname:match('fnl$') then
-        error('Buffer %d is not a fennel buffer', bufnr)
+        error(sprintf('Buffer %s is not a fennel buffer', bufname))
     end
 
     local home = path.join(os.getenv('HOME'), '.nvim', 'lua', 'user')
@@ -548,6 +554,22 @@ function builtin.compile_buffer(bufnr, eval)
 
     if eval then
         fennel.eval(s)
+    end
+end
+
+function builtin.pcall(f, ...)
+    local ok, out = pcall(f, ...)
+    if ok then
+        return {
+            error = false,
+            success = true,
+            out = out,
+        }
+    else
+        return {
+            error = ok,
+            success = false,
+        }
     end
 end
 
@@ -615,23 +637,43 @@ function builtin.require(req, opts)
     end
 
     req = table.concat(req, '.')
+    local function _require_or_loadfile(fname)
+        local e
+        if opts.load then
+            e = builtin.pcall(loadfile, fname)
+        else
+            e = builtin.pcall(require, fname)
+        end
+        if e.success then
+            return e.out
+        end
+        builtin.append(builtin.logs, e.error)
+    end
+
     if cp_exists and compiled then
         if opts.load then
-            return loadfile('compiled.' .. req)
+            return _require_or_loadfile(cp)
         else
-            return require('compiled.' .. req)
+            return _require_or_loadfile('compiled.' .. req)
         end
-    elseif opts.load then
-        if fp_exists then
-            return loadfile(fp)
+    elseif fp_exists then
+        if opts.load then
+            return _require_or_loadfile(fp)
         else
-            return loadfile(p)
+            return _require_or_loadfile(req)
         end
     elseif p_exists then
-        return require(req)
+        if opts.load then
+            return _require_or_loadfile(p)
+        else
+            return _require_or_loadfile(req)
+        end
     else
         return false
     end
 end
+
+vim.api.nvim_create_user_command('CompileNvimBuffer', builtin.partial(builtin.compile_buffer, false, false), {})
+vim.api.nvim_create_user_command('CompileAndEvalNvimBuffer', builtin.partial(builtin.compile_buffer, false, true), {})
 
 printf = builtin.printf
