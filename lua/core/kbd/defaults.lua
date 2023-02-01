@@ -1,41 +1,45 @@
-require 'core.kbd.eval'
+vim.g.mapleader = ' '
+vim.g.localleader = ','
 
-user.kbd.noremap_with_options(
-    { silent = true },
-    { 'n', '\\\\', ':noh<CR>', { desc = 'No highlight' } },
-    { 'n', '<leader>fs', ':w %<CR>', { desc = 'Save buffer' } },
-    { 'n', '<leader>fe', ':e!<CR>', { desc = 'Reload buffer' } },
-    { 'n', '<leader>bk', ':hide<CR>', { desc = 'Hide window' } },
-    { 'n', '<leader>bp', ':bprev<CR>', { desc = 'Previous buffer' } },
-    { 'n', '<leader>bn', ':bnext<CR>', { desc = 'Next buffer' } },
-    { 'n', '<leader>b0', ':bfirst<CR>', { desc = 'First buffer' } },
-    { 'n', '<leader>b$', ':blast<CR>', { desc = 'Last buffer' } },
-    { 'n', '<leader>bq', ':bwipeout %<CR>', { desc = 'Wipeout buffer' } },
-    { 'n', '<leader>tt', ':tabnew<CR>', { desc = 'New tab' } },
-    { 'n', '<leader>tn', ':tabnext<CR>', { desc = 'Next tab' } },
-    { 'n', '<leader>tp', ':tabprev<CR>', { desc = 'Previous tab' } },
-    { 'n', '<leader>te', ':tabedit<CR>', { desc = 'Open file in new tab' } },
-    { 'n', '<leader>tk', ':tabclose<CR>', { desc = 'Close tab' } },
-    { 'n', '<leader>t1', ':tabnext 1<CR>', { desc = 'Tab 1' } },
-    { 'n', '<leader>t2', ':tabnext 2<CR>', { desc = 'Tab 2' } },
-    { 'n', '<leader>t3', ':tabnext 3<CR>', { desc = 'Tab 3' } },
-    { 'n', '<leader>t4', ':tabnext 4<CR>', { desc = 'Tab 4' } },
-    { 'n', '<leader>t5', ':tabnext 5<CR>', { desc = 'Tab 5' } },
-    { 'n', '<leader>t6', ':tabnext 6<CR>', { desc = 'Tab 6' } },
-    { 'n', '<leader>t7', ':tabnext 7<CR>', { desc = 'Tab 7' } },
-    { 'n', '<leader>t8', ':tabnext 8<CR>', { desc = 'Tab 8' } },
-    { 'n', '<leader>t9', ':tabnext 9<CR>', { desc = 'Tab 9' } },
-    { 'n', '<leader>t0', ':tabnext 10<CR>', { desc = 'Tab 10' } },
-    { 'n', '<leader>ws', ':split <bar> wincmd k<CR>', { desc = 'Split below' } },
-    { 'n', '<leader>wv', ':vsplit <bar> wincmd h<CR>', { desc = 'Split right' } },
-    { 'n', '<localleader>,', builtin.partial(builtin.open_scratch_buffer, { split = 's', overwrite = true }),
-        { desc = 'Open scratch buffer in split' } },
-    { 'n', '<localleader><', builtin.partial(builtin.open_scratch_buffer, { split = 'v' }),
-        { desc = 'Open scratch buffer in vsplit' } },
-    { 'n', '<localleader>>', builtin.partial(builtin.open_scratch_buffer, { split = 't' }),
-        { desc = 'Open scratch buffer in new tab' } },
-    { 'n', '<leader>bC', 'CompileNvimBuffer', { desc = 'Compile fennel buffer' } },
-    { 'n', '<leader>bc', 'CompileAndEvalNvimBuffer', { desc = 'Compile fennel buffer and evaluate' } },
-    { 't', '<Esc>', '<C-\\><C-n>', { desc = 'Go to normal mode' } })
+Keybinding.map('n', '<leader>w', '<C-w>', { silent = true, desc = 'Window commands' })
+Keybinding.noremap('n', '\\\\', ':noh<CR>', {desc='No highlight'})
+Keybinding.noremap('t', '<esc>', '<C-\\><C-n>', {desc='Terminal to normal mode'})
 
-user.kbd.map({ 'n', '<leader>w', '<C-w>', { silent = true, desc = 'Window commands' } })
+Keybinding({
+    noremap = true,
+    silent = true,
+    leader = true,
+}):bind {
+    { 'fs', ':w %<CR>', { desc = 'Save buffer' } },
+    { 'fe', ':e!<CR>', { desc = 'Reload buffer' } },
+    { 'bk', ':hide<CR>', { desc = 'Hide window' } },
+    { 'bp', ':bprev<CR>', { desc = 'Previous buffer' } },
+    { 'bn', ':bnext<CR>', { desc = 'Next buffer' } },
+    { 'b0', ':bfirst<CR>', { desc = 'First buffer' } },
+    { 'b$', ':blast<CR>', { desc = 'Last buffer' } },
+    { 'bq', ':bwipeout %<CR>', { desc = 'Wipeout buffer' } },
+    { 'tt', ':tabnew<CR>', { desc = 'New tab' } },
+    { 'tn', ':tabnext<CR>', { desc = 'Next tab' } },
+    { 'tp', ':tabprev<CR>', { desc = 'Previous tab' } },
+    { 'te', ':tabedit<CR>', { desc = 'Open file in new tab' } },
+    { 'tk', ':tabclose<CR>', { desc = 'Close tab' } },
+    { 't1', ':tabnext 1<CR>', { desc = 'Tab 1' } },
+    { 't2', ':tabnext 2<CR>', { desc = 'Tab 2' } },
+    { 't3', ':tabnext 3<CR>', { desc = 'Tab 3' } },
+    { 't4', ':tabnext 4<CR>', { desc = 'Tab 4' } },
+    { 't5', ':tabnext 5<CR>', { desc = 'Tab 5' } },
+    { 't6', ':tabnext 6<CR>', { desc = 'Tab 6' } },
+    { 't7', ':tabnext 7<CR>', { desc = 'Tab 7' } },
+    { 't8', ':tabnext 8<CR>', { desc = 'Tab 8' } },
+    { 't9', ':tabnext 9<CR>', { desc = 'Tab 9' } },
+    { 't0', ':tabnext 10<CR>', { desc = 'Tab 10' } },
+} 
+
+Keybinding({
+    event = 'BufNew', 
+    pattern = {'*.lua', '*.vim'},
+    noremap = true, 
+    leader = true
+}):bind {
+    {'fv', ':w <bar> :source % <CR>'}
+}

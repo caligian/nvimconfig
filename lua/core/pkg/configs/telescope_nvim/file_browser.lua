@@ -46,7 +46,7 @@ function mod.touch(bufnr)
     local sel = action_state.get_selected_entry()
     local cwd = sel.cwd
     local fname = vim.fn.input('touch > ')
-    fname = str.strip(fname)
+    fname = stringx.strip(fname)
     fname = path.join(cwd, fname)
 
     assert(#fname ~= 0, 'No filename provided')

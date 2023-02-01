@@ -39,7 +39,7 @@ return {
     {
         'folke/which-key.nvim',
         config = function()
-            user.require('core.pkg.configs.which-key_nvim')
+            builtin.require('core.pkg.configs.which-key_nvim')
         end
     },
     {
@@ -51,7 +51,7 @@ return {
     {
         'nvim-treesitter/nvim-treesitter',
         config = function()
-            user.require('core.pkg.configs.nvim-treesitter')
+            builtin.require('core.pkg.configs.nvim-treesitter')
         end
     },
     {
@@ -78,7 +78,7 @@ return {
             },
         },
         config = function()
-            user.require 'core.pkg.configs.nvim-lspconfig'
+            builtin.require 'core.pkg.configs.nvim-lspconfig'
         end,
     },
     {
@@ -90,8 +90,8 @@ return {
             { 'nvim-telescope/telescope-fzf-native.nvim', run = 'make' },
         },
         config = function()
-            user.require 'core.pkg.configs.telescope_nvim'
-            user.require 'core.pkg.configs.telescope_nvim.keybindings'
+            builtin.require 'core.pkg.configs.telescope_nvim'
+            builtin.require 'core.pkg.configs.telescope_nvim.keybindings'
         end
     },
 }

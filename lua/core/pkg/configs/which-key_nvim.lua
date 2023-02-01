@@ -1,6 +1,5 @@
 local wk = require('which-key')
-
-wk.setup {
+user.pkg['which-key.nvim'] = {
     plugins = {
         marks = true, -- shows a list of your marks on ' and `
         registers = true, -- shows your registers on " in NORMAL or <C-r> in INSERT mode
@@ -73,6 +72,10 @@ wk.setup {
     },
 }
 
+builtin.require('user.pkg.configs.which-key_nvim', {compiled=true})
+
+wk.setup(user.pkg['which-key.nvim'])
+
 wk.register({
     f = { name = 'File management' },
     g = { name = 'Git operations' },
@@ -84,3 +87,5 @@ wk.register({
     x = { name = 'Shell operations' },
     c = { name = 'Compile buffer' }
 }, { prefix = '<leader>' })
+
+inspect('which-key_nvim.lua')

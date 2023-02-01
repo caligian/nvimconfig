@@ -49,7 +49,7 @@ t.pickers = {
 
 -- Setup telescope with extensions
 -- Require user overrides
-user.require 'user.pkg.telescope_nvim'
+builtin.require 'user.pkg.telescope_nvim'
 require('telescope').setup(t)
 require('telescope').load_extension('file_browser')
 require('telescope').load_extension('project')

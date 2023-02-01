@@ -1,121 +1,141 @@
-local kbd = {autocmd = {}}
+if not Keybinding then
+    user.kbd = class.Keybinding()
+end
+local Keybinding = user.kbd
+builtin.makepath(Keybinding, 'id')
+builtin.makepath(Keybinding, 'buffer')
 
-function kbd.map(...)
-    for _, form in ipairs({...}) do
-        local mode, lhs, rhs, opts = unpack(form)
-        opts = opts or {}
-        local autocmd_opts = {}
-        local kbd_opts = {}
-        local event, pattern = opts.event, opts.pattern
-        mode = builtin.ensure_list(mode)
-        local buffer = opts.buffer
+-- opts [table] 
+-- keys: 
+-- mode table[string] | string
+-- event table[string] | string
+-- pattern table[string] | string
+-- leader boolean 
+-- localleader boolean
+function Keybinding._init(self, opts)
+	opts = opts or {}
 
-        for key, value in pairs(opts) do
-            if builtin.match('event', 'pattern', 'once', 'nested') then
-                autocmd_opts[key] = value
-            else
-                kbd_opts[key] = value
-            end
+	for k, v in pairs(opts) do
+		if builtin.match(k, 'mode', 'event', 'pattern', 'leader', 'localleader', 'opts', 'once', 'nested') then
+			self[k] = v
+		end
+	end
+
+    self.mode = self.mode or 'n'
+    self.event = self.event == nil and false or self.event
+    self.pattern = self.pattern == nil and false or self.pattern
+    self.leader = self.leader == nil and false or self.leader
+    self.localleader = self.localleader == nil and false or self.localleader
+    self.opts = self.opts or {}
+
+	return self
+end
+
+local function update(self)
+	local lhs = self.lhs
+	local bufnr = self.bufnr
+
+	for _, i in ipairs(builtin.ensure_list(self.mode)) do
+		builtin.makepath(Keybinding, i, lhs)
+
+		if bufnr then
+			builtin.append(Keybinding[i][lhs], self)
+			builtin.makepath(Keybinding.buffer, bufnr, i, lhs)
+			builtin.append(Keybinding.buffer[bufnr][i][lhs], self)
+		else
+			builtin.append(Keybinding[i][lhs], self)
+		end
+	end
+
+	return self
+end
+
+local function bind(self, lhs, callback, opts)
+    -- Every keybinding is a new one
+    self = vim.deepcopy(self)
+
+    if opts then
+        builtin.merge(self.opts, opts)
+    end
+
+	self.lhs = lhs
+	self.callback = callback
+    self.enabled = false
+
+	assert(callback, 'No callback provided')
+	assert(lhs, 'No LHS provided')
+
+	if self.leader then
+		lhs = '<leader>' .. lhs
+	elseif self.localleader then
+		lhs = '<localleader>' .. lhs
+	end
+
+	if self.pattern then
+		self.event = self.event or 'BufEnter'
+		local a = Autocmd(lhs .. '_' .. #Autocmd.group, true)
+		a:create(self.event, self.pattern, function()
+			self.enabled = true
+			self.bufnr = vim.fn.bufnr()
+			vim.keymap.set(self.mode, lhs, self.callback, self.opts)
+		end, {once=self.once, nested=self.nested, name=lhs})
+	else
+		self.enabled = true
+		vim.keymap.set(self.mode, lhs, callback, self.opts)
+	end
+
+    self.lhs = lhs
+	update(self)
+
+	return self
+end
+
+function Keybinding.bind(self, lhs, callback)
+    if types.is_type(lhs, 'table') then
+        local out = {}
+        for _, k in ipairs(lhs) do
+            assert(types.is_type(k, 'table'))
+            out[k] = bind(self, unpack(k))
         end
 
-        if event or pattern then
-            event = event or 'BufEnter'
-            local id = vim.api.nvim_create_autocmd(event, {
-                pattern = pattern,
-                nested = autocmd_opts.nested,
-                once = autocmd_opts.once,
-                callback = function ()
-                    kbd_opts.buffer = vim.fn.bufnr()
-                    vim.keymap.set(mode, lhs, rhs, kbd_opts)
-                end
-            })
-
-            kbd.autocmd[id] = {
-                autocmd_id = id,
-                mode = mode,
-                lhs = lhs,
-                rhs = rhs,
-                event = event,
-                pattern = pattern,
-                once = autocmd_opts.once,
-                nested = autocmd_opts.nested,
-                opts = kbd_opts,
-                disable = function ()
-                    for _, m in ipairs(mode) do
-                        vim.api.nvim_del_keymap(m, lhs)
-                    end
-                    vim.api.nvim_del_autocmd(id)
-                end,
-            }
-
-            for _, m in ipairs(mode) do
-                kbd[m] = kbd[m] or {}
-                kbd[m][id] = kbd.autocmd[id]
-            end
-        else
-            vim.keymap.set(mode, lhs, rhs, opts)
-            local k = {
-                mode = mode,
-                lhs = lhs,
-                rhs = rhs,
-                event = event,
-                pattern = pattern,
-                once = autocmd_opts.once,
-                nested = autocmd_opts.nested,
-                opts = kbd_opts,
-                disable = function ()
-                    for _, m in ipairs(mode) do
-                        if buffer then
-                            vim.api.nvim_buf_del_keymap(buffer, m, lhs)
-                        else
-                            vim.api.nvim_del_keymap(m, lhs)
-                        end
-                    end
-                end
-            }
-
-            for _, m in ipairs(mode) do
-                kbd[m] = kbd[m] or {}
-                kbd[m][lhs] = k
-            end
-        end
+        return out
     end
+
+    return bind(self, lhs, callback)
 end
 
-function kbd.noremap(...)
-    for _, form in ipairs({...}) do
-        local opts = form[4] or {}
-        opts.noremap = true
-        form[4] = opts
-        kbd.map(form)
-    end
+function Keybinding.disable(self)
+	if not self.enabled then
+		return self
+	end
+
+	local lhs = self.lhs
+	local bufnr = self.bufnr
+
+	for _, m in ipairs(self.mode) do
+		if bufnr then
+			vim.api.nvim_buf_del_keymap(bufnr, m, lhs)
+		else
+			vim.api.nvim_del_keymap(m, lhs)
+		end
+	end
+
+	self.enabled = false
+	return self
 end
 
-function kbd.unmap(mode, lhs)
-    local k = kbd[mode][lhs]
-    if not k.disabled then
-        k.disable()
-        k.disabled = true
-    end
+function Keybinding.map(mode, lhs, callback, opts)
+    local options = {
+        mode = mode,
+        opts = opts,
+    }
+    return Keybinding(options):bind(lhs, callback)
 end
 
-function kbd.noremap_with_options(opts, ...)
-    opts = opts or {}
-    for _, form in ipairs({...}) do
-        local options = builtin.merge(form[4] or {}, opts)
-        form[4] = options
-        kbd.noremap(form)
-    end
+function Keybinding.noremap(mode, lhs, callback, opts)
+    opts.noremap = opts.noremap == nil and false or opts.noremap
+    return Keybinding.map(mode, lhs, callback, opts)
+
 end
 
-function kbd.map_with_options(opts, ...)
-    opts = opts or {}
-    for _, form in ipairs({...}) do
-        local options = builtin.merge(form[4] or {}, opts)
-        form[4] = options
-        kbd.map(form)
-    end
-end
-
-user.kbd = kbd
-return kbd
+return Keybinding
