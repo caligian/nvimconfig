@@ -11,6 +11,6 @@ user.shell = '/usr/bin/zsh'
 user.colorscheme = 'OceanicNext'
 user.font = "UbuntuMono Nerd Font:h13"
 
-pcall(require, 'user.core.globals')
+pcall(builtin.require, 'user.core.globals')
 
 vim.o.guifont = user.font

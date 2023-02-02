@@ -1,30 +1,31 @@
-builtin.get(user.repl, 'ids', true)
-builtin.get(user.repl, 'buffers', true)
-builtin.update(user.repl, {'commands'}, {
+if not REPL then
+    class.REPL()
+end
+user.repl = REPL
+
+builtin.makepath(REPL, 'id')
+builtin.makepath(REPL, 'buffer')
+
+REPL.commands = {
     python = 'ipython3 -q',
     ruby = 'irb --inf-ruby-mode',
     lua = 'lua5.1',
     sh = 'zsh',
-})
-user.config.repl = user.config.repl or {}
-local repl = user.repl
-builtin.merge(repl, user.config.repl)
+}
 
-function repl.is_visible(id)
-    local winnr = vim.fn.bufwinnr(repl.ids[id].buffer)
+builtin.require 'user.repl'
+
+local repl = user.repl
+
+function repl.is_visible(self)
+    local winnr = vim.fn.bufwinnr(self.bufnr)
     return winnr ~= -1
 end
 
-function repl.status(id)
-    if not repl.ids[id] then
-        return false
-    end
+function repl.status(self)
+    local id = self.id
+    id = vim.fn.jobwait({ id }, 0)[1]
 
-    if type(id) == 'string'  then
-        id = repl.ids[id].id
-    end
-
-    id = vim.fn.jobwait({id}, 0)[1]
     if id == -1 then
         return 'running'
     elseif id == -2 then
@@ -34,55 +35,72 @@ function repl.status(id)
     end
 end
 
-function repl.is_valid(id)
-    return not repl.status(id)
+function repl.is_valid(self)
+    return self:status() ~= false
 end
 
-function repl.is_running(id)
-    return repl.status(id) == 'running'
+function repl.is_running(self)
+    return self:status() == 'running'
 end
 
-function repl.is_interrupted(id)
-    return repl.status(id) == 'interrupted'
+function repl.is_interrupted(self)
+    return self:status() == 'interrupted'
 end
 
-function repl.stop_terminal(id)
-    if not repl.is_running(id) then return end
-    local r = repl.ids[id]
-    id = r.id
+function repl.stop(self)
+    local id = self.id
+    if not self:is_running() then return end
+    id = self.id
     vim.fn.chanclose(id)
-    r.running = false
-    repl.hide_terminal(id)
+    self.running = false
+    self:hide()
 
-    if vim.fn.bufexists(r.buffer) == 1 then
-        vim.api.nvim_buf_delete(r.buffer, {force=true})
+    if vim.fn.bufexists(self.bufnr) == 1 then
+        vim.api.nvim_buf_delete(self.bufnr, { force = true })
     end
 end
 
-function repl.stop_all_terminals()
-    for _, r in pairs(repl.buffers) do
-        repl.stop_terminal(r.id)
+function repl.stopall()
+    for _, r in pairs(repl.buffer) do
+        r:stop()
     end
 end
 
-
-function repl.open_terminal(opts)
+function repl._init(self, name, opts)
     opts = opts or {}
+    if not name then
+        self.name = vim.bo.filetype
+    else
+        self.name = name
+    end
+
+    for k, v in pairs(opts) do
+        self[k] = v
+    end
+end
+
+function repl.start(self, opts)
+    opts = opts or {}
+    builtin.merge_keepleft(opts, self)
     opts.name = opts.name or vim.bo.filetype
     opts.cmd = opts.cmd or repl.commands[opts.name]
     local name, cmd = opts.name, opts.cmd
 
     assert(cmd, 'No command provided')
 
-    if repl.ids[name] and repl.ids[name].running then
-        return repl.ids[name]
+    if repl.id[name] and repl.id[name].running then
+        if opts.force then
+            repl.id[name]:stop()
+            self:start(opts)
+        else
+            return repl.id[name]
+        end
     end
 
-    local current_buf = vim.fn.bufnr(0)
     local buf = vim.api.nvim_create_buf(false, true)
     local id = nil
 
-    vim.api.nvim_buf_call(buf, function ()
+    vim.api.nvim_buf_call(buf, function()
         vim.cmd('term')
         id = vim.b.terminal_job_id
         vim.bo.buflisted = false
@@ -91,27 +109,26 @@ function repl.open_terminal(opts)
         vim.api.nvim_chan_send(id, cmd .. "\r")
     end)
 
-    local r = {
-        id = id,
-        running = true,
-        command = cmd,
-        buffer = buf,
-        name = name,
-    }
-    repl.ids[id] = r
-    repl.ids[name] = r
-    repl.buffers[buf] = r
+    self.id = id
+    self.running = true
+    self.command = cmd
+    self.name = name
+    self.bufnr = buf
 
-    return r
+    repl.id[id] = self
+    repl.id[name] = self
+    repl.buffer[buf] = self
+
+    return self
 end
 
-function repl.split_terminal(id, direction)
-    if (not repl.is_running(id)) or repl.is_visible(id) then
+function repl.split(self, direction)
+    if not self:is_running() or self:is_visible() then
         return
     end
 
     direction = direction or 's'
-    local terminal_buf = repl.ids[id].buffer
+    local terminal_buf = self.bufnr
     if direction == 's' then
         local height = vim.fn.winheight(0) / 3
         local count = math.floor(height)
@@ -123,65 +140,62 @@ function repl.split_terminal(id, direction)
     end
 end
 
-function repl.hide_terminal(id)
-    if not repl.is_visible(id) then
+function repl.hide(self)
+    if not self:is_visible() then
         return
     end
 
-    local buf = repl.ids[id].buffer
-    vim.api.nvim_buf_call(buf, function ()
-        local winid = vim.fn.bufwinid(buf)
+    local bufnr = self.bufnr
+    vim.api.nvim_buf_call(bufnr, function()
+        local winid = vim.fn.bufwinid(bufnr)
         vim.fn.win_gotoid(winid)
         vim.cmd('hide')
     end)
 end
 
-function repl.send_string(id, s)
-    if not repl.is_running(id) then return end
+function repl.send(self, s)
+    if not self:is_running() then
+        return
+    end
 
-    id = repl.ids[id].id
-    if builtin.is_type(s, 'table')  then
+    local id = self.id
+    if builtin.is_type(s, 'table') then
         s = table.concat(s, "\n")
     end
     s = s .. "\r"
     vim.api.nvim_chan_send(id, s)
 end
 
-function repl.send_current_line(id, buf)
-    if not repl.is_running(id) then return end
+function repl.send_current_line(self, src_bufnr)
+    src_bufnr = src_bufnr or vim.fn.bufnr()
+    if not self:is_running() then return end
 
-    vim.api.nvim_buf_call(buf, function()
-        repl.send_string(id, vim.fn.getline('.'))
+    vim.api.nvim_buf_call(src_bufnr, function()
+        self:send(vim.fn.getline('.'))
     end)
 end
 
-function repl.send_buffer(id, buf)
-    if not repl.is_running(id) then return end
-
-    vim.api.nvim_buf_call(buf, function()
-        repl.send_string(id, vim.api.nvim_buf_get_lines(buf, 0, -1, false))
-    end)
+function repl.send_buffer(self, src_bufnr)
+    src_bufnr = src_bufnr or vim.fn.bufnr()
+    if not self:is_running() then return end
+    self:send(vim.api.nvim_buf_get_lines(src_bufnr, 0, -1, false))
 end
 
-function repl.send_till_point(id, buf)
-    if not repl.is_running(id) then return end
+function repl.send_till_point(self, src_bufnr)
+    src_bufnr = src_bufnr or vim.fn.bufnr()
+    if not self:is_running() then return end
 
-    vim.api.nvim_buf_call(buf, function()
+    vim.api.nvim_buf_call(src_bufnr, function()
         local line = vim.fn.line('.')
-        repl.send_string(id, vim.api.nvim_buf_get_lines(buf, 0, line, false))
+        self:send(vim.api.nvim_buf_get_lines(src_bufnr, 0, line, false))
     end)
 end
 
-function repl.send_visual(id, buf)
-    if not repl.is_running(id) then return end
+function repl.send_visual_range(self, src_bufnr)
+    src_bufnr = src_bufnr or vim.fn.bufnr()
+    if not self:is_running() then return end
 
-    vim.api.nvim_buf_call(buf, function ()
-        if vim.fn.mode() ~= 'v' then
-            local start_pos = vim.fn.getpos("'<")
-            local end_pos = vim.fn.getpos("'>")
-            repl.send_string(id, vim.api.nvim_buf_get_text(buf, start_pos[2]-1, start_pos[3]-1, end_pos[2]-1, end_pos[3], {}))
-        end
-    end)
+    return self:send(builtin.get_visual_range(src_bufnr))
 end
 
-return repl
+return REPL

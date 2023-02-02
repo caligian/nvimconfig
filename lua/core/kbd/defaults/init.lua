@@ -1,0 +1,8 @@
+builtin.require 'core.kbd.defaults.tab'
+builtin.require 'core.kbd.defaults.eval'
+builtin.require 'core.kbd.defaults.scratch'
+builtin.require 'core.kbd.defaults.source'
+builtin.require 'core.kbd.defaults.terminal'
+builtin.require 'core.kbd.defaults.window'
+builtin.require 'core.kbd.defaults.buffer'
+builtin.require 'core.kbd.defaults.misc'

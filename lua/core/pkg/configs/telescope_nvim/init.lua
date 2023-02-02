@@ -1,7 +1,7 @@
-local telescope = require 'telescope'
-local ivy = require('telescope.themes').get_ivy()
-local file_browser_actions = require 'core.pkg.configs.telescope_nvim.file_browser'
-local buffer_actions = require 'core.pkg.configs.telescope_nvim.buffers'
+local telescope = builtin.require 'telescope'
+local ivy = builtin.require('telescope.themes').get_ivy()
+local file_browser_actions = builtin.require 'core.pkg.configs.telescope_nvim.file_browser'
+local buffer_actions = builtin.require 'core.pkg.configs.telescope_nvim.buffers'
 
 -- 
 user.pkg['telescope.nvim'] = {}
@@ -49,17 +49,17 @@ t.pickers = {
 
 -- Setup telescope with extensions
 -- Require user overrides
-pcall(require, 'user.pkg.telescope_nvim')
-require('telescope').setup(t)
-require('telescope').load_extension('file_browser')
-require('telescope').load_extension('project')
+pcall(builtin.require, 'user.pkg.telescope_nvim')
+builtin.require('telescope').setup(t)
+builtin.require('telescope').load_extension('file_browser')
+builtin.require('telescope').load_extension('project')
 
 -- Setup builtin pickers keymaps
 -- Convenience functions for getting pickers
 local function get_picker(picker_type)
     return function(picker)
         return function()
-            return require('telescope.' .. picker_type)[picker](ivy)
+            return builtin.require('telescope.' .. picker_type)[picker](ivy)
         end
     end
 end

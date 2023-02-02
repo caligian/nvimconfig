@@ -1,4 +1,4 @@
-local wk = require('which-key')
+local wk = builtin.require('which-key')
 
 user.pkg['which-key.nvim'] = {
     plugins = {
@@ -73,7 +73,7 @@ user.pkg['which-key.nvim'] = {
     },
 }
 
-local ok, _ = pcall(require, 'user.pkg.configs.which-key_nvim')
+local ok, _ = pcall(builtin.require, 'user.pkg.configs.which-key_nvim')
 
 wk.setup(user.pkg['which-key.nvim'])
 

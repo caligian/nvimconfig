@@ -38,7 +38,7 @@ user.option = {
 	},
 }
 
-pcall(require, 'user.option')
+pcall(builtin.require, 'user.option')
 option = user.option
 
 for t, opts in pairs(user.option) do

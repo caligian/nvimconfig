@@ -91,7 +91,7 @@ end
 function builtin.append(t, ...)
     local idx = #t
     for i, value in ipairs({ ... }) do
-        t[idx+i] = value
+        t[idx + i] = value
     end
 
     return t
@@ -118,7 +118,7 @@ function builtin.shift(t, times)
 end
 
 function builtin.unshift(t, ...)
-    for _, value in ipairs({...}) do
+    for _, value in ipairs({ ... }) do
         table.insert(t, 1, value)
     end
 
@@ -570,7 +570,22 @@ function builtin.pcall(f, ...)
 end
 
 function builtin.makepath(t, ...)
-    return builtin.get(t, {...}, true)
+    return builtin.get(t, { ... }, true)
+end
+
+function builtin.require(req, do_assert)
+    local ok, out = pcall(require, req)
+
+    if not ok then
+        builtin.makepath(builtin, 'logs')
+        builtin.append(builtin.logs, out)
+
+        if do_assert then
+            error(out)
+        end
+    end
+
+    return out
 end
 
 return builtin

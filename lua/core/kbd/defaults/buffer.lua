@@ -1,4 +1,4 @@
-Keybinding({
+user.kbd({
     noremap = true,
     silent = true,
     leader = true,
@@ -11,4 +11,4 @@ Keybinding({
     { 'b0', ':bfirst<CR>', { desc = 'First buffer' } },
     { 'b$', ':blast<CR>', { desc = 'Last buffer' } },
     { 'bq', ':bwipeout %<CR>', { desc = 'Wipeout buffer' } },
-} 
+}

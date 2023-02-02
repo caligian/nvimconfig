@@ -13,10 +13,10 @@ return {
         'tpope/vim-fugitive',
         keys = { { 'n', '<leader>gg' } },
         config = function()
-            user.kbd({noremap=true, leader=true, mode='n'}):bind {
-                {'gg', ':Git<CR>'},
-                {'gs', ':Git stage <CR>'},
-                {'gc', ':Git commit <CR>'},
+            user.kbd({ noremap = true, leader = true, mode = 'n' }):bind {
+                { 'gg', ':Git<CR>' },
+                { 'gs', ':Git stage <CR>' },
+                { 'gc', ':Git commit <CR>' },
             }
         end
     },
@@ -39,7 +39,7 @@ return {
     {
         'folke/which-key.nvim',
         config = function()
-            require('core.pkg.configs.which-key_nvim')
+            builtin.require('core.pkg.configs.which-key_nvim')
         end
     },
     {
@@ -49,7 +49,7 @@ return {
     {
         'nvim-treesitter/nvim-treesitter',
         config = function()
-            require('core.pkg.configs.nvim-treesitter')
+            builtin.require('core.pkg.configs.nvim-treesitter')
         end
     },
     {
@@ -76,7 +76,7 @@ return {
             },
         },
         config = function()
-            require 'core.pkg.configs.nvim-lspconfig'
+            builtin.require 'core.pkg.configs.nvim-lspconfig'
         end,
     },
     {
@@ -88,8 +88,7 @@ return {
             { 'nvim-telescope/telescope-fzf-native.nvim', run = 'make' },
         },
         config = function()
-            require 'core.pkg.configs.telescope_nvim'
-            require 'core.pkg.configs.telescope_nvim.keybindings'
+            builtin.require 'core.pkg.configs.telescope_nvim'
         end
     },
 }

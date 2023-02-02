@@ -6,7 +6,7 @@ local function compile_and_run(lines)
     local compiled, err = loadstring(lines)
     if err then
         builtin.nvim_err(err)
-    else
+    elseif compiled then
         compiled()
     end
 end
@@ -35,9 +35,9 @@ end, {})
 
 
 -- Setup keybindings
-Keybinding.noremap('v', '<leader><leader>', '<esc><cmd>NvimEvalRegion<CR>', { desc = 'Lua source range' }) 
+user.kbd.noremap('v', '<leader><leader>', '<esc><cmd>NvimEvalRegion<CR>', { desc = 'Lua source range' })
 
-Keybinding({
+user.kbd({
     silent = true,
     noremap = true,
     leader = true,
@@ -45,5 +45,5 @@ Keybinding({
     { '<leader>', '<cmd>NvimEvalLine<CR>', { desc = 'Lua source line' } },
     { 'ee', '<cmd>NvimEvalLine<CR>', { desc = 'Lua source line' } },
     { 'eb', '<cmd>NvimEvalBuffer<CR>', { desc = 'Lua source buffer' } },
-    {'e.', '<cmd>NvimEvalTillPoint<CR>', { desc = 'Lua source till point' }}
+    { 'e.', '<cmd>NvimEvalTillPoint<CR>', { desc = 'Lua source till point' } }
 }

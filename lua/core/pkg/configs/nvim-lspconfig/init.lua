@@ -1,9 +1,9 @@
-require 'core.pkg.configs.nvim-lspconfig.defaults'
+builtin.require 'core.pkg.configs.nvim-lspconfig.defaults'
 
-local cmp = require('cmp')
-local cmp_ultisnips_mappings = require("cmp_nvim_ultisnips.mappings")
+local cmp = builtin.require('cmp')
+local cmp_ultisnips_mappings = builtin.require("cmp_nvim_ultisnips.mappings")
 local lsp = user.lsp
-lsp.capabilties = require('cmp_nvim_lsp').default_capabilities()
+lsp.capabilties = builtin.require('cmp_nvim_lsp').default_capabilities()
 
 user.pkg['trouble.nvim'] = {
     icons = false,
@@ -79,14 +79,14 @@ user.pkg['nvim-cmp'] = {
 }
 
 -- Load user overrides
-pcall(require, 'user.pkg.configs.nvim-lspconfig')
+pcall(builtin.require, 'user.pkg.configs.nvim-lspconfig')
 
 function lsp.on_attach(client, bufnr)
     -- Enable completion triggered by <c-x><c-o>
     vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
 
     -- Setup buffer formatting
-    require('lsp-format').on_attach(client)
+    builtin.require('lsp-format').on_attach(client)
 
     -- Setup keybindings
     user.kbd({buffer=bufnr, silent=true}):bind {
@@ -116,7 +116,7 @@ function lsp.setup_server(server, opts)
     server_conf = server_conf == true and default_conf or server_conf
     default_conf = builtin.merge(server_conf, default_conf)
 
-    require('lspconfig')[server].setup(default_conf)
+    builtin.require('lspconfig')[server].setup(default_conf)
 end
 
 function lsp.setup()
@@ -125,9 +125,9 @@ function lsp.setup()
     local trouble = user.pkg['trouble.nvim']
 
     -- Mason.vim, trouble and lsp autoformatting
-    require('mason').setup()
-    require('trouble').setup(trouble)
-    require('lsp-format').setup()
+    builtin.require('mason').setup()
+    builtin.require('trouble').setup(trouble)
+    builtin.require('lsp-format').setup()
 
     -- Ultisnips
     vim.g.UltiSnipsExpandTrigger = snippet.expand_trigger

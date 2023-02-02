@@ -1,4 +1,4 @@
-Keybinding({
+user.kbd({
     noremap = true,
     silent = true,
     leader = true,
@@ -18,4 +18,4 @@ Keybinding({
     { 't8', ':tabnext 8<CR>', { desc = 'Tab 8' } },
     { 't9', ':tabnext 9<CR>', { desc = 'Tab 9' } },
     { 't0', ':tabnext 10<CR>', { desc = 'Tab 10' } },
-} 
+}
