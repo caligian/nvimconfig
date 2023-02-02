@@ -1,39 +1,26 @@
-builtin.makepath(builtin, 'lang')
-if not _G.Lang then
-    builtin.lang = class.Lang()
-end
+builtin.makepath(user, 'lang', 'langs')
+user.lang.langs = require 'core.lang.defaults'
+local lang = user.lang
 
-local lang = Lang
-
-
-function Lang._init(self, ft)
-    ft = ft or vim.bo.filetype
-    self.filetype = ft
-
-    if not ft then
-        error(sprintf('No lang configuration available for %s', ft))
+function lang.hook(ft, callback)
+    local l
+    if not user.lang[ft] then
+        builtin.makepath(user.lang.langs, ft)
+        l = user.lang.langs[ft]
     end
+    builtin.makepath(l, 'hooks')
+    local group = 'hooks_for_filetype_' .. ft
+    local au = user.autocmd(group, false)
 
-    return self
-end
-
-function Lang.setup(opts)
-    opts = opts or {}
-    assert(opts.command, 'No command table provided')
-    assert(opts.command.compile, 'No compile command provided')
-
-    for k, v in pairs(opts) do
-        self[k] = v
+    -- Save all callbacks in a list
+    -- This will make it easier to run callbacks without removing autocmds
+    builtin.append(l.hooks, callback)
+    if #l.hooks > 0 then
+        callback = function()
+            for _, hook in ipairs(l.hooks) do
+                hook()
+            end
+        end
+        au:create('FileType', ft, callback)
     end
-end
-
-local function runner(cmd, args, fname)
-    local 
-    local opts = {
-    }
-end
-
-function Lang.compile_buffer(self, bufnr, args)
-    return vim.api.nvim_buf_call(function()
-    end)
 end
