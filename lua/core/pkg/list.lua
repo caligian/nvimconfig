@@ -13,17 +13,17 @@ return {
         'tpope/vim-fugitive',
         keys = { { 'n', '<leader>gg' } },
         config = function()
-            user.kbd.noremap(
-                { 'n', '<leader>gg', ':Git<CR>' },
-                { 'n', '<leader>gs', ':Git stage<CR>' },
-                { 'n', '<leader>gc', ':Git commit<CR>' },
-                { 'n', '<leader>gp', ':Git push<CR>' })
+            user.kbd({noremap=true, leader=true, mode='n'}):bind {
+                {'gg', ':Git<CR>'},
+                {'gs', ':Git stage <CR>'},
+                {'gc', ':Git commit <CR>'},
+            }
         end
     },
     {
         'preservim/tagbar',
         config = function()
-            user.kbd.noremap({ 'n', '<C-t>', ':TagbarToggle<CR>', { desc = 'Toggle tagbar' } })
+            user.kbd.noremap('n', '<C-t>', ':TagbarToggle<CR>', { desc = 'Toggle tagbar' })
         end
     },
     {
@@ -33,25 +33,23 @@ return {
     {
         'flazz/vim-colorschemes',
         config = function()
-            vim.cmd('colorscheme ' .. user.colorscheme or user.config.colorscheme)
+            vim.cmd('colorscheme ' .. user.colorscheme)
         end
     },
     {
         'folke/which-key.nvim',
         config = function()
-            builtin.require('core.pkg.configs.which-key_nvim')
+            require('core.pkg.configs.which-key_nvim')
         end
     },
     {
         'iamcco/markdown-preview.nvim',
-        ft = 'markdown',
         run = 'cd app && yarn install',
-        cmd = 'MarkdownPreview'
     },
     {
         'nvim-treesitter/nvim-treesitter',
         config = function()
-            builtin.require('core.pkg.configs.nvim-treesitter')
+            require('core.pkg.configs.nvim-treesitter')
         end
     },
     {
@@ -78,7 +76,7 @@ return {
             },
         },
         config = function()
-            builtin.require 'core.pkg.configs.nvim-lspconfig'
+            require 'core.pkg.configs.nvim-lspconfig'
         end,
     },
     {
@@ -90,8 +88,8 @@ return {
             { 'nvim-telescope/telescope-fzf-native.nvim', run = 'make' },
         },
         config = function()
-            builtin.require 'core.pkg.configs.telescope_nvim'
-            builtin.require 'core.pkg.configs.telescope_nvim.keybindings'
+            require 'core.pkg.configs.telescope_nvim'
+            require 'core.pkg.configs.telescope_nvim.keybindings'
         end
     },
 }

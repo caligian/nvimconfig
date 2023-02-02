@@ -1,4 +1,5 @@
 local wk = require('which-key')
+
 user.pkg['which-key.nvim'] = {
     plugins = {
         marks = true, -- shows a list of your marks on ' and `
@@ -72,7 +73,7 @@ user.pkg['which-key.nvim'] = {
     },
 }
 
-builtin.require('user.pkg.configs.which-key_nvim', {compiled=true})
+local ok, _ = pcall(require, 'user.pkg.configs.which-key_nvim')
 
 wk.setup(user.pkg['which-key.nvim'])
 
@@ -87,5 +88,3 @@ wk.register({
     x = { name = 'Shell operations' },
     c = { name = 'Compile buffer' }
 }, { prefix = '<leader>' })
-
-inspect('which-key_nvim.lua')

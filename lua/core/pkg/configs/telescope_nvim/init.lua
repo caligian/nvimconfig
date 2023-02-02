@@ -49,7 +49,7 @@ t.pickers = {
 
 -- Setup telescope with extensions
 -- Require user overrides
-builtin.require 'user.pkg.telescope_nvim'
+pcall(require, 'user.pkg.telescope_nvim')
 require('telescope').setup(t)
 require('telescope').load_extension('file_browser')
 require('telescope').load_extension('project')
@@ -91,16 +91,9 @@ local builtin_keybindings = {
 for keys, picker in pairs(builtin_keybindings) do
     local p, desc = unpack(picker)
     local cb = builtin(p)
-    user.kbd.noremap({ 'n', '<leader>' .. keys, cb, { desc = desc } })
+    user.kbd.noremap('n', '<leader>' .. keys, cb, { desc = desc })
 end
 
--- Map extensions
-user.kbd.noremap(
-    { 'n', '<leader>ff',
-        function()
-            telescope.extensions.file_browser.file_browser(ivy)
-        end, desc = 'Open file browser' },
-    { "n", "<leader>p",
-        function()
-            telescope.extensions.project.project(ivy)
-        end, { desc = 'Project management' } })
+-- Extension keybindings
+user.kbd.noremap('n', '<leader>ff', function() telescope.extensions.file_browser.file_browser(ivy) end, {desc = 'Open file browser'})
+user.kbd.noremap('n', '<leader>pp', function() telescope.extensions.project.project(ivy) end, {desc = 'Project management'})

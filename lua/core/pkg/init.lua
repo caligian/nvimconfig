@@ -1,6 +1,6 @@
 local package_list = require 'core.pkg.list'
 
-builtin.require('user.pkg')
+pcall(require, 'user.pkg')
 
 user.pkg = user.pkg
 user.packer = require 'packer'
