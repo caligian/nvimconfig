@@ -6,12 +6,12 @@ user.repl = REPL
 builtin.makepath(REPL, 'id')
 builtin.makepath(REPL, 'buffer')
 
-REPL.commands = {
-    python = 'ipython3 -q',
-    ruby = 'irb --inf-ruby-mode',
-    lua = 'lua5.1',
-    sh = 'zsh',
-}
+REPL.commands = {}
+for ft, conf in pairs(user.lang.langs) do
+    if conf.commands.repl then
+        REPL.commands[ft] = conf.commands.repl
+    end
+end
 
 builtin.require 'user.repl'
 

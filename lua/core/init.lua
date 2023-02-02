@@ -2,6 +2,7 @@ builtin.require('core.globals')
 builtin.require('core.option')
 builtin.require('core.autocmd')
 builtin.require('core.kbd')
+builtin.require('core.lang')
 builtin.require('core.pkg')
 builtin.require('core.kbd.defaults')
 builtin.require("core.autocmd.defaults")
@@ -26,3 +27,5 @@ vim.api.nvim_create_user_command('ShowLogs', function()
 
     vim.cmd('b startup_log')
 end, {})
+
+vim.cmd('noremap <leader>hl :ShowLogs<CR>')

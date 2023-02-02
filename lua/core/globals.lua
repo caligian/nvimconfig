@@ -8,9 +8,7 @@ builtin.makepath(user, 'kbd')
 builtin.makepath(user, 'lsp')
 
 user.shell = '/usr/bin/zsh'
-user.colorscheme = 'OceanicNext'
+user.colorscheme = 'solarized8_dark_low'
 user.font = "UbuntuMono Nerd Font:h13"
 
-pcall(builtin.require, 'user.core.globals')
-
-vim.o.guifont = user.font
+builtin.require 'user.core.globals'

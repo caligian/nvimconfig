@@ -1,5 +1,4 @@
 builtin.makepath(user, 'lang', 'langs')
-user.lang.langs = require 'core.lang.defaults'
 local lang = user.lang
 
 function lang.hook(ft, callback)
@@ -22,5 +21,14 @@ function lang.hook(ft, callback)
             end
         end
         au:create('FileType', ft, callback)
+    end
+end
+
+local src = path.join(vim.fn.stdpath('config'), 'lua', 'core', 'lang', 'ft')
+for _, d in ipairs(dir.getdirectories(src)) do
+    d = path.basename(d)
+    local config = builtin.require('core.lang.ft.' .. d)
+    if config then
+        user.lang.langs[d] = config
     end
 end

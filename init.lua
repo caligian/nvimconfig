@@ -25,6 +25,8 @@ builtin.global {
 	tablex = require 'pl.tablex',
 	operator = require 'pl.operator',
 	types = require 'pl.types',
+    file = require 'pl.file',
+    dir = require 'pl.dir',
 	json = {encode=vim.json_encode, decode=vim.json_decode},
 	user = {},
 }

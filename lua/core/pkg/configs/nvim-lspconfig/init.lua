@@ -33,7 +33,7 @@ lsp.diagnostic = {
     virtual_text = false
 }
 
-user.pkg['nvim-cmp'] = {
+user.pkg.package['nvim-cmp'] = {
     mapping = {
         ['<C-b>'] = cmp.mapping.scroll_docs(-4),
         ['<C-f>'] = cmp.mapping.scroll_docs(4),
@@ -78,7 +78,7 @@ user.pkg['nvim-cmp'] = {
 }
 
 -- Load user overrides
-pcall(builtin.require, 'user.pkg.configs.nvim-lspconfig')
+builtin.require 'user.pkg.configs.nvim-lspconfig'
 
 function lsp.on_attach(client, bufnr)
     -- Enable completion triggered by <c-x><c-o>
@@ -112,17 +112,16 @@ function lsp.setup_server(server, opts)
     local on_attach = opts.on_attach or lsp.on_attach
     local flags = opts.flags or lsp.flags
     local default_conf = { capabilities = capabilities, on_attach = on_attach, flags = flags }
-    local server_conf = builtin.get(lsp, { 'server', server }) or lsp.server[server]
-    server_conf = server_conf == true and default_conf or server_conf
-    default_conf = builtin.merge(server_conf, default_conf)
+
+    default_conf = builtin.merge(default_conf, opts)
 
     builtin.require('lspconfig')[server].setup(default_conf)
 end
 
 function lsp.setup()
-    local snippet = user.pkg['ultisnips']
-    local cmpconf = user.pkg['nvim-cmp']
-    local trouble = user.pkg['trouble.nvim']
+    local snippet = user.pkg.package['ultisnips']
+    local cmpconf = user.pkg.package['nvim-cmp']
+    local trouble = user.pkg.package['trouble.nvim']
 
     -- Mason.vim, trouble and lsp autoformatting
     builtin.require('mason').setup()
@@ -142,8 +141,10 @@ function lsp.setup()
     cmp.setup(cmpconf)
 
     -- Setup lsp servers
-    for server, conf in pairs(lsp.server) do
-        lsp.setup_server(server, conf == true and {} or conf)
+    for ft, conf in pairs(user.lang.langs) do
+        if conf.server then
+            lsp.setup_server(conf.server.name, conf.server.config or {})
+        end
     end
 end
 

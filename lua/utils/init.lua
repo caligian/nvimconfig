@@ -583,9 +583,9 @@ function builtin.require(req, do_assert)
         if do_assert then
             error(out)
         end
+    else
+        return out
     end
-
-    return out
 end
 
 return builtin
