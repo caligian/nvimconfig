@@ -1,16 +1,16 @@
 -- Install lazy.nvim if not present
-local packerpath = vim.fn.stdpath("data") .. '/site/pack/packer/start/packer.nvim'
-local repo = 'https://github.com/wbthomason/packer.nvim'
-local cmd = { 'git', 'clone', '--depth 1', repo, packerpath }
-if not vim.loop.fs_stat(packerpath) then
-    print('Cloning packer.nvim...')
-
-    vim.fn.system(cmd)
-
-    if not vim.loop.fs_stat(packerpath) then
-        error('Could not install packer.nvim succesfuly')
-    end
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not vim.loop.fs_stat(lazypath) then
+    vim.fn.system({
+        "git",
+        "clone",
+        "--filter=blob:none",
+        "https://github.com/folke/lazy.nvim.git",
+        "--branch=stable", -- latest stable release
+        lazypath,
+    })
 end
+vim.opt.rtp:prepend(lazypath)
 
 -- Enable support for nvim-local luarocks
 local config_dir = vim.fn.stdpath('config')
@@ -59,5 +59,5 @@ types = require 'pl.types'
 file = require 'pl.file'
 dir = require 'pl.dir'
 json = { encode = vim.json_encode, decode = vim.json_decode }
-logger = logging.file(path.join(vim.fn.stdpath('config'), 'nvim.log'), 10000)
+logger = logging.file(path.join(vim.fn.stdpath('config'), 'nvim.log'))
 user = {}

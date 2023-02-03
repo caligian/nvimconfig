@@ -1,3 +1,4 @@
 luarocks/
 plugin/
 nvim.log
+lazy*

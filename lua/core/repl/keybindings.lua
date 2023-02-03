@@ -1,4 +1,4 @@
-user.kbd({ noremap = true, leader = true }):bind {
+Keybinding({ noremap = true, leader = true }):bind {
     { 'xi', '<cmd>ShellStart<CR>' },
     { 'xs', '<cmd>ShellSplit<CR>' },
     { 'xv', '<cmd>ShellVsplit<CR>' },
@@ -17,7 +17,7 @@ user.kbd({ noremap = true, leader = true }):bind {
     { 'r.', '<cmd>REPLSendTillPoint<CR>' },
 }
 
-user.kbd({ noremap = true, leader = true, mode = 'v' }):bind {
+Keybinding({ noremap = true, leader = true, mode = 'v' }):bind {
     { 're', '<esc><cmd>REPLSendVisualRange<CR>' },
     { 'xe', '<esc><cmd>ShellSendVisualRange<CR>' },
 }

@@ -52,7 +52,7 @@ vim.api.nvim_create_user_command('VsplitScratchBuffer', builtin.partial(open_scr
 vim.api.nvim_create_user_command('TabScratchBuffer', builtin.partial(open_scratch_buffer, 't'), {})
 vim.api.nvim_create_user_command('HideScratchBuffer', hide_scratch_buffer, {})
 
-user.kbd({
+Keybinding({
     silent = true,
     noremap = true,
     localleader = true,

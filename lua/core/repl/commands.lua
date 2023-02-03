@@ -1,4 +1,4 @@
-local repl = user.repl
+local repl = REPL
 local command = vim.api.nvim_create_user_command
 
 local function get_repl(name)

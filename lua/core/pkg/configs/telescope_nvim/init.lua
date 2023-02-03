@@ -2,18 +2,16 @@ local telescope = builtin.require 'telescope'
 local ivy = builtin.require('telescope.themes').get_ivy()
 local file_browser_actions = builtin.require 'core.pkg.configs.telescope_nvim.file_browser'
 local buffer_actions = builtin.require 'core.pkg.configs.telescope_nvim.buffers'
-
---
-user.pkg.package['telescope.nvim'] = {}
-local t = builtin.merge(user.pkg.package['telescope.nvim'], ivy)
+Package.defaults['telescope.nvim'] = {}
+local T = builtin.merge(Package.defaults['telescope.nvim'], ivy)
 
 -- To seem more like emacs ivy
-t.disable_devicons = true
-t.layout_config.height = 0.5
-t.previewer = false
+T.disable_devicons = true
+T.layout_config.height = 0.5
+T.previewer = false
 
 --  Setup telescope default configuration
-t.extensions = {
+T.extensions = {
     file_browser = builtin.merge({
         disable_devicons = true,
         mappings = {
@@ -22,7 +20,7 @@ t.extensions = {
                 l = file_browser_actions.luafile,
                 ['<C-g>'] = file_browser_actions.git_init,
                 ['<C-d>'] = file_browser_actions.open_in_netrw,
-                ['<C-t>'] = file_browser_actions.touch,
+                ['<C-T>'] = file_browser_actions.touch,
             }
         }
     }, ivy),
@@ -34,7 +32,7 @@ t.extensions = {
     }, ivy),
 }
 
-t.pickers = {
+T.pickers = {
     buffers = {
         mappings = {
             n = {
@@ -49,8 +47,8 @@ t.pickers = {
 
 -- Setup telescope with extensions
 -- Require user overrides
-pcall(builtin.require, 'user.pkg.telescope_nvim')
-builtin.require('telescope').setup(t)
+builtin.require 'user.pkg.telescope_nvim'
+builtin.require('telescope').setup(T)
 builtin.require('telescope').load_extension('file_browser')
 builtin.require('telescope').load_extension('project')
 
@@ -70,13 +68,13 @@ local builtin_keybindings = {
     ['/'] = { 'grep_string', 'Grep string in workspace' },
     ['?'] = { 'live_grep', 'Live grep in workspace' },
     ['\''] = { 'marks', 'Show marks' },
+    ["\""] = { 'registers', 'Show registers' },
     ['<space>'] = { 'resume', 'Resume telescope' },
     ho = { 'vim_options', 'Show vim options' },
     fw = { 'find_files', 'Find files in workspace' },
     gf = { 'git_files', 'Do git ls-files' },
     bb = { 'buffers', 'Show buffers' },
     fr = { 'oldfiles', 'Show recently opened files' },
-    bt = { 'tags', 'Show tags' },
     hm = { 'man_pages', 'Show man pages' },
     ht = { 'colorscheme', 'Select colorscheme' },
     lr = { 'lsp_references', 'Show references' },
@@ -88,14 +86,18 @@ local builtin_keybindings = {
     ['g?'] = { 'git_status', 'Git status' },
 }
 
+local K = Keybinding({ noremap = true, leader = true, mode = 'n' })
+
 for keys, picker in pairs(builtin_keybindings) do
     local p, desc = unpack(picker)
     local cb = builtin(p)
-    user.kbd.noremap('n', '<leader>' .. keys, cb, { desc = desc })
+
+    K:bind {
+        { keys, cb, { desc = desc } }
+    }
 end
 
--- Extension keybindings
-user.kbd.noremap('n', '<leader>ff', function() telescope.extensions.file_browser.file_browser(ivy) end,
-    { desc = 'Open file browser' })
-user.kbd.noremap('n', '<leader>pp', function() telescope.extensions.project.project(ivy) end,
-    { desc = 'Project management' })
+K:bind {
+    { 'ff', ':Telescope file_browser<CR>', { desc = 'File browser' } },
+    { 'p', ':Telescope project<CR>', { desc = 'Project management' } }
+}

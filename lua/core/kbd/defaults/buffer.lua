@@ -1,4 +1,4 @@
-user.kbd({
+Keybinding({
     noremap = true,
     silent = true,
     leader = true,

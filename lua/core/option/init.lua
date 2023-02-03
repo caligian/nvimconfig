@@ -1,4 +1,5 @@
 local data_dir = vim.fn.stdpath('data')
+
 user.option = {
     o = {
         updatetime = 300,

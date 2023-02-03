@@ -35,9 +35,9 @@ end, {})
 
 
 -- Setup keybindings
-user.kbd.noremap('v', '<leader><leader>', '<esc><cmd>NvimEvalRegion<CR>', { desc = 'Lua source range' })
+Keybinding.noremap('v', '<leader><leader>', '<esc><cmd>NvimEvalRegion<CR>', { desc = 'Lua source range' })
 
-user.kbd({
+Keybinding({
     silent = true,
     noremap = true,
     leader = true,

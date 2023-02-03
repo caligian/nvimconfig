@@ -1,1 +1,1 @@
-user.kbd.noremap('n', '\\\\', ':noh<CR>', { desc = 'No highlight' })
+Keybinding.noremap('n', '\\\\', ':noh<CR>', { desc = 'No highlight' })

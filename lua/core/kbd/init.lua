@@ -1,9 +1,5 @@
-if not Keybinding then
-    user.kbd = class.Keybinding()
-end
-local Keybinding = user.kbd
-builtin.makepath(Keybinding, 'id')
-builtin.makepath(Keybinding, 'buffer')
+Keybinding.id = Keybinding.id
+Keybinding.buffer = Keybinding.buffer
 
 -- opts [table]
 -- keys:
@@ -95,15 +91,10 @@ function Keybinding.bind(self, keys)
 
     for _, k in ipairs(keys) do
         assert(types.is_type(k, 'table'))
-        assert(#k >= 2, 'Need {lhs, callback, opt|help}')
+        assert(#k >= 2, 'Need {lhs, callback, opt}')
 
-        local l, cb, help, opts = unpack(k)
+        local l, cb, opts = unpack(k)
         opts = opts or {}
-
-        if types.is_type(help, 'string') then
-            opts.desc = help
-        end
-
         out[l] = bind(self, l, cb, opts)
     end
 
@@ -142,5 +133,3 @@ function Keybinding.noremap(mode, lhs, callback, opts)
     opts.noremap = opts.noremap == nil and false or opts.noremap
     return Keybinding.map(mode, lhs, callback, opts)
 end
-
-return Keybinding

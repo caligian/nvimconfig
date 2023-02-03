@@ -4,7 +4,7 @@ local cmp_ultisnips_mappings = builtin.require("cmp_nvim_ultisnips.mappings")
 local lsp = user.lsp
 lsp.capabilties = builtin.require('cmp_nvim_lsp').default_capabilities()
 
-user.pkg.package['trouble.nvim'] = {
+Package.defaults['trouble.nvim'] = {
     icons = false,
     fold_open = "v",
     fold_closed = ">",
@@ -19,21 +19,21 @@ user.pkg.package['trouble.nvim'] = {
     },
 }
 
-user.pkg.package['ultisnips'] = {
+Package.defaults['ultisnips'] = {
     expand_trigger = '<C-o>',
     jump_forward_trigger = '<C-j>',
     jump_backward_trigger = '<C-k>',
     edit_split = 'vertical',
 }
 
-user.pkg.package['nvim-lspconfig'] = defaults
+Package.defaults['nvim-lspconfig'] = defaults
 
 -- Turn off annoying virtual text
 lsp.diagnostic = {
     virtual_text = false
 }
 
-user.pkg.package['nvim-cmp'] = {
+Package.defaults['nvim-cmp'] = {
     mapping = {
         ['<C-b>'] = cmp.mapping.scroll_docs(-4),
         ['<C-f>'] = cmp.mapping.scroll_docs(4),
@@ -88,7 +88,7 @@ function lsp.on_attach(client, bufnr)
     builtin.require('lsp-format').on_attach(client)
 
     -- Setup keybindings
-    user.kbd({ buffer = bufnr, silent = true }):bind {
+    Keybinding({ buffer = bufnr, silent = true }):bind {
         { 'gD', vim.lsp.buf.declaration, { desc = 'Buffer declarations' } },
         { 'gd', vim.lsp.buf.definition, { desc = 'Buffer definitions' } },
         { 'K', vim.lsp.buf.hover, { desc = 'Show float UI' } },
@@ -119,9 +119,9 @@ function lsp.setup_server(server, opts)
 end
 
 function lsp.setup()
-    local snippet = user.pkg.package['ultisnips']
-    local cmpconf = user.pkg.package['nvim-cmp']
-    local trouble = user.pkg.package['trouble.nvim']
+    local snippet = Package.defaults['ultisnips']
+    local cmpconf = Package.defaults['nvim-cmp']
+    local trouble = Package.defaults['trouble.nvim']
 
     -- Mason.vim, trouble and lsp autoformatting
     builtin.require('mason').setup()
@@ -149,7 +149,7 @@ function lsp.setup()
 end
 
 -- Trouble mappings
-user.kbd({ silent = true, noremap = true, leader = true }):bind {
+Keybinding({ silent = true, noremap = true, leader = true }):bind {
     { "ltt", "<cmd>TroubleToggle<cr>", { desc = 'Toggle trouble' } },
     { "ltw", "<cmd>TroubleToggle workspace_diagnostics<cr>", { desc = 'Workspace diagnostics' } },
     { "ltd", "<cmd>TroubleToggle document_diagnostics<cr>", { desc = 'Document diagnostics' } },
@@ -159,7 +159,7 @@ user.kbd({ silent = true, noremap = true, leader = true }):bind {
 
 -- Mappings.
 -- See `:help vim.diagnostic.*` for documentation on any of the below functions
-user.kbd({ silent = true }):bind {
+Keybinding({ silent = true }):bind {
     { '<leader>li', builtin.partial(vim.diagnostic.open_float, { scope = 'l', focus = false }),
         { desc = 'LSP diagnostic float' } },
     { '[d', vim.diagnostic.goto_prev, { desc = 'LSP go to previous diagnostic' } },

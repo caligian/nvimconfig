@@ -1,10 +1,5 @@
-if not Autocmd then
-    class.Autocmd()
-end
-
-user.autocmd = Autocmd
-builtin.makepath(Autocmd, 'id')
-builtin.makepath(Autocmd, 'group')
+Autocmd.id = Autocmd.id or {}
+Autocmd.group = Autocmd.group or {}
 
 function Autocmd.create_augroup(group, clear)
     local id = vim.api.nvim_create_augroup(group, { clear = clear })
@@ -105,5 +100,3 @@ function Autocmd.delete(self)
 
     return self
 end
-
-return Autocmd

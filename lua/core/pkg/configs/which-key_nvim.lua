@@ -1,6 +1,6 @@
 local wk = builtin.require('which-key')
 
-user.pkg.package['which-key.nvim'] = {
+Package.defaults['which-key.nvim'] = {
     plugins = {
         marks = true, -- shows a list of your marks on ' and `
         registers = true, -- shows your registers on " in NORMAL or <C-r> in INSERT mode
@@ -75,7 +75,7 @@ user.pkg.package['which-key.nvim'] = {
 
 builtin.require 'user.pkg.configs.which-key_nvim'
 
-wk.setup(user.pkg['which-key.nvim'])
+wk.setup(Package.defaults['which-key.nvim'])
 
 wk.register({
     f = { name = 'File management' },

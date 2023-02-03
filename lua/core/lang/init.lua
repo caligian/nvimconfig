@@ -1,4 +1,4 @@
-builtin.makepath(user, 'lang', 'langs')
+user.lang.langs = user.lang.langs or {}
 local lang = user.lang
 
 function lang.hook(ft, callback)

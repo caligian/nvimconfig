@@ -1,4 +1,4 @@
-user.kbd({
+Keybinding({
     event = 'BufNew',
     pattern = { '*.lua', '*.vim' },
     noremap = true,

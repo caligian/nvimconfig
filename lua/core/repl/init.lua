@@ -1,12 +1,6 @@
-if not REPL then
-    class.REPL()
-end
-user.repl = REPL
-
-builtin.makepath(REPL, 'id')
-builtin.makepath(REPL, 'buffer')
-
-REPL.commands = {}
+REPL.id = REPL.id or {}
+REPL.buffer = REPL.buffer or {}
+REPL.commands = REPL.commands or {}
 for ft, conf in pairs(user.lang.langs) do
     if conf.commands.repl then
         REPL.commands[ft] = conf.commands.repl
@@ -15,7 +9,7 @@ end
 
 builtin.require 'user.repl'
 
-local repl = user.repl
+local repl = REPL
 
 function repl.is_visible(self)
     local winnr = vim.fn.bufwinnr(self.bufnr)
@@ -197,5 +191,3 @@ function repl.send_visual_range(self, src_bufnr)
 
     return self:send(builtin.get_visual_range(src_bufnr))
 end
-
-return REPL

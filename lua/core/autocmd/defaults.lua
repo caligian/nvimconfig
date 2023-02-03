@@ -1,3 +1,9 @@
-local anon = user.autocmd()
+local g = Autocmd('Global')
 
-anon:create('BufEnter', '*.tex', function() vim.wo.wrap = true end, { name = 'EnableWindowWrapInLatex' })
+g:create(
+    'BufEnter', 
+    '*.tex', 
+    function() 
+        vim.wo.wrap = true 
+    end, 
+)
