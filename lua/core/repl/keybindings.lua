@@ -12,6 +12,7 @@ Keybinding({ noremap = true, leader = true }):bind {
     { 'rv', '<cmd>REPLVsplit<CR>' },
     { 'rk', '<cmd>REPLHide<CR>' },
     { 'rq', '<cmd>REPLStop<CR>' },
+    { 'rQ', '<cmd>REPLStopAll<CR>' },
     { 're', '<cmd>REPLSendLine<CR>' },
     { 'rb', '<cmd>REPLSendBuffer<CR>' },
     { 'r.', '<cmd>REPLSendTillPoint<CR>' },

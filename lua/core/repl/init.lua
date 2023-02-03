@@ -191,3 +191,7 @@ function repl.send_visual_range(self, src_bufnr)
 
     return self:send(builtin.get_visual_range(src_bufnr))
 end
+
+require 'core.repl.autocmds'
+require 'core.repl.commands'
+require 'core.repl.keybindings'

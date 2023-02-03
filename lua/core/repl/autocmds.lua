@@ -1,1 +1,1 @@
-Autocmd('REPL'):create('ExitPre', '*', user.repl.stopall, {})
+Autocmd('REPL'):create('ExitPre', '*', REPL.stopall, {})

@@ -468,5 +468,3 @@ function builtin.require(req, do_assert)
         return out
     end
 end
-
-return builtin
