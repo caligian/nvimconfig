@@ -1,14 +1,14 @@
-builtin.require('core.globals')
-builtin.require('core.option')
-builtin.require('core.autocmd')
-builtin.require('core.kbd')
-builtin.require('core.lang')
-builtin.require('core.pkg')
-builtin.require('core.kbd.defaults')
-builtin.require("core.autocmd.defaults")
-builtin.require("core.repl")
-builtin.require('core.repl.commands')
-builtin.require('core.repl.keybindings')
+builtin.require 'core.globals'
+builtin.require 'core.option'
+builtin.require 'core.autocmd'
+builtin.require 'core.kbd'
+builtin.require 'core.lang'
+builtin.require 'core.pkg'
+builtin.require 'core.kbd.defaults'
+builtin.require "core.autocmd.defaults"
+builtin.require "core.repl"
+builtin.require 'core.repl.commands'
+builtin.require 'core.repl.keybindings'
 
 vim.api.nvim_create_user_command('ShowLogs', function()
     local all_logs = {}

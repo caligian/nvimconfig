@@ -6,7 +6,7 @@ P 'jaawerth/fennel.vim'
 P 'justinmk/vim-sneak'
 P 'Raimondi/delimitMate'
 P 'tpope/vim-commentary'
-P 'nvim-lua/plenary.lua'
+P 'nvim-lua/plenary.nvim'
 P 'jasonccox/vim-wayland-clipboard'
 P 'beauwilliams/statusline.lua'
 P 'lukas-reineke/lsp-format.nvim'
@@ -99,12 +99,20 @@ P('neovim/nvim-lspconfig'):setup {
 
 P('nvim-telescope/telescope.nvim'):setup {
     requires = {
-        { 'plenary.nvim' },
         { 'nvim-telescope/telescope-file-browser.nvim' },
         { 'nvim-telescope/telescope-project.nvim' },
         { 'nvim-telescope/telescope-fzf-native.nvim', run = 'make' },
     },
     config = function()
         builtin.require 'core.pkg.configs.telescope_nvim'
+    end
+}
+
+P('moll/vim-bbye'):setup {
+    config = function()
+        Keybinding({ noremap = true, leader = true }):bind {
+            { 'bq', 'Bdelete' },
+            { 'bQ', 'Bwipeout' }
+        }
     end
 }

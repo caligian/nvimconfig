@@ -11,7 +11,7 @@ function help() {
         luafun
 
     Neovim packages to be installed:
-        lazy.nvim
+        packer.nvim
 EOF
 }
 
@@ -23,7 +23,7 @@ dest="${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/pack/packer/start/packer.n
 
 # Install these luarocks to ~/.config/nvim/luarocks
 dest=$HOME/.config/nvim/luarocks
-packages=(penlight lua-yaml lualogging luafun)
+packages=(penlight lua-yaml lualogging)
 
 [[ ! -d $dest ]] && mkdir -p $dest
 

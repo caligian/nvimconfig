@@ -1,5 +1,3 @@
-local fennel = require 'fennel'
-
 if not builtin then builtin = {} end
 if not builtin.globals then builtin.globals = {} end
 if not builtin.logs then builtin.logs = {} end
@@ -379,55 +377,7 @@ function builtin.buffer_has_keymap(bufnr, mode, lhs)
     end)
 end
 
-function builtin.open_scratch_buffer(opts)
-    opts = opts or {}
-    opts.name = opts.name or 'scratch_buffer'
-    opts.ft = opts.ft or vim.bo.filetype or 'lua'
-    opts.split = opts.split or 's'
-    local bufnr = vim.fn.bufnr(opts.name)
-
-    if vim.fn.bufexists(opts.name) == 0 then
-        bufnr = vim.fn.bufadd(opts.name)
-    end
-
-    if opts.insert then
-        if types.is_type(opts.insert, 'string') then
-            opts.insert = vim.split(opts.insert, opts.sep or "\n")
-        end
-        vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, opts.insert)
-    end
-
-    vim.api.nvim_buf_call(bufnr, function()
-        vim.cmd('set buftype=nofile')
-        vim.cmd('set nobuflisted')
-        vim.cmd('set ft=' .. opts.ft)
-    end)
-
-    if opts.callback then
-        opts.keys = opts.keys or '<C-c><C-c>'
-        vim.api.nvim_buf_set_var(bufnr, 'callback_keymap', opts.keys)
-
-        local ok, _ = pcall(vim.api.nvim_buf_get_var, bufnr, 'is_keymap_set')
-        if not ok or opts.overwrite then
-            vim.api.nvim_buf_set_var(bufnr, 'is_keymap_set', true)
-            vim.keymap.set('n', opts.keys, function()
-                opts.callback(vim.api.nvim_buf_get_lines(0, 0, -1, false))
-            end, { buffer = bufnr })
-        end
-    end
-
-    if opts.switch then
-        vim.cmd('b ' .. opts.name)
-    elseif opts.split == 's' then
-        vim.cmd('split | wincmd j | b ' .. opts.name)
-    elseif opts.split == 'v' then
-        vim.cmd('vsplit | wincmd l | b ' .. opts.name)
-    else
-        vim.cmd('tabnew ' .. opts.name)
-    end
-end
-
-function builtin.join_path(...)
+function builtin.joinpath(...)
     return table.concat({ ... }, '/')
 end
 
@@ -460,17 +410,6 @@ function builtin.add_package_path(...)
     end
 end
 
-function builtin.require_rock(...)
-    local missing_rocks = {}
-    for _, rock in ipairs({ ... }) do
-        if not pcall(require, rock) then
-            missing_rocks[#missing_rocks + 1] = rock
-        end
-    end
-
-    return missing_rocks
-end
-
 function builtin.nvim_err(...)
     for _, s in ipairs({ ... }) do
         vim.api.nvim_err_writeln(s)
@@ -492,64 +431,6 @@ end
 -- If multiple keys are supplied, the table is going to be assumed to be nested
 function builtin.has_key(tbl, ...)
     return (builtin.get(tbl, { ... }))
-end
-
-function builtin.make_tpath(tbl, ks)
-    return builtin.get(tbl, ks, true)
-end
-
--- Compiles fennel files to lua
--- Saves them in ~/.config/nvim/lua/compiled
-function builtin.compile(src, dest)
-    local s = file.read(p)
-    local s = fennel.compileString(s)
-    file.write(dest, s)
-end
-
-function builtin.compile_buffer(bufnr, eval)
-    bufnr = bufnr or vim.fn.bufnr()
-    local bufname = vim.api.nvim_buf_call(bufnr, function()
-        return vim.fn.expand('%:p')
-    end)
-
-    if not bufname:match('fnl$') then
-        error(sprintf('Buffer %s is not a fennel buffer', bufname))
-    end
-
-    local home = path.join(os.getenv('HOME'), '.nvim', 'lua', 'user')
-    local stdpath = path.join(vim.fn.stdpath('config'), 'lua')
-    local is_user = bufname:match(home)
-    local is_sys = bufname:match(stdpath)
-    local dest = ''
-
-    assert(is_user or is_sys, 'Only nvim configuration fennel buffers can be compiled')
-
-    if is_user then
-        dest = bufname:gsub(home, '')
-    else
-        dest = bufname:gsub(stdpath, '')
-    end
-    dest = dest:gsub('fnl$', 'lua')
-    dest = 'compiled' .. dest
-
-    if is_user then
-        dest = home .. '/' .. dest
-    else
-        dest = stdpath .. '/' .. dest
-    end
-
-    local s = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-    s = table.concat(s, "\n\r")
-
-    local parent = path.dirname(dest)
-    if not path.exists(parent) then
-        dir.makepath(parent)
-    end
-    file.write(dest, fennel.compileString(s))
-
-    if eval then
-        fennel.eval(s)
-    end
 end
 
 function builtin.pcall(f, ...)
@@ -578,6 +459,7 @@ function builtin.require(req, do_assert)
     if not ok then
         builtin.makepath(builtin, 'logs')
         builtin.append(builtin.logs, out)
+        logger:error(out)
 
         if do_assert then
             error(out)
