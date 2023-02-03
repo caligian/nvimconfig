@@ -1,6 +1,5 @@
 -- Textobjects are broken for some reason
 Package.defaults['nvim-treesitter'] = {
-    ensure_installed = { 'lua', 'python', 'ruby', 'latex', 'help' },
     auto_install = true,
 
     textsubjects = {
