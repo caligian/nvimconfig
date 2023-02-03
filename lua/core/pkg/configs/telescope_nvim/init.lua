@@ -3,13 +3,13 @@ local ivy = builtin.require('telescope.themes').get_ivy()
 local file_browser_actions = builtin.require 'core.pkg.configs.telescope_nvim.file_browser'
 local buffer_actions = builtin.require 'core.pkg.configs.telescope_nvim.buffers'
 
--- 
-user.pkg['telescope.nvim'] = {}
-local t = builtin.merge(user.pkg['telescope.nvim'], ivy)
+--
+user.pkg.package['telescope.nvim'] = {}
+local t = builtin.merge(user.pkg.package['telescope.nvim'], ivy)
 
 -- To seem more like emacs ivy
 t.disable_devicons = true
-t.layout_config.height = 0.3
+t.layout_config.height = 0.5
 t.previewer = false
 
 --  Setup telescope default configuration
@@ -95,5 +95,7 @@ for keys, picker in pairs(builtin_keybindings) do
 end
 
 -- Extension keybindings
-user.kbd.noremap('n', '<leader>ff', function() telescope.extensions.file_browser.file_browser(ivy) end, {desc = 'Open file browser'})
-user.kbd.noremap('n', '<leader>pp', function() telescope.extensions.project.project(ivy) end, {desc = 'Project management'})
+user.kbd.noremap('n', '<leader>ff', function() telescope.extensions.file_browser.file_browser(ivy) end,
+    { desc = 'Open file browser' })
+user.kbd.noremap('n', '<leader>pp', function() telescope.extensions.project.project(ivy) end,
+    { desc = 'Project management' })

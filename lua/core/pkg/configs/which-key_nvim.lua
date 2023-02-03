@@ -1,6 +1,6 @@
 local wk = builtin.require('which-key')
 
-user.pkg['which-key.nvim'] = {
+user.pkg.package['which-key.nvim'] = {
     plugins = {
         marks = true, -- shows a list of your marks on ' and `
         registers = true, -- shows your registers on " in NORMAL or <C-r> in INSERT mode
@@ -73,7 +73,7 @@ user.pkg['which-key.nvim'] = {
     },
 }
 
-local ok, _ = pcall(builtin.require, 'user.pkg.configs.which-key_nvim')
+builtin.require 'user.pkg.configs.which-key_nvim'
 
 wk.setup(user.pkg['which-key.nvim'])
 

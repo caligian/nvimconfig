@@ -19,16 +19,15 @@ builtin.trim = vim.trim
 builtin.validate = vim.validate
 
 function builtin.extend(tbl, ...)
-    local idx = #tbl
-    for _, t in ipairs({ ... }) do
+    local l = #tbl
+    for i, t in ipairs({ ... }) do
         if type(t) == 'table' then
-            for _, value in ipairs(t) do
-                tbl[idx + 1] = value
+            for j, value in ipairs(t) do
+                tbl[l + j] = value
             end
         else
-            tbl[idx + 1] = t
+            tbl[l + i] = t
         end
-        idx = idx + 1
     end
 
     return tbl

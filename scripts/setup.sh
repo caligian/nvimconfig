@@ -11,7 +11,7 @@ function help() {
         luafun
 
     Neovim packages to be installed:
-        paq-nvim
+        lazy.nvim
 EOF
 }
 

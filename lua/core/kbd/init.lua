@@ -90,18 +90,24 @@ local function bind(self, lhs, callback, opts)
     return self
 end
 
-function Keybinding.bind(self, lhs, callback)
-    if types.is_type(lhs, 'table') then
-        local out = {}
-        for _, k in ipairs(lhs) do
-            assert(types.is_type(k, 'table'))
-            out[k] = bind(self, unpack(k))
+function Keybinding.bind(self, keys)
+    local out = {}
+
+    for _, k in ipairs(keys) do
+        assert(types.is_type(k, 'table'))
+        assert(#k >= 2, 'Need {lhs, callback, opt|help}')
+
+        local l, cb, help, opts = unpack(k)
+        opts = opts or {}
+
+        if types.is_type(help, 'string') then
+            opts.desc = help
         end
 
-        return out
+        out[l] = bind(self, l, cb, opts)
     end
 
-    return bind(self, lhs, callback)
+    return out
 end
 
 function Keybinding.disable(self)
@@ -129,7 +135,7 @@ function Keybinding.map(mode, lhs, callback, opts)
         mode = mode,
         opts = opts,
     }
-    return Keybinding(options):bind(lhs, callback)
+    return Keybinding(options):bind({ { lhs, callback } })
 end
 
 function Keybinding.noremap(mode, lhs, callback, opts)
