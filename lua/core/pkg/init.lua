@@ -7,10 +7,26 @@ return require('lazy').setup({
     'nvim-lua/plenary.nvim',
     'beauwilliams/statusline.lua',
     'tpope/vim-surround',
+    {
+        'elihunter173/dirbuf.nvim',
+        keys = '<C-c>',
+        config = function()
+            Package.defaults['dirbuf.nvim'] = {
+                hash_padding = 2,
+                show_hidden = true,
+                sort_order = "default",
+                write_cmd = "DirbufSync",
+            }
+            builtin.require 'user.pkg.configs.dirbuf_nvim'
+            require('dirbuf').setup(Package.defaults['dirbuf.nvim'])
 
-    {'jasonccox/vim-wayland-clipboard', keys = '"'},
+            Keybinding.noremap('n', '<C-c>d', '<cmd>Dirbuf<CR>', { desc = 'Open current directory' })
+        end,
+    },
 
-    { 'dstein64/vim-startuptime', cmd = 'StartupTime'},
+    { 'jasonccox/vim-wayland-clipboard', keys = '"' },
+
+    { 'dstein64/vim-startuptime', cmd = 'StartupTime' },
 
     { 'dracula/vim', name = 'dracula' },
 
