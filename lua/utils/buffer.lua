@@ -1,15 +1,35 @@
 class 'Buffer'
+
+Buffer.bufnr = Buffer.bufnr or {}
+Buffer.scratch = Buffer.scratch or {}
+local scratch_n = 0
+local input_buffer_n = 0
+
 V.makepath(Buffer, 'bufnr')
 V.makepath(Buffer, 'scratch')
 
 function Buffer._init(self, name, scratch)
-    name = name or sprintf('scratch_buffer_%d', #Buffer.scratch + 1)
+    local bufnr = vim.fn.bufnr(name)
+
+    if bufnr ~= -1 then
+        if not Buffer.bufnr[bufnr] then
+            if name:match('scratch_buffer_') then
+                return Buffer(name, true)
+            else
+                return Buffer(name)
+            end
+        else
+            return Buffer.bufnr[bufnr]
+        end
+    end
+
+    name = name or sprintf('scratch_buffer_%d', #scratch_n + 1)
 
     local bufnr = vim.fn.bufadd(name)
     self.bufnr = bufnr
     self.name = name
 
-    if name:match('scratch') or scratch then
+    if name:match('scratch_buffer_[0-9]?') or scratch then
         V.update(Buffer.scratch, { bufnr }, self)
 
         self.scratch = true
@@ -149,5 +169,52 @@ end
 function Buffer.loaded(self)
     return vim.fn.bufloaded(self.bufnr) ~= 0
 end
+
+function Buffer.switch_to_scratch(default)
+    if default then
+        vim.cmd('b scratch_buffer')
+    else
+        vim.ui.select(V.map(vim.fn.bufname, V.keys(Buffer.scratch)), {
+            prompt = 'Switch to scratch buffer',
+        }, function(b)
+            vim.cmd('b ' .. b)
+        end)
+    end
+end
+
+function Buffer.open_scratch(name, split)
+    name = name or 'scratch_buffer'
+    local buf = Buffer(name, true)
+    buf:split(split or 's')
+
+    return buf
+end
+
+function Buffer.call(self, cb)
+    return vim.api.nvim_buf_call(self.bufnr, cb)
+end
+
+function Buffer.input(name, text, cb, split, trigger_keys)
+    if not name then
+        name = 'input_buffer_' .. input_buffer_n
+        input_buffer_n = input_buffer_n + 1
+    end
+
+    if V.is_type(text, 'string') then
+        text = vim.split(text, "\n")
+    end
+
+    local buf = Buffer(name, true)
+    buf:setlines(0, -1, text)
+    buf:split(split)
+
+    trigger_keys = trigger_keys or '<C-c><C-c>'
+    buf:map('n', trigger_keys, function() cb(buf:lines(0, -1)) end, { noremap = true })
+end
+
+vim.api.nvim_create_user_command('OpenScratch', function() Buffer.open_scratch() end, {})
+vim.api.nvim_create_user_command('OpenScratchVertically', function() Buffer.open_scratch(false, 'v') end, {})
+vim.keymap.set('n', ',%', '<cmd>OpenScratch<CR>', { noremap = true })
+vim.keymap.set('n', ',|', '<cmd>OpenScratchVertically<CR>', { noremap = true })
 
 return Buffer

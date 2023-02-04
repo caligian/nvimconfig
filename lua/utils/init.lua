@@ -1,12 +1,13 @@
 if not V then V = {} end
 if not V.globals then V.globals = {} end
 if not V.logs then V.logs = {} end
-V.command = vim.api.nvim_create_autocmd
+V.command = vim.api.nvim_create_user_command
+V.autocmd = vim.api.nvim_create_autocmd
+V.augroup = vim.api.nvim_create_augroup
+V.bind = vim.keymap.set
 V.stdpath = vim.fn.stdpath
 V.flatten = vim.tbl_flatten
 V.substr = string.sub
-V.sprintf = string.format
-sprintf = V.sprintf
 V.filter = vim.tbl_filter
 V.deep_copy = vim.deepcopy
 V.is_empty = vim.tbl_isempty
@@ -16,6 +17,20 @@ V.values = vim.tbl_values
 V.map = vim.tbl_map
 V.trim = vim.trim
 V.validate = vim.validate
+
+function V.sprintf(s, fmt, ...)
+    local args = { ... }
+
+    for i = 1, #args do
+        if type(args[i]) == 'table' then
+            args[i] = vim.inspect(args[i])
+        end
+    end
+
+    return string.format(s, fmt, unpack(args))
+end
+
+sprintf = V.sprintf
 
 function V.extend(tbl, ...)
     local l = #tbl
@@ -327,7 +342,7 @@ function V.merge_keepleft(a, b)
 end
 
 function V.printf(...)
-    print(string.format(...))
+    print(V.sprintf(...))
 end
 
 function V.with_open(fname, mode, callback)

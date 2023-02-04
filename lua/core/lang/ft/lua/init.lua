@@ -8,5 +8,6 @@ return {
     server = {
         name = 'sumneko_lua',
         config = require 'core.lang.ft.lua.sumneko_lua',
-    }
+    },
+    linters = { 'luacheck' },
 }

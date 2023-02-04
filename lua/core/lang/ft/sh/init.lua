@@ -3,5 +3,6 @@ return {
         repl = user.shell,
         compile = user.shell,
     },
-    server = { name = 'bashls' }
+    server = { name = 'bashls' },
+    linters = { 'shellcheck' },
 }

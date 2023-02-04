@@ -6,20 +6,11 @@ return require('lazy').setup({
     'tpope/vim-surround',
 
     {
-        'elihunter173/dirbuf.nvim',
-        keys = '<C-c>',
+        'mfussenegger/nvim-lint',
+        event = 'BufReadPre',
         config = function()
-            Package.defaults['dirbuf.nvim'] = {
-                hash_padding = 2,
-                show_hidden = true,
-                sort_order = "default",
-                write_cmd = "DirbufSync",
-            }
-            V.require 'user.plugins.dirbuf_nvim'
-            require('dirbuf').setup(Package.defaults['dirbuf.nvim'])
-
-            Keybinding.noremap('n', '<C-c>d', '<cmd>Dirbuf<CR>', { desc = 'Open current directory' })
-        end,
+            V.require 'core.plugins.nvim-lint'
+        end
     },
 
     { 'jasonccox/vim-wayland-clipboard', keys = '"' },

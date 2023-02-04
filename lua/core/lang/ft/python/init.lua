@@ -9,5 +9,6 @@ return {
     server = {
         name = 'pyright',
         config = {},
-    }
+    },
+    linters = { 'pylint', 'flake8' }
 }

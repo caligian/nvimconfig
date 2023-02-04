@@ -1,5 +1,5 @@
 user.plugins['trouble.nvim'] = {
-    icons = true,
+    icons = false,
     fold_open = "v",
     fold_closed = ">",
     indent_lines = false,
@@ -12,6 +12,7 @@ user.plugins['trouble.nvim'] = {
         other = "Misc"
     },
 }
+
 V.require 'user.plugins.trouble_nvim'
 V.require('trouble').setup(user.plugins['trouble.nvim'])
 

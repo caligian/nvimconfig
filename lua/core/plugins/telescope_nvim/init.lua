@@ -75,7 +75,7 @@ K:bind {
     { 'lr', picker('lsp_references'), { desc = 'Show references' } },
     { 'ls', picker('lsp_document_symbols'), { desc = 'Buffer symbols' } },
     { 'lS', picker('lsp_workspace_symbols'), { desc = 'Workspace symbols' } },
-    { 'ld', picker('diagnostics'), { desc = 'Show LSP diagnostics' } },
+    --    { 'ld', picker('diagnostics'), { desc = 'Show LSP diagnostics' } },
     { 'gC', picker('git_commits'), { desc = 'Show commimts' } },
     { 'gB', picker('git_bcommits'), { desc = 'Show branch commits' } },
     { 'g?', picker('git_status'), { desc = 'Git status' } },
