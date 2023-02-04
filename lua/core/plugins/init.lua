@@ -4,6 +4,7 @@ return require('lazy').setup({
     'nvim-lua/plenary.nvim',
     'beauwilliams/statusline.lua',
     'tpope/vim-surround',
+
     {
         'elihunter173/dirbuf.nvim',
         keys = '<C-c>',
@@ -24,8 +25,6 @@ return require('lazy').setup({
     { 'jasonccox/vim-wayland-clipboard', keys = '"' },
 
     { 'dstein64/vim-startuptime', cmd = 'StartupTime' },
-
-    { 'dracula/vim', name = 'dracula' },
 
     { 'tpope/vim-commentary', keys = 'g' },
 
@@ -52,17 +51,9 @@ return require('lazy').setup({
     },
 
     {
-        'nvim-treesitter/nvim-treesitter-textobjects',
-        dependencies = { 'nvim-treesitter/nvim-treesitter' }
-    },
-
-    {
-        'RRethy/nvim-treesitter-textsubjects',
-        dependencies = { 'nvim-treesitter/nvim-treesitter' }
-    },
-
-    {
         'nvim-treesitter/nvim-treesitter',
+        event = 'InsertEnter',
+        dependencies = { 'RRethy/nvim-treesitter-textsubjects', 'nvim-treesitter/nvim-treesitter-textobjects' },
         config = function()
             require 'core.plugins.nvim-treesitter'
         end
@@ -71,6 +62,7 @@ return require('lazy').setup({
 
     {
         'hrsh7th/nvim-cmp',
+        event = 'InsertEnter',
         dependencies = {
             { 'honza/vim-snippets' },
             { 'SirVer/ultisnips' },
@@ -116,6 +108,7 @@ return require('lazy').setup({
 
     {
         'folke/which-key.nvim',
+        event = 'VimEnter',
         config = function()
             V.require 'core.plugins.which-key_nvim'
         end
@@ -139,11 +132,11 @@ return require('lazy').setup({
         config = function()
             V.require 'core.plugins.nvim-lspconfig'
         end,
-        lazy = false,
     },
 
     {
         'nvim-telescope/telescope.nvim',
+        event = 'VimEnter',
         dependencies = {
             { 'hrsh7th/nvim-cmp' },
             { 'nvim-telescope/telescope-file-browser.nvim' },
@@ -153,17 +146,16 @@ return require('lazy').setup({
         config = function()
             V.require 'core.plugins.telescope_nvim'
         end,
-        lazy = false,
     },
 
     {
         'moll/vim-bbye',
+        event = 'BufCreate',
         config = function()
             Keybinding({ noremap = true, leader = true }):bind {
                 { 'bq', 'Bdelete', { desc = 'Delete buffer' } },
                 { 'bQ', 'Bwipeout', { desc = 'Wipeout buffer' } }
             }
         end,
-        lazy = false,
     },
 }, { lazy = true })

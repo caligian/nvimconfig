@@ -42,7 +42,7 @@ function Autocmd.create(self, event, pattern, callback, opts)
     event = self.event
     local id = self.id
     local group = self.group
-    local name = opts.name or sprintf('%s::%s', table.concat(self.event, ','), table.concat(self.pattern, ','))
+    local name = sprintf('%s::%s', table.concat(self.event, ','), table.concat(self.pattern, ','))
     self.name = name
     local _callback = function()
         if V.is_type(callback, 'string') then
@@ -74,8 +74,11 @@ function Autocmd.create(self, event, pattern, callback, opts)
         Autocmd.group[group][name] = self
     end
 
-    V.update(Autocmd.group, { group_id, id }, self)
-    V.update(Autocmd.group, { group_id, name }, self)
+    if self.group_id then
+        V.update(Autocmd.group, { group_id, id }, self)
+        V.update(Autocmd.group, { group_id, name }, self)
+    end
+
     V.update(Autocmd.id, { id }, self)
     V.update(Autocmd.id, { name }, self)
 
@@ -101,4 +104,4 @@ function Autocmd.delete(self)
     return self
 end
 
-require('core.autocmd.defaults')
+--require('core.autocmd.defaults')

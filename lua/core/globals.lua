@@ -10,7 +10,7 @@ user.color = user.color or {}
 user.autocmd = user.autocmd or Autocmd
 user.kbd = user.kbd or Keybinding
 user.shell = '/usr/bin/zsh'
-user.colorscheme = 'solarized8_dark_low'
+user.colorscheme = 'materialbox'
 user.font = "UbuntuMono Nerd Font:h13"
 
 V.require 'user.globals'

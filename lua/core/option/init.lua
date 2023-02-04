@@ -28,7 +28,6 @@ user.option = {
         backupdir = data_dir .. '/temp/backups',
         directory = data_dir .. '/temp/tmp',
         undodir = data_dir .. '/temp/undo',
-        guifont = user.guifont,
 
     },
     g = {
@@ -38,6 +37,9 @@ user.option = {
 }
 
 V.require 'user.option'
+
+local font = user.font:gsub(' ', '\\ ')
+vim.cmd('set guifont=' .. font)
 
 for t, opts in pairs(user.option) do
     for k, v in pairs(opts) do
