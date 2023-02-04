@@ -67,7 +67,7 @@ local function ensure_repl(name)
     local cmd = repl.commands[name]
 
     if not cmd then
-        builtin.nvim_err('No command defined for buffer filetype %s' .. name)
+        V.nvim_err('No command defined for buffer filetype %s' .. name)
     elseif not r or not r.running then
         r = REPL(name)
         r:start()
@@ -109,7 +109,7 @@ end
 local function start_repl()
     local name = vim.bo.filetype
     if vim.bo.filetype == '' then
-        builtin.nvim_err('Cannot start REPL')
+        V.nvim_err('Cannot start REPL')
     else
         local r = ensure_repl(name)
         if r then r:split() end

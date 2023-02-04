@@ -1,4 +1,4 @@
-builtin.makepath(user, 'buffer', 'scratch')
+V.makepath(user, 'buffer', 'scratch')
 user.buffer.scratch.name = path.join(vim.fn.stdpath('config'), 'tmp', 'scratch_buffer')
 user.buffer.scratch.bufnr = vim.fn.bufadd(user.buffer.scratch.name)
 user.buffer.scratch.bufname = vim.fn.bufname(user.buffer.scratch.bufnr)
@@ -46,10 +46,10 @@ function hide_scratch_buffer()
     vim.cmd('hide')
 end
 
-vim.api.nvim_create_user_command('GotoScratchBuffer', builtin.partial(open_scratch_buffer, 'b'), {})
-vim.api.nvim_create_user_command('SplitScratchBuffer', builtin.partial(open_scratch_buffer, 's'), {})
-vim.api.nvim_create_user_command('VsplitScratchBuffer', builtin.partial(open_scratch_buffer, 'v'), {})
-vim.api.nvim_create_user_command('TabScratchBuffer', builtin.partial(open_scratch_buffer, 't'), {})
+vim.api.nvim_create_user_command('GotoScratchBuffer', V.partial(open_scratch_buffer, 'b'), {})
+vim.api.nvim_create_user_command('SplitScratchBuffer', V.partial(open_scratch_buffer, 's'), {})
+vim.api.nvim_create_user_command('VsplitScratchBuffer', V.partial(open_scratch_buffer, 'v'), {})
+vim.api.nvim_create_user_command('TabScratchBuffer', V.partial(open_scratch_buffer, 't'), {})
 vim.api.nvim_create_user_command('HideScratchBuffer', hide_scratch_buffer, {})
 
 Keybinding({

@@ -1,4 +1,4 @@
-if not Process then class.Process() end
+class 'Process'
 Process.id = Process.id or {}
 
 local function get(id)
@@ -11,7 +11,7 @@ local function parse(d, out)
     elseif type(d) == 'table' then
         for _, s in ipairs(d) do
             s = vim.split(s, "\n")
-            builtin.extend(out, s)
+            V.extend(out, s)
         end
     end
 end
@@ -32,7 +32,7 @@ function Process._on_stderr(self, cb)
     local stderr = self.stderr
 
     return vim.schedule_wrap(function(j, d)
-        if d then builtin.extend(stderr, parse(d, self.stderr)) end
+        if d then V.extend(stderr, parse(d, self.stderr)) end
         if cb then cb(get(j)) end
     end)
 end
@@ -42,7 +42,7 @@ function Process._on_stdout(self, cb)
     local stdout = self.stdout
 
     return vim.schedule_wrap(function(j, d)
-        if d then builtin.extend(stdout, parse(d, self.stdout)) end
+        if d then V.extend(stdout, parse(d, self.stdout)) end
         if cb then cb(get(j)) end
     end)
 end
@@ -103,7 +103,7 @@ function Process.run(self)
 
     self.id = id
     self.running = true
-    builtin.update(Process.id, { id }, self)
+    V.update(Process.id, { id }, self)
 
     return self
 end

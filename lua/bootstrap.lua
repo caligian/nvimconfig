@@ -61,3 +61,12 @@ dir = require 'pl.dir'
 json = { encode = vim.json_encode, decode = vim.json_decode }
 logger = logging.file(path.join(vim.fn.stdpath('config'), 'nvim.log'))
 user = {}
+
+-- class creation of penlight is not so intuitive
+local old_class = class
+class = function(name, Base)
+    if not _G[name] then
+        old_class[name](Base)
+    end
+    return _G[name]
+end

@@ -7,7 +7,7 @@ for ft, conf in pairs(user.lang.langs) do
     end
 end
 
-builtin.require 'user.repl'
+V.require 'user.repl'
 
 local repl = REPL
 
@@ -75,7 +75,7 @@ end
 
 function repl.start(self, opts)
     opts = opts or {}
-    builtin.merge_keepleft(opts, self)
+    V.merge_keepleft(opts, self)
     opts.name = opts.name or vim.bo.filetype
     opts.cmd = opts.cmd or repl.commands[opts.name]
     local name, cmd = opts.name, opts.cmd
@@ -153,7 +153,7 @@ function repl.send(self, s)
     end
 
     local id = self.id
-    if builtin.is_type(s, 'table') then
+    if V.is_type(s, 'table') then
         s = table.concat(s, "\n")
     end
     s = s .. "\r"
@@ -189,7 +189,7 @@ function repl.send_visual_range(self, src_bufnr)
     src_bufnr = src_bufnr or vim.fn.bufnr()
     if not self:is_running() then return end
 
-    return self:send(builtin.get_visual_range(src_bufnr))
+    return self:send(V.get_visual_range(src_bufnr))
 end
 
 require 'core.repl.autocmds'

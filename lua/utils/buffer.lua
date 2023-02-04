@@ -1,8 +1,6 @@
-if not Buffer then
-    class.Buffer()
-end
-builtin.makepath(Buffer, 'bufnr')
-builtin.makepath(Buffer, 'scratch')
+class 'Buffer'
+V.makepath(Buffer, 'bufnr')
+V.makepath(Buffer, 'scratch')
 
 function Buffer._init(self, name, scratch)
     name = name or sprintf('scratch_buffer_%d', #Buffer.scratch + 1)
@@ -12,7 +10,7 @@ function Buffer._init(self, name, scratch)
     self.name = name
 
     if name:match('scratch') or scratch then
-        builtin.update(Buffer.scratch, { bufnr }, self)
+        V.update(Buffer.scratch, { bufnr }, self)
 
         self.scratch = true
         vim.api.nvim_buf_set_option(bufnr, 'buflisted', false)
@@ -20,7 +18,7 @@ function Buffer._init(self, name, scratch)
         vim.api.nvim_buf_set_option(bufnr, 'buftype', 'nofile')
     end
 
-    builtin.update(Buffer.bufnr, { bufnr }, self)
+    V.update(Buffer.bufnr, { bufnr }, self)
 
     return self
 end
@@ -56,13 +54,13 @@ function Buffer.setopt(self, opts)
 end
 
 function Buffer.map(self, mode, lhs, callback, opts)
-    vim.keymap.set(mode, lhs, callback, builtin.merge_keepleft(opts, {
+    vim.keymap.set(mode, lhs, callback, V.merge_keepleft(opts, {
         buffer = self.bufnr,
     }))
 end
 
 function Buffer.noremap(self, mode, lhs, callback, opts)
-    vim.keymap.set(mode, lhs, callback, builtin.merge_keepleft(opts, {
+    vim.keymap.set(mode, lhs, callback, V.merge_keepleft(opts, {
         buffer = self.bufnr,
         noremap = true,
     }))
@@ -72,9 +70,9 @@ function Buffer.split(self, split)
     split = split or 's'
 
     if split == 's' then
-        vim.cmd(builtin.sprintf('split | wincmd j | b %d', self.bufnr))
+        vim.cmd(V.sprintf('split | wincmd j | b %d', self.bufnr))
     elseif split == 'v' then
-        vim.cmd(builtin.sprintf('vsplit | wincmd l | b %d', self.bufnr))
+        vim.cmd(V.sprintf('vsplit | wincmd l | b %d', self.bufnr))
     elseif split == 't' then
         vim.cmd(sprintf('tabnew | b %d', self.bufnr))
     end
@@ -86,7 +84,7 @@ function Buffer.hook(self, event, callback, opts)
     assert(event)
     assert(callback)
 
-    vim.api.nvim_create_autocmd(event, builtin.merge(opts, {
+    vim.api.nvim_create_autocmd(event, V.merge(opts, {
         pattern = sprintf('<buffer=%d>', self.bufnr),
         callback = callback,
     }))

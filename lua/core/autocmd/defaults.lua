@@ -5,5 +5,5 @@ g:create(
     '*.tex',
     function()
         vim.wo.wrap = true
-    end,
+    end
 )

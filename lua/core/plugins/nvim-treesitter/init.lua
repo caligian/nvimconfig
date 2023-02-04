@@ -1,5 +1,6 @@
 -- Textobjects are broken for some reason
-Package.defaults['nvim-treesitter'] = {
+user.plugins['nvim-treesitter'] = {
+    ensure_installed = { 'lua', 'python', 'ruby', 'bash', 'gitcommit', 'git_rebase', 'gitattributes', 'gitignore' },
     auto_install = true,
 
     textsubjects = {
@@ -90,9 +91,9 @@ Package.defaults['nvim-treesitter'] = {
     },
 }
 
-builtin.require 'user.pkg.configs.nvim-treesitter'
+V.require 'user.plugins.nvim-treesitter'
 
-local configs = builtin.require('nvim-treesitter.configs')
+local configs = V.require('nvim-treesitter.configs')
 if configs then
-    configs.setup(Package.defaults['nvim-treesitter'])
+    configs.setup(user.plugins['nvim-treesitter'])
 end

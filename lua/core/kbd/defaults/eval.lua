@@ -1,11 +1,11 @@
 local function compile_and_run(lines)
-    if builtin.is_type(lines, 'table') then
+    if V.is_type(lines, 'table') then
         lines = table.concat(lines, "\n")
     end
 
     local compiled, err = loadstring(lines)
     if err then
-        builtin.nvim_err(err)
+        V.nvim_err(err)
     elseif compiled then
         compiled()
     end
@@ -13,7 +13,7 @@ end
 
 -- Setup commands
 vim.api.nvim_create_user_command('NvimEvalRegion', function()
-    local lines = builtin.get_visual_range()
+    local lines = V.get_visual_range()
     compile_and_run(lines)
 end, { range = true })
 

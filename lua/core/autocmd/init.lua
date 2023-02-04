@@ -28,8 +28,8 @@ end
 function Autocmd.create(self, event, pattern, callback, opts)
     opts = opts or {}
     self = vim.deepcopy(self)
-    self.event = builtin.ensure_list(event)
-    self.pattern = builtin.ensure_list(pattern)
+    self.event = V.ensure_list(event)
+    self.pattern = V.ensure_list(pattern)
     self.opts = opts or {}
     self.nested = opts.nested
     self.name = false
@@ -45,7 +45,7 @@ function Autocmd.create(self, event, pattern, callback, opts)
     local name = opts.name or sprintf('%s::%s', table.concat(self.event, ','), table.concat(self.pattern, ','))
     self.name = name
     local _callback = function()
-        if builtin.is_type(callback, 'string') then
+        if V.is_type(callback, 'string') then
             vim.cmd(callback)
         else
             callback()
@@ -70,14 +70,14 @@ function Autocmd.create(self, event, pattern, callback, opts)
     self.enabled = true
 
     if group then
-        builtin.makepath(Autocmd.group, group)
+        V.makepath(Autocmd.group, group)
         Autocmd.group[group][name] = self
     end
 
-    builtin.update(Autocmd.group, { group_id, id }, self)
-    builtin.update(Autocmd.group, { group_id, name }, self)
-    builtin.update(Autocmd.id, { id }, self)
-    builtin.update(Autocmd.id, { name }, self)
+    V.update(Autocmd.group, { group_id, id }, self)
+    V.update(Autocmd.group, { group_id, name }, self)
+    V.update(Autocmd.id, { id }, self)
+    V.update(Autocmd.id, { name }, self)
 
     return self
 end
@@ -100,3 +100,5 @@ function Autocmd.delete(self)
 
     return self
 end
+
+require('core.autocmd.defaults')

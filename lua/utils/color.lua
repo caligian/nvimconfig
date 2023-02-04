@@ -1,6 +1,4 @@
-local color = user.color
-
-function color.get_highlight_colors(hi)
+function V.get_highlight_colors(hi)
     local c = {}
     local t = slice(vim.split(vim.api.nvim_exec(':hi ' .. hi, true), ' +'), 3)
     each(function(s)
@@ -11,13 +9,13 @@ function color.get_highlight_colors(hi)
     return c
 end
 
-function color.hex2rgb(hex)
+function V.hex2rgb(hex)
     hex = hex:gsub("#", "")
     return tonumber("0x" .. hex:sub(1, 2)), tonumber("0x" .. hex:sub(3, 4)), tonumber("0x" .. hex:sub(5, 6))
 end
 
 -- Taken from https://github.com/iskolbin/lhsx/blob/master/hsx.lua
-function color.rgb2hsv(r, g, b)
+function V.rgb2hsv(r, g, b)
     local M, m = math.max(r, g, b), math.min(r, g, b)
     local C = M - m
     local K = 1.0 / (6.0 * C)
@@ -31,7 +29,7 @@ function color.rgb2hsv(r, g, b)
     return h, M == 0.0 and 0.0 or C / M, M
 end
 
-function color.hsv2rgb(h, s, v)
+function V.hsv2rgb(h, s, v)
     local C = v * s
     local m = v - C
     local r, g, b = m, m, m
@@ -50,7 +48,7 @@ function color.hsv2rgb(h, s, v)
     return r, g, b
 end
 
-function color.darken(hex, darker_n)
+function V.darken(hex, darker_n)
     local result = "#"
 
     for s in hex:gmatch("[a-fA-F0-9][a-fA-F0-9]") do
@@ -70,12 +68,12 @@ function color.darken(hex, darker_n)
     return result
 end
 
-function color.lighten(hex, lighten_n)
-    return color.darken(hex, lighten_n * -1)
+function V.lighten(hex, lighten_n)
+    return V.darken(hex, lighten_n * -1)
 end
 
-function color.get_luminance(hex)
-    local r, g, b = color.hex2rgb(hex)
+function V.get_luminance(hex)
+    local r, g, b = V.hex2rgb(hex)
     local luminance = (r * 0.2126) + (g * 0.7152) + (b * 0.0722)
     return luminance < (255 / 2)
 end

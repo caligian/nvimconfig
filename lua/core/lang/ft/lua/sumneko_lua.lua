@@ -15,7 +15,7 @@ return {
             },
             diagnostics = {
                 severity = {
-                    { ["undefined-global"] = true },
+                    { ["undefined-global"] = false },
                 },
                 disable = {
                     "lowercase-global",
@@ -25,7 +25,7 @@ return {
                     'user',
                     'unpack',
                     'loadfile',
-                    'builtin',
+                    'V',
                     'yaml',
                     'path',
                     'listcomp',
@@ -48,6 +48,9 @@ return {
                     'String',
                     'Seq',
                     'File',
+                    'Keybinding',
+                    'Autocmd',
+                    'REPL',
                 }
             }
         },

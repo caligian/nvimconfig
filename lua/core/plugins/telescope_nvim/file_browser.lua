@@ -1,6 +1,6 @@
-local action_state = builtin.require 'telescope.actions.state'
-local actions = builtin.require 'telescope.actions'
-local job = builtin.require 'plenary.job'
+local action_state = V.require 'telescope.actions.state'
+local actions = V.require 'telescope.actions'
+local job = V.require 'plenary.job'
 local mod = {}
 
 function mod.delete_recursively(prompt_bufnr)

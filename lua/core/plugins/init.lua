@@ -1,7 +1,4 @@
-Package.defaults = Package.defaults or {}
-
 return require('lazy').setup({
-    'wbthomason/packer.nvim',
     'justinmk/vim-sneak',
     'Raimondi/delimitMate',
     'nvim-lua/plenary.nvim',
@@ -17,7 +14,7 @@ return require('lazy').setup({
                 sort_order = "default",
                 write_cmd = "DirbufSync",
             }
-            builtin.require 'user.pkg.configs.dirbuf_nvim'
+            V.require 'user.plugins.dirbuf_nvim'
             require('dirbuf').setup(Package.defaults['dirbuf.nvim'])
 
             Keybinding.noremap('n', '<C-c>d', '<cmd>Dirbuf<CR>', { desc = 'Open current directory' })
@@ -67,7 +64,7 @@ return require('lazy').setup({
     {
         'nvim-treesitter/nvim-treesitter',
         config = function()
-            require 'core.pkg.configs.nvim-treesitter'
+            require 'core.plugins.nvim-treesitter'
         end
     },
 
@@ -120,7 +117,7 @@ return require('lazy').setup({
     {
         'folke/which-key.nvim',
         config = function()
-            builtin.require 'core.pkg.configs.which-key_nvim'
+            V.require 'core.plugins.which-key_nvim'
         end
     },
 
@@ -140,7 +137,7 @@ return require('lazy').setup({
             { 'hrsh7th/nvim-cmp' },
         },
         config = function()
-            builtin.require 'core.pkg.configs.nvim-lspconfig'
+            V.require 'core.plugins.nvim-lspconfig'
         end,
         lazy = false,
     },
@@ -154,7 +151,7 @@ return require('lazy').setup({
             { 'nvim-telescope/telescope-fzf-native.nvim', run = 'make' },
         },
         config = function()
-            builtin.require 'core.pkg.configs.telescope_nvim'
+            V.require 'core.plugins.telescope_nvim'
         end,
         lazy = false,
     },

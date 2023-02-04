@@ -12,7 +12,7 @@ function Keybinding._init(self, opts)
     opts = opts or {}
 
     for k, v in pairs(opts) do
-        if builtin.match(k, 'mode', 'event', 'pattern', 'leader', 'localleader', 'opts', 'once', 'nested') then
+        if V.match(k, 'mode', 'event', 'pattern', 'leader', 'localleader', 'opts', 'once', 'nested') then
             self[k] = v
         end
     end
@@ -31,15 +31,15 @@ local function update(self)
     local lhs = self.lhs
     local bufnr = self.bufnr
 
-    for _, i in ipairs(builtin.ensure_list(self.mode)) do
-        builtin.makepath(Keybinding, i, lhs)
+    for _, i in ipairs(V.ensure_list(self.mode)) do
+        V.makepath(Keybinding, i, lhs)
 
         if bufnr then
-            builtin.append(Keybinding[i][lhs], self)
-            builtin.makepath(Keybinding.buffer, bufnr, i, lhs)
-            builtin.append(Keybinding.buffer[bufnr][i][lhs], self)
+            V.append(Keybinding[i][lhs], self)
+            V.makepath(Keybinding.buffer, bufnr, i, lhs)
+            V.append(Keybinding.buffer[bufnr][i][lhs], self)
         else
-            builtin.append(Keybinding[i][lhs], self)
+            V.append(Keybinding[i][lhs], self)
         end
     end
 
@@ -51,7 +51,7 @@ local function bind(self, lhs, callback, opts)
     self = vim.deepcopy(self)
 
     if opts then
-        builtin.merge(self.opts, opts)
+        V.merge(self.opts, opts)
     end
 
     self.lhs = lhs
@@ -133,3 +133,5 @@ function Keybinding.noremap(mode, lhs, callback, opts)
     opts.noremap = opts.noremap == nil and false or opts.noremap
     return Keybinding.map(mode, lhs, callback, opts)
 end
+
+require('core.kbd.defaults')

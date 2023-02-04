@@ -1,6 +1,6 @@
 local mod = {}
-local action_state = builtin.require 'telescope.actions.state'
-local actions = builtin.require 'telescope.actions'
+local action_state = V.require 'telescope.actions.state'
+local actions = V.require 'telescope.actions'
 
 function mod.bwipeout(bufnr)
     local sel = action_state.get_selected_entry()
