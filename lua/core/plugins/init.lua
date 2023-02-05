@@ -5,6 +5,8 @@ return require('lazy').setup({
     'beauwilliams/statusline.lua',
     'tpope/vim-surround',
 
+    { 'psliwka/vim-smoothie', event = 'WinEnter' },
+
     {
         'mfussenegger/nvim-lint',
         event = 'BufReadPre',
@@ -141,11 +143,11 @@ return require('lazy').setup({
 
     {
         'moll/vim-bbye',
-        event = 'BufCreate',
+        event = 'BufReadPre',
         config = function()
             Keybinding({ noremap = true, leader = true }):bind {
-                { 'bq', 'Bdelete', { desc = 'Delete buffer' } },
-                { 'bQ', 'Bwipeout', { desc = 'Wipeout buffer' } }
+                { 'bq', '<cmd>Bdelete<CR>', { desc = 'Delete buffer' } },
+                { 'bQ', '<cmd>Bwipeout<CR>', { desc = 'Wipeout buffer' } }
             }
         end,
     },

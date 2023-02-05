@@ -1,3 +1,5 @@
+local action_state = require 'telescope.actions.state'
+
 local telescope = V.require 'telescope'
 local ivy = V.require('telescope.themes').get_ivy()
 local file_browser_actions = V.require 'core.plugins.telescope_nvim.file_browser'

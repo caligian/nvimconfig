@@ -2,6 +2,7 @@ local data_dir = vim.fn.stdpath('data')
 
 user.option = {
     o = {
+        cursorline = true,
         updatetime = 300,
         foldenable = false,
         timeoutlen = 350,

@@ -1,3 +1,4 @@
+-- For logs
 vim.api.nvim_create_user_command('ShowLogs', function()
     local all_logs = {}
     for _, log in ipairs(V.logs) do
@@ -20,3 +21,9 @@ vim.api.nvim_create_user_command('ShowLogs', function()
 end, {})
 
 vim.cmd('noremap <space>hl :ShowLogs<CR>')
+
+-- Buffer utils
+vim.api.nvim_create_user_command('OpenScratch', function() Buffer.open_scratch() end, {})
+vim.api.nvim_create_user_command('OpenScratchVertically', function() Buffer.open_scratch(false, 'v') end, {})
+vim.keymap.set('n', ',%', '<cmd>OpenScratch<CR>', { noremap = true })
+vim.keymap.set('n', ',|', '<cmd>OpenScratchVertically<CR>', { noremap = true })

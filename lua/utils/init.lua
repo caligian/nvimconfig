@@ -94,12 +94,16 @@ function V.is_type(e, t)
     return type(e) == t
 end
 
+V.istype = V.is_type
+
 function V.assert_type(e, t)
     local out = V.is_type(e)
     assert(out)
 
     return out
 end
+
+V.asserttype = V.assert_type
 
 function V.append(t, ...)
     local idx = #t
@@ -117,6 +121,8 @@ function V.append_at_index(t, idx, ...)
 
     return t
 end
+
+V.append_at = V.append_at_index
 
 function V.shift(t, times)
     local l = #t
@@ -341,6 +347,8 @@ function V.merge_keepleft(a, b)
     return a
 end
 
+V.lmerge = V.merge_keepleft
+
 function V.printf(...)
     print(V.sprintf(...))
 end
@@ -432,6 +440,8 @@ function V.nvim_err(...)
     end
 end
 
+V.nvimerr = V.nvim_err
+
 function V.is_a(e, c)
     if type(c) == 'string' then
         return type(e) == c
@@ -441,13 +451,28 @@ function V.is_a(e, c)
         else
             return 'table' == c
         end
+    elseif c == nil then
+        return e == nil
     end
 end
+
+V.isstring = V.rpartial(V.is_a, 'string')
+V.isuserdata = V.rpartial(V.is_a, 'userdata')
+V.istable = V.rpartial(V.is_a, 'table')
+V.isnumber = V.rpartial(V.is_a, 'string')
+V.isnil = V.rpartial(V.is_a)
+V.is_string = V.rpartial(V.is_a, 'string')
+V.is_userdata = V.rpartial(V.is_a, 'userdata')
+V.is_table = V.rpartial(V.is_a, 'table')
+V.is_number = V.rpartial(V.is_a, 'string')
+V.is_nil = V.rpartial(V.is_a)
 
 -- If multiple keys are supplied, the table is going to be assumed to be nested
 function V.has_key(tbl, ...)
     return (V.get(tbl, { ... }))
 end
+
+V.haskey = V.has_key
 
 function V.pcall(f, ...)
     local ok, out = pcall(f, ...)
@@ -484,6 +509,20 @@ function V.require(req, do_assert)
         return out
     end
 end
+
+function V.is_blank(s)
+    assert(V.isstring(s) or V.istable(s))
+
+    if V.isstring(s) then
+        return #s == 0
+    elseif V.istable(s) then
+        local i = 0
+        for _, _ in pairs(s) do i = i + 1 end
+        return i == 0
+    end
+end
+
+V.isblank = V.is_blank
 
 --
 require 'utils.buffer'

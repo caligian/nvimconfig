@@ -212,9 +212,12 @@ function Buffer.input(name, text, cb, split, trigger_keys)
     buf:map('n', trigger_keys, function() cb(buf:lines(0, -1)) end, { noremap = true })
 end
 
-vim.api.nvim_create_user_command('OpenScratch', function() Buffer.open_scratch() end, {})
-vim.api.nvim_create_user_command('OpenScratchVertically', function() Buffer.open_scratch(false, 'v') end, {})
-vim.keymap.set('n', ',%', '<cmd>OpenScratch<CR>', { noremap = true })
-vim.keymap.set('n', ',|', '<cmd>OpenScratchVertically<CR>', { noremap = true })
+function Buffer.getmap(self, mode, lhs)
+    return V.buffer_has_keymap(self.bufnr, mode, lhs)
+end
+
+function Buffer.visualrange(self)
+    return V.get_visual_range(self.bufnr)
+end
 
 return Buffer

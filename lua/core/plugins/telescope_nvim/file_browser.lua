@@ -1,55 +1,55 @@
 local action_state = V.require 'telescope.actions.state'
 local actions = V.require 'telescope.actions'
 local job = V.require 'plenary.job'
-local mod = {}
 
-function mod.delete_recursively(prompt_bufnr)
-    local selected = action_state.get_selected_entry()
-    local path = selected[1]
-    local cwd = selected.cwd
+local mod = setmetatable({}, {
+    __newindex = function(self, name, f)
+        rawset(self, name, function(bufnr)
+            local picker = action_state.get_current_picker(bufnr)
+            local nargs = picker:get_multi_selection()
+            if #nargs > 0 then
+                for _, value in ipairs(nargs) do
+                    f(value)
+                end
+            else
+                f(picker:get_current_selection())
+            end
+            actions.close(bufnr)
+        end)
+    end
+})
 
-    job:new({ command = '/sbin/rm', args = { '-r', path }, cwd = cwd }):start()
+function mod.delete_recursively(sel)
+    local path = sel[1]
+    local cwd = sel.cwd
 
     print('Attempting to delete ' .. path)
-    actions.close(prompt_bufnr)
+    job:new({ command = '/sbin/rm', args = { '-r', path }, cwd = cwd }):start()
+
 end
 
-function mod.luafile(bufnr)
-    local sel = action_state.get_selected_entry()
+function mod.luafile(sel)
     local path = sel[1]
 
+    print('Sourcing lua file ' .. path)
     vim.cmd('luafile ' .. path)
-
-    print('Sourced lua file ' .. path)
-    actions.close(bufnr)
 end
 
-function mod.git_init(bufnr)
-    local sel = action_state.get_selected_entry()
+function mod.git_init(sel)
     local cwd = sel.cwd
-
+    print('Running git init in ' .. cwd)
     job:new({ command = '/usr/bin/git', args = { 'init' }, cwd = cwd }):start()
-
-    actions.close(bufnr)
 end
 
-function mod.open_in_netrw(bufnr)
-    local sel = action_state.get_selected_entry()
-    local cwd = sel.cwd
-
-    vim.cmd('Ntree ' .. cwd)
-
-    actions.close(bufnr)
-end
-
-function mod.touch(bufnr)
-    local sel = action_state.get_selected_entry()
+function mod.touch(sel)
     local cwd = sel.cwd
     local fname = vim.fn.input('touch > ')
     fname = stringx.strip(fname)
     fname = path.join(cwd, fname)
 
     assert(#fname ~= 0, 'No filename provided')
+
+    print('Running touch ' .. fname)
 
     vim.cmd('! touch ' .. fname)
 end

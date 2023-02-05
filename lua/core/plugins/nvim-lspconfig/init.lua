@@ -4,7 +4,7 @@ lsp.capabilties = V.require('cmp_nvim_lsp').default_capabilities()
 -- Turn off annoying virtual text
 lsp.diagnostic = {
     virtual_text = false,
-    underline = true,
+    underline = false,
     update_in_insert = true,
 }
 
