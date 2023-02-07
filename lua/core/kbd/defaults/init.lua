@@ -1,8 +1,0 @@
-V.require 'core.kbd.defaults.tab'
-V.require 'core.kbd.defaults.eval'
-V.require 'core.kbd.defaults.scratch'
-V.require 'core.kbd.defaults.source'
-V.require 'core.kbd.defaults.terminal'
-V.require 'core.kbd.defaults.window'
-V.require 'core.kbd.defaults.buffer'
-V.require 'core.kbd.defaults.misc'

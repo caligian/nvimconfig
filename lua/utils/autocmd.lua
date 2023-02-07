@@ -1,3 +1,5 @@
+class 'Autocmd'
+
 Autocmd.id = Autocmd.id or {}
 Autocmd.group = Autocmd.group or {}
 
@@ -103,5 +105,3 @@ function Autocmd.delete(self)
 
     return self
 end
-
---require('core.autocmd.defaults')

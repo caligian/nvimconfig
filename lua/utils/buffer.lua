@@ -4,41 +4,41 @@ Buffer.bufnr = Buffer.bufnr or {}
 Buffer.scratch = Buffer.scratch or {}
 local scratch_n = 0
 local input_buffer_n = 0
+local menu_n = 0
 
-V.makepath(Buffer, 'bufnr')
-V.makepath(Buffer, 'scratch')
+local function update(self)
+    V.update(Buffer.bufnr, { self.bufnr }, self)
+
+    if self.scratch then
+        V.update(Buffer.scratch, { self.bufnr }, self)
+    end
+end
 
 function Buffer._init(self, name, scratch)
-    local bufnr = vim.fn.bufnr(name)
-
-    if bufnr ~= -1 then
-        if not Buffer.bufnr[bufnr] then
-            if name:match('scratch_buffer_') then
-                return Buffer(name, true)
-            else
-                return Buffer(name)
-            end
-        else
-            return Buffer.bufnr[bufnr]
-        end
+    local bufnr = vim.fn.bufnr(name, true)
+    if name:match('^scratch_') then
+        scratch = true
+    elseif not name and scratch then
+        name = sprintf('scratch_buffer_%d', scratch_n + 1)
     end
 
-    name = name or sprintf('scratch_buffer_%d', #scratch_n + 1)
+    if Buffer.bufnr[bufnr] then
+        return Buffer.bufnr[bufnr]
+    end
 
-    local bufnr = vim.fn.bufadd(name)
-    self.bufnr = bufnr
-    self.name = name
-
-    if name:match('scratch_buffer_[0-9]?') or scratch then
-        V.update(Buffer.scratch, { bufnr }, self)
-
-        self.scratch = true
+    if scratch then
+        scratch_n = scratch_n + 1
         vim.api.nvim_buf_set_option(bufnr, 'buflisted', false)
         vim.api.nvim_buf_set_option(bufnr, 'modified', false)
         vim.api.nvim_buf_set_option(bufnr, 'buftype', 'nofile')
     end
 
-    V.update(Buffer.bufnr, { bufnr }, self)
+    self.bufnr = bufnr
+    self.fullname = vim.fn.bufname(bufnr)
+    self.scratch = scratch
+    self.name = name
+
+    update(self)
 
     return self
 end
@@ -74,16 +74,15 @@ function Buffer.setopt(self, opts)
 end
 
 function Buffer.map(self, mode, lhs, callback, opts)
-    vim.keymap.set(mode, lhs, callback, V.merge_keepleft(opts, {
-        buffer = self.bufnr,
-    }))
+    opts = opts or {}
+    opts.buffer = self.bufnr
+    Keybinding.map(mode, lhs, callback, opts)
 end
 
 function Buffer.noremap(self, mode, lhs, callback, opts)
-    vim.keymap.set(mode, lhs, callback, V.merge_keepleft(opts, {
-        buffer = self.bufnr,
-        noremap = true,
-    }))
+    opts = opts or {}
+    opts.bufnr = self.bufnr
+    Keybinding.noremap(mode, lhs, callback, opts)
 end
 
 function Buffer.split(self, split)
@@ -162,6 +161,10 @@ function Buffer.set(self, start, till, repl)
     vim.api.nvim_buf_set_text(self.bufnr, start[1], till[1], start[2], till[2], repl)
 end
 
+function Buffer.switch(self)
+    vim.cmd('b ' .. self.bufnr)
+end
+
 function Buffer.load(self)
     vim.fn.bufload(self.bufnr)
 end
@@ -216,8 +219,30 @@ function Buffer.getmap(self, mode, lhs)
     return V.buffer_has_keymap(self.bufnr, mode, lhs)
 end
 
-function Buffer.visualrange(self)
+function Buffer.range(self)
     return V.get_visual_range(self.bufnr)
+end
+
+-- @tparam name string Buffer name for the menu
+-- @tparam text table[table[string]] {{keys, text}, ...} where keys will be trigger callback with index, text
+-- @tparam callback function[index, text] This will be triggered by keys in text
+function Buffer.menu(name, desc, text, callback)
+    V.asserttype(name, 'string')
+    V.asserttype(text, 'table')
+    V.asserttype(desc, 'string')
+    V.asserttype(callback, 'function')
+
+    name = name or sprintf('menu_buffer_%d', menu_n + 1)
+    menu_n = menu_n + 1
+    local buf = Buffer(name, true)
+    buf:setlines(0, -1, vim.split(desc, "[\n\r]"))
+    buf:setlines(-1, -1, { '' })
+
+    for _, value in ipairs(text) do
+        local keys, display = unpack(value)
+        buf:setlines(0, -1, { display })
+        buf:noremap('n', keys)
+    end
 end
 
 return Buffer

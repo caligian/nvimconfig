@@ -10,5 +10,5 @@ return {
         name = 'pyright',
         config = {},
     },
-    linters = { 'pylint', 'flake8' }
+    linters = { 'pylint', 'flake8', 'mypy', 'pylama' },
 }

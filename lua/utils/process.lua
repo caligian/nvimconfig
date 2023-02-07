@@ -1,4 +1,5 @@
 class 'Process'
+
 Process.id = Process.id or {}
 
 local function get(id)

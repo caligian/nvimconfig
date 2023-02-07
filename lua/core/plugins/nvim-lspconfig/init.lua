@@ -5,7 +5,7 @@ lsp.capabilties = V.require('cmp_nvim_lsp').default_capabilities()
 lsp.diagnostic = {
     virtual_text = false,
     underline = false,
-    update_in_insert = true,
+    update_in_insert = false,
 }
 
 -- Load user overrides

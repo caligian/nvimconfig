@@ -70,3 +70,5 @@ class = function(name, Base)
     end
     return _G[name]
 end
+
+require 'utils'

@@ -1,9 +1,13 @@
 return require('lazy').setup({
-    'justinmk/vim-sneak',
-    'Raimondi/delimitMate',
     'nvim-lua/plenary.nvim',
+
     'beauwilliams/statusline.lua',
-    'tpope/vim-surround',
+
+    { 'tpope/vim-surround', event = 'InsertEnter' },
+
+    { 'justinmk/vim-sneak', event = 'InsertEnter' },
+
+    { 'Raimondi/delimitMate', event = 'InsertEnter' },
 
     { 'psliwka/vim-smoothie', event = 'WinEnter' },
 
