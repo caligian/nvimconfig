@@ -66,3 +66,6 @@ Keybinding.noremap('n', '\\\\', ':noh<CR>', { desc = 'No highlight', silent = tr
 
 -- Window management
 Keybinding.map('n', '<leader>w', '<C-w>', { silent = true, desc = 'Window commands' })
+
+-- Terminal <esc> fix
+Keybinding.noremap('t', '<esc>', '<C-\\><C-n>', { desc = 'Terminal to normal mode' })
