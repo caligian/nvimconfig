@@ -4,7 +4,7 @@ Keybinding({
 	silent = true,
 }):bind({
 	-- Buffer, file, dirs and bookmarks
-    {'\\', ':'},
+	{ '\\', ':' },
 	{ 'fb', 'mA', 'Bookmark current file at pos' },
 	{ 'fs', ':w %<CR>', 'Save buffer' },
 	{ 'fP', ':chdir ~/.config/nvim <bar> e .<CR>', 'Open default config' },
@@ -76,3 +76,6 @@ Keybinding.map('n', '<leader>w', '<C-w>', { silent = true, desc = 'Window comman
 
 -- Terminal <esc> fix
 Keybinding.noremap('t', '<esc>', '<C-\\><C-n>', { desc = 'Terminal to normal mode' })
+
+-- Quit help windows with q
+Keybinding.noremap('n', 'q', ':hide<CR>', { event = 'FileType', pattern = 'help' })

@@ -102,7 +102,7 @@ return require('lazy').setup({
 		keys = '<leader>g',
 		config = function()
 			Keybinding({ noremap = true, leader = true, mode = 'n' }):bind({
-				{ 'gg', ':Git<CR>' },
+				{ 'gg', ':vertical Git<CR>' },
 				{ 'gs', ':Git stage <CR>' },
 				{ 'gc', ':Git commit <CR>' },
 			})
