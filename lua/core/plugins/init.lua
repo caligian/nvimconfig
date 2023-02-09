@@ -1,5 +1,23 @@
 return require('lazy').setup({
-	'nvim-lua/plenary.nvim',
+	{ 'nvim-lua/plenary.nvim' },
+
+	{ 'nvim-tree/nvim-web-devicons', event = 'WinEnter', config = function() V.require('nvim-web-devicons').setup({}) end },
+
+	{
+		'nvim-tree/nvim-tree.lua',
+		event = 'WinEnter',
+		config = function()
+			user.plugins['nvim-tree.lua'] = {}
+			V.require('user.nvim-tree_lua')
+
+			require('nvim-tree').setup(user.plugins['nvim-tree.lua'])
+
+			Keybinding({ noremap = true, leader = true }):bind({
+				{ '|', ':NvimTreeToggle<CR>', 'Focus tree explorer' },
+				{ '\\', ':NvimTreeFocus<CR>', 'Toggle tree explorer' },
+			})
+		end,
+	},
 
 	{
 		'beauwilliams/statusline.lua',
@@ -21,7 +39,7 @@ return require('lazy').setup({
 
 	{
 		'mfussenegger/nvim-lint',
-		event = 'BufReadPre',
+		event = 'BufReadPost',
 		config = function() V.require('core.plugins.nvim-lint') end,
 	},
 
@@ -104,7 +122,7 @@ return require('lazy').setup({
 
 	{
 		'folke/which-key.nvim',
-		event = 'VimEnter',
+		event = 'WinEnter',
 		config = function() V.require('core.plugins.which-key_nvim') end,
 	},
 
@@ -116,11 +134,15 @@ return require('lazy').setup({
 
 	{
 		'mhartington/formatter.nvim',
+		event = 'BufReadPost',
 		config = function() V.require('core.plugins.formatter_nvim') end,
 	},
 
 	{
 		'neovim/nvim-lspconfig',
+		ft = V.filter(function(k)
+			if V.haskey(user.lang.langs, k, 'server') then return k end
+		end, V.keys(user.lang.langs)),
 		dependencies = {
 			{ 'lukas-reineke/lsp-format.nvim' },
 			{ 'SirVer/ultisnips' },
@@ -132,7 +154,6 @@ return require('lazy').setup({
 
 	{
 		'nvim-telescope/telescope.nvim',
-		event = 'VimEnter',
 		dependencies = {
 			{ 'hrsh7th/nvim-cmp' },
 			{ 'nvim-telescope/telescope-file-browser.nvim' },

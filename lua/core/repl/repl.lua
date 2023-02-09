@@ -1,3 +1,5 @@
+class('REPL')
+
 REPL.id = REPL.id or {}
 REPL.buffer = REPL.buffer or {}
 REPL.commands = REPL.commands or {}
@@ -51,7 +53,19 @@ function repl.stopall()
 	end
 end
 
+local function get(name)
+	local r = repl.id[name]
+	if r and r.running then
+		return r
+	else
+		return false
+	end
+end
+
 function repl._init(self, name, opts)
+	local r = get(name)
+	if r then return r end
+
 	opts = opts or {}
 	if not name then
 		self.name = vim.bo.filetype
@@ -86,13 +100,12 @@ function repl.start(self, opts)
 
 	assert(cmd, 'No command provided')
 
-	if repl.id[name] and repl.id[name].running then
-		if opts.force then
-			repl.id[name]:stop()
-			self:start(opts)
-		else
-			return repl.id[name]
-		end
+	local r = get(name)
+	if opts.force then
+		r:stop()
+		r:start(opts)
+	elseif r and r.id then
+		return r
 	end
 
 	local buf = vim.api.nvim_create_buf(false, true)
@@ -121,8 +134,8 @@ function repl.hide(self)
 end
 
 local function ensure(self)
-	if self:is_running() then return end
-	self:start(self.opts)
+	if self:is_running() then return self end
+	self:start()
 end
 
 function repl.split(self, direction)
