@@ -14,17 +14,6 @@ for lang, conf in pairs(user.lang.langs) do
 				else
 					conf.formatters[idx] = nil
 				end
-			elseif V.istable(formatter) then
-				conf.formatters[idx] = function()
-					formatter.args = formatter.args or {}
-					local idx = V.index(formatter.args, '{}')
-					if idx then formatter.args[idx] = vim.fn.expand('%:p') end
-					formatter.no_append = true
-					formatter.cwd = vim.fn.getcwd()
-					formatter.ignore_exitcode = false
-
-					return formatter
-				end
 			end
 		end
 		formatters[lang] = conf.formatters
@@ -38,9 +27,8 @@ user.plugins['formatter.nvim'] = { filetype = formatters }
 require('formatter').setup(user.plugins['formatter.nvim'])
 
 -- Setup autocmd for autoformatting
-local a = Autocmd('Formatter')
 for lang, _ in pairs(formatters) do
 	Keybinding.noremap('n', '<leader>bf', 'FormatWrite<CR>', { event = 'FileType', pattern = lang, desc = 'Formatter buffer', silent = true })
 
-	a:create('BufWritePost', '*', 'silent! FormatWrite')
+	Autocmd('FormatterNvim', 'BufWritePost', lang, 'silent! FormatWrite')
 end

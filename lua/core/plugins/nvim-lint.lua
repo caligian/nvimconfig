@@ -22,9 +22,8 @@ nvimlint.linters.luacheck.args = {
 	'-',
 }
 
-local a = Autocmd('NvimLint')
 for ft, _ in pairs(user.plugins['nvim-lint'].linters_by_ft) do
-	a:create('BufWritePost', ft, require('lint').try_lint)
+	Autocmd('NvimLint', 'BufWritePost', ft, require('lint').try_lint)
 end
 
 Keybinding.noremap('n', '<leader>ll', require('lint').try_lint, { desc = 'Try linting buffer' })

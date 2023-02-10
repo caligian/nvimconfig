@@ -1,8 +1,6 @@
 user.lang = user.lang or {}
-user.plugins = user.plugins or {}
-user.compile = user.compile or {}
 user.lsp = user.lsp or {}
-user.color = user.color or {}
+user.plugins = user.plugins or {}
 user.autocmd = user.autocmd or Autocmd
 user.kbd = user.kbd or Keybinding
 user.shell = '/usr/bin/zsh'
