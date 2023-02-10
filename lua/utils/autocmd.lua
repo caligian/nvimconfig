@@ -1,90 +1,73 @@
-class('Autocmd')
+-- Augroup
+class("Augroup")
+Augroup.id = Augroup.id or {}
 
-Autocmd.id = Autocmd.id or {}
-Autocmd.group = Autocmd.group or {}
-
-function Autocmd.create_augroup(group, clear)
-	local id = vim.api.nvim_create_augroup(group, { clear = clear })
-
-	local g = { group = group, id = id }
-
-	V.makepath(Autocmd.group, id)
-	V.makepath(Autocmd.group, group)
-	Autocmd.group[id] = Autocmd.group[id] or g
-	Autocmd.group[group] = Autocmd.group[group] or g
-
-	return id
-end
-
-function Autocmd.delete_augroup(group)
-	if Autocmd.group[group] then
-		vim.api.nvim_del_autocmd(Autocmd.group[group].id)
-		Autocmd.group[group] = nil
-	end
-end
-
-local function autocmd(group, event, pattern, callback, once, nested, clear)
-	group = group or 'UserGlobal'
-	local gid = false
-	if group:match('^!') or not Autocmd.group[group] then
-		gid = Autocmd.create_augroup(group, true)
-	else
-		gid = Autocmd.create_augroup(group)
-	end
-	local opts = { once = once, nested = nested, pattern = pattern, group = group, callback = callback }
-	local id = vim.api.nvim_create_autocmd(event, opts)
-	return id, gid
-end
-
-function Autocmd._init(self, group, event, pattern, callback, opts)
-	assert(event)
-	assert(pattern)
-	assert(callback)
-
+function Augroup._init(self, group, opts)
 	opts = opts or {}
-	event = V.ensure_list(event)
-	pattern = V.ensure_list(pattern)
-	local nested = opts.nested
-	local once = opts.once
-	local id, gid
-	local group = opts.group
-	local _callback = function()
-		if V.is_type(callback, 'string') then
-            print('laude')
-			vim.cmd(callback)
-		else
-			callback()
-		end
+	for key, value in pairs(opts) do
+		self[key] = value
+	end
+	self.name = group
+	self.id = vim.api.nvim_create_augroup(group, opts)
 
-		if once then self.enabled = false end
+	if Augroup.id[self.id] then
+		return Augroup.id[self.id]
+	else
+		V.update(Augroup.id, self.id, self)
+		self.enabled = true
+		self.autocmd = {}
+
+		return self
+	end
+end
+
+function Augroup.clear(self)
+	vim.cmd(sprintf("augroup %s | au! | augroup END", self.name))
+end
+
+function Augroup.delete(self)
+	if not self.enabled then
+		return
 	end
 
-	id, gid = autocmd(group, event, pattern, _callback, once, nested)
+	self.enabled = false
+	vim.api.nvim_del_augroup_by_id(self.id)
+end
 
-	self.group = group
+-- Autocmd
+class("Autocmd")
+Autocmd.id = Autocmd.id or {}
+
+function Autocmd._init(self, event, opts)
+	self.id = vim.api.nvim_create_autocmd(event, opts)
+	opts.group = opts.group or "UserGlobal"
+	self.augroup = Augroup(opts.group)
+	self.augroup[self.id] = self
+
+	local callback = opts.callback
+	if opts.once then
+		opts.callback = function()
+			self.enabled = false
+		end
+	end
+	for key, value in pairs(opts) do
+		self[key] = value
+	end
 	self.event = event
-	self.pattern = pattern
-	self.once = once
-	self.nested = nested
-	self.group = group
-	self.gid = gid
-	self.id = id
-	self.callback = _callback
-
-	V.update(Autocmd.id, { id }, self)
-	V.update(Autocmd.group, { gid, id }, self)
 
 	return self
 end
 
 function Autocmd.disable(self)
+	if not self.enabled then
+		return
+	end
 	vim.api.nvim_del_autocmd(self.id)
 	self.enabled = false
 end
 
 function Autocmd.delete(self)
-	if not self.enabled then return self end
-
-	Autocmd.disable()
+	self:disable()
 	Autocmd.id[self.id] = nil
+	self.autocmd[self.id] = nil
 end

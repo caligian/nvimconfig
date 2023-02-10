@@ -7,7 +7,7 @@ function lang.hook(ft, callback)
 		V.makepath(user.lang.langs, ft)
 		l = user.lang.langs[ft]
 	end
-	local group = 'hooks_for_filetype_' .. ft
+	local group = "hooks_for_filetype_" .. ft
 	local au = user.autocmd(group, false)
 
 	-- Save all callbacks in a list
@@ -19,6 +19,6 @@ function lang.hook(ft, callback)
 				hook()
 			end
 		end
-		au:create('FileType', ft, callback)
+		au:create("FileType", ft, callback)
 	end
 end

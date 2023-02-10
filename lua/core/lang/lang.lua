@@ -1,5 +1,5 @@
 -- @class Lang FileType manager
-class('Lang')
+class("Lang")
 
 -- @
 Lang.langs = Lang.langs or {}
@@ -24,15 +24,19 @@ end
 -- @tparam[opt] regex string Valid lua regex
 -- @treturn ?string Path that can be used or false
 function Lang.whereis(bin, regex)
-	local out = vim.fn.system('whereis ' .. bin .. [[ | cut -d : -f 2- | sed -r "s/(^ *| *$)//mg"]])
+	local out = vim.fn.system("whereis " .. bin .. [[ | cut -d : -f 2- | sed -r "s/(^ *| *$)//mg"]])
 	out = V.trim(out)
-	out = vim.split(out, ' ')
+	out = vim.split(out, " ")
 
-	if V.isblank(out) then return false end
+	if V.isblank(out) then
+		return false
+	end
 
 	if regex then
 		for _, value in ipairs(out) do
-			if value:match(regex) then return value end
+			if value:match(regex) then
+				return value
+			end
 		end
 	end
 	return out[1]
@@ -90,17 +94,19 @@ end
 -- @return self
 function Lang.setup(self, opts)
 	-- Autocmd group
-	local group = 'filetype_hook_for_' .. lang
+	local group = "filetype_hook_for_" .. lang
 	local au = Autocmd(group)
 	self.autocmd = au
 
 	local function add_hooks(opts)
 		local hooks = opts.hooks
-		if not hooks then return end
+		if not hooks then
+			return
+		end
 		local lang = self.name
 
 		for name, h in pairs(hooks) do
-			au:create('FileType', lang, function()
+			au:create("FileType", lang, function()
 				if V.isstring(h) then
 					vim.cmd(h)
 				else
@@ -112,8 +118,8 @@ function Lang.setup(self, opts)
 
 	local function require_from_config()
 		local lang = self.name
-		local opts = V.require('core.lang.ft.' .. lang)
-		local uopts = V.require('user.lang.ft.' .. lang)
+		local opts = V.require("core.lang.ft." .. lang)
+		local uopts = V.require("user.lang.ft." .. lang)
 
 		if not opts and not uopts then
 			return false
@@ -144,9 +150,11 @@ function Lang.setup(self, opts)
 	end
 
 	local function set_bufopts(opts)
-		if not opts.bo then return end
+		if not opts.bo then
+			return
+		end
 
-		au:create('FileType', self.name, function()
+		au:create("FileType", self.name, function()
 			local bufnr = vim.fn.bufnr()
 			for key, value in pairs(opts.bo) do
 				vim.api.nvim_buf_set_option(bufnr, key, value)
@@ -167,8 +175,12 @@ function Lang.setup(self, opts)
 end
 
 function Lang.unhook(self, name)
-	if not self.autocmd then return false end
+	if not self.autocmd then
+		return false
+	end
 	self.autocmd:remove(name)
 end
 
-function Lang.setbufopts(self, opts) self:setup({ bo = opts }) end
+function Lang.setbufopts(self, opts)
+	self:setup({ bo = opts })
+end

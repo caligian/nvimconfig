@@ -1,153 +1,157 @@
-class('Keybinding')
+class("Keybinding")
 
-Keybinding.id = Keybinding.id or {}
 Keybinding.buffer = Keybinding.buffer or {}
+Keybinding.id = Keybinding.id or {}
+local id = 1
 
--- This is a factory method, therefore not all keys can be passed
--- opts [table]
--- keys:
--- mode table[string] | string
--- event table[string] | string
--- pattern table[string] | string
--- leader boolean
--- localleader boolean
-function Keybinding._init(self, opts)
-	opts = opts or {}
+function Keybinding.update(self)
+	V.update(Keybinding.id, self.id, self)
 
-	self.mode = opts.mode or 'n'
-	self.event = opts.event
-	self.pattern = opts.pattern
-	self.leader = opts.leader
-	self.localleader = opts.localleader
-	self.buffer = opts.buffer
-	self.prefix = opts.prefix
-	self.enabled = false
+	if self.bufnr then
+		V.update(Keybinding.buffer, { self.bufnr, self.id }, self)
+	end
 
 	return self
 end
 
-local function update(self)
-	local lhs = self.lhs
-	local bufnr = self.bufnr
+local function getkbdopts(opts)
+	if V.isstring(opts) then
+		return { desc = opts }
+	end
 
-	for _, i in ipairs(V.ensure_list(self.mode)) do
-		V.makepath(Keybinding, i, lhs)
-
-		if bufnr then
-			V.append(Keybinding[i][lhs], self)
-			V.makepath(Keybinding.buffer, bufnr, i, lhs)
-			V.append(Keybinding.buffer[bufnr][i][lhs], self)
-		else
-			V.append(Keybinding[i][lhs], self)
+	local o = {}
+	for key, value in pairs(opts) do
+		if not V.match(key, "once", "nested", "group", "pattern", "event", "leader", "prefix", "mode") then
+			o[key] = value
 		end
 	end
 
-	return self
+	return o
 end
 
-local function get_kbd_opts(opts)
-	local new = {}
+local function getauopts(opts)
+	local o = {}
 	for key, value in pairs(opts) do
-		if key ~= 'event' and key ~= 'pattern' and key ~= 'prefix' and key ~= 'buffer' and key ~= 'once' and key ~= 'nested' and key ~= 'group' and key ~= 'clear' and key ~= 'leader' and key ~= 'mode' and key ~= 'localleader' then new[key] = value end
+		if V.match(key, "once", "nested", "group", "pattern", "event") then
+			o[key] = value
+		end
 	end
 
-	return new
+	return o
 end
 
--- This is the main function
--- You can still override the options provided to Keybinding()
-local function bind(self, lhs, callback, opts)
-	assert(callback, 'No callback provided')
-	assert(lhs, 'No LHS provided')
+function Keybinding._init(self, mode, lhs, cb, rest)
+	assert(mode, "No mode provided")
+	assert(lhs, "No LHS provided")
+	assert(cb, "No RHS provided")
 
-	if V.isstring(opts) then opts = { desc = opts } end
-
-	-- Every keybinding is a new one
-	opts = opts or {}
-	self = vim.deepcopy(self)
-	local leader = opts.leader or self.leader
-	local localleader = opts.localleader or self.localleader
-	local prefix = opts.prefix or self.prefix
-
-	local event = opts.event or self.event
-	local pattern = opts.pattern or self.pattern
-	local mode = opts.mode or self.mode
-
-	---
-	if leader then
-		lhs = '<leader>' .. lhs
-	elseif localleader then
-		lhs = '<localleader>' .. lhs
-	elseif prefix then
-		lhs = prefix .. lhs
+	if V.isstring(mode) then
+		mode = vim.split(mode, "")
 	end
 
-	---
-	if event and pattern then
-		Autocmd('Global', event, pattern, function()
-			self.enabled = true
-			self.buffer = vim.fn.bufnr()
-			vim.keymap.set(mode, lhs, callback, get_kbd_opts(opts))
-		end, {
-			once = self.once,
-			nested = self.nested,
+	rest = rest or {}
+	local opts = getkbdopts(rest)
+	local au = getauopts(rest)
+
+	if rest.leader then
+		lhs = "<leader>" .. lhs
+	elseif rest.localleader then
+		lhs = "<localleader>" .. lhs
+	elseif rest.prefix then
+		lhs = rest.prefix .. lhs
+	end
+
+	opts.buffer = opts.buffer == true and vim.fn.bufnr() or opts.buffer
+
+	local autocmd
+	self.id = id
+	id = id + 1
+	if au.event and au.pattern then
+		self.autocmd = V.autocmd(au.event, {
+			pattern = au.pattern,
+			once = au.once,
+			nested = au.nested,
+			group = au.group,
+			callback = function()
+				vim.keymap.set(mode, lhs, cb, opts)
+				self.enabled = true
+				self.buffer = vim.fn.bufnr()
+				self:update()
+			end,
+		})
+	elseif opts.buffer then
+		vim.keymap.set(mode, lhs, cb, opts)
+		self.autocmd = V.autocmd("BufEnter", {
+			pattern = "<buffer=" .. opts.buffer .. ">",
+			callback = function()
+				self.enabled = true
+				self:update()
+			end,
+			once = au.once,
+			nested = au.nested,
 		})
 	else
-		local buffer = opts.buffer or self.buffer
-		opts.buffer = buffer
-		vim.keymap.set(mode, lhs, callback, get_kbd_opts(opts))
-
-		self.buffer = buffer
+		vim.keymap.set(mode, lhs, cb, opts)
 		self.enabled = true
+		self:update()
 	end
 
-	-- We don't need these keys
-	self.leader = nil
-	self.localleader = nil
-	self.prefix = nil
-
-	---
-	self.lhs = lhs
-	self.callback = callback
-	self.event = event
-	self.pattern = self.pattern
 	self.mode = mode
+	self.lhs = lhs
+	self.callback = cb
 	self.opts = opts
 
-	---
-	return update(self)
-end
-
-function Keybinding.bind(self, keys)
-	for _, k in ipairs(keys) do
-		assert(types.is_type(k, 'table'))
-		assert(#k >= 2, 'Need {lhs, callback, [opt]}')
-		bind(self, unpack(k))
-	end
+	return self
 end
 
 function Keybinding.disable(self)
-	if not self.enabled then return self end
-
-	local lhs = self.lhs
-	local bufnr = self.bufnr
-
-	for _, m in ipairs(self.mode) do
-		if bufnr then
-			vim.api.nvim_buf_del_keymap(bufnr, m, lhs)
-		else
-			vim.api.nvim_del_keymap(m, lhs)
-		end
+	if not self.enabled then
+		return
 	end
 
-	self.enabled = false
+	if self.autocmd then
+		self.autocmd:disable()
+		if self.bufnr then
+			for _, mode in ipairs(self.mode) do
+				vim.api.nvim_buf_del_keymap(self.bufnr, self.mode, self.lhs)
+			end
+		end
+		self.enabled = false
+	else
+		for _, mode in ipairs(self.mode) do
+			vim.api.nvim_del_keymap(self.mode, self.lhs)
+		end
+		self.enabled = false
+	end
+
 	return self
 end
 
-function Keybinding.map(mode, lhs, callback, opts) return Keybinding({ mode = mode }):bind({ { lhs, callback, opts } }) end
+function Keybinding.bind(opts, ...)
+	opts = opts or {}
+	local mode = vim.deepcopy(opts.mode or "n")
+	opts.mode = nil
+	for _, kbd in ipairs({ ... }) do
+		assert(V.isa(kbd, "table"))
+		assert(#kbd >= 2)
 
-function Keybinding.noremap(mode, lhs, callback, opts)
+		if kbd[3] then
+			if V.isstring(kbd[3]) then
+				kbd[3] = { desc = kbd[3] }
+			end
+		end
+		kbd[3] = V.lmerge(kbd[3] or {}, opts)
+		Keybinding(mode, unpack(kbd))
+	end
+end
+
+function Keybinding.map(mode, lhs, cb, opts)
+	return Keybinding(mode, lhs, cb, opts)
+end
+
+function Keybinding.noremap(mode, lhs, cb, opts)
 	opts = opts or {}
 	opts.noremap = true
-	return Keybinding.map(mode, lhs, callback, opts)
+
+	return Keybinding(mode, lhs, cb, opts)
 end

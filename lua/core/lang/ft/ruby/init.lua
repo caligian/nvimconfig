@@ -1,13 +1,13 @@
 return {
 	commands = {
 		build = false,
-		compile = 'ruby',
-		repl = 'irb --inf-ruby-mode',
-		test = 'rspec',
+		compile = "ruby",
+		repl = "irb --inf-ruby-mode",
+		test = "rspec",
 	},
 	server = {
-		name = 'solargraph',
+		name = "solargraph",
 		config = {},
 	},
-	linters = { 'rubocop' },
+	linters = { "rubocop" },
 }

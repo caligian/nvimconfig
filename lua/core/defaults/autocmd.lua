@@ -1,1 +1,4 @@
-Autocmd(false, 'TextYankPost', '*', V.partial(vim.highlight.on_yank, { timeout = 100 }))
+Autocmd("TextYankPost", {
+	callback = V.partial(vim.highlight.on_yank, { timeout = 100 }),
+	pattern = "*",
+})
