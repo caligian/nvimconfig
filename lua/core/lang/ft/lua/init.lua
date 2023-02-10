@@ -21,6 +21,7 @@ return {
         '--collapse-simple-statement Always',
         '--indent-type Spaces',
         '--indent-width 2',
+        '-',
       },
       stdin = true,
     },
