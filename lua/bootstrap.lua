@@ -41,7 +41,9 @@ local function install_luarock(rock, req)
     vim.fn.system(cmd)
 
     ok, _ = pcall(require, req)
-    if not ok then error('Need luarock ' .. rock .. ' to load the framework') end
+    if not ok then
+      error('Need luarock ' .. rock .. ' to load the framework')
+    end
   end
 end
 
@@ -50,6 +52,7 @@ install_luarock('penlight', 'pl.stringx')
 install_luarock('lualogging', 'logging.file')
 
 -- Make some global variables
+local log_path = vim.fn.stdpath('config') .. '/nvim.log'
 class = require('pl.class')
 yaml = require('yaml')
 path = require('pl.path')
@@ -61,13 +64,20 @@ types = require('pl.types')
 file = require('pl.file')
 dir = require('pl.dir')
 json = { encode = vim.json_encode, decode = vim.json_decode }
-logger = logging.file(path.join(vim.fn.stdpath('config'), 'nvim.log'))
+logger = logging.file(log_path, '', '[%date] [%level]\n %message\n\n')
 user = {}
+
+-- Delete the old log
+if path.exists(log_path) then
+  vim.fn.system('rm ' .. log_path)
+end
 
 -- class creation of penlight is not so intuitive
 local old_class = class
 class = function(name, Base)
-  if not _G[name] then old_class[name](Base) end
+  if not _G[name] then
+    old_class[name](Base)
+  end
   return _G[name]
 end
 
