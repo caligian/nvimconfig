@@ -80,9 +80,3 @@ Keybinding.noremap(
   '<esc><cmd>NvimEvalRegion<CR>',
   { desc = 'Lua source range' }
 )
-
--- Distinguish C-i from TAB
-Keybinding.noremap('i', '<C-i>', function()
-  local tab = string.rep(' ', vim.bo.shiftwidth or 4)
-  vim.fn.insert(tab)
-end, { event = 'BufEnter', pattern = '*' })

@@ -1,1 +1,3 @@
-Autocmd('REPL', 'VimLeave', '*', REPL.stopall)
+Autocmd('VimLeave', {
+  pattern = '*',
+})
