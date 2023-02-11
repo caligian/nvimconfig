@@ -1,15 +1,13 @@
 return {
-  commands = {
-    build = false,
-    compile = 'lua5.1',
-    repl = 'lua5.1',
-    test = false,
-  },
+  compile = 'lua5.1',
+  repl = 'lua5.1',
+  linters = 'luacheck',
+
   server = {
     name = 'sumneko_lua',
     config = require('core.lang.ft.lua.sumneko_lua'),
   },
-  linters = { 'luacheck' },
+
   formatters = {
     {
       exe = 'stylua',
@@ -18,7 +16,6 @@ return {
         '--column-width 100',
         '--quote-style AutoPreferSingle',
         '--call-parentheses Always',
-        '--collapse-simple-statement Always',
         '--indent-type Spaces',
         '--indent-width 2',
         '-',
@@ -26,8 +23,9 @@ return {
       stdin = true,
     },
   },
+
   bo = {
     shiftwidth = 2,
-    tabstop = 2,
+    tabwidth = 2,
   },
 }

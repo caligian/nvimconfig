@@ -20,8 +20,7 @@ Keybinding.bind(
 
   -- Source vim/lua files
   {
-    'n',
-    '<leader>fv',
+    'fv',
     ':w % <bar> :source %<CR>',
     {
       event = 'BufEnter',

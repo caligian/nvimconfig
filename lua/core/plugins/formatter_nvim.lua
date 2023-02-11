@@ -4,7 +4,7 @@
 local util = require('formatter.util')
 local formatters = {}
 
-for lang, conf in pairs(user.lang.langs) do
+for lang, conf in pairs(Lang.langs) do
   if conf.formatters then
     for idx, formatter in ipairs(conf.formatters) do
       if V.isstring(formatter) then
@@ -38,5 +38,7 @@ end
 
 Autocmd('BufWritePost', {
   pattern = '*',
-  callback = function() vim.cmd('FormatWrite') end,
+  callback = function()
+    vim.cmd('FormatWrite')
+  end,
 })

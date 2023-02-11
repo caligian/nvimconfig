@@ -1,174 +1,102 @@
--- @class Lang FileType manager
 class('Lang')
 
--- @
 Lang.langs = Lang.langs or {}
 
--- @function Lang._init Constructor function for lang/filetype object
--- @param self self
--- @tparam lang string filetype/language name
--- @return self
-function Lang._init(self, lang)
-  lang = lang or vim.bo.filetype
-  self.init = false
+function Lang.hook(self, callback, opts)
+  self.autocmd = self.autocmd or {}
+  opts = opts or {}
+  opts.pattern = self.name
+  opts.callback = callback
+  local au = Autocmd('FileType', opts)
+  self.autocmd[au.id] = au
+
+  return au
+end
+
+function Lang.unhook(self, id)
+  if self.autocmd[id] then
+    self.autocmd[id]:delete()
+  end
+end
+
+function Lang.setbufopts(self, bo)
+  self:hook(function()
+    local bufnr = vim.fn.bufnr()
+    for key, value in pairs(bo) do
+      vim.api.nvim_buf_set_option(bufnr, key, value)
+    end
+  end)
+end
+
+function Lang.map(self, opts, ...)
+  opts = opts or {}
+  local args = { ... }
+  for i, kbd in ipairs(args) do
+    assert(V.isstring(kbd))
+    assert(#kbd >= 2)
+    local o = kbd[3] or {}
+    if V.isstring(o) then
+      o = { desc = o }
+    end
+    o.event = 'FileType'
+    o.pattern = self.name
+    args[i] = o
+  end
+
+  return Keybinding(opts, unpack(args))
+end
+
+function Lang._init(self, lang, opts)
+  if Lang.langs[lang] then
+    return Lang.langs[lang]
+  end
+
   self.name = lang
+  self.autocmd = false
 
-  Lang.langs[ft] = self
-  return self
-end
-
--- @function Lang.whereis
--- Use whereis to get the binary path and optionally use regex to get the desired one
--- This by default uses the first path in the list
--- @tparam bin string Name of the binary
--- @tparam[opt] regex string Valid lua regex
--- @treturn ?string Path that can be used or false
-function Lang.whereis(bin, regex)
-  local out = vim.fn.system('whereis ' .. bin .. [[ | cut -d : -f 2- | sed -r "s/(^ *| *$)//mg"]])
-  out = V.trim(out)
-  out = vim.split(out, ' ')
-
-  if V.isblank(out) then return false end
-
-  if regex then
-    for _, value in ipairs(out) do
-      if value:match(regex) then return value end
-    end
-  end
-  return out[1]
-end
-
----
--- This function is used to setup everything and can be used multiple times
--- The following should be the setup table
---[[
-{
-    -- Build, test, compile to be used with :compile
-    -- You can use a lua pattern to match against the paths found by using Lang.whereis
-    compile = {string, string} or string,
-    build = {string, string} or string,
-    test = {string, string} or string,
-    efm = {
-        -- For the aforementioned operations for qflist
-        compile = string,
-        build = string,
-        test = string,
-    },
-
-    -- REPL command for this lang
-    repl = string,
-
-    -- Debugger to run with REPL
-    debug = string,
-
-    -- This will be used by nvim-lspconfig 
-    server = {
-        -- Name of the server
-        name = string,
-
-        -- This should be a table following nvim-lspconfig conventions
-        config = table,
-    },
-
-    -- Formatters following formatter.nvim conventions
-    formatters = { {...}, ... }
-
-    -- Linters to be used besides LSP. This will be used with nvim-lint
-    linters = table[string],
-
-    -- Buffer options to set when filetype is set with this lang
-    bo = {[opt] = value}, 
-
-    -- Callbacks to run when this filetype is set with this lang
-    -- These can also be removed using self:unhook()
-    -- @see Lang.unhook
-    hooks = {<name> = function}
-}
---]]
--- @tparam self Lang self
--- @tparam opts table Contains specific information that can be used by this framework
--- @return self
-function Lang.setup(self, opts)
-  -- Autocmd group
-  local group = 'filetype_hook_for_' .. lang
-  local au = Autocmd(group)
-  self.autocmd = au
-
-  local function add_hooks(opts)
-    local hooks = opts.hooks
-    if not hooks then return end
-    local lang = self.name
-
-    for name, h in pairs(hooks) do
-      au:create('FileType', lang, function()
-        if V.isstring(h) then
-          vim.cmd(h)
-        else
-          h(self)
-        end
-      end, { group = lang, name = name })
-    end
-  end
-
-  local function require_from_config()
-    local lang = self.name
-    local opts = V.require('core.lang.ft.' .. lang)
-    local uopts = V.require('user.lang.ft.' .. lang)
-
-    if not opts and not uopts then
-      return false
-    else
-      return V.lmerge(uopts or {}, opts or {})
-    end
-  end
-
-  local function checkpaths(opts)
-    if opts.test then
-      opts.test = V.ensure_list(opts.test)
-      local bin = opts.test[1]
-      assert(Lang.whereis(bin, opts.test[2]))
-      self.test = bin
-    end
-    if opts.build then
-      opts.build = V.ensure_list(opts.build)
-      local bin = opts.build[1]
-      assert(Lang.whereis(bin, opts.build[2]))
-      self.build = bin
-    end
-    if opts.compile then
-      opts.compile = V.ensure_list(opts.compile)
-      local bin = opts.compile[1]
-      assert(Lang.whereis(bin, opts.compile[2]))
-      self.compile = bin
-    end
-  end
-
-  local function set_bufopts(opts)
-    if not opts.bo then return end
-
-    au:create('FileType', self.name, function()
-      local bufnr = vim.fn.bufnr()
-      for key, value in pairs(opts.bo) do
-        vim.api.nvim_buf_set_option(bufnr, key, value)
+  if opts.hooks then
+    for _, h in pairs(opts.hooks) do
+      if V.istable(h) then
+        self:hook(unpack(h))
+      else
+        self:hook(h)
       end
-    end)
-
-    self.bo = opts.bo
+    end
   end
 
-  local loaded = require_from_config() or opts
-  set_bufopts(loaded)
-  add_hooks(loaded)
-  checkpaths(loaded)
+  if opts.bo then
+    self:setbufopts(bo)
+  end
+  if opts.kbd then
+    self:map(unpack(opts.kbd))
+  end
+  if opts.linters then
+    opts.linters = V.ensurelist(opts.linters)
+  end
+  if opts.server and V.isstring(opts.server) then
+    opts.server = { name = opts.server }
+  end
 
-  self.init = true
+  V.merge(self, opts or {})
+  Lang.langs[lang] = self
 
   return self
 end
 
-function Lang.unhook(self, name)
-  if not self.autocmd then return false end
-  self.autocmd:remove(name)
+function Lang.load(lang)
+  local c = V.require('core.lang.ft.' .. lang)
+  local u = V.require('user.lang.ft.' .. lang)
+  if not c then
+    return
+  end
+
+  return Lang(lang, V.lmerge(c, u or {}))
 end
 
-function Lang.setbufopts(self, opts) self:setup({ bo = opts }) end
+function Lang.loadall()
+  local src = V.joinpath(vim.fn.stdpath('config'), 'lua', 'core', 'lang', 'ft')
+  local dirs = dir.getdirectories(src)
+  for _, ft in ipairs(dirs) do
+    Lang.load(V.basename(ft))
+  end
+end

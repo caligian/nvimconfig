@@ -32,7 +32,6 @@ local function getauopts(opts)
   for key, value in pairs(opts) do
     if V.match(key, 'once', 'nested', 'group', 'pattern', 'event') then o[key] = value end
   end
-
   return o
 end
 
@@ -67,9 +66,10 @@ function Keybinding._init(self, mode, lhs, cb, rest)
       nested = au.nested,
       group = au.group,
       callback = function()
+        opts.buffer = vim.fn.bufnr()
         vim.keymap.set(mode, lhs, cb, opts)
         self.enabled = true
-        self.buffer = vim.fn.bufnr()
+        self.buffer = opts.buffer
         self:update()
       end,
     })

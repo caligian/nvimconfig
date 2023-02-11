@@ -1,6 +1,6 @@
 user.plugins['nvim-lint'] = { linters_by_ft = {} }
 
-for lang, conf in pairs(user.lang.langs) do
+for lang, conf in pairs(Lang.langs) do
   if conf.linters and #conf.linters > 0 then
     user.plugins['nvim-lint'].linters_by_ft[lang] = V.ensure_list(conf.linters)
   end

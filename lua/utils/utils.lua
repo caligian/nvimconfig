@@ -19,11 +19,32 @@ V.map = vim.tbl_map
 V.trim = vim.trim
 V.validate = vim.validate
 
+function V.whereis(bin, regex)
+  local out = vim.fn.system('whereis ' .. bin .. [[ | cut -d : -f 2- | sed -r "s/(^ *| *$)//mg"]])
+  out = V.trim(out)
+  out = vim.split(out, ' ')
+
+  if V.isblank(out) then
+    return false
+  end
+
+  if regex then
+    for _, value in ipairs(out) do
+      if value:match(regex) then
+        return value
+      end
+    end
+  end
+  return out[1]
+end
+
 function V.sprintf(s, fmt, ...)
   local args = { ... }
 
   for i = 1, #args do
-    if type(args[i]) == 'table' then args[i] = vim.inspect(args[i]) end
+    if type(args[i]) == 'table' then
+      args[i] = vim.inspect(args[i])
+    end
   end
 
   return string.format(s, fmt, unpack(args))
@@ -74,15 +95,9 @@ function V.inspect(...)
 
   for _, obj in ipairs({ ... }) do
     if type(obj) == 'table' then
-      local new = {}
-      for key, value in pairs(obj) do
-        new[key] = value
-      end
-      obj = vim.inspect(new)
-    else
       obj = vim.inspect(obj)
     end
-    final_s = final_s .. obj .. '\n\n'
+    final_s = final_s .. tostring(obj) .. '\n\n'
   end
 
   vim.api.nvim_echo({ { final_s } }, false, {})
@@ -103,7 +118,9 @@ V.tolist = V.ensure_list
 V.ensurelist = V.ensure_list
 V.to_list = V.tolist
 
-function V.is_type(e, t) return type(e) == t end
+function V.is_type(e, t)
+  return type(e) == t
+end
 V.istype = V.is_type
 
 function V.assert_type(e, t)
@@ -138,7 +155,9 @@ V.appendat = V.append_at
 function V.shift(t, times)
   local l = #t
   for i = 1, times do
-    if i > t then return t end
+    if i > t then
+      return t
+    end
     table.remove(t, 1)
   end
 
@@ -157,7 +176,9 @@ end
 function V.match(s, ...)
   for _, value in ipairs({ ... }) do
     local m = s:match(value)
-    if m then return m end
+    if m then
+      return m
+    end
   end
 end
 
@@ -180,7 +201,9 @@ function V.range(from, till, step)
 
   return function()
     index = index + step
-    if index <= till then return index end
+    if index <= till then
+      return index
+    end
   end
 end
 
@@ -285,7 +308,9 @@ function V.partial(f, ...)
 end
 
 function V.get(tbl, ks, create_path)
-  if type(ks) ~= 'table' then ks = { ks } end
+  if type(ks) ~= 'table' then
+    ks = { ks }
+  end
 
   local len_ks = #ks
   local t = tbl
@@ -318,7 +343,9 @@ function V.merge(a, b)
     local av = at[key]
     local bv = value
 
-    if av == nil then at[key] = bv end
+    if av == nil then
+      at[key] = bv
+    end
 
     if type(bv) == 'table' and type(av) == 'table' then
       V.merge(at[key], value)
@@ -338,7 +365,9 @@ function V.merge_keepleft(a, b)
     local av = at[key]
     local bv = value
 
-    if av == nil then at[key] = bv end
+    if av == nil then
+      at[key] = bv
+    end
 
     if type(bv) == 'table' and type(av) == 'table' then
       V.merge_keepleft(at[key], value)
@@ -353,7 +382,9 @@ end
 V.lmerge = V.merge_keepleft
 V.mergekeepleft = V.merge_keepleft
 
-function V.printf(...) print(V.sprintf(...)) end
+function V.printf(...)
+  print(V.sprintf(...))
+end
 
 function V.with_open(fname, mode, callback)
   local fh = io.open(fname, mode)
@@ -369,10 +400,16 @@ V.open = V.with_open
 
 function V.slice(t, from, till)
   local l = #t
-  if from < 0 then from = l + from end
-  if till < 0 then till = l + till end
+  if from < 0 then
+    from = l + from
+  end
+  if till < 0 then
+    till = l + till
+  end
 
-  if from > till and from > 0 then return {} end
+  if from > till and from > 0 then
+    return {}
+  end
 
   local out = {}
   local idx = 1
@@ -387,7 +424,9 @@ end
 function V.index(t, item, test)
   for key, v in pairs(t) do
     if test then
-      if test(v, item) then return key end
+      if test(v, item) then
+        return key
+      end
     elseif item == v then
       return key
     end
@@ -400,10 +439,14 @@ function V.buffer_has_keymap(bufnr, mode, lhs)
   lhs = lhs:gsub('<leader>', vim.g.mapleader)
   lhs = lhs:gsub('<localleader>', vim.g.maplocalleader)
 
-  return V.index(keymaps, lhs, function(t, item) return t.lhs == item end)
+  return V.index(keymaps, lhs, function(t, item)
+    return t.lhs == item
+  end)
 end
 
-function V.joinpath(...) return table.concat({ ... }, '/') end
+function V.joinpath(...)
+  return table.concat({ ... }, '/')
+end
 
 function V.basename(s)
   s = vim.split(s, '/')
@@ -460,7 +503,9 @@ V.is_number = V.rpartial(V.is_a, 'string')
 V.is_nil = V.rpartial(V.is_a)
 
 -- If multiple keys are supplied, the table is going to be assumed to be nested
-function V.has_key(tbl, ...) return (V.get(tbl, { ... })) end
+function V.has_key(tbl, ...)
+  return (V.get(tbl, { ... }))
+end
 
 V.haskey = V.has_key
 
@@ -480,7 +525,9 @@ function V.pcall(f, ...)
   end
 end
 
-function V.makepath(t, ...) return V.get(t, { ... }, true) end
+function V.makepath(t, ...)
+  return V.get(t, { ... }, true)
+end
 
 function V.require(req, do_assert)
   local ok, out = pcall(require, req)
@@ -488,9 +535,12 @@ function V.require(req, do_assert)
   if not ok then
     V.makepath(V, 'logs')
     V.append(V.logs, out)
-    logger:error(out)
 
-    if do_assert then error(out) end
+    logger:warn(out)
+
+    if do_assert then
+      error(out)
+    end
   else
     return out
   end

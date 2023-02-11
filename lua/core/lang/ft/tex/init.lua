@@ -1,4 +1,3 @@
 return {
-  commands = {},
-  server = { name = 'texlab' },
+    server = 'texlab',
 }

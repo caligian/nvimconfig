@@ -1,36 +1,47 @@
+V.require('lazy')
+
 return require('lazy').setup({
   { 'nvim-lua/plenary.nvim' },
 
   {
     'nvim-tree/nvim-web-devicons',
     event = 'WinEnter',
-    config = function() V.require('nvim-web-devicons').setup({}) end,
+    config = function()
+      local web = V.require('nvim-web-devicons')
+      if web then
+        web.setup({})
+      end
+    end,
   },
 
   {
     'nvim-tree/nvim-tree.lua',
     event = 'WinEnter',
     config = function()
-      user.plugins['nvim-tree.lua'] = {}
-      V.require('user.nvim-tree_lua')
+      local tree = V.require('nvim-tree')
+      if tree then
+        V.require('user.nvim-tree_lua')
+        user.plugins['nvim-tree.lua'] = {}
+        tree.setup(user.plugins['nvim-tree.lua'])
 
-      require('nvim-tree').setup(user.plugins['nvim-tree.lua'])
-
-      Keybinding.bind(
-        { noremap = true, leader = true },
-        { '|', ':NvimTreeToggle<CR>', 'Focus tree explorer' },
-        { '\\', ':NvimTreeFocus<CR>', 'Toggle tree explorer' }
-      )
+        Keybinding.bind(
+          { noremap = true, leader = true },
+          { '|', ':NvimTreeToggle<CR>', 'Focus tree explorer' },
+          { '\\', ':NvimTreeFocus<CR>', 'Toggle tree explorer' }
+        )
+      end
     end,
   },
 
   {
     'beauwilliams/statusline.lua',
     config = function()
-      local statusline = require('statusline')
-      statusline.tabline = true
-      statusline.lsp_diagnostics = true
-      vim.o.laststatus = 3
+      local statusline = V.require('statusline')
+      if statusline then
+        statusline.tabline = true
+        statusline.lsp_diagnostics = true
+        vim.o.laststatus = 3
+      end
     end,
   },
 
@@ -45,7 +56,9 @@ return require('lazy').setup({
   {
     'mfussenegger/nvim-lint',
     event = 'BufReadPost',
-    config = function() V.require('core.plugins.nvim-lint') end,
+    config = function()
+      V.require('core.plugins.nvim-lint')
+    end,
   },
 
   { 'jasonccox/vim-wayland-clipboard', keys = '"' },
@@ -83,7 +96,9 @@ return require('lazy').setup({
       'RRethy/nvim-treesitter-textsubjects',
       'nvim-treesitter/nvim-treesitter-textobjects',
     },
-    config = function() require('core.plugins.nvim-treesitter') end,
+    config = function()
+      V.require('core.plugins.nvim-treesitter')
+    end,
   },
 
   {
@@ -128,13 +143,17 @@ return require('lazy').setup({
 
   {
     'flazz/vim-colorschemes',
-    config = function() vim.cmd('colorscheme ' .. user.colorscheme) end,
+    config = function()
+      vim.cmd('colorscheme ' .. user.colorscheme)
+    end,
   },
 
   {
     'folke/which-key.nvim',
     event = 'WinEnter',
-    config = function() V.require('core.plugins.which-key_nvim') end,
+    config = function()
+      V.require('core.plugins.which-key_nvim')
+    end,
   },
 
   {
@@ -146,21 +165,27 @@ return require('lazy').setup({
   {
     'mhartington/formatter.nvim',
     event = 'BufReadPost',
-    config = function() V.require('core.plugins.formatter_nvim') end,
+    config = function()
+      V.require('core.plugins.formatter_nvim')
+    end,
   },
 
   {
     'neovim/nvim-lspconfig',
     ft = V.filter(function(k)
-      if V.haskey(user.lang.langs, k, 'server') then return k end
-    end, V.keys(user.lang.langs)),
+      if V.haskey(Lang.langs, k, 'server') then
+        return k
+      end
+    end, V.keys(Lang.langs)),
     dependencies = {
       { 'lukas-reineke/lsp-format.nvim' },
       { 'SirVer/ultisnips' },
       { 'williamboman/mason.nvim' },
       { 'hrsh7th/nvim-cmp' },
     },
-    config = function() V.require('core.plugins.nvim-lspconfig') end,
+    config = function()
+      V.require('core.plugins.nvim-lspconfig')
+    end,
   },
 
   {
@@ -171,7 +196,9 @@ return require('lazy').setup({
       { 'nvim-telescope/telescope-project.nvim' },
       { 'nvim-telescope/telescope-fzf-native.nvim', run = 'make' },
     },
-    config = function() V.require('core.plugins.telescope_nvim') end,
+    config = function()
+      V.require('core.plugins.telescope_nvim')
+    end,
   },
 
   {

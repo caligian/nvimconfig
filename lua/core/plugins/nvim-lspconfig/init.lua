@@ -16,7 +16,7 @@ function lsp.on_attach(client, bufnr)
   -- Enable completion triggered by <c-x><c-o>
   vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
 
-  if not V.haskey(user.lang.langs, vim.bo.filetype, 'formatters') then
+  if not V.haskey(Lang.langs, vim.bo.filetype, 'formatters') then
     require('lsp-format').on_attach(client)
   end
 
@@ -65,7 +65,7 @@ function lsp.setup()
   V.require('core.plugins.nvim-lspconfig.ultisnips')
 
   -- Setup lsp servers
-  for _, conf in pairs(user.lang.langs) do
+  for _, conf in pairs(Lang.langs) do
     if conf.server then lsp.setup_server(conf.server.name, conf.server.config or {}) end
   end
 end

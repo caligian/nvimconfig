@@ -21,12 +21,19 @@ function Augroup._init(self, group, opts)
   end
 end
 
-function Augroup.clear(self) vim.cmd(sprintf('augroup %s | au! | augroup END', self.name)) end
+function Augroup.clear(self)
+  vim.cmd(sprintf('augroup %s | au! | augroup END', self.name))
+  for _, autocmd in pairs(self.autocmd) do
+    autocmd:delete()
+  end
+  self.autocmd = {}
+end
 
 function Augroup.delete(self)
   if not self.enabled then return end
 
   self.enabled = false
+  self:clear()
   vim.api.nvim_del_augroup_by_id(self.id)
 end
 
@@ -35,19 +42,36 @@ class('Autocmd')
 Autocmd.id = Autocmd.id or {}
 
 function Autocmd._init(self, event, opts)
-  self.id = vim.api.nvim_create_autocmd(event, opts)
+  opts = opts or {}
   opts.group = opts.group or 'UserGlobal'
-  self.augroup = Augroup(opts.group)
+  local augroup = Augroup(opts.group, { clear = opts.clear_group })
+  opts.clear_group = nil
+
+  assert(opts.callback, 'No callback given')
+  assert(opts.pattern, 'No pattern given')
+
+  local _callback = opts.callback
+  opts.callback = function()
+    if V.isstring(_callback) then
+      vim.cmd(_callback)
+    else
+      _callback()
+    end
+  end
+
+  if opts.once then
+    local _cb = callback
+    callback = function()
+      _cb()
+      self.enabled = false
+    end
+  end
+
+  self.augroup = augroup
+  self.id = vim.api.nvim_create_autocmd(event, opts)
   self.augroup[self.id] = self
 
-  local callback = opts.callback
-  if opts.once then opts.callback = function() self.enabled = false end end
-  for key, value in pairs(opts) do
-    self[key] = value
-  end
-  self.event = event
-
-  return self
+  return V.lmerge(self, opts)
 end
 
 function Autocmd.disable(self)
