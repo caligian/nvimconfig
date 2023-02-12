@@ -73,7 +73,7 @@ function Keybinding._init(self, mode, lhs, cb, rest)
       nested = au.nested,
       group = au.group,
       callback = function()
-        opts.buffer = vim.fn.buffer()
+        opts.buffer = vim.fn.bufnr()
         vim.keymap.set(mode, lhs, cb, opts)
         self.enabled = true
         self.buffer = opts.buffer
