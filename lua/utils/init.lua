@@ -1,6 +1,8 @@
-if not V then V = {} end
-if not V.globals then V.globals = {} end
-if not V.logs then V.logs = {} end
+-- @table V table containing this framework configuration and other goodies
+V = V or {}
+
+-- @field global Tracks the global variables made by V
+V.global = V.global or {}
 
 --
 require('utils.utils')

@@ -1,4 +1,4 @@
-class('Lang')
+class("Lang")
 
 Lang.langs = Lang.langs or {}
 
@@ -7,7 +7,7 @@ function Lang.hook(self, callback, opts)
   opts = opts or {}
   opts.pattern = self.name
   opts.callback = callback
-  local au = Autocmd('FileType', opts)
+  local au = Autocmd("FileType", opts)
   self.autocmd[au.id] = au
 
   return au
@@ -38,7 +38,7 @@ function Lang.map(self, opts, ...)
     if V.isstring(o) then
       o = { desc = o }
     end
-    o.event = 'FileType'
+    o.event = "FileType"
     o.pattern = self.name
     args[i] = o
   end
@@ -65,7 +65,7 @@ function Lang._init(self, lang, opts)
   end
 
   if opts.bo then
-    self:setbufopts(bo)
+    self:setbufopts(opts.bo)
   end
   if opts.kbd then
     self:map(unpack(opts.kbd))
@@ -84,8 +84,8 @@ function Lang._init(self, lang, opts)
 end
 
 function Lang.load(lang)
-  local c = V.require('core.lang.ft.' .. lang)
-  local u = V.require('user.lang.ft.' .. lang)
+  local c = V.require("core.lang.ft." .. lang)
+  local u = V.require("user.lang.ft." .. lang)
   if not c then
     return
   end
@@ -94,7 +94,7 @@ function Lang.load(lang)
 end
 
 function Lang.loadall()
-  local src = V.joinpath(vim.fn.stdpath('config'), 'lua', 'core', 'lang', 'ft')
+  local src = V.joinpath(vim.fn.stdpath("config"), "lua", "core", "lang", "ft")
   local dirs = dir.getdirectories(src)
   for _, ft in ipairs(dirs) do
     Lang.load(V.basename(ft))

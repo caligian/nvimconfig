@@ -1,13 +1,13 @@
-V.require('lazy')
+V.require("lazy")
 
-return require('lazy').setup({
-  { 'nvim-lua/plenary.nvim' },
+return require("lazy").setup({
+  { "nvim-lua/plenary.nvim" },
 
   {
-    'nvim-tree/nvim-web-devicons',
-    event = 'WinEnter',
+    "nvim-tree/nvim-web-devicons",
+    event = "WinEnter",
     config = function()
-      local web = V.require('nvim-web-devicons')
+      local web = V.require("nvim-web-devicons")
       if web then
         web.setup({})
       end
@@ -15,28 +15,28 @@ return require('lazy').setup({
   },
 
   {
-    'nvim-tree/nvim-tree.lua',
-    event = 'WinEnter',
+    "nvim-tree/nvim-tree.lua",
+    event = "WinEnter",
     config = function()
-      local tree = V.require('nvim-tree')
+      local tree = V.require("nvim-tree")
       if tree then
-        V.require('user.nvim-tree_lua')
-        user.plugins['nvim-tree.lua'] = {}
-        tree.setup(user.plugins['nvim-tree.lua'])
+        V.require("user.nvim-tree_lua")
+        user.plugins["nvim-tree.lua"] = {}
+        tree.setup(user.plugins["nvim-tree.lua"])
 
         Keybinding.bind(
           { noremap = true, leader = true },
-          { '|', ':NvimTreeToggle<CR>', 'Focus tree explorer' },
-          { '\\', ':NvimTreeFocus<CR>', 'Toggle tree explorer' }
+          { "|", ":NvimTreeToggle<CR>", "Focus tree explorer" },
+          { "\\", ":NvimTreeFocus<CR>", "Toggle tree explorer" }
         )
       end
     end,
   },
 
   {
-    'beauwilliams/statusline.lua',
+    "beauwilliams/statusline.lua",
     config = function()
-      local statusline = V.require('statusline')
+      local statusline = V.require("statusline")
       if statusline then
         statusline.tabline = true
         statusline.lsp_diagnostics = true
@@ -45,170 +45,182 @@ return require('lazy').setup({
     end,
   },
 
-  { 'tpope/vim-surround', event = 'InsertEnter' },
+  { "tpope/vim-surround", event = "InsertEnter" },
 
-  { 'justinmk/vim-sneak', event = 'InsertEnter' },
+  { "justinmk/vim-sneak", event = "InsertEnter" },
 
-  { 'Raimondi/delimitMate', event = 'InsertEnter' },
+  { "Raimondi/delimitMate", event = "InsertEnter" },
 
-  { 'psliwka/vim-smoothie', event = 'WinEnter' },
+  { "psliwka/vim-smoothie", event = "WinEnter" },
 
   {
-    'mfussenegger/nvim-lint',
-    event = 'BufReadPost',
+    "mfussenegger/nvim-lint",
+    event = "BufReadPost",
     config = function()
-      V.require('core.plugins.nvim-lint')
+      V.require("core.plugins.nvim-lint")
     end,
   },
 
-  { 'jasonccox/vim-wayland-clipboard', keys = '"' },
+  { "jasonccox/vim-wayland-clipboard", keys = '"' },
 
-  { 'dstein64/vim-startuptime', cmd = 'StartupTime' },
+  { "dstein64/vim-startuptime", cmd = "StartupTime" },
 
-  { 'tpope/vim-commentary', keys = 'g' },
+  { "tpope/vim-commentary", keys = "g" },
 
-  { 'lervag/vimtex', ft = 'tex' },
+  { "lervag/vimtex", ft = "tex" },
 
-  { 'jaawerth/fennel.vim', ft = 'fennel' },
+  { "jaawerth/fennel.vim", ft = "fennel" },
 
   {
-    'Olical/conjure',
+    "Olical/conjure",
     ft = {
-      'clojure',
-      'fennel',
-      'common-lisp',
-      'guile',
-      'hy',
-      'janet',
-      'julia',
-      'lua',
-      'python',
-      'racket',
-      'rust',
-      'scheme',
+      "clojure",
+      "fennel",
+      "common-lisp",
+      "guile",
+      "hy",
+      "janet",
+      "julia",
+      "lua",
+      "python",
+      "racket",
+      "rust",
+      "scheme",
     },
   },
 
   {
-    'nvim-treesitter/nvim-treesitter',
-    event = 'InsertEnter',
+    "nvim-treesitter/nvim-treesitter",
+    event = "InsertEnter",
     dependencies = {
-      'RRethy/nvim-treesitter-textsubjects',
-      'nvim-treesitter/nvim-treesitter-textobjects',
+      "RRethy/nvim-treesitter-textsubjects",
+      "nvim-treesitter/nvim-treesitter-textobjects",
     },
     config = function()
-      V.require('core.plugins.nvim-treesitter')
+      V.require("core.plugins.nvim-treesitter")
     end,
   },
 
   {
-    'hrsh7th/nvim-cmp',
-    event = 'InsertEnter',
+    "hrsh7th/nvim-cmp",
+    event = "InsertEnter",
     dependencies = {
-      { 'honza/vim-snippets' },
-      { 'SirVer/ultisnips' },
-      { 'quangnguyen30192/cmp-nvim-ultisnips' },
-      { 'tamago324/cmp-zsh' },
-      { 'hrsh7th/cmp-buffer' },
-      { 'f3fora/cmp-spell' },
-      { 'hrsh7th/cmp-nvim-lsp' },
-      { 'ray-x/cmp-treesitter' },
-      { 'hrsh7th/cmp-nvim-lua' },
-      { 'hrsh7th/cmp-path' },
-      { 'hrsh7th/cmp-nvim-lsp-signature-help' },
-      { 'hrsh7th/cmp-nvim-lsp-document-symbol' },
+      { "honza/vim-snippets" },
+      { "SirVer/ultisnips" },
+      { "quangnguyen30192/cmp-nvim-ultisnips" },
+      { "tamago324/cmp-zsh" },
+      { "hrsh7th/cmp-buffer" },
+      { "f3fora/cmp-spell" },
+      { "hrsh7th/cmp-nvim-lsp" },
+      { "ray-x/cmp-treesitter" },
+      { "hrsh7th/cmp-nvim-lua" },
+      { "hrsh7th/cmp-path" },
+      { "hrsh7th/cmp-nvim-lsp-signature-help" },
+      { "hrsh7th/cmp-nvim-lsp-document-symbol" },
     },
   },
 
   {
-    'tpope/vim-fugitive',
-    keys = '<leader>g',
+    "tpope/vim-fugitive",
+    keys = "<leader>g",
     config = function()
-      Keybinding.bind(
-        { noremap = true, leader = true, mode = 'n' },
-        { 'gg', ':vertical Git<CR>' },
-        { 'gs', ':Git stage <CR>' },
-        { 'gc', ':Git commit <CR>' }
-      )
+      user.plugins["tpope/vim-fugitive"] = {
+        minwidth = 47,
+      }
+      V.require("user.plugins.vim-fugitive")
+
+      Keybinding.bind({ noremap = true, leader = true, mode = "n" }, {
+        "gg",
+        function()
+          -- Tree-like Git status
+          local minwidth = user.plugins["tpope/vim-fugitive"].minwidth
+          local width = vim.fn.winwidth(0)
+          local count = math.floor(vim.fn.winwidth(0) / 4)
+          count = count < minwidth and minwidth or count
+
+          vim.cmd(":vertical Git")
+          vim.cmd(":vertical resize " .. count)
+        end,
+      }, { "gs", ":Git stage <CR>" }, { "gc", ":Git commit <CR>" })
     end,
   },
 
   {
-    'preservim/tagbar',
-    keys = '<C-t>',
+    "preservim/tagbar",
+    keys = "<C-t>",
     config = function()
-      Keybinding.noremap('n', '<C-t>', ':TagbarToggle<CR>', { desc = 'Toggle tagbar' })
+      Keybinding.noremap("n", "<C-t>", ":TagbarToggle<CR>", { desc = "Toggle tagbar" })
     end,
   },
 
   {
-    'flazz/vim-colorschemes',
+    "flazz/vim-colorschemes",
     config = function()
-      vim.cmd('colorscheme ' .. user.colorscheme)
+      vim.cmd("colorscheme " .. user.colorscheme)
     end,
   },
 
   {
-    'folke/which-key.nvim',
-    event = 'WinEnter',
+    "folke/which-key.nvim",
+    event = "WinEnter",
     config = function()
-      V.require('core.plugins.which-key_nvim')
+      V.require("core.plugins.which-key_nvim")
     end,
   },
 
   {
-    'iamcco/markdown-preview.nvim',
-    build = 'cd app && yarn install',
-    ft = 'markdown',
+    "iamcco/markdown-preview.nvim",
+    build = "cd app && yarn install",
+    ft = "markdown",
   },
 
   {
-    'mhartington/formatter.nvim',
-    event = 'BufReadPost',
+    "mhartington/formatter.nvim",
+    event = "BufReadPost",
     config = function()
-      V.require('core.plugins.formatter_nvim')
+      V.require("core.plugins.formatter_nvim")
     end,
   },
 
   {
-    'neovim/nvim-lspconfig',
+    "neovim/nvim-lspconfig",
     ft = V.filter(function(k)
-      if V.haskey(Lang.langs, k, 'server') then
+      if V.haskey(Lang.langs, k, "server") then
         return k
       end
     end, V.keys(Lang.langs)),
     dependencies = {
-      { 'lukas-reineke/lsp-format.nvim' },
-      { 'SirVer/ultisnips' },
-      { 'williamboman/mason.nvim' },
-      { 'hrsh7th/nvim-cmp' },
+      { "lukas-reineke/lsp-format.nvim" },
+      { "SirVer/ultisnips" },
+      { "williamboman/mason.nvim" },
+      { "hrsh7th/nvim-cmp" },
     },
     config = function()
-      V.require('core.plugins.nvim-lspconfig')
+      V.require("core.plugins.nvim-lspconfig")
     end,
   },
 
   {
-    'nvim-telescope/telescope.nvim',
+    "nvim-telescope/telescope.nvim",
     dependencies = {
-      { 'hrsh7th/nvim-cmp' },
-      { 'nvim-telescope/telescope-file-browser.nvim' },
-      { 'nvim-telescope/telescope-project.nvim' },
-      { 'nvim-telescope/telescope-fzf-native.nvim', run = 'make' },
+      { "hrsh7th/nvim-cmp" },
+      { "nvim-telescope/telescope-file-browser.nvim" },
+      { "nvim-telescope/telescope-project.nvim" },
+      { "nvim-telescope/telescope-fzf-native.nvim", run = "make" },
     },
     config = function()
-      V.require('core.plugins.telescope_nvim')
+      V.require("core.plugins.telescope_nvim")
     end,
   },
 
   {
-    'moll/vim-bbye',
-    event = 'BufReadPre',
+    "moll/vim-bbye",
+    event = "BufReadPre",
     config = function()
       Keybinding.bind(
         { noremap = true, leader = true },
-        { 'bq', '<cmd>Bdelete<CR>', { desc = 'Delete buffer' } },
-        { 'bQ', '<cmd>Bwipeout<CR>', { desc = 'Wipeout buffer' } }
+        { "bq", "<cmd>Bdelete<CR>", { desc = "Delete buffer" } },
+        { "bQ", "<cmd>Bwipeout<CR>", { desc = "Wipeout buffer" } }
       )
     end,
   },

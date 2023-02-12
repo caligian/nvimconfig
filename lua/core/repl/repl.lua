@@ -1,4 +1,4 @@
-class('REPL')
+class("REPL")
 
 REPL.id = REPL.id or {}
 REPL.buffer = REPL.buffer or {}
@@ -10,7 +10,7 @@ for ft, conf in pairs(Lang.langs) do
   end
 end
 
-V.require('user.repl')
+V.require("user.repl")
 
 function REPL.is_visible(self)
   local winnr = vim.fn.bufwinnr(self.bufnr)
@@ -22,9 +22,9 @@ function REPL.status(self)
   id = vim.fn.jobwait({ id }, 0)[1]
 
   if id == -1 then
-    return 'running'
+    return "running"
   elseif id == -2 then
-    return 'interrupted'
+    return "interrupted"
   else
     return false
   end
@@ -35,11 +35,11 @@ function REPL.is_valid(self)
 end
 
 function REPL.is_running(self)
-  return self:status() == 'running'
+  return self:status() == "running"
 end
 
 function REPL.is_interrupted(self)
-  return self:status() == 'interrupted'
+  return self:status() == "interrupted"
 end
 
 function REPL.stop(self)
@@ -92,12 +92,12 @@ end
 
 local function start(bufnr, cmd)
   return vim.api.nvim_buf_call(bufnr, function()
-    vim.cmd('term')
+    vim.cmd("term")
     local id = vim.b.terminal_job_id
     vim.bo.buflisted = false
     vim.wo.number = false
-    vim.cmd('set nomodified')
-    vim.api.nvim_chan_send(id, cmd .. '\r')
+    vim.cmd("set nomodified")
+    vim.api.nvim_chan_send(id, cmd .. "\r")
 
     return id
   end)
@@ -110,7 +110,7 @@ function REPL.start(self, opts)
   opts.cmd = opts.cmd or REPL.commands[opts.name]
   local name, cmd = opts.name, opts.cmd
 
-  assert(cmd, 'No command provided')
+  assert(cmd, "No command provided")
 
   local r = get(name)
   if opts.force then
@@ -143,7 +143,7 @@ function REPL.hide(self)
   vim.api.nvim_buf_call(bufnr, function()
     local winid = vim.fn.bufwinid(bufnr)
     vim.fn.win_gotoid(winid)
-    vim.cmd('hide')
+    vim.cmd("hide")
   end)
 end
 
@@ -161,16 +161,16 @@ function REPL.split(self, direction)
     return
   end
 
-  direction = direction or 's'
+  direction = direction or "s"
   local terminal_buf = self.bufnr
-  if direction == 's' then
+  if direction == "s" then
     local height = vim.fn.winheight(0) / 3
     local count = math.floor(height)
-    vim.cmd('split | wincmd j | b ' .. terminal_buf .. ' | resize ' .. count)
+    vim.cmd("split | wincmd j | b " .. terminal_buf .. " | resize " .. count)
   else
     local width = vim.fn.winwidth(0) / 3
     local count = math.floor(width)
-    vim.cmd('vsplit | wincmd l | b ' .. terminal_buf .. ' | vertical resize ' .. count)
+    vim.cmd("vsplit | wincmd l | b " .. terminal_buf .. " | vertical resize " .. count)
   end
 end
 
@@ -178,17 +178,17 @@ function REPL.send(self, s)
   ensure(self)
 
   local id = self.id
-  if V.is_type(s, 'table') then
-    s = table.concat(s, '\n')
+  if V.is_type(s, "table") then
+    s = table.concat(s, "\n")
   end
-  s = s .. '\r'
+  s = s .. "\r"
   vim.api.nvim_chan_send(id, s)
 end
 
 function REPL.send_current_line(self, src_bufnr)
   src_bufnr = src_bufnr or vim.fn.bufnr()
   vim.api.nvim_buf_call(src_bufnr, function()
-    self:send(vim.fn.getline('.'))
+    self:send(vim.fn.getline("."))
   end)
 end
 
@@ -200,7 +200,7 @@ end
 function REPL.send_till_point(self, src_bufnr)
   src_bufnr = src_bufnr or vim.fn.bufnr()
   vim.api.nvim_buf_call(src_bufnr, function()
-    local line = vim.fn.line('.')
+    local line = vim.fn.line(".")
     self:send(vim.api.nvim_buf_get_lines(src_bufnr, 0, line, false))
   end)
 end
