@@ -106,7 +106,10 @@ end
 function REPL.start(self, opts)
   opts = opts or {}
   V.merge_keepleft(opts, self)
-  opts.name = opts.name or vim.bo.filetype
+  opts.name = opts.name or vim.bo.filetype or ""
+  if #opts.name == 0 then
+    return
+  end
   opts.cmd = opts.cmd or REPL.commands[opts.name]
   local name, cmd = opts.name, opts.cmd
 

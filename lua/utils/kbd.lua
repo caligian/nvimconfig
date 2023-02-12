@@ -7,8 +7,8 @@ local id = 1
 function Keybinding.update(self)
   V.update(Keybinding.id, self.id, self)
 
-  if self.bufnr then
-    V.update(Keybinding.buffer, { self.bufnr, self.id }, self)
+  if self.buffer then
+    V.update(Keybinding.buffer, { self.buffer, self.id }, self)
   end
 
   return self
@@ -62,7 +62,7 @@ function Keybinding._init(self, mode, lhs, cb, rest)
     lhs = rest.prefix .. lhs
   end
 
-  opts.buffer = opts.buffer == true and vim.fn.bufnr() or opts.buffer
+  opts.buffer = opts.buffer == true and vim.fn.buffer() or opts.buffer
 
   self.id = id
   id = id + 1
@@ -73,7 +73,7 @@ function Keybinding._init(self, mode, lhs, cb, rest)
       nested = au.nested,
       group = au.group,
       callback = function()
-        opts.buffer = vim.fn.bufnr()
+        opts.buffer = vim.fn.buffer()
         vim.keymap.set(mode, lhs, cb, opts)
         self.enabled = true
         self.buffer = opts.buffer
@@ -112,9 +112,9 @@ function Keybinding.disable(self)
 
   if self.autocmd then
     self.autocmd:disable()
-    if self.bufnr then
+    if self.buffer then
       for _, mode in ipairs(self.mode) do
-        vim.api.nvim_buf_del_keymap(self.bufnr, self.mode, self.lhs)
+        vim.api.nvim_buf_del_keymap(self.buffer, self.mode, self.lhs)
       end
     end
     self.enabled = false

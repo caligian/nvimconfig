@@ -4,6 +4,14 @@ return require("lazy").setup({
   { "nvim-lua/plenary.nvim" },
 
   {
+    "lervag/vimtex",
+    config = function()
+      V.require("core.plugins.vimtex")
+    end,
+    ft = "tex",
+  },
+
+  {
     "nvim-tree/nvim-web-devicons",
     event = "WinEnter",
     config = function()
@@ -45,7 +53,7 @@ return require("lazy").setup({
     end,
   },
 
-  { "tpope/vim-surround", event = "InsertEnter" },
+  { "tpope/vim-surround", event = "InsertEnter", dependencies = { "tpope/vim-repeat" } },
 
   { "justinmk/vim-sneak", event = "InsertEnter" },
 
@@ -124,24 +132,29 @@ return require("lazy").setup({
     "tpope/vim-fugitive",
     keys = "<leader>g",
     config = function()
-      user.plugins["tpope/vim-fugitive"] = {
+      user.plugins["vim-fugitive"] = {
         minwidth = 47,
       }
       V.require("user.plugins.vim-fugitive")
 
-      Keybinding.bind({ noremap = true, leader = true, mode = "n" }, {
-        "gg",
-        function()
-          -- Tree-like Git status
-          local minwidth = user.plugins["tpope/vim-fugitive"].minwidth
-          local width = vim.fn.winwidth(0)
-          local count = math.floor(vim.fn.winwidth(0) / 4)
-          count = count < minwidth and minwidth or count
+      Keybinding.bind(
+        { noremap = true, leader = true, mode = "n" },
+        {
+          "gg",
+          function()
+            -- Tree-like Git status
+            local minwidth = user.plugins["vim-fugitive"].minwidth
+            local width = vim.fn.winwidth(0)
+            local count = math.floor(vim.fn.winwidth(0) / 4)
+            count = count < minwidth and minwidth or count
 
-          vim.cmd(":vertical Git")
-          vim.cmd(":vertical resize " .. count)
-        end,
-      }, { "gs", ":Git stage <CR>" }, { "gc", ":Git commit <CR>" })
+            vim.cmd(":vertical Git")
+            vim.cmd(":vertical resize " .. count)
+          end,
+        },
+        { "gs", ":Git stage %<CR>", "Stage buffer" },
+        { "gc", ":Git commit <CR>", "Commit buffer" }
+      )
     end,
   },
 
