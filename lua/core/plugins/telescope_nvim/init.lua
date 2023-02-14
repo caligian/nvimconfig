@@ -7,7 +7,7 @@ local T = V.merge(user.plugins["telescope.nvim"], ivy)
 
 -- To seem more like emacs ivy
 T.disable_devicons = true
-T.layout_config.height = 0.5
+T.layout_config.height = 0.3
 T.previewer = false
 
 --  Setup telescope default configuration

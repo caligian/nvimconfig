@@ -4,5 +4,3 @@ V.require("core.defaults")
 V.require("core.lang")
 V.require("core.repl")
 V.require("core.plugins")
-
-vim.cmd("colorscheme " .. user.colorscheme)

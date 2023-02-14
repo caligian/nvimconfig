@@ -147,7 +147,8 @@ function Keybinding.bind(opts, ...)
   opts = opts or {}
   local mode = vim.deepcopy(opts.mode or "n")
   opts.mode = nil
-  for _, kbd in ipairs({ ... }) do
+  local args = { ... }
+  local bind = function(kbd)
     assert(V.isa(kbd, "table"))
     assert(#kbd >= 2)
 
@@ -157,7 +158,14 @@ function Keybinding.bind(opts, ...)
       end
     end
     kbd[3] = V.lmerge(kbd[3] or {}, opts)
-    Keybinding(mode, unpack(kbd))
+
+    return Keybinding(mode, unpack(kbd))
+  end
+
+  if #args == 1 then
+    return bind(args[1])
+  else
+    V.each(bind, args)
   end
 end
 

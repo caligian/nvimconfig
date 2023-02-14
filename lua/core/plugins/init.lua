@@ -1,11 +1,17 @@
-V.require("lazy")
+local lazy = V.require("lazy")
+if not lazy then
+  logger:error("Cannot load lazy.nvim. Fatal error")
+  return
+end
 
-return require("lazy").setup({
+local user_plugins = V.require("user.plugins")
+local builtin = {
   { "nvim-lua/plenary.nvim" },
 
   -- Good opinionated themes
   {
     "folke/tokyonight.nvim",
+    event = "VimEnter",
     dependencies = {
       { "nyoom-engineering/oxocarbon.nvim" },
       { "bluz71/vim-nightfly-colors" },
@@ -15,6 +21,9 @@ return require("lazy").setup({
       { "AlexvZyl/nordic.nvim" },
       { "lewpoly/sherbet.nvim" },
     },
+    config = function()
+      vim.cmd("colorscheme " .. "oxocarbon")
+    end,
   },
 
   {
@@ -182,6 +191,7 @@ return require("lazy").setup({
   {
     "preservim/tagbar",
     keys = "<C-t>",
+    event = "BufEnter",
     config = function()
       user.plugins["tagbar"] = {
         kbd = {
@@ -248,6 +258,7 @@ return require("lazy").setup({
     config = function()
       V.require("core.plugins.telescope_nvim")
     end,
+    event = "VimEnter",
   },
 
   {
@@ -270,4 +281,7 @@ return require("lazy").setup({
       V.require("user.plugins.vim-bbye")
     end,
   },
-}, { lazy = true })
+}
+
+V.lmerge(builtin, user_plugins or {})
+lazy.setup(builtin, { lazy = true })
