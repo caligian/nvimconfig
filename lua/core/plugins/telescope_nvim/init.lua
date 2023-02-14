@@ -14,6 +14,7 @@ T.previewer = false
 T.extensions = {
   file_browser = V.merge({
     disable_devicons = true,
+
     mappings = {
       n = {
         d = file_browser_actions.delete_recursively,
@@ -24,6 +25,7 @@ T.extensions = {
       },
     },
   }, ivy),
+
   project = V.merge({
     hidden_files = false,
     order_by = "desc",
@@ -65,58 +67,78 @@ user.plugins["telescope.nvim"].kbd = {
     opts,
     { "/", picker("grep_string"), { desc = "Grep string in workspace" } }
   ),
+
   live_grep = Keybinding.bind(
     opts,
     { "?", picker("live_grep"), { desc = "Live grep in workspace" } }
   ),
+
   marks = Keybinding.bind(opts, { "'", picker("marks"), { desc = "Show marks" } }),
+
   registers = Keybinding.bind(opts, { '"', picker("registers"), { desc = "Show registers" } }),
+
   resume = Keybinding.bind(opts, { "<leader>", picker("resume"), { desc = "Resume telescope" } }),
+
   vim_options = Keybinding.bind(
     opts,
     { "ho", picker("vim_options"), { desc = "Show vim options" } }
   ),
+
   find_files = Keybinding.bind(
     opts,
     { ".", picker("find_files"), { desc = "Find files in workspace" } }
   ),
+
   git_files = Keybinding.bind(opts, { "gf", picker("git_files"), { desc = "Do git ls-files" } }),
+
   buffers = Keybinding.bind(opts, { "bb", picker("buffers"), { desc = "Show buffers" } }),
+
   oldfiles = Keybinding.bind(
     opts,
     { "fr", picker("oldfiles"), { desc = "Show recently opened files" } }
   ),
+
   man_pages = Keybinding.bind(opts, { "hm", picker("man_pages"), { desc = "Show man pages" } }),
+
   colorscheme = Keybinding.bind(
     opts,
     { "ht", picker("colorscheme"), { desc = "Select colorscheme" } }
   ),
+
   lsp_references = Keybinding.bind(
     opts,
     { "lr", picker("lsp_references"), { desc = "Show references" } }
   ),
+
   lsp_document_symbols = Keybinding.bind(
     opts,
     { "ls", picker("lsp_document_symbols"), { desc = "Buffer symbols" } }
   ),
+
   lsp_workspace_symbols = Keybinding.bind(
     opts,
     { "lS", picker("lsp_workspace_symbols"), { desc = "Workspace symbols" } }
   ),
+
   diagnostics = Keybinding.bind(
     opts,
     { "ld", picker("diagnostics"), { desc = "Show LSP diagnostics" } }
   ),
+
   git_commits = Keybinding.bind(opts, { "gC", picker("git_commits"), { desc = "Show commimts" } }),
+
   git_bcommits = Keybinding.bind(
     opts,
     { "gB", picker("git_bcommits"), { desc = "Show branch commits" } }
   ),
+
   git_status = Keybinding.bind(opts, { "g?", picker("git_status"), { desc = "Git status" } }),
+
   file_browser = Keybinding.bind(
     opts,
     { "ff", ":Telescope file_browser<CR>", { desc = "File browser" } }
   ),
+
   project = Keybinding.bind(
     opts,
     { "p", ":Telescope project<CR>", { desc = "Project management" } }

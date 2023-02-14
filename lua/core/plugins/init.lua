@@ -250,7 +250,6 @@ local builtin = {
   {
     "nvim-telescope/telescope.nvim",
     dependencies = {
-      { "hrsh7th/nvim-cmp" },
       { "nvim-telescope/telescope-file-browser.nvim" },
       { "nvim-telescope/telescope-project.nvim" },
       { "nvim-telescope/telescope-fzf-native.nvim", run = "make" },
