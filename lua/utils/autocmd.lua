@@ -1,19 +1,11 @@
 -- Autocmd
 class("Autocmd")
+
 Autocmd.id = Autocmd.id or {}
+Autocmd.defaults = Autocmd.defaults or {}
 Autocmd.group = Autocmd.group or {}
 
-local function autocmd(event, opts)
-  assert(V.istable(opts))
-  assert(opts.pattern)
-  assert(opts.callback)
-
-  opts.group = opts.group or "UserGlobal"
-
-  return V.autocmd(event, opts)
-end
-
-function Autocmd._init(self, event, opts)
+function Autocmd:_init(event, opts)
   assert(V.istable(opts))
   assert(opts.callback)
   assert(opts.pattern)
@@ -53,11 +45,10 @@ function Autocmd._init(self, event, opts)
   self.group = group
   self.event = event
   self.enabled = false
+  self.opts = opts
 
   for key, value in pairs(opts) do
-    if not key:match("group") then
-      self[key] = value
-    end
+    self[key] = value
   end
 
   V.update(Autocmd.id, id, self)
@@ -66,7 +57,7 @@ function Autocmd._init(self, event, opts)
   return self
 end
 
-function Autocmd.disable(self)
+function Autocmd:disable()
   if not self.enabled then
     return
   end
@@ -74,8 +65,18 @@ function Autocmd.disable(self)
   self.enabled = false
 end
 
-function Autocmd.delete(self)
+function Autocmd:delete()
   self:disable()
   Autocmd.id[self.id] = nil
-  self.autocmd[self.id] = nil
+  Autocmd.group[self.group][self.id] = nil
+
+  return self
+end
+
+function Autocmd:replace(callback)
+  self:delete()
+  local opts = self.opts
+  opts.callback = callback
+
+  return Autocmd(self.event, opts)
 end

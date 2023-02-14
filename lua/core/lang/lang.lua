@@ -1,12 +1,14 @@
 class("Lang")
 
 Lang.langs = Lang.langs or {}
+local id = 1
 
 function Lang.hook(self, callback, opts)
   self.autocmd = self.autocmd or {}
   opts = opts or {}
   opts.pattern = self.name
   opts.callback = callback
+  id = id + 1
   local au = Autocmd("FileType", opts)
   self.autocmd[au.id] = au
 

@@ -1,15 +1,17 @@
-class('Process')
+class("Process")
 
 Process.id = Process.id or {}
 
-local function get(id) return Process.id[id] end
+local function get(id)
+  return Process.id[id]
+end
 
 local function parse(d, out)
-  if type(d) == 'string' then
-    d = vim.split(d, '\n')
-  elseif type(d) == 'table' then
+  if type(d) == "string" then
+    d = vim.split(d, "\n")
+  elseif type(d) == "table" then
     for _, s in ipairs(d) do
-      s = vim.split(s, '\n')
+      s = vim.split(s, "\n")
       V.extend(out, s)
     end
   end
@@ -22,7 +24,9 @@ function Process._on_exit(self, cb)
     j.exit_code = exit_code
     j.running = false
 
-    if cb then cb(j) end
+    if cb then
+      cb(j)
+    end
   end)
 end
 
@@ -31,8 +35,12 @@ function Process._on_stderr(self, cb)
   local stderr = self.stderr
 
   return vim.schedule_wrap(function(j, d)
-    if d then V.extend(stderr, parse(d, self.stderr)) end
-    if cb then cb(get(j)) end
+    if d then
+      V.extend(stderr, parse(d, self.stderr))
+    end
+    if cb then
+      cb(get(j))
+    end
   end)
 end
 
@@ -41,8 +49,12 @@ function Process._on_stdout(self, cb)
   local stdout = self.stdout
 
   return vim.schedule_wrap(function(j, d)
-    if d then V.extend(stdout, parse(d, self.stdout)) end
-    if cb then cb(get(j)) end
+    if d then
+      V.extend(stdout, parse(d, self.stdout))
+    end
+    if cb then
+      cb(get(j))
+    end
   end)
 end
 
@@ -57,11 +69,11 @@ end
 function Process.setup(self, opts)
   opts = opts or {}
   opts.env = opts.env or {
-    HOME = os.getenv('HOME'),
-    PATH = os.getenv('PATH'),
+    HOME = os.getenv("HOME"),
+    PATH = os.getenv("PATH"),
   }
   opts.cwd = opts.cwd or vim.fn.getcwd()
-  opts.stdin = opts.stdin == nil and 'pipe' or opts.stdin
+  opts.stdin = opts.stdin == nil and "pipe" or opts.stdin
 
   for k, v in pairs(opts) do
     self[k] = v
@@ -95,10 +107,12 @@ function Process.setup(self, opts)
 end
 
 function Process.run(self)
-  if not self.init then self:setup() end
+  if not self.init then
+    self:setup()
+  end
 
   local id = vim.fn.jobstart(self.command, self._opts)
-  assert(id ~= -1, 'Could not start job with command ' .. self.command)
+  assert(id ~= -1, "Could not start job with command " .. self.command)
 
   self.id = id
   self.running = true
@@ -112,9 +126,13 @@ function Process.status(self, timeout)
   return vim.fn.jobwait({ self.id }, timeout)[1]
 end
 
-function Process.is_invalid(self) return self:status() == -3 end
+function Process.is_invalid(self)
+  return self:status() == -3
+end
 
-function Process.is_interrupted(self) return self:status() == -2 end
+function Process.is_interrupted(self)
+  return self:status() == -2
+end
 
 function Process.is_valid(self)
   self.running = false
@@ -130,7 +148,9 @@ function Process.is_running(self, timeout)
 end
 
 function Process.wait(self, timeout)
-  if not self:is_running() then return end
+  if not self:is_running() then
+    return
+  end
 
   return vim.fn.jobwait({ self.id }, timeout)
 end

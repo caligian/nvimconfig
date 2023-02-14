@@ -1,1 +1,1 @@
-vim.cmd('cabbrev h vert h')
+vim.cmd("cabbrev h vert h")

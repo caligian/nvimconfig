@@ -1,11 +1,11 @@
-local package_path = vim.split(package.path, ';')
+local package_path = vim.split(package.path, ";")
 
 return {
   settings = {
     Lua = {
       path = package_path,
       runtime = {
-        version = 'Lua 5.1',
+        version = "Lua 5.1",
       },
       workspace = {
         library = package_path,
@@ -14,8 +14,8 @@ return {
         enable = false,
       },
       diagnostics = {
-        severity = { { ['undefined-global'] = false } },
-        disable = { 'lowercase-global', 'undefined-global' },
+        severity = { { ["undefined-global"] = false } },
+        disable = { "lowercase-global", "undefined-global" },
       },
     },
   },

@@ -1,8 +1,8 @@
 function V.get_highlight_colors(hi)
   local c = {}
-  local t = slice(vim.split(vim.api.nvim_exec(':hi ' .. hi, true), ' +'), 3)
+  local t = slice(vim.split(vim.api.nvim_exec(":hi " .. hi, true), " +"), 3)
   each(function(s)
-    local a, hex = unpack(vim.split(s, '='))
+    local a, hex = unpack(vim.split(s, "="))
     c[a] = hex or false
   end, t)
 
@@ -10,10 +10,10 @@ function V.get_highlight_colors(hi)
 end
 
 function V.hex2rgb(hex)
-  hex = hex:gsub('#', '')
-  return tonumber('0x' .. hex:sub(1, 2)),
-    tonumber('0x' .. hex:sub(3, 4)),
-    tonumber('0x' .. hex:sub(5, 6))
+  hex = hex:gsub("#", "")
+  return tonumber("0x" .. hex:sub(1, 2)),
+    tonumber("0x" .. hex:sub(3, 4)),
+    tonumber("0x" .. hex:sub(5, 6))
 end
 
 -- Taken from https://github.com/iskolbin/lhsx/blob/master/hsx.lua
@@ -60,22 +60,28 @@ function V.hsv2rgb(h, s, v)
 end
 
 function V.darken(hex, darker_n)
-  local result = '#'
+  local result = "#"
 
-  for s in hex:gmatch('[a-fA-F0-9][a-fA-F0-9]') do
-    local bg_numeric_value = tonumber('0x' .. s) - darker_n
+  for s in hex:gmatch("[a-fA-F0-9][a-fA-F0-9]") do
+    local bg_numeric_value = tonumber("0x" .. s) - darker_n
 
-    if bg_numeric_value < 0 then bg_numeric_value = 0 end
+    if bg_numeric_value < 0 then
+      bg_numeric_value = 0
+    end
 
-    if bg_numeric_value > 255 then bg_numeric_value = 255 end
+    if bg_numeric_value > 255 then
+      bg_numeric_value = 255
+    end
 
-    result = result .. string.format('%2.2x', bg_numeric_value)
+    result = result .. string.format("%2.2x", bg_numeric_value)
   end
 
   return result
 end
 
-function V.lighten(hex, lighten_n) return V.darken(hex, lighten_n * -1) end
+function V.lighten(hex, lighten_n)
+  return V.darken(hex, lighten_n * -1)
+end
 
 function V.get_luminance(hex)
   local r, g, b = V.hex2rgb(hex)

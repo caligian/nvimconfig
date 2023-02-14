@@ -1,10 +1,12 @@
+-- @classmod Keybinding Keybinding creater for neovim
 class("Keybinding")
 
 Keybinding.buffer = Keybinding.buffer or {}
 Keybinding.id = Keybinding.id or {}
+Keybinding.defaults = Keybinding.defaults or {}
 local id = 1
 
-function Keybinding.update(self)
+function Keybinding:update()
   V.update(Keybinding.id, self.id, self)
 
   if self.buffer then
@@ -41,7 +43,7 @@ local function getauopts(opts)
   return o
 end
 
-function Keybinding._init(self, mode, lhs, cb, rest)
+function Keybinding:_init(mode, lhs, cb, rest)
   assert(mode, "No mode provided")
   assert(lhs, "No LHS provided")
   assert(cb, "No RHS provided")
@@ -105,13 +107,14 @@ function Keybinding._init(self, mode, lhs, cb, rest)
   return self
 end
 
-function Keybinding.disable(self)
+function Keybinding:disable()
   if not self.enabled then
     return
   end
 
   if self.autocmd then
-    self.autocmd:disable()
+    self.autocmd:delete()
+    self.autocmd = nil
     if self.buffer then
       for _, mode in ipairs(self.mode) do
         vim.api.nvim_buf_del_keymap(self.buffer, self.mode, self.lhs)
@@ -124,6 +127,18 @@ function Keybinding.disable(self)
     end
     self.enabled = false
   end
+
+  return self
+end
+
+function Keybinding:delete(self)
+  if not self.enabled then
+    return
+  end
+
+  self:disable()
+  Keybinding.id[self.id] = nil
+  Keybinding._check[self.hash] = nil
 
   return self
 end
@@ -155,4 +170,12 @@ function Keybinding.noremap(mode, lhs, cb, opts)
   opts.noremap = true
 
   return Keybinding(mode, lhs, cb, opts)
+end
+
+function Keybinding:replace(self, cb, opts)
+  assert(cb)
+
+  self:delete()
+
+  return Keybinding(self.mode, self.lhs, cb, V.lmerge(opts or {}, self.opts))
 end

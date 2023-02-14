@@ -29,14 +29,22 @@ return require("lazy").setup({
       local tree = V.require("nvim-tree")
       if tree then
         V.require("user.nvim-tree_lua")
-        user.plugins["nvim-tree.lua"] = {}
-        tree.setup(user.plugins["nvim-tree.lua"])
+        tree.setup(user.plugins["nvim-tree"])
 
-        Keybinding.bind(
-          { noremap = true, leader = true },
-          { "|", ":NvimTreeToggle<CR>", "Focus tree explorer" },
-          { "\\", ":NvimTreeFocus<CR>", "Toggle tree explorer" }
-        )
+        local opts = { noremap = true, leader = true }
+        user.plugins["nvim-tree"] = {
+          kbd = {
+            toggle_nvim_tree = Keybinding.bind(
+              opts,
+              { "|", ":NvimTreeToggle<CR>", "Focus tree explorer" }
+            ),
+            focus_nvim_tree = Keybinding.bind(
+              opts,
+              { "\\", ":NvimTreeFocus<CR>", "Toggle tree explorer" }
+            ),
+          },
+        }
+        V.require("user.plugins.nvim-tree.kbd")
       end
     end,
   },
@@ -132,29 +140,28 @@ return require("lazy").setup({
     "tpope/vim-fugitive",
     keys = "<leader>g",
     config = function()
+      local opts = { noremap = true, leader = true, mode = "n" }
       user.plugins["vim-fugitive"] = {
         minwidth = 47,
+        kbd = {
+          git_status = Keybinding.bind(opts, {
+            "gg",
+            function()
+              -- Tree-like Git status
+              local minwidth = user.plugins["vim-fugitive"].minwidth
+              local width = vim.fn.winwidth(0)
+              local count = math.floor(vim.fn.winwidth(0) / 4)
+              count = count < minwidth and minwidth or count
+
+              vim.cmd(":vertical Git")
+              vim.cmd(":vertical resize " .. count)
+            end,
+          }),
+          git_stage = Keybinding.bind(opts, { "gs", ":Git stage %<CR>", "Stage buffer" }),
+          git_commit = Keybinding.bind(opts, { "gc", ":Git commit <CR>", "Commit buffer" }),
+        },
       }
       V.require("user.plugins.vim-fugitive")
-
-      Keybinding.bind(
-        { noremap = true, leader = true, mode = "n" },
-        {
-          "gg",
-          function()
-            -- Tree-like Git status
-            local minwidth = user.plugins["vim-fugitive"].minwidth
-            local width = vim.fn.winwidth(0)
-            local count = math.floor(vim.fn.winwidth(0) / 4)
-            count = count < minwidth and minwidth or count
-
-            vim.cmd(":vertical Git")
-            vim.cmd(":vertical resize " .. count)
-          end,
-        },
-        { "gs", ":Git stage %<CR>", "Stage buffer" },
-        { "gc", ":Git commit <CR>", "Commit buffer" }
-      )
     end,
   },
 
@@ -162,7 +169,17 @@ return require("lazy").setup({
     "preservim/tagbar",
     keys = "<C-t>",
     config = function()
-      Keybinding.noremap("n", "<C-t>", ":TagbarToggle<CR>", { desc = "Toggle tagbar" })
+      user.plugins["tagbar"] = {
+        kbd = {
+          open_tagbar = Keybinding.noremap(
+            "n",
+            "<C-t>",
+            ":TagbarToggle<CR>",
+            { desc = "Toggle tagbar" }
+          ),
+        },
+      }
+      V.require("user.plugins.tagbar")
     end,
   },
 
@@ -230,11 +247,20 @@ return require("lazy").setup({
     "moll/vim-bbye",
     event = "BufReadPre",
     config = function()
-      Keybinding.bind(
-        { noremap = true, leader = true },
-        { "bq", "<cmd>Bdelete<CR>", { desc = "Delete buffer" } },
-        { "bQ", "<cmd>Bwipeout<CR>", { desc = "Wipeout buffer" } }
-      )
+      local opts = { noremap = true, leader = true }
+      user.plugins["vim-bbye"] = {
+        kbd = {
+          delete_buffer = Keybinding.bind(
+            opts,
+            { "bq", "<cmd>Bdelete<CR>", { desc = "Delete buffer" } }
+          ),
+          wipeout_buffer = Keybinding.bind(
+            opts,
+            { "bQ", "<cmd>Bwipeout<CR>", { desc = "Wipeout buffer" } }
+          ),
+        },
+      }
+      V.require("user.plugins.vim-bbye")
     end,
   },
 }, { lazy = true })

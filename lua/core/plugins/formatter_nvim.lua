@@ -25,14 +25,14 @@ user.plugins["formatter.nvim"] = { filetype = formatters }
 require("formatter").setup(user.plugins["formatter.nvim"])
 
 -- Setup autocmd for autoformatting
-for lang, _ in pairs(formatters) do
-  Keybinding.noremap(
+user.plugins["formatter.nvim"].kbd = {
+  format_buffer = Keybinding.noremap(
     "n",
     "<leader>bf",
     "FormatWrite<CR>",
-    { event = "FileType", pattern = lang, desc = "Formatter buffer", silent = true }
-  )
-end
+    { event = "FileType", pattern = V.keys(formatters), desc = "Formatter buffer", silent = true }
+  ),
+}
 
 Autocmd("BufWritePost", {
   pattern = "*",

@@ -1,5 +1,5 @@
 -- Bootstrap with requisite rocks and lazy.nvim
-require('bootstrap')
+require("bootstrap")
 
 -- Load the framework
-require('core')
+require("core")

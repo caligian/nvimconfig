@@ -1,2 +1,3 @@
 -- Nothing for now....
--- You need latexmk installed
+--
+V.require("user.plugins.vimtex")

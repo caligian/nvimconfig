@@ -35,6 +35,11 @@ Autocmd("BufWritePost", {
   callback = callback,
 })
 
-Keybinding.noremap("n", "<leader>ll", function()
-  print("Linting buffer...")
-end, { desc = "Try linting buffer" })
+user.plugins["nvim-lint"].kbd = {
+  lint_buffer = Keybinding.noremap("n", "<leader>ll", function()
+    print("Linting buffer...")
+    callback()
+  end, { desc = "Try linting buffer" }),
+}
+
+V.require("user.plugins.nvim-lint.kbd")

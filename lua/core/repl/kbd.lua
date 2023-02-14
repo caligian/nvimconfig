@@ -1,23 +1,21 @@
-Keybinding.bind(
-  { leader = true, noremap = true },
-  { 'xi', '<cmd>StartREPL sh<CR>' },
-  { 'xs', '<cmd>SplitREPL sh<CR>' },
-  { 'xv', '<cmd>VsplitREPL sh<CR>' },
-  { 'xk', '<cmd>HideREPL sh<CR>' },
-  { 'xq', '<cmd>StopREPL sh<CR>' },
-  { 'xe', '<cmd>SendLineREPL sh<CR>' },
-  { 'xb', '<cmd>SendBufferREPL sh<CR>' },
-  { 'x.', '<cmd>SendTillPointREPL sh<CR>' },
-  { 'ri', '<cmd>StartREPL<CR>' },
-  { 'rs', '<cmd>SplitREPL<CR>' },
-  { 'rv', '<cmd>VsplitREPL<CR>' },
-  { 'rk', '<cmd>HideREPL<CR>' },
-  { 'rq', '<cmd>StopREPL<CR>' },
-  { 'rQ', REPL.stopall, 'Stop all REPLs' },
-  { 're', '<cmd>SendLineREPL<CR>' },
-  { 'rb', '<cmd>SendBufferREPL<CR>' },
-  { 'r.', '<cmd>SendTillPointREPL<CR>' }
-)
-
-Keybinding.noremap('v', '<leader>re', '<cmd>SendRangeREPL<CR>')
-Keybinding.noremap('v', '<leader>xe', '<cmd>SendRangeREPL sh<CR>')
+local defaults = Keybinding.defaults
+local opts = { leader = true, noremap = true }
+defaults.start_shell = Keybinding.bind(opts, { "xi", "<cmd>StartREPL sh<CR>" })
+defaults.split_to_shell = Keybinding.bind(opts, { "xs", "<cmd>SplitREPL sh<CR>" })
+defaults.split_to_shell_vertically = Keybinding.bind(opts, { "xv", "<cmd>VsplitREPL sh<CR>" })
+defaults.hide_shell = Keybinding.bind(opts, { "xk", "<cmd>HideREPL sh<CR>" })
+defaults.stop_shell = Keybinding.bind(opts, { "xq", "<cmd>StopREPL sh<CR>" })
+defaults.send_line_to_shell = Keybinding.bind(opts, { "xe", "<cmd>SendLineREPL sh<CR>" })
+defaults.send_buffer_to_shell = Keybinding.bind(opts, { "xb", "<cmd>SendBufferREPL sh<CR>" })
+defaults.send_till_point_to_shell = Keybinding.bind(opts, { "x.", "<cmd>SendTillPointREPL sh<CR>" })
+defaults.start_repl = Keybinding.bind(opts, { "ri", "<cmd>StartREPL<CR>" })
+defaults.split_to_repl = Keybinding.bind(opts, { "rs", "<cmd>SplitREPL<CR>" })
+defaults.split_to_repl_vertically = Keybinding.bind(opts, { "rv", "<cmd>VsplitREPL<CR>" })
+defaults.hide_repl = Keybinding.bind(opts, { "rk", "<cmd>HideREPL<CR>" })
+defaults.stop_repl = Keybinding.bind(opts, { "rq", "<cmd>StopREPL<CR>" })
+defaults.stop_all_repls = Keybinding.bind(opts, { "rQ", REPL.stopall, "Stop all REPLs" })
+defaults.send_line_to_repl = Keybinding.bind(opts, { "re", "<cmd>SendLineREPL<CR>" })
+defaults.send_buffer_to_repl = Keybinding.bind(opts, { "rb", "<cmd>SendBufferREPL<CR>" })
+defaults.send_till_point_to_repl = Keybinding.bind(opts, { "r.", "<cmd>SendTillPointREPL<CR>" })
+defaults.send_range_to_repl = Keybinding.noremap("v", "<leader>re", "<cmd>SendRangeREPL<CR>")
+defaults.send_range_to_shell = Keybinding.noremap("v", "<leader>xe", "<cmd>SendRangeREPL sh<CR>")
