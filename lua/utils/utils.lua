@@ -529,14 +529,24 @@ function V.makepath(t, ...)
   return V.get(t, { ... }, true)
 end
 
+local s = "module 'user.globals.madarchod.lauda' not found"
+print(s:match("module '[^']+' not found"))
+
 function V.require(req, do_assert)
   local ok, out = pcall(require, req)
 
   if not ok then
     V.makepath(V, "logs")
-    V.append(V.logs, out)
 
-    logger:warn(out)
+    local nonexistent = out:match("module '[^']+' not found")
+
+    if nonexistent then
+      V.append(V.logs, nonexistent)
+      logger:debug(nonexistent)
+    else
+      V.append(V.logs, nonexistent)
+      logger:debug(out)
+    end
 
     if do_assert then
       error(out)
