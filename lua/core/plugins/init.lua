@@ -3,6 +3,20 @@ V.require("lazy")
 return require("lazy").setup({
   { "nvim-lua/plenary.nvim" },
 
+  -- Good opinionated themes
+  {
+    "folke/tokyonight.nvim",
+    dependencies = {
+      { "nyoom-engineering/oxocarbon.nvim" },
+      { "bluz71/vim-nightfly-colors" },
+      { "bluz71/vim-moonfly-colors" },
+      { "folke/lsp-colors.nvim" },
+      { "savq/melange-nvim" },
+      { "AlexvZyl/nordic.nvim" },
+      { "lewpoly/sherbet.nvim" },
+    },
+  },
+
   {
     "lervag/vimtex",
     config = function()
@@ -180,13 +194,6 @@ return require("lazy").setup({
         },
       }
       V.require("user.plugins.tagbar")
-    end,
-  },
-
-  {
-    "flazz/vim-colorschemes",
-    config = function()
-      vim.cmd("colorscheme " .. user.colorscheme)
     end,
   },
 

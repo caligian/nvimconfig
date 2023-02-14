@@ -81,15 +81,5 @@ class = function(name, Base)
   return _G[name]
 end
 
--- Add user and this framework paths to fennel.path
-local fennel = require("fennel")
-local fnl_path = path.join(vim.fn.stdpath("config"), "fnl")
-local user_fnl_path = path.join(os.getenv("HOME"), ".nvim", "fnl")
-fennel.path = fennel.path .. ";" .. string.format("%s/?.fnl", fnl_path)
-fennel.path = fennel.path .. ";" .. string.format("%s/?/init.fnl", fnl_path)
-fennel.path = fennel.path .. ";" .. string.format("%s/?.fnl", user_fnl_path)
-fennel.path = fennel.path .. ";" .. string.format("%s/?/init.fnl", user_fnl_path)
-table.insert(package.loaders or package.searchers, fennel.searcher)
-
 -- Require essential utils
 require("utils")
