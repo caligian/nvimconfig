@@ -3,6 +3,7 @@ vim.cmd("noremap gQ <nop>")
 
 local defaults = Keybinding.defaults
 local opts = { noremap = true, leader = true, mode = "n" }
+
 defaults.save_bookmark =
   Keybinding.bind(opts, { "fb", "mA", { desc = "Bookmark current file at pos" } })
 
