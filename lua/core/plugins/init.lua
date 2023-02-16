@@ -84,7 +84,7 @@ user.plugins.plugins = {
     config = function()
       local statusline = V.require("statusline")
       if statusline then
-        statusline.tabline = true
+        statusline.tabline = false
         statusline.lsp_diagnostics = true
         vim.o.laststatus = 3
       end

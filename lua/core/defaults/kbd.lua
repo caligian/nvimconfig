@@ -87,7 +87,9 @@ local builtin = {
     { ";", ":OpenScratchVertically<CR>", { desc = "Open scratch buffer vertically" } }
   ),
 
-  new_tab = Keybinding.bind(opts, { "tt", ":tabnew<CR>", { desc = "New tab" } }),
+  new_tab = Keybinding.bind(opts, { "tt", ":TabNew ", { desc = "New tab" } }),
+
+  switch_tab = Keybinding.bind(opts, { "tT", ":TabSwitch<CR>", { desc = "New tab" } }),
 
   next_tab = Keybinding.bind(opts, { "tn", ":tabnext<CR>", { desc = "Next tab" } }),
 

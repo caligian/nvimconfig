@@ -82,3 +82,35 @@ V.command("FontSize", function(args)
   local font = vim.o.guifont
   vim.o.guifont = font:gsub("h[0-9]+", "h" .. args)
 end, { nargs = "+" })
+
+-- Tab commands
+user.tabs = user.tabs or {}
+V.command("TabNew", function(args)
+  args = V.trim(args.args)
+  args = V.isblank(args) and (#tabs + 1) or args
+  V.append(user.tabs, args)
+  vim.cmd("tabnew | tabprev")
+end, { nargs = "?" })
+
+V.command("TabSwitch", function(args)
+  args = V.trim(args.args)
+  if #args == 0 then
+    vim.ui.select(user.tabs, {
+      prompt = "Switch to tab? % ",
+    }, function(choice)
+      if V.isblank(choice) then
+        return
+      end
+      local offset = vim.fn.tabpagenr("$")
+      vim.cmd(":tabNext " .. (offset + V.index(user.tabs, choice)))
+    end)
+  else
+    local offset = vim.fn.tabpagenr("$")
+    vim.cmd(":tabNext " .. (offset + V.index(user.tabs, choice)))
+  end
+end, {
+  complete = function()
+    return user.tabs
+  end,
+  nargs = "?",
+})
