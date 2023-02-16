@@ -6,6 +6,7 @@ user.option = {
     updatetime = 300,
     foldenable = false,
     timeoutlen = 350,
+    showtabline = 0,
     completeopt = "menu,menuone,noselect",
     mouse = "a",
     history = 1000,
