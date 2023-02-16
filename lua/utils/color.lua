@@ -1,12 +1,20 @@
-function V.get_highlight_colors(hi)
-  local c = {}
-  local t = slice(vim.split(vim.api.nvim_exec(":hi " .. hi, true), " +"), 3)
-  each(function(s)
-    local a, hex = unpack(vim.split(s, "="))
-    c[a] = hex or false
-  end, t)
+function V.highlight(hi)
+  local ok, out = pcall(vim.api.nvim_exec, "hi " .. hi, true)
+  if not ok then
+    return {}
+  end
 
-  return c
+  hi = {}
+  out = vim.split(out, " +")
+  out = V.slice(out, 3, #out)
+  V.each(function(i)
+    local attrib, value = unpack(vim.split(i, "="))
+    if value then
+      hi[attrib] = value
+    end
+  end, out)
+
+  return hi
 end
 
 function V.hex2rgb(hex)
@@ -83,8 +91,31 @@ function V.lighten(hex, lighten_n)
   return V.darken(hex, lighten_n * -1)
 end
 
-function V.get_luminance(hex)
+function V.luminance(hex)
   local r, g, b = V.hex2rgb(hex)
   local luminance = (r * 0.2126) + (g * 0.7152) + (b * 0.0722)
   return luminance < (255 / 2)
+end
+
+function V.highlightset(hi, set)
+  local group = hi
+  hi = V.highlight(hi)
+  if V.isblank(hi) then
+    return
+  end
+
+  V.teach(function(attrib, transformer)
+    if not hi[attrib] then
+      return
+    end
+
+    if V.isa(transformer, "function") then
+      transformer = transformer(hi[attrib])
+    end
+    hi[attrib] = transformer
+
+    vim.cmd(sprintf("hi %s %s=%s", group, attrib, transformer))
+  end, set)
+
+  return hi
 end

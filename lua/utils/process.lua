@@ -17,7 +17,7 @@ local function parse(d, out)
   end
 end
 
-function Process._on_exit(self, cb)
+function Process:_on_exit(cb)
   return vim.schedule_wrap(function(j, exit_code)
     j = get(j)
     j.exited = true
@@ -30,7 +30,7 @@ function Process._on_exit(self, cb)
   end)
 end
 
-function Process._on_stderr(self, cb)
+function Process:_on_stderr(cb)
   self.stderr = self.stderr or {}
   local stderr = self.stderr
 
@@ -44,7 +44,7 @@ function Process._on_stderr(self, cb)
   end)
 end
 
-function Process._on_stdout(self, cb)
+function Process:_on_stdout(cb)
   self.stdout = self.stdout or {}
   local stdout = self.stdout
 
@@ -58,15 +58,11 @@ function Process._on_stdout(self, cb)
   end)
 end
 
-function Process._init(self, command)
+function Process:_init(command, opts)
   self.command = command
   self.running = false
   self.init = false
 
-  return self
-end
-
-function Process.setup(self, opts)
   opts = opts or {}
   opts.env = opts.env or {
     HOME = os.getenv("HOME"),
@@ -106,9 +102,9 @@ function Process.setup(self, opts)
   return self
 end
 
-function Process.run(self)
-  if not self.init then
-    self:setup()
+function Process:run()
+  if not self:running() then
+    return
   end
 
   local id = vim.fn.jobstart(self.command, self._opts)
@@ -121,33 +117,27 @@ function Process.run(self)
   return self
 end
 
-function Process.status(self, timeout)
+function Process:status(timeout)
   timeout = timeout or 0
   return vim.fn.jobwait({ self.id }, timeout)[1]
 end
 
-function Process.is_invalid(self)
+function Process:is_invalid()
   return self:status() == -3
 end
 
-function Process.is_interrupted(self)
+function Process:is_interrupted()
   return self:status() == -2
 end
 
-function Process.is_valid(self)
-  self.running = false
-  self.invalid = true
-  return not self:is_invalid()
-end
-
-function Process.is_running(self, timeout)
+function Process:is_running(timeout)
   local status = self:status(timeout) == -1
   self.running = status
 
   return status
 end
 
-function Process.wait(self, timeout)
+function Process:wait(timeout)
   if not self:is_running() then
     return
   end

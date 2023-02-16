@@ -1,10 +1,18 @@
+--- Buffer object creater. This does not YET cover all the neovim buffer API functions
+
+-- @classmod Buffer
+-- @submodule autocmd
 class("Buffer")
 
+-- @field bufnr Buffer objects are hashed by bufnr
 Buffer.bufnr = Buffer.bufnr or {}
+
+-- @field scratch Scratch buffers
 Buffer.scratch = Buffer.scratch or {}
+
+-- Used for unique id generation
 local scratch_n = 0
 local input_buffer_n = 0
-local menu_n = 0
 
 local function update(self)
   V.update(Buffer.bufnr, { self.bufnr }, self)
@@ -14,7 +22,11 @@ local function update(self)
   end
 end
 
-function Buffer._init(self, name, scratch)
+--- Constructor function returning a buffer object
+-- @param name Name of the buffer
+-- @param[opt] scratch Is a scratch buffer?
+-- @return self
+function Buffer:_init(name, scratch)
   local bufnr = vim.fn.bufnr(name, true)
   if name:match("^scratch_") then
     scratch = true
@@ -43,7 +55,10 @@ function Buffer._init(self, name, scratch)
   return self
 end
 
-function Buffer.getopt(self, opt)
+--- Get buffer option
+-- @tparam string opt Name of the option
+-- @return any
+function Buffer:getopt(opt)
   local _, out = pcall(vim.api.nvim_buf_get_option, self.bufnr, opt)
 
   if out then
@@ -51,7 +66,10 @@ function Buffer.getopt(self, opt)
   end
 end
 
-function Buffer.getvar(self, var)
+--- Get buffer option
+-- @tparam string var Name of the variable
+-- @return any
+function Buffer:getvar(var)
   local _, out = pcall(vim.api.nvim_buf_get_var, self.bufnr, var)
 
   if out then
@@ -59,33 +77,48 @@ function Buffer.getvar(self, var)
   end
 end
 
-function Buffer.setvar(self, vars)
+--- Set buffer variables
+-- @tparam table vars Dictionary of var name and value
+function Buffer:setvar(vars)
   vars = vars or {}
   for key, value in pairs(vars) do
     vim.api.nvim_buf_set_var(self.bufnr, key, value)
   end
 end
 
-function Buffer.setopt(self, opts)
+--- Set buffer options
+-- @tparam table opts Dictionary of option name and value
+function Buffer:setopt(opts)
   opts = opts or {}
   for key, value in pairs(opts) do
     vim.api.nvim_buf_set_option(self.bufnr, key, value)
   end
 end
 
-function Buffer.map(self, mode, lhs, callback, opts)
+--- Make a new buffer local mapping.
+-- @param mode Mode to bind in
+-- @param lhs Keys to bind callback to
+-- @tparam function|string callback Callback to be bound to keys
+-- @tparam[opt] table opts Additional vim.keymap.set options. You cannot set opts.pattern as it will be automatically set by this function
+-- @return object Keybinding object
+function Buffer:map(mode, lhs, callback, opts)
   opts = opts or {}
   opts.buffer = self.bufnr
-  Keybinding.map(mode, lhs, callback, opts)
+
+  return Keybinding.map(mode, lhs, callback, opts)
 end
 
-function Buffer.noremap(self, mode, lhs, callback, opts)
+--- Create a nonrecursive mapping
+-- @see map
+function Buffer:noremap(mode, lhs, callback, opts)
   opts = opts or {}
   opts.bufnr = self.bufnr
   Keybinding.noremap(mode, lhs, callback, opts)
 end
 
-function Buffer.split(self, split)
+--- Split current window and focus this buffer
+-- @param[opt='s'] split Direction to split in: 's' or 'v'
+function Buffer:split(split)
   split = split or "s"
 
   if split == "s" then
@@ -97,13 +130,15 @@ function Buffer.split(self, split)
   end
 end
 
-function Buffer.hook(self, event, callback, opts)
+--- Create a buffer local autocommand. The  pattern will be automatically set to '<buffer=%d>'
+-- @see autocmd._init
+function Buffer:hook(event, callback, opts)
   opts = opts or {}
 
   assert(event)
   assert(callback)
 
-  vim.api.nvim_create_autocmd(
+  return Autocmd(
     event,
     V.merge(opts, {
       pattern = sprintf("<buffer=%d>", self.bufnr),
@@ -112,7 +147,8 @@ function Buffer.hook(self, event, callback, opts)
   )
 end
 
-function Buffer.hide(self)
+--- Hide current buffer if visible
+function Buffer:hide()
   local winid = vim.fn.bufwinid(self.bufnr)
 
   if winid ~= -1 then
@@ -121,22 +157,33 @@ function Buffer.hide(self)
   end
 end
 
-function Buffer.is_visible(self)
+---  Is buffer visible?
+--  @return boolean
+function Buffer:is_visible()
   local winid = vim.fn.bufwinid(self.bufnr)
 
   return winid ~= -1
 end
 
-function Buffer.lines(self, startrow, tillrow)
+--- Get buffer lines
+-- @param startrow Starting row
+-- @param tillrow Ending row
+-- @return table
+function Buffer:lines(startrow, tillrow)
   return vim.api.nvim_buf_get_lines(self.bufnr, startrow, tillrow, false)
 end
 
-function Buffer.text(self, start, till, repl)
-  assert(types.is_type(start, "table"))
-  assert(types.is_type(till, "table"))
+--- Get buffer text
+-- @tparam table start Should be table containing start row and col
+-- @tparam table till Should be table containing end row and col
+-- @param repl Replacement text
+-- @return
+function Buffer:text(start, till, repl)
+  assert(types.isa(start, "table"))
+  assert(types.isa(till, "table"))
   assert(repl)
 
-  if types.is_type(repl) == "string" then
+  if types.isa(repl) == "string" then
     repl = vim.split(repl, "[\n\r]")
   end
 
@@ -146,39 +193,54 @@ function Buffer.text(self, start, till, repl)
   return vim.api.nvim_buf_get_text(self.bufnr, a, m, b, n, repl)
 end
 
-function Buffer.setlines(self, startrow, endrow, repl)
+--- Set buffer lines
+-- @param startrow Starting row
+-- @param endrow Ending row
+-- @param repl Replacement line[s]
+function Buffer:setlines(startrow, endrow, repl)
   assert(startrow)
   assert(endrow)
 
-  if types.is_type(repl, "string") then
+  if types.isa(repl, "string") then
     repl = vim.split(repl, "[\n\r]")
   end
 
   vim.api.nvim_buf_set_lines(self.bufnr, startrow, endrow, false, repl)
 end
 
-function Buffer.set(self, start, till, repl)
-  assert(types.is_type(start, "table"))
-  assert(types.is_type(till, "table"))
+--- Set buffer text
+-- @tparam table start Should be table containing start row and col
+-- @tparam table till Should be table containing end row and col
+-- @tparam string|table repl Replacement text
+function Buffer:set(start, till, repl)
+  assert(types.isa(start, "table"))
+  assert(types.isa(till, "table"))
 
   vim.api.nvim_buf_set_text(self.bufnr, start[1], till[1], start[2], till[2], repl)
 end
 
-function Buffer.switch(self)
+--- Switch to this buffer
+function Buffer:switch()
   vim.cmd("b " .. self.bufnr)
 end
 
-function Buffer.load(self)
-  vim.fn.bufload(self.bufnr)
+--- Load buffer
+function Buffer:load()
+  if vim.fn.bufloaded(self.bufnr) == 1 then
+    return true
+  else
+    vim.fn.bufload(self.bufnr)
+  end
 end
 
-function Buffer.loaded(self)
-  return vim.fn.bufloaded(self.bufnr) ~= 0
-end
-
+--- Switch to scratch buffer
+-- @param[opt] default If defined then use 'scratch_buffer' or display a menu to select the existing scratch buffer
 function Buffer.switch_to_scratch(default)
   if default then
-    vim.cmd("b scratch_buffer")
+    local b = Buffer("scratch_buffer", true)
+    b:switch()
+
+    return b
   else
     vim.ui.select(V.map(vim.fn.bufname, V.keys(Buffer.scratch)), {
       prompt = "Switch to scratch buffer",
@@ -188,6 +250,10 @@ function Buffer.switch_to_scratch(default)
   end
 end
 
+--- Open scratch buffer in split
+-- @param[opt='scratch_buffer'] name Name of the scratch buffer
+-- @param split 's' (vertically) or 'v' (horizontally)
+-- @return self
 function Buffer.open_scratch(name, split)
   name = name or "scratch_buffer"
   local buf = Buffer(name, true)
@@ -196,17 +262,41 @@ function Buffer.open_scratch(name, split)
   return buf
 end
 
-function Buffer.call(self, cb)
+--- Call callback on buffer and return result
+-- @param cb Function to call in this buffer
+-- @return self
+function Buffer:call(cb)
   return vim.api.nvim_buf_call(self.bufnr, cb)
 end
 
-function Buffer.input(name, text, cb, split, trigger_keys)
+--- Open buffer and run callback when keys are pressed
+-- @param[opt=false] name Name of the scratch buffer. If skipped then create a unique id
+-- @param text Text to display in the input buffer
+-- @param cb Callback to run at keypress
+-- @param opts Contains other options
+-- @usage Buffer.input(name, text, cb, {
+--   -- Split vertically or horizontally?
+--   split = 's' or 'v'
+--
+--   -- Comments start with ? (default: #)
+--   comment = '#' or string
+--
+--   -- When to run callback?
+--   keys = 'gx' or string
+-- })
+-- @return Buffer
+function Buffer.input(name, text, cb, opts)
+  opts = opts or {}
+  local split = opts.split or "s"
+  local trigger_keys = opts.keys or "gx"
+  local comment = opts.comment or "#"
+
   if not name then
     name = "input_buffer_" .. input_buffer_n
     input_buffer_n = input_buffer_n + 1
   end
 
-  if V.is_type(text, "string") then
+  if V.isa(text, "string") then
     text = vim.split(text, "\n")
   end
 
@@ -214,40 +304,30 @@ function Buffer.input(name, text, cb, split, trigger_keys)
   buf:setlines(0, -1, text)
   buf:split(split)
 
-  trigger_keys = trigger_keys or "<C-c><C-c>"
   buf:map("n", trigger_keys, function()
-    cb(buf:lines(0, -1))
+    local lines = buf:lines(0, -1)
+    local sanitized = {}
+    local idx = 1
+
+    V.each(function(s)
+      if not s:match("^" .. comment) then
+        sanitized[idx] = s
+        idx = idx + 1
+      end
+    end, lines)
+
+    cb(sanitized)
   end, { noremap = true })
 end
 
-function Buffer.getmap(self, mode, lhs)
+--- Get buffer-local keymap.
+-- @see V.buffer_has_keymap
+function Buffer:getmap(mode, lhs)
   return V.buffer_has_keymap(self.bufnr, mode, lhs)
 end
 
-function Buffer.range(self)
-  return V.get_visual_range(self.bufnr)
+--- Return visually highlighted range in this buffer
+-- @see V.visualrange
+function Buffer:range()
+  return V.visualrange(self.bufnr)
 end
-
--- @tparam name string Buffer name for the menu
--- @tparam text table[table[string]] {{keys, text}, ...} where keys will be trigger callback with index, text
--- @tparam callback function[index, text] This will be triggered by keys in text
-function Buffer.menu(name, desc, text, callback)
-  V.asserttype(name, "string")
-  V.asserttype(text, "table")
-  V.asserttype(desc, "string")
-  V.asserttype(callback, "function")
-
-  name = name or sprintf("menu_buffer_%d", menu_n + 1)
-  menu_n = menu_n + 1
-  local buf = Buffer(name, true)
-  buf:setlines(0, -1, vim.split(desc, "[\n\r]"))
-  buf:setlines(-1, -1, { "" })
-
-  for _, value in ipairs(text) do
-    local keys, display = unpack(value)
-    buf:setlines(0, -1, { display })
-    buf:noremap("n", keys)
-  end
-end
-
-return Buffer

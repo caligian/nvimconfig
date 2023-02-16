@@ -73,7 +73,7 @@ function Lang._init(self, lang, opts)
     self:map(unpack(opts.kbd))
   end
   if opts.linters then
-    opts.linters = V.ensurelist(opts.linters)
+    opts.linters = V.tolist(opts.linters)
   end
   if opts.server and V.isstring(opts.server) then
     opts.server = { name = opts.server }

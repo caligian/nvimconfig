@@ -4,25 +4,32 @@ if not lazy then
   return
 end
 
-local user_plugins = V.require("user.plugins")
-local builtin = {
+user.plugins.plugins = {
   { "nvim-lua/plenary.nvim" },
+
+  { "junegunn/vim-easy-align", event = "BufReadPre" },
 
   -- Good opinionated themes
   {
-    "folke/tokyonight.nvim",
-    event = "VimEnter",
+    "sainnhe/everforest",
+    -- A hack to ensure that user.colorscheme is captured
     dependencies = {
-      { "nyoom-engineering/oxocarbon.nvim" },
+      { "catppuccin/nvim" },
+      { "fenetikm/falcon" },
+      { "shaunsingh/nord.nvim" },
+      { "rebelot/kanagawa.nvim" },
+      { "EdenEast/nightfox.nvim" },
+      { "projekt0n/github-nvim-theme" },
       { "bluz71/vim-nightfly-colors" },
       { "bluz71/vim-moonfly-colors" },
       { "folke/lsp-colors.nvim" },
       { "savq/melange-nvim" },
       { "AlexvZyl/nordic.nvim" },
-      { "lewpoly/sherbet.nvim" },
+      { "mhartington/oceanic-next" },
+      { "folke/tokyonight.nvim" },
     },
     config = function()
-      vim.cmd("colorscheme " .. "oxocarbon")
+      vim.cmd("colorscheme " .. user.colorscheme)
     end,
   },
 
@@ -282,5 +289,5 @@ local builtin = {
   },
 }
 
-V.lmerge(builtin, user_plugins or {})
-lazy.setup(builtin, { lazy = true })
+V.require("user.plugins.plugins")
+lazy.setup(user.plugins.plugins, { lazy = true })

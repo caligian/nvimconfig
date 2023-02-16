@@ -117,13 +117,13 @@ function Keybinding:disable()
     self.autocmd = nil
     if self.buffer then
       for _, mode in ipairs(self.mode) do
-        vim.api.nvim_buf_del_keymap(self.buffer, self.mode, self.lhs)
+        vim.api.nvim_buf_del_keymap(self.buffer, mode, self.lhs)
       end
     end
     self.enabled = false
   else
     for _, mode in ipairs(self.mode) do
-      vim.api.nvim_del_keymap(self.mode, self.lhs)
+      vim.api.nvim_del_keymap(mode, self.lhs)
     end
     self.enabled = false
   end
@@ -131,7 +131,7 @@ function Keybinding:disable()
   return self
 end
 
-function Keybinding:delete(self)
+function Keybinding:delete()
   if not self.enabled then
     return
   end
@@ -180,7 +180,7 @@ function Keybinding.noremap(mode, lhs, cb, opts)
   return Keybinding(mode, lhs, cb, opts)
 end
 
-function Keybinding:replace(self, cb, opts)
+function Keybinding:replace(cb, opts)
   assert(cb)
 
   self:delete()

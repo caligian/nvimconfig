@@ -1,10 +1,22 @@
--- Autocmd
+--- Autocommand creater for this framework
+-- All the autocommands are stored in Autocmd.id and Autocmd.group
+-- The default for all autocommands is UserGlobal
+
 class("Autocmd")
 
+-- @field id Contains all the autocommands created
 Autocmd.id = Autocmd.id or {}
+
+-- @field Autocmd.defaults Autocommands set by default
 Autocmd.defaults = Autocmd.defaults or {}
+
+-- @field Autocmd.group Autocommands hashed by group id
 Autocmd.group = Autocmd.group or {}
 
+--- Create autocommand. The API is similar to vim.api.nvim_create_autocmd
+-- @tparam string|table event Event[s] to bind to
+-- @tparam table opts Options table required by vim.api.nvim_create_autocmd
+-- @return self
 function Autocmd:_init(event, opts)
   assert(V.istable(opts))
   assert(opts.callback)
@@ -57,14 +69,22 @@ function Autocmd:_init(event, opts)
   return self
 end
 
+---
+-- Disable autocmd
+-- @return self
 function Autocmd:disable()
   if not self.enabled then
     return
   end
   vim.api.nvim_del_autocmd(self.id)
   self.enabled = false
+
+  return self
 end
 
+---
+-- Delete autocmd and make it inaccessible
+-- @return self
 function Autocmd:delete()
   self:disable()
   Autocmd.id[self.id] = nil
@@ -73,6 +93,9 @@ function Autocmd:delete()
   return self
 end
 
+--- Replace autocommand callback and remake the autocommands with new arguments
+-- @param callback Replacement callback. Should be a string or a function
+-- @return self
 function Autocmd:replace(callback)
   self:delete()
   local opts = self.opts

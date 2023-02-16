@@ -5,19 +5,17 @@ V.bind = vim.keymap.set
 V.stdpath = vim.fn.stdpath
 V.flatten = vim.tbl_flatten
 V.substr = string.sub
-V.filter = vim.tbl_filter
 V.deep_copy = vim.deepcopy
 V.deepcopy = V.deep_copy
 V.copy = vim.deepcopy
-V.is_empty = vim.tbl_isempty
-V.isempty = V.is_empty
-V.is_list = vim.tbl_islist
-V.islist = V.is_list
+V.isempty = V.tbl_is_empty
+V.islist = vim.tbl_islist
 V.keys = vim.tbl_keys
 V.values = vim.tbl_values
 V.map = vim.tbl_map
 V.trim = vim.trim
 V.validate = vim.validate
+V.filter = vim.tbl_filter
 
 function V.whereis(bin, regex)
   local out = vim.fn.system("whereis " .. bin .. [[ | cut -d : -f 2- | sed -r "s/(^ *| *$)//mg"]])
@@ -67,20 +65,46 @@ function V.extend(tbl, ...)
   return tbl
 end
 
+function V.teach(f, t)
+  for key, value in pairs(t) do
+    f(key, value)
+  end
+end
+
+function V.tmap(f, t)
+  local out = {}
+  for key, value in pairs(t) do
+    out[key] = f(key, value)
+  end
+
+  return out
+end
+
+function V.tfilter(f, t)
+  local filtered = {}
+  for key, value in pairs(t) do
+    local out = f(key, value)
+    if out then
+      filtered[key] = out
+    end
+  end
+
+  return filtered
+end
+
 function V.each(f, t)
   for _, value in ipairs(t) do
     f(value)
   end
 end
 
-function V.each_with_index(f, t)
+function V.ieach(f, t)
   for idx, value in ipairs(t) do
     f(idx, value)
   end
 end
-V.ieach = V.each_with_index
 
-function V.map_with_index(f, t)
+function V.imap(f, t)
   local out = {}
   for index, value in ipairs(t) do
     out[index] = f(index, value)
@@ -88,7 +112,6 @@ function V.map_with_index(f, t)
 
   return out
 end
-V.imap = V.map_with_index
 
 function V.inspect(...)
   local final_s = ""
@@ -105,7 +128,7 @@ end
 
 inspect = V.inspect
 
-function V.ensure_list(e, force)
+function V.tolist(e, force)
   if force then
     return { e }
   elseif type(e) ~= "table" then
@@ -114,23 +137,6 @@ function V.ensure_list(e, force)
     return e
   end
 end
-V.tolist = V.ensure_list
-V.ensurelist = V.ensure_list
-V.to_list = V.tolist
-
-function V.is_type(e, t)
-  return type(e) == t
-end
-V.istype = V.is_type
-
-function V.assert_type(e, t)
-  local out = V.is_type(e)
-  assert(out)
-
-  return out
-end
-
-V.asserttype = V.assert_type
 
 function V.append(t, ...)
   local idx = #t
@@ -148,9 +154,7 @@ function V.append_at_index(t, idx, ...)
 
   return t
 end
-V.append_at = V.append_at_index
 V.iappend = V.append_at_index
-V.appendat = V.append_at
 
 function V.shift(t, times)
   local l = #t
@@ -260,7 +264,7 @@ function V.rest(t)
 end
 
 function V.update(tbl, keys, value)
-  keys = V.ensure_list(keys)
+  keys = V.tolist(keys)
   local len_ks = #keys
   local t = tbl
 
@@ -453,7 +457,7 @@ function V.basename(s)
   return s[#s]
 end
 
-function V.get_visual_range(bufnr)
+function V.visualrange(bufnr)
   return vim.api.nvim_buf_call(bufnr or vim.fn.bufnr(), function()
     local _, csrow, cscol, _ = unpack(vim.fn.getpos("'<"))
     local _, cerow, cecol, _ = unpack(vim.fn.getpos("'>"))
@@ -464,18 +468,14 @@ function V.get_visual_range(bufnr)
     end
   end)
 end
-V.getvisualrange = V.get_visual_range
-V.visualrange = V.getvisualrange
 
-function V.nvim_err(...)
+function V.nvimerr(...)
   for _, s in ipairs({ ... }) do
     vim.api.nvim_err_writeln(s)
   end
 end
-V.nvimerr = V.nvim_err
-V.err = V.nvimerr
 
-function V.is_a(e, c)
+function V.isa(e, c)
   if type(c) == "string" then
     return type(e) == c
   elseif type(e) == "table" then
@@ -488,26 +488,17 @@ function V.is_a(e, c)
     return e == nil
   end
 end
-V.isa = V.is_a
-V.isstring = V.rpartial(V.is_a, "string")
-V.isuserdata = V.rpartial(V.is_a, "userdata")
-V.istable = V.rpartial(V.is_a, "table")
-V.isnumber = V.rpartial(V.is_a, "string")
-V.isnil = V.rpartial(V.is_a)
+V.isstring = V.rpartial(V.isa, "string")
+V.isuserdata = V.rpartial(V.isa, "userdata")
+V.istable = V.rpartial(V.isa, "table")
+V.isnumber = V.rpartial(V.isa, "string")
+V.isnil = V.rpartial(V.isa)
 V.isfunction = V.rpartial(V.isa, "function")
-V.is_function = V.rpartial(V.isa, "function")
-V.is_string = V.rpartial(V.is_a, "string")
-V.is_userdata = V.rpartial(V.is_a, "userdata")
-V.is_table = V.rpartial(V.is_a, "table")
-V.is_number = V.rpartial(V.is_a, "string")
-V.is_nil = V.rpartial(V.is_a)
 
 -- If multiple keys are supplied, the table is going to be assumed to be nested
-function V.has_key(tbl, ...)
+function V.haskey(tbl, ...)
   return (V.get(tbl, { ... }))
 end
-
-V.haskey = V.has_key
 
 function V.pcall(f, ...)
   local ok, out = pcall(f, ...)
@@ -556,7 +547,7 @@ function V.require(req, do_assert)
   end
 end
 
-function V.is_blank(s)
+function V.isblank(s)
   assert(V.isstring(s) or V.istable(s))
 
   if V.isstring(s) then
@@ -569,4 +560,7 @@ function V.is_blank(s)
     return i == 0
   end
 end
-V.isblank = V.is_blank
+
+function V.asserttype(e, t)
+  assert(V.isa(e, t))
+end

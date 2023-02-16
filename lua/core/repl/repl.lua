@@ -181,7 +181,7 @@ function REPL.send(self, s)
   ensure(self)
 
   local id = self.id
-  if V.is_type(s, "table") then
+  if V.isa(s, "table") then
     s = table.concat(s, "\n")
   end
   s = s .. "\r"
@@ -210,5 +210,5 @@ end
 
 function REPL.send_visual_range(self, src_bufnr)
   src_bufnr = src_bufnr or vim.fn.bufnr()
-  return self:send(V.get_visual_range(src_bufnr))
+  return self:send(V.visualrange(src_bufnr))
 end

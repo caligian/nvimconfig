@@ -18,7 +18,7 @@ end, {})
 
 -- Compile neovim lua
 local function compile_and_run(lines)
-  if V.is_type(lines, "table") then
+  if V.isa(lines, "table") then
     lines = table.concat(lines, "\n")
   end
 
@@ -32,7 +32,7 @@ end
 
 -- Setup commands
 V.command("NvimEvalRegion", function()
-  local lines = V.get_visual_range()
+  local lines = V.visualrange()
   compile_and_run(lines)
 end, { range = true })
 
@@ -51,3 +51,34 @@ V.command("NvimEvalLine", function()
   local line = vim.fn.getline(".")
   compile_and_run(line)
 end, {})
+
+-- Only works for guifg and guibg
+V.command("Darken", function(args)
+  args = vim.split(args.args, " +")
+  assert(#args == 2)
+
+  local what, by = unpack(args)
+  local hi = V.highlight("Normal")
+
+  if V.isblank(hi) then
+    return
+  end
+
+  local set = {}
+  if what == "fg" then
+    set["guifg"] = V.darken(hi["guifg"], tonumber(by))
+  else
+    set["guibg"] = V.darken(hi["guibg"], tonumber(by))
+  end
+
+  V.highlightset("Normal", set)
+end, { nargs = "+" })
+
+-- Only works with guifont
+-- :FontSize points
+V.command("FontSize", function(args)
+  args = vim.split(args.args, " +")
+  args = tonumber(args[1])
+  local font = vim.o.guifont
+  vim.o.guifont = font:gsub("h[0-9]+", "h" .. args)
+end, { nargs = "+" })
