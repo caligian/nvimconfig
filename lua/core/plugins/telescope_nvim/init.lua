@@ -144,4 +144,5 @@ user.plugins["telescope.nvim"].kbd = {
     { "p", ":Telescope project<CR>", { desc = "Project management" } }
   ),
 }
+
 V.require("user.telescope_nvim.kbd")

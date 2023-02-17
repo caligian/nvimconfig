@@ -56,26 +56,7 @@ user.plugins.plugins = {
     "nvim-tree/nvim-tree.lua",
     event = "WinEnter",
     config = function()
-      local tree = V.require("nvim-tree")
-      if tree then
-        V.require("user.nvim-tree_lua")
-        tree.setup(user.plugins["nvim-tree"])
-
-        local opts = { noremap = true, leader = true }
-        user.plugins["nvim-tree"] = {
-          kbd = {
-            toggle_nvim_tree = Keybinding.bind(
-              opts,
-              { "|", ":NvimTreeToggle<CR>", "Focus tree explorer" }
-            ),
-            focus_nvim_tree = Keybinding.bind(
-              opts,
-              { "\\", ":NvimTreeFocus<CR>", "Toggle tree explorer" }
-            ),
-          },
-        }
-        V.require("user.plugins.nvim-tree.kbd")
-      end
+      V.require("core.plugins.nvim-tree")
     end,
   },
 
@@ -97,8 +78,6 @@ user.plugins.plugins = {
 
   { "Raimondi/delimitMate", event = "InsertEnter" },
 
-  { "psliwka/vim-smoothie", event = "WinEnter" },
-
   {
     "mfussenegger/nvim-lint",
     event = "BufReadPost",
@@ -119,20 +98,7 @@ user.plugins.plugins = {
 
   {
     "Olical/conjure",
-    ft = {
-      "clojure",
-      "fennel",
-      "common-lisp",
-      "guile",
-      "hy",
-      "janet",
-      "julia",
-      "lua",
-      "python",
-      "racket",
-      "rust",
-      "scheme",
-    },
+    ft = user.conjure_langs,
   },
 
   {
@@ -155,7 +121,6 @@ user.plugins.plugins = {
       { "SirVer/ultisnips" },
       { "quangnguyen30192/cmp-nvim-ultisnips" },
       { "tamago324/cmp-zsh" },
-      { "hrsh7th/cmp-buffer" },
       { "f3fora/cmp-spell" },
       { "hrsh7th/cmp-nvim-lsp" },
       { "ray-x/cmp-treesitter" },

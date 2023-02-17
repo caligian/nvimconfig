@@ -1,8 +1,7 @@
 --- Autocommand creater for this framework
--- All the autocommands are stored in Autocmd.id and Autocmd.group
--- The default for all autocommands is UserGlobal
 
 class("Autocmd")
+A = A or Autocmd
 
 -- @field id Contains all the autocommands created
 Autocmd.id = Autocmd.id or {}
@@ -23,7 +22,9 @@ function Autocmd:_init(event, opts)
   assert(opts.pattern)
 
   local augroup
-  local group = V.deepcopy(opts.group or {})
+  local group = V.copy(opts.group or {})
+  local name = opts.name
+  opts.name = nil
   if type(group) == "string" then
     augroup = vim.api.nvim_create_augroup(group)
   else
@@ -58,6 +59,7 @@ function Autocmd:_init(event, opts)
   self.event = event
   self.enabled = false
   self.opts = opts
+  self.opts.name = name
 
   for key, value in pairs(opts) do
     self[key] = value
@@ -65,6 +67,11 @@ function Autocmd:_init(event, opts)
 
   V.update(Autocmd.id, id, self)
   V.update(Autocmd.group, { augroup, id }, self)
+
+  if name then
+    Autocmd.defaults[name] = self
+  end
+  self.name = name
 
   return self
 end
@@ -87,6 +94,11 @@ end
 -- @return self
 function Autocmd:delete()
   self:disable()
+
+  if self.name then
+    Autocmd.defaults[self.name] = nil
+  end
+
   Autocmd.id[self.id] = nil
   Autocmd.group[self.group][self.id] = nil
 
@@ -98,6 +110,7 @@ end
 -- @return self
 function Autocmd:replace(callback)
   self:delete()
+
   local opts = self.opts
   opts.callback = callback
 

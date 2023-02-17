@@ -3,6 +3,7 @@
 -- @classmod Buffer
 -- @submodule autocmd
 class("Buffer")
+B = B or Buffer
 
 -- @field bufnr Buffer objects are hashed by bufnr
 Buffer.bufnr = Buffer.bufnr or {}
@@ -13,6 +14,7 @@ Buffer.scratch = Buffer.scratch or {}
 -- Used for unique id generation
 local scratch_n = 0
 local input_buffer_n = 0
+local menu_buffer_n = 0
 
 local function update(self)
   V.update(Buffer.bufnr, { self.bufnr }, self)
@@ -330,4 +332,8 @@ end
 -- @see V.visualrange
 function Buffer:range()
   return V.visualrange(self.bufnr)
+end
+
+function Buffer:linecount()
+  return vim.api.nvim_buf_line_count(self.bufnr)
 end
