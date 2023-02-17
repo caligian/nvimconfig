@@ -46,6 +46,8 @@ end
 -- @tparam string|function cb Callback/RHS
 -- @tparam table rest Rest of the optional arguments
 -- @usage K(mode, lhs, cb, {
+--   -- Any Autocmd-compatible params other than event
+--   -- event and pattern when specified marks a local keybinding
 --   event = string|table
 
 --   -- Buffer local mapping. Pass a bufnr
@@ -76,6 +78,9 @@ function Keybinding:_init(mode, lhs, cb, rest)
     mode = vim.split(mode, "")
   end
 
+  if V.isstring(rest) then
+    rest = { desc = rest }
+  end
   rest = rest or {}
   rest = parse_opts(rest)
   local au, kbd, misc = rest.au, rest.kbd, rest.misc

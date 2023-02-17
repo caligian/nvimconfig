@@ -136,7 +136,7 @@ user.plugins["telescope.nvim"].kbd = {
 
   file_browser = Keybinding.bind(
     opts,
-    { "ff", ":Telescope file_browser<CR>", { desc = "File browser" } }
+    { "fF", ":Telescope file_browser<CR>", { desc = "File browser" } }
   ),
 
   project = Keybinding.bind(
