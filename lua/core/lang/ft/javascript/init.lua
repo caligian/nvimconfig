@@ -1,5 +1,6 @@
 return {
   compile = "node",
   repl = "node",
-  server = { name = "eslint" },
+  server = { name = "tsserver" },
+  linters = { "eslint" },
 }

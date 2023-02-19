@@ -2,11 +2,11 @@ local data_dir = vim.fn.stdpath("data")
 
 user.option = {
   o = {
-    cursorline = true,
+    cursorline = false,
     updatetime = 300,
     foldenable = false,
     timeoutlen = 350,
-    showtabline = 0,
+    showtabline = 1,
     completeopt = "menu,menuone,noselect",
     mouse = "a",
     history = 1000,
@@ -34,7 +34,6 @@ user.option = {
   g = {
     mapleader = " ",
     maplocalleader = ",",
-    netrw_banner = 0,
   },
 }
 

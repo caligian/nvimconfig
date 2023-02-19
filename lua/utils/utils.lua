@@ -473,9 +473,6 @@ function V.makepath(t, ...)
   return V.get(t, { ... }, true)
 end
 
-local s = "module 'user.globals.madarchod.lauda' not found"
-print(s:match("module '[^']+' not found"))
-
 function V.require(req, do_assert)
   local ok, out = pcall(require, req)
 

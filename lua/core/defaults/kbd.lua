@@ -60,6 +60,7 @@ K.bind(
   -- Named tab switching (optional)
   { "tf", ":tabedit ", { desc = "Tab find file", name = "edit_buffer_in_tab" } },
   { "tt", ":tabnew<CR>", { desc = "New tab", name = "new_tab" } },
+  { "tk", ":tabclose<CR>", { desc = "Close tab", name = "close_tab" } },
   { "tn", ":tabnext<CR>", { desc = "Next tab", name = "next_tab" } },
   { "tp", ":tabprev<CR>", { desc = "Previous tab", name = "prev_tab" } },
 
