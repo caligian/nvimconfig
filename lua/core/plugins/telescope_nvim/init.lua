@@ -86,6 +86,11 @@ user.plugins["telescope.nvim"].kbd = {
 
   find_files = Keybinding.bind(
     opts,
+    { "ff", picker("find_files"), { desc = "Find files in workspace" } }
+  ),
+
+  find_files = Keybinding.bind(
+    opts,
     { ".", picker("find_files"), { desc = "Find files in workspace" } }
   ),
 
