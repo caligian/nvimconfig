@@ -14,6 +14,9 @@ user.plugins.plugins = {
     "sainnhe/everforest",
     -- A hack to ensure that user.colorscheme is captured
     dependencies = {
+      {'tjdevries/colorbuddy.nvim'},
+      {'jesseleite/nvim-noirbuddy'},
+      {'ray-x/starry.nvim'},
       { "catppuccin/nvim" },
       { "fenetikm/falcon" },
       { "shaunsingh/nord.nvim" },

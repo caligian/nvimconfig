@@ -339,53 +339,6 @@ function V.get(tbl, ks, create_path)
   return v, t, tbl
 end
 
-function V.merge(a, b)
-  local at = a
-  local bt = b
-
-  for key, value in pairs(bt) do
-    local av = at[key]
-    local bv = value
-
-    if av == nil then
-      at[key] = bv
-    end
-
-    if type(bv) == "table" and type(av) == "table" then
-      V.merge(at[key], value)
-    else
-      at[key] = value
-    end
-  end
-
-  return a
-end
-
-function V.merge_keepleft(a, b)
-  local at = a
-  local bt = b
-
-  for key, value in pairs(bt) do
-    local av = at[key]
-    local bv = value
-
-    if av == nil then
-      at[key] = bv
-    end
-
-    if type(bv) == "table" and type(av) == "table" then
-      V.merge_keepleft(at[key], value)
-    elseif value ~= nil then
-      at[key] = value
-    end
-  end
-
-  return a
-end
-
-V.lmerge = V.merge_keepleft
-V.mergekeepleft = V.merge_keepleft
-
 function V.printf(...)
   print(V.sprintf(...))
 end
@@ -563,4 +516,85 @@ end
 
 function V.asserttype(e, t)
   assert(V.isa(e, t))
+end
+
+function V.lmerge(...)
+  local function _merge(t1, t2)
+    local later = {}
+
+    V.teach(function(k, v)
+      local a, b = t1[k], t2[k]
+
+      if a == nil then
+        t1[k] = v
+      elseif V.istable(a) and V.istable(b) then
+        V.append(later, { a, b })
+      end
+    end, t2)
+
+    V.each(function(next)
+      _merge(unpack(next))
+    end, later)
+  end
+
+  local args = { ... }
+  local l = #args
+  local start = args[1]
+  for i = 2, l do
+    _merge(start, args[i])
+  end
+
+  return start
+end
+
+function V.merge(...)
+  local function _merge(t1, t2)
+    local later = {}
+
+    V.teach(function(k, v)
+      local a, b = t1[k], t2[k]
+
+      if a == nil then
+        t1[k] = v
+      elseif V.istable(a) and V.istable(b) then
+        V.append(later, { a, b })
+      else
+        t1[k] = v
+      end
+    end, t2)
+
+    V.each(function(next)
+      _merge(unpack(next))
+    end, later)
+  end
+
+  local args = { ... }
+  local l = #args
+  local start = args[1]
+  for i = 2, l do
+    _merge(start, args[i])
+  end
+
+  return start
+end
+
+function V.apply(f, args)
+  return f(unpack(args))
+end
+
+function V.tapply(t, f)
+  local later = {}
+  for key, value in pairs(t) do
+    if V.istable(value) then
+      V.append(later, value)
+    else
+      t[key] = f(value)
+    end
+  end
+
+  for _, value in ipairs(later) do
+    V.twalk(value, f)
+  end
+
+  return t
 end

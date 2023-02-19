@@ -17,11 +17,10 @@ if not exists then
 end
 vim.opt.rtp:prepend(lazypath)
 
-local ok = pcall(require, 'lazy')
+local ok = pcall(require, "lazy")
 if not ok then
-  error('FATAL ERROR: Could not install lazy.nvim')
+  error("FATAL ERROR: Could not install lazy.nvim")
 end
-
 
 -- Enable support for nvim-local luarocks
 local config_dir = vim.fn.stdpath("config")
@@ -61,6 +60,7 @@ install_luarock("lualogging", "logging.file")
 -- Make some global variables
 local log_path = vim.fn.stdpath("config") .. "/nvim.log"
 class = require("pl.class")
+Set = require("pl.Set")
 yaml = require("yaml")
 path = require("pl.path")
 listcomp = require("pl.comprehension")

@@ -79,7 +79,7 @@ function Lang._init(self, lang, opts)
     opts.server = { name = opts.server }
   end
 
-  V.merge(self, opts or {})
+  self = V.merge(self, opts or {})
   Lang.langs[lang] = self
 
   return self

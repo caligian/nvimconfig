@@ -3,7 +3,7 @@ vim.cmd("noremap gQ <nop>")
 
 local opts = { noremap = true, leader = true, mode = "n" }
 
-Keybinding.bind(
+K.bind(
   opts,
 
   -- File and buffer operations
@@ -58,10 +58,8 @@ Keybinding.bind(
   },
 
   -- Named tab switching (optional)
-  { "tt", ":TabNew ", { desc = "New tab", name = "new_named_tab" } },
   { "tf", ":tabedit ", { desc = "Tab find file", name = "edit_buffer_in_tab" } },
-  { "tT", ":tabnew ", { desc = "New tab", name = "new_named_tab" } },
-  { "t?", ":TabSwitch<CR>", { desc = "Switch tab", name = "tab_switch" } },
+  { "tt", ":tabnew<CR>", { desc = "New tab", name = "new_tab" } },
   { "tn", ":tabnext<CR>", { desc = "Next tab", name = "next_tab" } },
   { "tp", ":tabprev<CR>", { desc = "Previous tab", name = "prev_tab" } },
 
@@ -69,18 +67,19 @@ Keybinding.bind(
   { "hl", ":ShowLogs<CR>", { desc = "Show startup logs", name = "startup_logs" } }
 )
 
-Keybinding.noremap("n", "\\\\", ":noh<CR>", { desc = "No highlight", silent = true, name = "noh" })
+K.noremap("n", "\\\\", ":noh<CR>", { desc = "No highlight", silent = true, name = "noh" })
 
-Keybinding.noremap(
-  "n",
-  "<leader>w",
-  "<C-w>",
-  { silent = true, desc = "Window commands", name = "window" }
-)
+K.noremap("n", "<leader>w", "<C-w>", { silent = true, desc = "Window commands", name = "window" })
 
-Keybinding.noremap(
+K.noremap(
   "t",
   "<esc>",
   "<C-\\><C-n>",
   { desc = "Terminal to normal mode", name = "fix_esc_in_terminal" }
+)
+
+K.bind(
+  { prefix = "<C-x>", noremap = true, silent = true },
+  { "<C-->", ":FontSize -1<CR>", "Decrease font size by 1pt" },
+  { "<C-=>", ":FontSize +1<CR>", "Increase font size by 1pt" }
 )

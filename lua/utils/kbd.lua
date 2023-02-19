@@ -73,7 +73,7 @@ function Keybinding:_init(mode, lhs, cb, rest)
   assert(lhs, "No LHS provided")
   assert(cb, "No RHS provided")
 
-  mode = mode or "n"
+  mode = mode or rest.mode or "n"
   if V.isstring(mode) then
     mode = vim.split(mode, "")
   end
@@ -88,7 +88,6 @@ function Keybinding:_init(mode, lhs, cb, rest)
   local localleader = misc.localleader
   local prefix = misc.prefix
   local buffer = kbd.buffer == true and vim.fn.buffer() or kbd.buffer
-  mode = mode or misc.mode or "n"
   local event = misc.event
   local pattern = au.pattern
   local name = misc.name
@@ -205,13 +204,21 @@ function Keybinding.bind(opts, ...)
     assert(V.isa(kbd, "table"))
     assert(#kbd >= 2)
 
-    kbd[3] = kbd[3] or {}
-    if V.isstring(kbd[3]) then
-      kbd[3] = { desc = kbd[3] }
+    local o = kbd[3]
+    o = o or {}
+
+    if V.isstring(o) then
+      o = { desc = o }
     end
-    V.lmerge(kbd[3] or {}, opts)
-    kbd[3].mode = kbd[3].mode or "n"
-    local mode = kbd[3].mode
+
+    for key, value in pairs(opts) do
+      if not o[key] then
+        o[key] = value
+      end
+    end
+
+    local mode = o.mode or "n"
+    kbd[3] = o
 
     return Keybinding(mode, unpack(kbd))
   end

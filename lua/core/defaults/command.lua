@@ -78,39 +78,19 @@ end, { nargs = "+" })
 -- :FontSize points
 V.command("FontSize", function(args)
   args = vim.split(args.args, " +")
-  args = tonumber(args[1])
-  local font = vim.o.guifont
-  vim.o.guifont = font:gsub("h[0-9]+", "h" .. args)
-end, { nargs = "+" })
+  args = args[1]
+  local font, height = string.match(vim.o.guifont, "([^:]+):h([0-9]+)")
 
--- Tab commands
-user.tabs = user.tabs or {}
-V.command("TabNew", function(args)
-  args = V.trim(args.args)
-  args = V.isblank(args) and (#tabs + 1) or args
-  V.append(user.tabs, args)
-  vim.cmd("tabnew | tabprev")
-end, { nargs = "?" })
-
-V.command("TabSwitch", function(args)
-  args = V.trim(args.args)
-  if #args == 0 then
-    vim.ui.select(user.tabs, {
-      prompt = "Switch to tab? % ",
-    }, function(choice)
-      if V.isblank(choice) then
-        return
-      end
-      local offset = vim.fn.tabpagenr("$")
-      vim.cmd(":tabNext " .. (offset + V.index(user.tabs, choice)))
-    end)
+  local inc = args:match("^([-+])")
+  args = args:gsub("^[-+]", "")
+  args = tonumber(args)
+  if inc == "+" then
+    height = height + args
+  elseif inc == "-" then
+    height = height - args
   else
-    local offset = vim.fn.tabpagenr("$")
-    vim.cmd(":tabNext " .. (offset + V.index(user.tabs, choice)))
+    height = args
   end
-end, {
-  complete = function()
-    return user.tabs
-  end,
-  nargs = "?",
-})
+
+  vim.cmd("set guifont=" .. sprintf("%s:h%d", font, height))
+end, { nargs = "+" })
