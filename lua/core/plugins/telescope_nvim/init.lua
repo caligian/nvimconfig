@@ -1,4 +1,3 @@
-local telescope = V.require("telescope")
 local ivy = V.require("telescope.themes").get_ivy()
 local file_browser_actions = V.require("core.plugins.telescope_nvim.file_browser")
 local buffer_actions = V.require("core.plugins.telescope_nvim.buffers")
@@ -89,7 +88,7 @@ user.plugins["telescope.nvim"].kbd = {
     { "ff", picker("find_files"), { desc = "Find files in workspace" } }
   ),
 
-  find_files = Keybinding.bind(
+  find_files_alt = Keybinding.bind(
     opts,
     { ".", picker("find_files"), { desc = "Find files in workspace" } }
   ),
