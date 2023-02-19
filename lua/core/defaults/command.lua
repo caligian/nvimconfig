@@ -24,7 +24,7 @@ local function compile_and_run(lines)
 
   local compiled, err = loadstring(lines)
   if err then
-    V.nvim_err(err)
+    V.err(err)
   elseif compiled then
     compiled()
   end
