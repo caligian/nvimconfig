@@ -24,7 +24,7 @@ local function compile_and_run(lines)
 
   local compiled, err = loadstring(lines)
   if err then
-    V.err(err)
+    V.nvimerr(err)
   elseif compiled then
     compiled()
   end
