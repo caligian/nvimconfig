@@ -92,7 +92,7 @@ function Lang.load(lang)
     return
   end
 
-  return Lang(lang, V.lmerge(c, u or {}))
+  return Lang(lang, V.lmerge(u or {}, c))
 end
 
 function Lang.loadall()
@@ -102,3 +102,4 @@ function Lang.loadall()
     Lang.load(V.basename(ft))
   end
 end
+

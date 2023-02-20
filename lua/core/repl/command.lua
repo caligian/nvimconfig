@@ -29,6 +29,10 @@ V.command(
   { nargs = "?" }
 )
 
+V.command('TerminateInputREPL', wrap(function (r)
+  r:terminate_input()
+end), {nargs='?'})
+
 V.command("StopREPL", stop, { nargs = "?" })
 
 V.command(

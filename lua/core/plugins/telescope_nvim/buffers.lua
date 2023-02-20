@@ -13,6 +13,7 @@ local mod = setmetatable({}, {
       else
         f(picker:get_current_selection())
       end
+      actions.close(bufnr)
     end)
   end,
 })

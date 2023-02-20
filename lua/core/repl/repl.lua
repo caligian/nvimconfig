@@ -4,12 +4,12 @@ REPL.id = REPL.id or {}
 REPL.buffer = REPL.buffer or {}
 REPL.commands = REPL.commands or {}
 
-function REPL.is_visible(self)
+function REPL:is_visible()
   local winnr = vim.fn.bufwinnr(self.bufnr)
   return winnr ~= -1
 end
 
-function REPL.status(self)
+function REPL:status()
   local id = self.id
   id = vim.fn.jobwait({ id }, 0)[1]
 
@@ -22,19 +22,19 @@ function REPL.status(self)
   end
 end
 
-function REPL.is_valid(self)
+function REPL:is_valid()
   return self:status() ~= false
 end
 
-function REPL.is_running(self)
+function REPL:is_running()
   return self:status() == "running"
 end
 
-function REPL.is_interrupted(self)
+function REPL:is_interrupted()
   return self:status() == "interrupted"
 end
 
-function REPL.stop(self)
+function REPL:stop()
   local id = self.id
   if not self:is_running() then
     return
@@ -49,7 +49,7 @@ function REPL.stop(self)
   end
 end
 
-function REPL.stopall()
+function REPL:stopall()
   for _, r in pairs(REPL.buffer) do
     r:stop()
   end
@@ -64,7 +64,7 @@ local function get(name)
   end
 end
 
-function REPL._init(self, name, opts)
+function REPL:_init(name, opts)
   local r = get(name)
   if r then
     return r
@@ -98,7 +98,7 @@ local function start(bufnr, cmd)
   end)
 end
 
-function REPL.start(self, opts)
+function REPL:start(opts)
   opts = opts or {}
   opts = V.lmerge(opts, self)
   opts.name = opts.name or vim.bo.filetype or ""
@@ -206,3 +206,10 @@ function REPL.send_visual_range(self, src_bufnr)
   src_bufnr = src_bufnr or vim.fn.bufnr()
   return self:send(V.visualrange(src_bufnr))
 end
+
+function REPL:terminate_input()
+  return self:send("")
+end
+
+r = REPL.buffer[81]
+r:stop()

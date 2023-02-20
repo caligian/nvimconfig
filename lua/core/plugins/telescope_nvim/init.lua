@@ -109,6 +109,11 @@ user.plugins["telescope.nvim"].kbd = {
     { "ht", picker("colorscheme"), { desc = "Select colorscheme" } }
   ),
 
+  treesitter = Keybinding.bind(
+    opts,
+    { "lt", picker("treesitter"), { desc = "Telescope treesitter" } }
+  ),
+
   lsp_references = Keybinding.bind(
     opts,
     { "lr", picker("lsp_references"), { desc = "Show references" } }

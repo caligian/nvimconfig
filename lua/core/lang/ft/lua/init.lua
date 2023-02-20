@@ -4,7 +4,7 @@ return {
   linters = "luacheck",
 
   server = {
-    name = "sumneko_lua",
+    name = "lua_ls",
     config = require("core.lang.ft.lua.sumneko_lua"),
   },
 
