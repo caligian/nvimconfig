@@ -4,14 +4,6 @@ REPL.id = REPL.id or {}
 REPL.buffer = REPL.buffer or {}
 REPL.commands = REPL.commands or {}
 
-for ft, conf in pairs(Lang.langs) do
-  if conf.repl then
-    REPL.commands[ft] = conf.repl
-  end
-end
-
-V.require("user.repl")
-
 function REPL.is_visible(self)
   local winnr = vim.fn.bufwinnr(self.bufnr)
   return winnr ~= -1
@@ -85,6 +77,9 @@ function REPL._init(self, name, opts)
     self.name = name
   end
 
+  self.command = V.get(Lang.langs, { name, "repl" })
+  assert(self.command, "No command specified for filetype " .. name)
+
   for k, v in pairs(opts) do
     self[k] = v
   end
@@ -107,15 +102,14 @@ function REPL.start(self, opts)
   opts = opts or {}
   opts = V.lmerge(opts, self)
   opts.name = opts.name or vim.bo.filetype or ""
+
   if #opts.name == 0 then
     return
   end
-  opts.cmd = opts.cmd or REPL.commands[opts.name]
-  local name, cmd = opts.name, opts.cmd
 
-  assert(cmd, "No command provided")
-
+  local name, cmd = opts.name, self.command
   local r = get(name)
+
   if opts.force then
     r:stop()
     r:start(opts)

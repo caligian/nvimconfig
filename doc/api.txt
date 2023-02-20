@@ -3,9 +3,8 @@ Table of Contents *_toc*
 
 1. Introduction          |_introduction|
 2. Requirements          |_requirements|
-3. Bootstrapping process |_bootstrapping|
-4. Preconfigured plugins |_plugins|
-5. User configuration    |_user|
+3. Preconfigured plugins |_plugins|
+4. User configuration    |_user|
 
 ===
 Introduction *_introduction*
@@ -43,24 +42,3 @@ Additionally, you might need nodejs, rubygems, ruby-bundler, in order to use
 with Mason.vim to download formatters, linters, LSP, etc
 
 ===
-Bootstrapping *_bootstrapping*
-
-Order of loading of files:
-- lua/bootstrap.lua
-- lua/utils/init.lua
-  + utils.lua 
-  + autocmd.lua
-  + kbd.lua
-  + buffer.lua
-  + process.lua
-  + color.lua
-- lua/core/init.lua
-  + globals.lua         [~/.nvim/lua/user/globals.lua]
-  + option.lua          [~/.nvim/lua/user/option.lua]
-  + defaults.lua        [~/.nvim/lua/user/defaults.lua]
-  + lang.lua            
-    - ft/*              [~/nvim/lua/user/lang/ft/*]
-  + repl/init.lua
-    - Keybindings, etc
-  + plugins/init.lua  [~/.nvim/lua/user/plugins/plugins.lua]
-    - lua/core/plugins/*       [~/.nvim/lua/user/plugins/*]

@@ -4,6 +4,8 @@ if not lazy then
   return
 end
 
+V.makepath(user, "plugins", "plugins")
+
 user.plugins.plugins = {
   { "nvim-lua/plenary.nvim" },
 
@@ -14,9 +16,9 @@ user.plugins.plugins = {
     "sainnhe/everforest",
     -- A hack to ensure that user.colorscheme is captured
     dependencies = {
-      {'tjdevries/colorbuddy.nvim'},
-      {'jesseleite/nvim-noirbuddy'},
-      {'ray-x/starry.nvim'},
+      { "tjdevries/colorbuddy.nvim" },
+      { "jesseleite/nvim-noirbuddy" },
+      { "ray-x/starry.nvim" },
       { "catppuccin/nvim" },
       { "fenetikm/falcon" },
       { "shaunsingh/nord.nvim" },
@@ -141,23 +143,23 @@ user.plugins.plugins = {
       local opts = { noremap = true, leader = true, mode = "n" }
       user.plugins["vim-fugitive"] = {
         minwidth = 47,
-        kbd = {
-          git_status = Keybinding.bind(opts, {
-            "gg",
-            function()
-              -- Tree-like Git status
-              local minwidth = user.plugins["vim-fugitive"].minwidth
-              local width = vim.fn.winwidth(0)
-              local count = math.floor(vim.fn.winwidth(0) / 4)
-              count = count < minwidth and minwidth or count
+      }
+      user.plugins["vim-fugitive"].kbd = {
+        git_status = Keybinding.bind(opts, {
+          "gg",
+          function()
+            -- Tree-like Git status
+            local minwidth = user.plugins["vim-fugitive"].minwidth
+            local width = vim.fn.winwidth(0)
+            local count = math.floor(vim.fn.winwidth(0) / 4)
+            count = count < minwidth and minwidth or count
 
-              vim.cmd(":vertical Git")
-              vim.cmd(":vertical resize " .. count)
-            end,
-          }),
-          git_stage = Keybinding.bind(opts, { "gs", ":Git stage %<CR>", "Stage buffer" }),
-          git_commit = Keybinding.bind(opts, { "gc", ":Git commit <CR>", "Commit buffer" }),
-        },
+            vim.cmd(":vertical Git")
+            vim.cmd(":vertical resize " .. count)
+          end,
+        }),
+        git_stage = Keybinding.bind(opts, { "gs", ":Git stage %<CR>", "Stage buffer" }),
+        git_commit = Keybinding.bind(opts, { "gc", ":Git commit <CR>", "Commit buffer" }),
       }
       V.require("user.plugins.vim-fugitive")
     end,

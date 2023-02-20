@@ -69,15 +69,18 @@ end
 -- @see autocmd
 -- @return object
 function Keybinding:_init(mode, lhs, cb, rest)
-  assert(mode, "No mode provided")
-  assert(lhs, "No LHS provided")
-  assert(cb, "No RHS provided")
+  assert(V.isstring(mode) or V.istable(mode))
+  assert(V.isstring(lhs))
+  assert(V.isfunction(cb) or V.isstring(cb))
+
+  rest = rest or {}
+
+  assert(V.istable(rest))
 
   mode = mode or rest.mode or "n"
   if V.isstring(mode) then
     mode = vim.split(mode, "")
   end
-
   if V.isstring(rest) then
     rest = { desc = rest }
   end
@@ -204,12 +207,15 @@ function Keybinding.bind(opts, ...)
     assert(V.isa(kbd, "table"))
     assert(#kbd >= 2)
 
-    local o = kbd[3]
-    o = o or {}
+    local lhs, cb, o = unpack(kbd)
+    assert(V.isstring(lhs))
+    assert(V.isstring(cb) or V.isfunction(cb))
 
+    o = o or {}
     if V.isstring(o) then
       o = { desc = o }
     end
+    assert(V.istable(o))
 
     for key, value in pairs(opts) do
       if not o[key] then
@@ -238,6 +244,9 @@ end
 --- Same as map but sets noremap to true
 function Keybinding.noremap(mode, lhs, cb, opts)
   opts = opts or {}
+  if V.isstring(opts) then
+    opts = { desc = opts }
+  end
   opts.noremap = true
 
   return Keybinding(mode, lhs, cb, pts)

@@ -82,9 +82,7 @@ end
 -- class creation of penlight is not so intuitive
 local old_class = class
 class = function(name, Base)
-  if not _G[name] then
-    old_class[name](Base)
-  end
+  old_class[name](Base)
   return _G[name]
 end
 

@@ -29,13 +29,13 @@ end
 -- @param[opt] scratch Is a scratch buffer?
 -- @return self
 function Buffer:_init(name, scratch)
-  local bufnr = vim.fn.bufnr(name, true)
-  if name:match("^scratch_") then
+  if V.isstring(name) and name:match("^scratch_") then
     scratch = true
   elseif not name and scratch then
     name = sprintf("scratch_buffer_%d", scratch_n + 1)
   end
 
+  local bufnr = vim.fn.bufnr(name, true)
   if Buffer.bufnr[bufnr] then
     return Buffer.bufnr[bufnr]
   end
