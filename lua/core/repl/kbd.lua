@@ -20,4 +20,4 @@ defaults.send_buffer_to_repl = Keybinding.bind(opts, { "rb", "<cmd>SendBufferREP
 defaults.send_till_point_to_repl = Keybinding.bind(opts, { "r.", "<cmd>SendTillPointREPL<CR>" })
 defaults.send_range_to_repl = Keybinding.noremap("v", "<leader>re", "<cmd>SendRangeREPL<CR>")
 defaults.send_range_to_shell = Keybinding.noremap("v", "<leader>xe", "<cmd>SendRangeREPL sh<CR>")
-defaults.terminate_input = Keybinding.bind(opts, {'xc', '<cmd>TerminateInputREPL<CR>', 'Terminate input in REPL'})
+defaults.terminate_input = Keybinding.bind(opts, {'rc', '<cmd>TerminateInputREPL<CR>', 'Terminate input in REPL'})

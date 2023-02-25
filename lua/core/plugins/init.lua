@@ -23,6 +23,7 @@ user.plugins.plugins = {
     "sainnhe/everforest",
     -- A hack to ensure that user.colorscheme is captured
     dependencies = {
+      {'svrana/neosolarized.nvim'},
       { "tjdevries/colorbuddy.nvim" },
       { "jesseleite/nvim-noirbuddy" },
       { "ray-x/starry.nvim" },
@@ -41,7 +42,10 @@ user.plugins.plugins = {
       { "folke/tokyonight.nvim" },
     },
     config = function()
-      vim.cmd("colorscheme " .. user.colorscheme)
+      require('neosolarized').setup {
+        comment_italics = true,
+        background_set = false,
+      }
     end,
   },
 
@@ -267,4 +271,5 @@ user.plugins.plugins = {
 }
 
 V.require("user.plugins.plugins")
+
 lazy.setup(user.plugins.plugins, { lazy = true })

@@ -79,11 +79,13 @@ end, { nargs = "+" })
 V.command("FontSize", function(args)
   args = vim.split(args.args, " +")
   args = args[1]
-  local font, height = string.match(vim.o.guifont, "([^:]+):h([0-9]+)")
-
-  local inc = args:match("^([-+])")
+  local font, height, inc
+  font = vim.o.guifont:match('^([^:]+)')
+  height = vim.o.guifont:match('h([0-9]+)') or 12
+  inc = args:match("^([-+])")
   args = args:gsub("^[-+]", "")
   args = tonumber(args)
+
   if inc == "+" then
     height = height + args
   elseif inc == "-" then
@@ -91,6 +93,7 @@ V.command("FontSize", function(args)
   else
     height = args
   end
+  height = args == '' and 12 or height
 
   vim.cmd("set guifont=" .. sprintf("%s:h%d", font, height))
 end, { nargs = "+" })

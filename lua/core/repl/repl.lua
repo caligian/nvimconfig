@@ -210,6 +210,3 @@ end
 function REPL:terminate_input()
   return self:send("")
 end
-
-r = REPL.buffer[81]
-r:stop()
