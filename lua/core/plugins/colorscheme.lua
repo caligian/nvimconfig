@@ -175,7 +175,7 @@ Keybinding.bind(
         if pos > 1 then
           local t = buf:lines(pos-1, pos)[1]
           theme.colorscheme = t
-          vim.cmd('colorscheme ' .. t)
+          set_colorscheme()
         end
       end}
     )
