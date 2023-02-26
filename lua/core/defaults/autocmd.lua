@@ -5,10 +5,10 @@ Autocmd.defaults.highlight_on_yank = Autocmd("TextYankPost", {
   end,
 })
 
-Autocmd.defaults.i3config = Autocmd('BufNew', {
+Autocmd.defaults.i3config = Autocmd('BufEnter', {
   pattern = '*i3',
   callback = function ()
-    vim.bo.filetype = 'i3config'
+    vim.cmd('set ft=i3config')
     vim.bo.shiftwidth = 2
     vim.bo.tabstop = 2
   end,
