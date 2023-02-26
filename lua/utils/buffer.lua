@@ -30,15 +30,16 @@ end
 -- @param name Name of the buffer
 -- @param[opt] scratch Is a scratch buffer?
 -- @return self
-function Buffer:_init(name)
-  local scratch = false
+function Buffer:_init(name, scratch)
   if not name then
     scratch = true
   end
 
   local bufnr
-  if scratch then
+  if not name and scratch then
     bufnr = vim.api.nvim_create_buf(false, true)
+  elseif scratch then
+    bufnr = vim.fn.bufnr(name, true)
   else
     V.isstring(name)
     bufnr = vim.fn.bufnr(name, true)
