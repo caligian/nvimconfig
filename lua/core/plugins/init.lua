@@ -12,10 +12,10 @@ user.plugins.plugins = {
   { "junegunn/vim-easy-align", event = "BufReadPre" },
 
   {
-    'lambdalisue/suda.vim', 
-    config = function (...)
+    "lambdalisue/suda.vim",
+    config = function(...)
       vim.g.suda_smart_edit = 1
-    end
+    end,
   },
 
   -- Good opinionated themes
@@ -23,13 +23,13 @@ user.plugins.plugins = {
     "sainnhe/everforest",
     -- A hack to ensure that user.colorscheme is captured
     dependencies = {
-      {'RRethy/nvim-base16'},
-      {'rktjmp/lush.nvim'},
-      {'rose-pine/neovim'},
-      {'navarasu/onedark.nvim'},
-      {'Shatur/neovim-ayu'},
-      {'svrana/neosolarized.nvim'},
-      {'mcchrish/zenbones.nvim'},
+      { "RRethy/nvim-base16" },
+      { "rktjmp/lush.nvim" },
+      { "rose-pine/neovim" },
+      { "navarasu/onedark.nvim" },
+      { "Shatur/neovim-ayu" },
+      { "svrana/neosolarized.nvim" },
+      { "mcchrish/zenbones.nvim" },
       { "tjdevries/colorbuddy.nvim" },
       { "jesseleite/nvim-noirbuddy" },
       { "ray-x/starry.nvim" },
@@ -48,7 +48,7 @@ user.plugins.plugins = {
       { "folke/tokyonight.nvim" },
     },
     config = function()
-      require 'core.plugins.colorscheme'
+      require("core.plugins.colorscheme")
     end,
   },
 
@@ -154,12 +154,15 @@ user.plugins.plugins = {
     "tpope/vim-fugitive",
     keys = "<leader>g",
     config = function()
-      local opts = { noremap = true, leader = true, mode = "n" }
       user.plugins["vim-fugitive"] = {
         minwidth = 47,
       }
-      user.plugins["vim-fugitive"].kbd = {
-        git_status = Keybinding.bind(opts, {
+
+      Keybinding.bind(
+        { noremap = true, leader = true, mode = "n" },
+        { "gs", ":Git stage %<CR>", { desc = "Stage buffer", desc = "stage_buffer" } },
+        { "gc", ":Git commit <CR>", { desc = "Commit buffer", name = "commit buffer" } },
+        {
           "gg",
           function()
             -- Tree-like Git status
@@ -171,10 +174,10 @@ user.plugins.plugins = {
             vim.cmd(":vertical Git")
             vim.cmd(":vertical resize " .. count)
           end,
-        }),
-        git_stage = Keybinding.bind(opts, { "gs", ":Git stage %<CR>", "Stage buffer" }),
-        git_commit = Keybinding.bind(opts, { "gc", ":Git commit <CR>", "Commit buffer" }),
-      }
+          { desc = "Open Fugitive", name = "fugitive" }
+        }
+      )
+
       V.require("user.plugins.vim-fugitive")
     end,
   },
@@ -184,16 +187,12 @@ user.plugins.plugins = {
     keys = "<C-t>",
     event = "BufEnter",
     config = function()
-      user.plugins["tagbar"] = {
-        kbd = {
-          open_tagbar = Keybinding.noremap(
-            "n",
-            "<C-t>",
-            ":TagbarToggle<CR>",
-            { desc = "Toggle tagbar" }
-          ),
-        },
-      }
+      Keybinding.noremap(
+        "n",
+        "<C-t>",
+        ":TagbarToggle<CR>",
+        { desc = "Toggle tagbar", name = "tagbar" }
+      )
       V.require("user.plugins.tagbar")
     end,
   },
@@ -256,18 +255,11 @@ user.plugins.plugins = {
     event = "BufReadPre",
     config = function()
       local opts = { noremap = true, leader = true }
-      user.plugins["vim-bbye"] = {
-        kbd = {
-          delete_buffer = Keybinding.bind(
-            opts,
-            { "bq", "<cmd>Bdelete<CR>", { desc = "Delete buffer" } }
-          ),
-          wipeout_buffer = Keybinding.bind(
-            opts,
-            { "bQ", "<cmd>Bwipeout<CR>", { desc = "Wipeout buffer" } }
-          ),
-        },
-      }
+      Keybinding.bind(
+        opts,
+        { "bq", "<cmd>Bdelete<CR>", { desc = "Delete buffer" } },
+        { "bQ", "<cmd>Bwiepout<CR>", { desc = "Wipeout buffer" } }
+      )
       V.require("user.plugins.vim-bbye")
     end,
   },

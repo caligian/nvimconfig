@@ -74,7 +74,7 @@ wk.setup(user.plugins["which-key.nvim"])
 wk.register({
   f = { name = "File management" },
   g = { name = "Git operations" },
-  h = { name = "Help" },
+  h = { name = "Help", t = { name = "Colorscheme" } },
   r = { name = "REPL operations" },
   l = { name = "LSP management", t = { name = "Trouble" }, w = { name = "Workspaces" } },
   t = { name = "Tab management" },

@@ -61,97 +61,36 @@ local function picker(p)
 end
 
 local opts = { noremap = true, leader = true, mode = "n" }
-user.plugins["telescope.nvim"].kbd = {
-  grep_string = Keybinding.bind(
-    opts,
-    { "/", picker("grep_string"), { desc = "Grep string in workspace" } }
-  ),
-
-  live_grep = Keybinding.bind(
-    opts,
-    { "?", picker("live_grep"), { desc = "Live grep in workspace" } }
-  ),
-
-  marks = Keybinding.bind(opts, { "'", picker("marks"), { desc = "Show marks" } }),
-
-  registers = Keybinding.bind(opts, { '"', picker("registers"), { desc = "Show registers" } }),
-
-  resume = Keybinding.bind(opts, { "<leader>", picker("resume"), { desc = "Resume telescope" } }),
-
-  vim_options = Keybinding.bind(
-    opts,
-    { "ho", picker("vim_options"), { desc = "Show vim options" } }
-  ),
-
-  find_files = Keybinding.bind(
-    opts,
-    { "ff", picker("find_files"), { desc = "Find files in workspace" } }
-  ),
-
-  find_files_alt = Keybinding.bind(
-    opts,
-    { ".", picker("find_files"), { desc = "Find files in workspace" } }
-  ),
-
-  git_files = Keybinding.bind(opts, { "gf", picker("git_files"), { desc = "Do git ls-files" } }),
-
-  buffers = Keybinding.bind(opts, { "bb", picker("buffers"), { desc = "Show buffers" } }),
-
-  oldfiles = Keybinding.bind(
-    opts,
-    { "fr", picker("oldfiles"), { desc = "Show recently opened files" } }
-  ),
-
-  man_pages = Keybinding.bind(opts, { "hm", picker("man_pages"), { desc = "Show man pages" } }),
-
-  colorscheme = Keybinding.bind(
-    opts,
-    { "hc", picker("colorscheme"), { desc = "Select colorscheme" } }
-  ),
-
-  treesitter = Keybinding.bind(
-    opts,
-    { "lt", picker("treesitter"), { desc = "Telescope treesitter" } }
-  ),
-
-  lsp_references = Keybinding.bind(
-    opts,
-    { "lr", picker("lsp_references"), { desc = "Show references" } }
-  ),
-
-  lsp_document_symbols = Keybinding.bind(
-    opts,
-    { "ls", picker("lsp_document_symbols"), { desc = "Buffer symbols" } }
-  ),
-
-  lsp_workspace_symbols = Keybinding.bind(
-    opts,
-    { "lS", picker("lsp_workspace_symbols"), { desc = "Workspace symbols" } }
-  ),
-
-  diagnostics = Keybinding.bind(
-    opts,
-    { "ld", picker("diagnostics"), { desc = "Show LSP diagnostics" } }
-  ),
-
-  git_commits = Keybinding.bind(opts, { "gC", picker("git_commits"), { desc = "Show commimts" } }),
-
-  git_bcommits = Keybinding.bind(
-    opts,
-    { "gB", picker("git_bcommits"), { desc = "Show branch commits" } }
-  ),
-
-  git_status = Keybinding.bind(opts, { "g?", picker("git_status"), { desc = "Git status" } }),
-
-  file_browser = Keybinding.bind(
-    opts,
-    { "fF", ":Telescope file_browser<CR>", { desc = "File browser" } }
-  ),
-
-  project = Keybinding.bind(
-    opts,
-    { "p", ":Telescope project<CR>", { desc = "Project management" } }
-  ),
-}
-
-V.require("user.telescope_nvim.kbd")
+Keybinding.bind(
+  opts,
+  { "/", picker("grep_string"), { desc = "Grep string in workspace", name = "ts_grep" } },
+  { "?", picker("live_grep"), { desc = "Live grep in workspace", name = "ts_live_grep" } },
+  { "'", picker("marks"), { desc = "Show marks", name = "ts_marks" } },
+  { '"', picker("registers"), { desc = "Show registers", name = "ts_registers" } },
+  { "<leader>", picker("resume"), { desc = "Resume telescope", name = "ts_resume" } },
+  { "ho", picker("vim_options"), { desc = "Show vim options", name = "ts_options" } },
+  { ".", picker("find_files"), { desc = "Find files in workspace", name = "ts_ff" } },
+  { "gf", picker("git_files"), { desc = "Do git ls-files", name = "ts_git_ls" } },
+  { "bb", picker("buffers"), { desc = "Show buffers", name = "ts_buffers" } },
+  { "fr", picker("oldfiles"), { desc = "Show recently opened files", name = "ts_mru" } },
+  { "hm", picker("man_pages"), { desc = "Show man pages", name = "ts_man" } },
+  { "hc", picker("colorscheme"), { desc = "Select colorscheme", name = "ts_colorscheme" } },
+  { "lt", picker("treesitter"), { desc = "Telescope treesitter", name = "ts_treesitter" } },
+  { "lr", picker("lsp_references"), { desc = "Show references", name = "ts_ref" } },
+  {
+    "ls",
+    picker("lsp_document_symbols"),
+    { desc = "Buffer symbols", name = "ts_document_symbols" },
+  },
+  {
+    "lS",
+    picker("lsp_workspace_symbols"),
+    { desc = "Workspace symbols", name = "ts_workspace_symbols" },
+  },
+  { "ld", picker("diagnostics"), { desc = "Show LSP diagnostics", name = "ts_diagnostics" } },
+  { "gC", picker("git_commits"), { desc = "Show commits", name = "ts_git_commits" } },
+  { "gB", picker("git_bcommits"), { desc = "Show branch commits", name = "ts_branch_commits" } },
+  { "g?", picker("git_status"), { desc = "Git status", name = "ts_git_status" } },
+  { "ff", ":Telescope file_browser<CR>", { desc = "File browser", name = "ts_file_browser" } },
+  { "p", ":Telescope project<CR>", { desc = "Project management", name = "ts_project" } }
+)
