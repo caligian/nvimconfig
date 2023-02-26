@@ -23,7 +23,12 @@ user.plugins.plugins = {
     "sainnhe/everforest",
     -- A hack to ensure that user.colorscheme is captured
     dependencies = {
+      {'rktjmp/lush.nvim'},
+      {'rose-pine/neovim'},
+      {'navarasu/onedark.nvim'},
+      {'Shatur/neovim-ayu'},
       {'svrana/neosolarized.nvim'},
+      {'mcchrish/zenbones.nvim'},
       { "tjdevries/colorbuddy.nvim" },
       { "jesseleite/nvim-noirbuddy" },
       { "ray-x/starry.nvim" },
@@ -42,10 +47,7 @@ user.plugins.plugins = {
       { "folke/tokyonight.nvim" },
     },
     config = function()
-      require('neosolarized').setup {
-        comment_italics = true,
-        background_set = false,
-      }
+      require 'core.plugins.colorscheme'
     end,
   },
 
