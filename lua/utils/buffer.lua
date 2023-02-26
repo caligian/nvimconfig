@@ -175,8 +175,12 @@ function Buffer:hide()
   local winid = vim.fn.bufwinid(self.bufnr)
 
   if winid ~= -1 then
-    vim.fn.win_gotoid(winid)
-    vim.cmd("hide")
+    local current_tab = vim.api.nvim_get_current_tabpage()
+    local n_wins = #(vim.api.nvim_tabpage_list_wins())
+    if n_wins > 1 then
+      vim.fn.win_gotoid(winid)
+      vim.cmd("hide")
+    end
   end
 end
 
@@ -277,8 +281,6 @@ end
 --- Switch to scratch buffer
 -- @param[opt] default If defined then use 'scratch_buffer' or display a menu to select the existing scratch buffer
 function Buffer.switch_to_scratch(default)
-  assert(self:exists())
-
   if default then
     local b = Buffer("scratch_buffer", true)
     b:switch()
@@ -298,8 +300,6 @@ end
 -- @param split 's' (vertically) or 'v' (horizontally)
 -- @return self
 function Buffer.open_scratch(name, split)
-  assert(self:exists())
-
   name = name or "scratch_buffer"
   local buf = Buffer(name, true)
   buf:split(split or "s")
@@ -333,8 +333,6 @@ end
 -- })
 -- @return Buffer
 function Buffer.input(name, text, cb, opts)
-  assert(self:exists())
-
   opts = opts or {}
   local split = opts.split or "s"
   local trigger_keys = opts.keys or "gx"
