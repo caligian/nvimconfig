@@ -169,8 +169,8 @@ function V.shift(t, times)
 end
 
 function V.unshift(t, ...)
-  for _, value in ipairs({ ... }) do
-    table.insert(t, 1, value)
+  for idx, value in ipairs({ ... }) do
+    table.insert(t, idx, value)
   end
 
   return t
