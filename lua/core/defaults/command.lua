@@ -95,5 +95,6 @@ V.command("FontSize", function(args)
   end
   height = args == '' and 12 or height
 
+  font = font:gsub(' ', '\\ ')
   vim.cmd("set guifont=" .. sprintf("%s:h%d", font, height))
 end, { nargs = "+" })
