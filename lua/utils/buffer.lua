@@ -12,9 +12,7 @@ Buffer.bufnr = Buffer.bufnr or {}
 Buffer.scratch = Buffer.scratch or {}
 
 -- Used for unique id generation
-local scratch_n = 0
 local input_buffer_n = 0
-local menu_buffer_n = 0
 
 local function update(self)
   V.update(Buffer.bufnr, { self.bufnr }, self)
@@ -51,7 +49,6 @@ function Buffer:_init(name)
   end
 
   if scratch then
-    scratch_n = scratch_n + 1
     vim.api.nvim_buf_set_option(bufnr, "buflisted", false)
     vim.api.nvim_buf_set_option(bufnr, "modified", false)
     vim.api.nvim_buf_set_option(bufnr, "buftype", "nofile")
