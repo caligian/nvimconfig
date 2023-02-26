@@ -182,3 +182,5 @@ Keybinding.bind(
     )
   end, 'Set theme'}
 )
+
+set_colorscheme()
