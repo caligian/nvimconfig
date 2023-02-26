@@ -61,6 +61,7 @@ install_luarock("lualogging", "logging.file")
 local log_path = vim.fn.stdpath("config") .. "/nvim.log"
 class = require("pl.class")
 Set = require("pl.Set")
+List = require('pl.List')
 yaml = require("yaml")
 path = require("pl.path")
 listcomp = require("pl.comprehension")
