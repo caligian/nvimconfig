@@ -11,7 +11,7 @@ local mod = setmetatable({}, {
           f(value)
         end
       else
-        f(picker:get_current_selection())
+        f(picker:get_selected_entry())
       end
       actions.close(bufnr)
     end)
