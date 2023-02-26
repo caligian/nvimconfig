@@ -141,7 +141,7 @@ local function get_themes()
   themes = Set.map(themes, function(t) 
     return vim.fn.fnamemodify(t, ':t:r') 
   end)
-  themes = Set.values(themes)
+  themes = List.sort(Set.values(themes))
 
   return themes
 end

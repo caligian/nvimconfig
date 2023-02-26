@@ -125,7 +125,6 @@ function Buffer:map(mode, lhs, callback, opts)
 
   opts = opts or {}
   opts.buffer = self.bufnr
-
   return Keybinding.map(mode, lhs, callback, opts)
 end
 
@@ -135,8 +134,9 @@ function Buffer:noremap(mode, lhs, callback, opts)
   assert(self:exists())
 
   opts = opts or {}
-  opts.bufnr = self.bufnr
-  Keybinding.noremap(mode, lhs, callback, opts)
+  opts.buffer = self.bufnr
+  opts.noremap = true
+  self:map(mode, lhs, callback, opts)
 end
 
 --- Split current window and focus this buffer
