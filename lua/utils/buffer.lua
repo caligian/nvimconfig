@@ -24,6 +24,10 @@ local function update(self)
   end
 end
 
+function Buffer:exists()
+  return vim.fn.bufexists(self.bufnr) ~= 0
+end
+
 --- Constructor function returning a buffer object
 -- @param name Name of the buffer
 -- @param[opt] scratch Is a scratch buffer?
@@ -61,6 +65,7 @@ end
 -- @tparam string opt Name of the option
 -- @return any
 function Buffer:getopt(opt)
+  assert(self:exists())
   local _, out = pcall(vim.api.nvim_buf_get_option, self.bufnr, opt)
 
   if out then
@@ -72,6 +77,8 @@ end
 -- @tparam string var Name of the variable
 -- @return any
 function Buffer:getvar(var)
+  assert(self:exists())
+
   local _, out = pcall(vim.api.nvim_buf_get_var, self.bufnr, var)
 
   if out then
@@ -82,6 +89,8 @@ end
 --- Set buffer variables
 -- @tparam table vars Dictionary of var name and value
 function Buffer:setvar(vars)
+  assert(self:exists())
+
   vars = vars or {}
   for key, value in pairs(vars) do
     vim.api.nvim_buf_set_var(self.bufnr, key, value)
@@ -91,6 +100,8 @@ end
 --- Set buffer options
 -- @tparam table opts Dictionary of option name and value
 function Buffer:setopt(opts)
+  assert(self:exists())
+
   opts = opts or {}
   for key, value in pairs(opts) do
     vim.api.nvim_buf_set_option(self.bufnr, key, value)
@@ -104,6 +115,8 @@ end
 -- @tparam[opt] table opts Additional vim.keymap.set options. You cannot set opts.pattern as it will be automatically set by this function
 -- @return object Keybinding object
 function Buffer:map(mode, lhs, callback, opts)
+  assert(self:exists())
+
   opts = opts or {}
   opts.buffer = self.bufnr
 
@@ -113,6 +126,8 @@ end
 --- Create a nonrecursive mapping
 -- @see map
 function Buffer:noremap(mode, lhs, callback, opts)
+  assert(self:exists())
+
   opts = opts or {}
   opts.bufnr = self.bufnr
   Keybinding.noremap(mode, lhs, callback, opts)
@@ -121,6 +136,8 @@ end
 --- Split current window and focus this buffer
 -- @param[opt='s'] split Direction to split in: 's' or 'v'
 function Buffer:split(split)
+  assert(self:exists())
+
   split = split or "s"
 
   if split == "s" then
@@ -135,6 +152,8 @@ end
 --- Create a buffer local autocommand. The  pattern will be automatically set to '<buffer=%d>'
 -- @see autocmd._init
 function Buffer:hook(event, callback, opts)
+  assert(self:exists())
+
   opts = opts or {}
 
   assert(event)
@@ -151,6 +170,8 @@ end
 
 --- Hide current buffer if visible
 function Buffer:hide()
+  assert(self:exists())
+
   local winid = vim.fn.bufwinid(self.bufnr)
 
   if winid ~= -1 then
@@ -162,9 +183,9 @@ end
 ---  Is buffer visible?
 --  @return boolean
 function Buffer:is_visible()
-  local winid = vim.fn.bufwinid(self.bufnr)
+  assert(self:exists())
 
-  return winid ~= -1
+  return vim.fn.bufwinid(self.bufnr)
 end
 
 --- Get buffer lines
@@ -172,6 +193,8 @@ end
 -- @param tillrow Ending row
 -- @return table
 function Buffer:lines(startrow, tillrow)
+  assert(self:exists())
+
   return vim.api.nvim_buf_get_lines(self.bufnr, startrow, tillrow, false)
 end
 
@@ -181,11 +204,12 @@ end
 -- @param repl Replacement text
 -- @return
 function Buffer:text(start, till, repl)
-  assert(types.isa(start, "table"))
-  assert(types.isa(till, "table"))
+  assert(self:exists())
+  assert(V.isa(start, "table"))
+  assert(V.isa(till, "table"))
   assert(repl)
 
-  if types.isa(repl) == "string" then
+  if V.isa(repl) == "string" then
     repl = vim.split(repl, "[\n\r]")
   end
 
@@ -195,15 +219,25 @@ function Buffer:text(start, till, repl)
   return vim.api.nvim_buf_get_text(self.bufnr, a, m, b, n, repl)
 end
 
+function Buffer:bind(opts, ...)
+  assert(self:exists())
+
+  V.asserttype(opts, 'table')
+  opts.buffer = self.bufnr
+
+  return Keybinding.bind(opts, ...)
+end
+
 --- Set buffer lines
 -- @param startrow Starting row
 -- @param endrow Ending row
 -- @param repl Replacement line[s]
 function Buffer:setlines(startrow, endrow, repl)
+  assert(self:exists())
   assert(startrow)
   assert(endrow)
 
-  if types.isa(repl, "string") then
+  if V.isa(repl, "string") then
     repl = vim.split(repl, "[\n\r]")
   end
 
@@ -215,19 +249,24 @@ end
 -- @tparam table till Should be table containing end row and col
 -- @tparam string|table repl Replacement text
 function Buffer:set(start, till, repl)
-  assert(types.isa(start, "table"))
-  assert(types.isa(till, "table"))
+  assert(self:exists())
+  assert(V.isa(start, "table"))
+  assert(V.isa(till, "table"))
 
   vim.api.nvim_buf_set_text(self.bufnr, start[1], till[1], start[2], till[2], repl)
 end
 
 --- Switch to this buffer
 function Buffer:switch()
+  assert(self:exists())
+
   vim.cmd("b " .. self.bufnr)
 end
 
 --- Load buffer
 function Buffer:load()
+  assert(self:exists())
+
   if vim.fn.bufloaded(self.bufnr) == 1 then
     return true
   else
@@ -238,6 +277,8 @@ end
 --- Switch to scratch buffer
 -- @param[opt] default If defined then use 'scratch_buffer' or display a menu to select the existing scratch buffer
 function Buffer.switch_to_scratch(default)
+  assert(self:exists())
+
   if default then
     local b = Buffer("scratch_buffer", true)
     b:switch()
@@ -257,6 +298,8 @@ end
 -- @param split 's' (vertically) or 'v' (horizontally)
 -- @return self
 function Buffer.open_scratch(name, split)
+  assert(self:exists())
+
   name = name or "scratch_buffer"
   local buf = Buffer(name, true)
   buf:split(split or "s")
@@ -268,6 +311,8 @@ end
 -- @param cb Function to call in this buffer
 -- @return self
 function Buffer:call(cb)
+  assert(self:exists())
+
   return vim.api.nvim_buf_call(self.bufnr, cb)
 end
 
@@ -288,6 +333,8 @@ end
 -- })
 -- @return Buffer
 function Buffer.input(name, text, cb, opts)
+  assert(self:exists())
+
   opts = opts or {}
   local split = opts.split or "s"
   local trigger_keys = opts.keys or "gx"
@@ -325,15 +372,29 @@ end
 --- Get buffer-local keymap.
 -- @see V.buffer_has_keymap
 function Buffer:getmap(mode, lhs)
+  assert(self:exists())
+
   return V.buffer_has_keymap(self.bufnr, mode, lhs)
 end
 
 --- Return visually highlighted range in this buffer
 -- @see V.visualrange
 function Buffer:range()
+  assert(self:exists())
+
   return V.visualrange(self.bufnr)
 end
 
 function Buffer:linecount()
+  assert(self:exists())
+
   return vim.api.nvim_buf_line_count(self.bufnr)
+end
+
+function Buffer:delete()
+  if self:exists() then
+    Buffer.bufnr[self.bufnr] = nil
+    vim.cmd('bwipeout ' .. self.bufnr)
+    return self
+  end
 end
