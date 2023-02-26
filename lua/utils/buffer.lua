@@ -32,14 +32,20 @@ end
 -- @param name Name of the buffer
 -- @param[opt] scratch Is a scratch buffer?
 -- @return self
-function Buffer:_init(name, scratch)
-  if V.isstring(name) and name:match("^scratch_") then
+function Buffer:_init(name)
+  local scratch = false
+  if not name then
     scratch = true
-  elseif not name and scratch then
-    name = sprintf("scratch_buffer_%d", scratch_n + 1)
   end
 
-  local bufnr = vim.fn.bufnr(name, true)
+  local bufnr
+  if scratch then
+    bufnr = vim.api.nvim_create_buf(false, true)
+  else
+    V.isstring(name)
+    bufnr = vim.fn.bufnr(name, true)
+  end
+
   if Buffer.bufnr[bufnr] then
     return Buffer.bufnr[bufnr]
   end
@@ -176,7 +182,7 @@ function Buffer:hide()
 
   if winid ~= -1 then
     local current_tab = vim.api.nvim_get_current_tabpage()
-    local n_wins = #(vim.api.nvim_tabpage_list_wins())
+    local n_wins = #(vim.api.nvim_tabpage_list_wins(current_tab))
     if n_wins > 1 then
       vim.fn.win_gotoid(winid)
       vim.cmd("hide")
@@ -395,4 +401,14 @@ function Buffer:delete()
     vim.cmd('bwipeout ' .. self.bufnr)
     return self
   end
+end
+
+--- Return current linenumber
+-- @return number
+function Buffer:linenum()
+  assert(self:exists())
+
+  return self:call(function ()
+    return vim.fn.getpos('.')[2]
+  end)
 end

@@ -23,6 +23,7 @@ user.plugins.plugins = {
     "sainnhe/everforest",
     -- A hack to ensure that user.colorscheme is captured
     dependencies = {
+      {'RRethy/nvim-base16'},
       {'rktjmp/lush.nvim'},
       {'rose-pine/neovim'},
       {'navarasu/onedark.nvim'},

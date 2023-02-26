@@ -447,6 +447,11 @@ V.istable = V.rpartial(V.isa, "table")
 V.isnumber = V.rpartial(V.isa, "string")
 V.isnil = V.rpartial(V.isa)
 V.isfunction = V.rpartial(V.isa, "function")
+V.isfunc = V.isfunction
+V.ist = V.istable
+V.iss = V.isstring
+V.isu = V.isuserdata
+V.isn = V.isnumber
 
 -- If multiple keys are supplied, the table is going to be assumed to be nested
 function V.haskey(tbl, ...)
@@ -514,6 +519,11 @@ end
 function V.asserttype(e, t)
   assert(V.isa(e, t))
 end
+V.asss = V.rpartial(V.asserttype, 'string')
+V.asst = V.rpartial(V.asserttype, 'table')
+V.assn = V.rpartial(V.asserttype, 'number')
+V.assu = V.rpartial(V.asserttype, 'userdata')
+V.assf = V.rpartial(V.asserttype, 'function')
 
 function V.lmerge(...)
   local function _merge(t1, t2)

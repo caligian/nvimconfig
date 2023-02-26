@@ -2,7 +2,7 @@ user.lsp = user.lsp or {}
 user.plugins = user.plugins or {}
 user.shell = "/usr/bin/zsh"
 user.font = "Hack Nerd Font:13" -- This is for neovide
-user.colorscheme = "ayu-dark"
+user.colorscheme = "terafox"
 user.conjure_langs = {
   "clojure",
   "fennel",

@@ -106,7 +106,7 @@ user.plugins["telescope.nvim"].kbd = {
 
   colorscheme = Keybinding.bind(
     opts,
-    { "ht", picker("colorscheme"), { desc = "Select colorscheme" } }
+    { "hc", picker("colorscheme"), { desc = "Select colorscheme" } }
   ),
 
   treesitter = Keybinding.bind(
