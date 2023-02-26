@@ -173,13 +173,22 @@ Keybinding.bind(
       {'<CR>', function ()
         local pos = vim.fn.getpos('.')[2]
         if pos > 1 then
-          local t = buf:lines(pos, pos+1)[1]
+          local t = buf:lines(pos-1, pos)[1]
           theme.colorscheme = t
           vim.cmd('colorscheme ' .. t)
-          buf:delete()
         end
       end}
     )
+
+    buf:noremap('ni', 'q', function ()
+      buf:hide()
+      buf:delete()
+    end)
+
+    buf:hook('WinLeave', function ()
+      buf:hide()
+      buf:delete()
+    end)
   end, 'Set theme'}
 )
 
