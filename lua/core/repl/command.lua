@@ -8,7 +8,7 @@ local function get_filetype(args)
     end
   end
 
-  if #ft == 0 then
+  if not ft then
     return false
   else
     return ft
