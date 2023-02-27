@@ -3,7 +3,7 @@ class("Lang")
 Lang.langs = Lang.langs or {}
 local id = 1
 
-function Lang.hook(self, callback, opts)
+function Lang:hook(callback, opts)
   self.autocmd = self.autocmd or {}
   opts = opts or {}
   opts.pattern = self.name
@@ -15,13 +15,13 @@ function Lang.hook(self, callback, opts)
   return au
 end
 
-function Lang.unhook(self, id)
+function Lang:unhook(id)
   if self.autocmd[id] then
     self.autocmd[id]:delete()
   end
 end
 
-function Lang.setbufopts(self, bo)
+function Lang:setbufopts(bo)
   self:hook(function()
     local bufnr = vim.fn.bufnr()
     for key, value in pairs(bo) do
@@ -30,7 +30,7 @@ function Lang.setbufopts(self, bo)
   end)
 end
 
-function Lang.map(self, opts, ...)
+function Lang:map(opts, ...)
   opts = opts or {}
   local args = { ... }
   for i, kbd in ipairs(args) do
@@ -48,7 +48,7 @@ function Lang.map(self, opts, ...)
   return Keybinding(opts, unpack(args))
 end
 
-function Lang._init(self, lang, opts)
+function Lang:_init(lang, opts)
   if Lang.langs[lang] then
     return Lang.langs[lang]
   end
@@ -102,4 +102,3 @@ function Lang.loadall()
     Lang.load(V.basename(ft))
   end
 end
-

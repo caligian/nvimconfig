@@ -3,7 +3,7 @@ vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 
 -- Install lazy.nvim if not present
-local lazypath = vim.fn.stdpath("config") .. "/lazy/lazy.nvim"
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 local exists = vim.loop.fs_stat(lazypath)
 if not exists then
   print(vim.fn.system({
@@ -61,7 +61,7 @@ install_luarock("lualogging", "logging.file")
 local log_path = vim.fn.stdpath("config") .. "/nvim.log"
 class = require("pl.class")
 Set = require("pl.Set")
-List = require('pl.List')
+List = require("pl.List")
 yaml = require("yaml")
 path = require("pl.path")
 listcomp = require("pl.comprehension")

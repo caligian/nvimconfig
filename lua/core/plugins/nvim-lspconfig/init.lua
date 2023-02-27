@@ -60,9 +60,6 @@ function lsp.setup()
   -- Other settings
   vim.diagnostic.config(lsp.diagnostic)
 
-  V.require("core.plugins.nvim-lspconfig.nvim-cmp")
-  V.require("core.plugins.nvim-lspconfig.ultisnips")
-
   -- Setup lsp servers
   for _, conf in pairs(Lang.langs) do
     if conf.server then

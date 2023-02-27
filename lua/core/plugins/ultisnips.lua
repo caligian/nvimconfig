@@ -2,7 +2,8 @@ user.plugins["ultisnips"] = {
   UltiSnipsExpandTrigger = "<C-o>",
   UltiSnipsJumpForwardTrigger = "<C-j>",
   UltiSnipsJumpBackwardTrigger = "<C-k>",
-  UltiSnipsEditSplit = "vertical",
+  UltiSnipsEditSplit = "tabdo",
+  UltiSnipsSnippetDirectories = { "UltiSnips", "snips" },
 }
 
 V.require("user.plugins.ultisnips")

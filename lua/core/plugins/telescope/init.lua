@@ -1,6 +1,8 @@
-local ivy = V.require("telescope.themes").get_ivy()
-local file_browser_actions = V.require("core.plugins.telescope_nvim.file_browser")
-local buffer_actions = V.require("core.plugins.telescope_nvim.buffers")
+local ivy = require("telescope.themes").get_ivy()
+local file_browser_actions = require("core.plugins.telescope.file_browser")
+local buffer_actions = require("core.plugins.telescope.buffers")
+local git_status_actions = require("core.plugins.telescope.git_status")
+
 user.plugins["telescope.nvim"] = {}
 local T = V.merge(user.plugins["telescope.nvim"], ivy)
 
@@ -13,7 +15,6 @@ T.previewer = false
 T.extensions = {
   file_browser = V.merge({
     disable_devicons = true,
-
     mappings = {
       n = {
         d = file_browser_actions.delete_recursively,
@@ -44,11 +45,18 @@ T.pickers = {
       },
     },
   },
+  git_status = {
+    mappings = {
+      n = {
+        s = git_status_actions.stage,
+      },
+    },
+  },
 }
 
 -- Setup telescope with extensions
 -- Require user overrides
-V.require("user.plugins.telescope_nvim")
+V.require("user.plugins.telescope")
 V.require("telescope").setup(T)
 V.require("telescope").load_extension("file_browser")
 V.require("telescope").load_extension("project")
