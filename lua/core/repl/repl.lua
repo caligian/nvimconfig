@@ -110,7 +110,7 @@ function REPL:start(opts)
   local name, cmd = opts.name, self.command
   local r = get(name)
 
-  if opts.force then
+  if opts.force and r then
     r:stop()
     r:start(opts)
   elseif r and r.id then
@@ -171,7 +171,7 @@ function REPL.split(self, direction)
   end
 end
 
-function REPL.send(self, s)
+function REPL:send(s)
   ensure(self)
 
   local id = self.id
@@ -182,19 +182,19 @@ function REPL.send(self, s)
   vim.api.nvim_chan_send(id, s)
 end
 
-function REPL.send_current_line(self, src_bufnr)
+function REPL:send_current_line(src_bufnr)
   src_bufnr = src_bufnr or vim.fn.bufnr()
   vim.api.nvim_buf_call(src_bufnr, function()
     self:send(vim.fn.getline("."))
   end)
 end
 
-function REPL.send_buffer(self, src_bufnr)
+function REPL:send_buffer(src_bufnr)
   src_bufnr = src_bufnr or vim.fn.bufnr()
   self:send(vim.api.nvim_buf_get_lines(src_bufnr, 0, -1, false))
 end
 
-function REPL.send_till_point(self, src_bufnr)
+function REPL:send_till_point(src_bufnr)
   src_bufnr = src_bufnr or vim.fn.bufnr()
   vim.api.nvim_buf_call(src_bufnr, function()
     local line = vim.fn.line(".")
@@ -202,7 +202,7 @@ function REPL.send_till_point(self, src_bufnr)
   end)
 end
 
-function REPL.send_visual_range(self, src_bufnr)
+function REPL:send_visual_range(src_bufnr)
   src_bufnr = src_bufnr or vim.fn.bufnr()
   return self:send(V.visualrange(src_bufnr))
 end
