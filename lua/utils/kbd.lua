@@ -241,7 +241,7 @@ function Keybinding.map(mode, lhs, cb, opts)
   assert(V.iss(mode) or V.ist(mode))
   assert(V.iss(lhs))
   assert(V.iss(cb) or V.isf(cb))
-  assert(V.ist(opts))
+  assert(V.ist(opts) or V.iss(opts))
 
   return Keybinding(mode, lhs, cb, opts)
 end
@@ -253,7 +253,7 @@ function Keybinding.noremap(mode, lhs, cb, opts)
   assert(V.iss(mode) or V.ist(mode))
   assert(V.iss(lhs))
   assert(V.iss(cb) or V.isf(cb))
-  assert(V.ist(opts))
+  assert(V.ist(opts) or V.iss(opts))
 
   if V.isstring(opts) then
     opts = { desc = opts }

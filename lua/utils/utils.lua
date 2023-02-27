@@ -452,6 +452,7 @@ V.ist = V.istable
 V.iss = V.isstring
 V.isu = V.isuserdata
 V.isn = V.isnumber
+V.isf = V.isfunc
 
 -- If multiple keys are supplied, the table is going to be assumed to be nested
 function V.haskey(tbl, ...)

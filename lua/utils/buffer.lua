@@ -6,7 +6,7 @@ class("Buffer")
 B = B or Buffer
 
 -- @field bufnr Buffer objects are hashed by bufnr
-Buffer.bufnr = Buffer.bufnr or {}
+Buffer.ids = Buffer.ids or {}
 
 -- @field scratch Scratch buffers
 Buffer.scratch = Buffer.scratch or {}
@@ -15,7 +15,7 @@ Buffer.scratch = Buffer.scratch or {}
 local input_buffer_n = 0
 
 local function update(self)
-  V.update(Buffer.bufnr, { self.bufnr }, self)
+  V.update(Buffer.ids, { self.bufnr }, self)
 
   if self.scratch then
     V.update(Buffer.scratch, { self.bufnr }, self)
@@ -45,8 +45,8 @@ function Buffer:_init(name, scratch)
     bufnr = vim.fn.bufnr(name, true)
   end
 
-  if Buffer.bufnr[bufnr] then
-    return Buffer.bufnr[bufnr]
+  if Buffer.ids[bufnr] then
+    return Buffer.ids[bufnr]
   end
 
   if scratch then
@@ -177,7 +177,6 @@ function Buffer:hide()
   assert(self:exists())
 
   local winid = vim.fn.bufwinid(self.bufnr)
-
   if winid ~= -1 then
     local current_tab = vim.api.nvim_get_current_tabpage()
     local n_wins = #(vim.api.nvim_tabpage_list_wins(current_tab))
@@ -192,8 +191,7 @@ end
 --  @return boolean
 function Buffer:is_visible()
   assert(self:exists())
-
-  return vim.fn.bufwinid(self.bufnr)
+  return vim.fn.bufwinid(self.bufnr) ~= -1
 end
 
 --- Get buffer lines
@@ -230,7 +228,7 @@ end
 function Buffer:bind(opts, ...)
   assert(self:exists())
 
-  V.asserttype(opts, 'table')
+  V.asserttype(opts, "table")
   opts.buffer = self.bufnr
 
   return Keybinding.bind(opts, ...)
@@ -395,8 +393,8 @@ end
 
 function Buffer:delete()
   if self:exists() then
-    Buffer.bufnr[self.bufnr] = nil
-    vim.cmd('bwipeout ' .. self.bufnr)
+    Buffer.ids[self.bufnr] = nil
+    vim.cmd("bwipeout! " .. self.bufnr)
     return self
   end
 end
@@ -406,7 +404,7 @@ end
 function Buffer:linenum()
   assert(self:exists())
 
-  return self:call(function ()
-    return vim.fn.getpos('.')[2]
+  return self:call(function()
+    return vim.fn.getpos(".")[2]
   end)
 end
