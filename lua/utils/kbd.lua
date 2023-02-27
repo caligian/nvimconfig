@@ -238,18 +238,29 @@ end
 
 --- Simple classmethod that does the same thing as Keybinding()
 function Keybinding.map(mode, lhs, cb, opts)
+  assert(V.iss(mode) or V.ist(mode))
+  assert(V.iss(lhs))
+  assert(V.iss(cb) or V.isf(cb))
+  assert(V.ist(opts))
+
   return Keybinding(mode, lhs, cb, opts)
 end
 
 --- Same as map but sets noremap to true
 function Keybinding.noremap(mode, lhs, cb, opts)
   opts = opts or {}
+
+  assert(V.iss(mode) or V.ist(mode))
+  assert(V.iss(lhs))
+  assert(V.iss(cb) or V.isf(cb))
+  assert(V.ist(opts))
+
   if V.isstring(opts) then
     opts = { desc = opts }
   end
   opts.noremap = true
 
-  return Keybinding(mode, lhs, cb, pts)
+  return Keybinding(mode, lhs, cb, opts)
 end
 
 --- Replace current callback with a new one
