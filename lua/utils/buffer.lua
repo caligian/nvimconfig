@@ -408,3 +408,6 @@ function Buffer:linenum()
     return vim.fn.getpos(".")[2]
   end)
 end
+
+-- TODO: Add other buffer operations (if possible)
+-- TODO: Add window operations
