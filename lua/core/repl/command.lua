@@ -1,14 +1,23 @@
+local function get_filetype(args)
+  local ft = args.args
+  if #ft == 0 then
+    ft = vim.bo.filetype
+    if #ft == 0 then
+      ft = vim.api.nvim_buf_get_var(vim.fn.bufnr(), "_repl_filetype") or ""
+    end
+  end
+
+  if #ft == 0 then
+    return false
+  else
+    return ft
+  end
+end
+
 local function wrap(f)
   return function(args)
-    local ft = args.args
-    if #ft == 0 then
-      ft = vim.bo.filetype
-      if #ft == 0 then
-        ft = vim.api.nvim_buf_get_var(vim.fn.bufnr(), "_repl_filetype") or ""
-      end
-    end
-
-    if #ft > 0 then
+    local ft = get_filetype(args)
+    if ft then
       local r = REPL(ft)
       r:start()
       if f then
@@ -19,9 +28,8 @@ local function wrap(f)
 end
 
 local function stop(args)
-  local ft = args.args
-  ft = #args.args == 0 and vim.bo.filetype or args.args
-  if #ft > 0 then
+  local ft = get_filetype(args)
+  if ft then
     local r = REPL(ft)
     r:stop()
   end
