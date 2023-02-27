@@ -33,7 +33,7 @@ Autocmd("BufWritePost", {
   name = "format_buffer",
 })
 
-V.require("user.plugins.formatter_nvim")
+V.require("user.plugins.formatter")
 
 -- Finalize setup
 user.plugins["formatter.nvim"] = { filetype = formatters }
