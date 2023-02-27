@@ -3,7 +3,8 @@ local function get_filetype(args)
   if #ft == 0 then
     ft = vim.bo.filetype
     if #ft == 0 then
-      ft = vim.api.nvim_buf_get_var(vim.fn.bufnr(), "_repl_filetype") or ""
+      local _, out = pcall(vim.api.nvim_buf_get_var, vim.fn.bufnr(), "_repl_filetype")
+      ft = out or ""
     end
   end
 
