@@ -1,23 +1,24 @@
-local defaults = Keybinding.defaults
-local opts = { leader = true, noremap = true }
-defaults.shell_terminate_input = Keybinding.bind(opts, {'xc', '<cmd>TerminateInputREPL sh<CR>', 'Terminate shell input'})
-defaults.start_shell = Keybinding.bind(opts, { "xi", "<cmd>StartREPL sh<CR>" })
-defaults.split_to_shell = Keybinding.bind(opts, { "xs", "<cmd>SplitREPL sh<CR>" })
-defaults.split_to_shell_vertically = Keybinding.bind(opts, { "xv", "<cmd>VsplitREPL sh<CR>" })
-defaults.hide_shell = Keybinding.bind(opts, { "xk", "<cmd>HideREPL sh<CR>" })
-defaults.stop_shell = Keybinding.bind(opts, { "xq", "<cmd>StopREPL sh<CR>" })
-defaults.send_line_to_shell = Keybinding.bind(opts, { "xe", "<cmd>SendLineREPL sh<CR>" })
-defaults.send_buffer_to_shell = Keybinding.bind(opts, { "xb", "<cmd>SendBufferREPL sh<CR>" })
-defaults.send_till_point_to_shell = Keybinding.bind(opts, { "x.", "<cmd>SendTillPointREPL sh<CR>" })
-defaults.start_repl = Keybinding.bind(opts, { "ri", "<cmd>StartREPL<CR>" })
-defaults.split_to_repl = Keybinding.bind(opts, { "rs", "<cmd>SplitREPL<CR>" })
-defaults.split_to_repl_vertically = Keybinding.bind(opts, { "rv", "<cmd>VsplitREPL<CR>" })
-defaults.hide_repl = Keybinding.bind(opts, { "rk", "<cmd>HideREPL<CR>" })
-defaults.stop_repl = Keybinding.bind(opts, { "rq", "<cmd>StopREPL<CR>" })
-defaults.stop_all_repls = Keybinding.bind(opts, { "rQ", REPL.stopall, "Stop all REPLs" })
-defaults.send_line_to_repl = Keybinding.bind(opts, { "re", "<cmd>SendLineREPL<CR>" })
-defaults.send_buffer_to_repl = Keybinding.bind(opts, { "rb", "<cmd>SendBufferREPL<CR>" })
-defaults.send_till_point_to_repl = Keybinding.bind(opts, { "r.", "<cmd>SendTillPointREPL<CR>" })
-defaults.send_range_to_repl = Keybinding.noremap("v", "<leader>re", "<cmd>SendRangeREPL<CR>")
-defaults.send_range_to_shell = Keybinding.noremap("v", "<leader>xe", "<cmd>SendRangeREPL sh<CR>")
-defaults.terminate_input = Keybinding.bind(opts, {'rc', '<cmd>TerminateInputREPL<CR>', 'Terminate input in REPL'})
+Keybinding.bind(
+  { leader = true, noremap = true },
+  { "xc", "<cmd>TerminateInputREPL sh<CR>", { name = "shell_terminate_input" } },
+  { "xi", "<cmd>StartREPL sh<CR>", { name = "shell_start" } },
+  { "xs", "<cmd>SplitREPL sh<CR>", { name = "shell_split" } },
+  { "xv", "<cmd>VsplitREPL sh<CR>", { name = "shell_vsplit" } },
+  { "xk", "<cmd>HideREPL sh<CR>", { name = "shell_hide" } },
+  { "xq", "<cmd>StopREPL sh<CR>", { name = "shell_stop" } },
+  { "xe", "<cmd>SendLineREPL sh<CR>", { name = "shell_send_line" } },
+  { "xb", "<cmd>SendBufferREPL sh<CR>", { name = "shell_send_buffer" } },
+  { "x.", "<cmd>SendTillPointREPL sh<CR>", { name = "shell_send_till_point" } },
+  { "ri", "<cmd>StartREPL<CR>", { name = "repl_start" } },
+  { "rs", "<cmd>SplitREPL<CR>", { name = "repl_split" } },
+  { "rv", "<cmd>VsplitREPL<CR>", { name = "repl_vsplit" } },
+  { "rk", "<cmd>HideREPL<CR>", { name = "repl_hide" } },
+  { "rq", "<cmd>StopREPL<CR>", { name = "repl_stop" } },
+  { "rQ", REPL.stopall, { name = "stop_all" } },
+  { "re", "<cmd>SendLineREPL<CR>", { name = "repl_send_line" } },
+  { "rb", "<cmd>SendBufferREPL<CR>", { name = "repl_send_buffer" } },
+  { "r.", "<cmd>SendTillPointREPL<CR>", { name = "repl_send_till_point" } },
+  { "re", "<cmd>SendRangeREPL<CR>", { name = "repl_send_range", mode = "v" } },
+  { "xe", "<cmd>SendRangeREPL sh<CR>", { mode = "v", name = "shell_send_range" } },
+  { "rc", "<cmd>TerminateInputREPL<CR>", { name = "repl_terminate_input", mode = "v" } }
+)
