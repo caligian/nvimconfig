@@ -1,20 +1,21 @@
 class("REPL")
 
-REPL.id = REPL.id or {}
-REPL.buffer = REPL.buffer or {}
-REPL.commands = REPL.commands or {}
+REPL.ids = REPL.ids or {}
 
 function REPL:is_visible()
-  local winnr = vim.fn.bufwinnr(self.bufnr)
-  return winnr ~= -1
+  return self.buffer:is_visible()
 end
 
 function REPL:status()
+  if not self.id then
+    return false
+  end
+
   local id = self.id
   id = vim.fn.jobwait({ id }, 0)[1]
 
   if id == -1 then
-    return "running"
+    return true
   elseif id == -2 then
     return "interrupted"
   else
@@ -27,7 +28,7 @@ function REPL:is_valid()
 end
 
 function REPL:is_running()
-  return self:status() == "running"
+  return self:status()
 end
 
 function REPL:is_interrupted()
@@ -35,139 +36,102 @@ function REPL:is_interrupted()
 end
 
 function REPL:stop()
-  local id = self.id
   if not self:is_running() then
     return
   end
-  id = self.id
-  vim.fn.chanclose(id)
-  self.running = false
-  self:hide()
 
-  if vim.fn.bufexists(self.bufnr) == 1 then
-    vim.api.nvim_buf_delete(self.bufnr, { force = true })
-  end
+  vim.fn.chanclose(self.id)
+
+  self.running = false
+  self.id = nil
+  self:hide()
+  self.buffer:delete()
+  self.buffer = nil
 end
 
 function REPL:stopall()
-  for _, r in pairs(REPL.buffer) do
+  for _, r in pairs(REPL.ids) do
     r:stop()
   end
 end
 
-local function get(name)
-  local r = REPL.id[name]
-  if r and r.running then
-    return r
-  else
-    return false
-  end
-end
+function REPL:_init(ft, force)
+  ft = ft or vim.bo.filetype
+  V.asss(ft)
 
-function REPL:_init(name, opts)
-  local r = get(name)
-  if r then
+  local r = REPL.ids[ft]
+  if r and not force and r:is_running() then
     return r
   end
 
-  opts = opts or {}
-  if not name then
-    self.name = vim.bo.filetype
-  else
-    self.name = name
-  end
+  self.filetype = ft
+  self.command = V.get(Lang.langs, { ft, "repl" })
 
-  self.command = V.get(Lang.langs, { name, "repl" })
-  assert(self.command, "No command specified for filetype " .. name)
-
-  for k, v in pairs(opts) do
-    self[k] = v
-  end
-end
-
-local function start(bufnr, cmd)
-  return vim.api.nvim_buf_call(bufnr, function()
-    vim.cmd("term")
-    local id = vim.b.terminal_job_id
-    vim.bo.buflisted = false
-    vim.wo.number = false
-    vim.cmd("set nomodified")
-    vim.api.nvim_chan_send(id, cmd .. "\r")
-
-    return id
-  end)
-end
-
-function REPL:start(opts)
-  opts = opts or {}
-  opts = V.lmerge(opts, self)
-  opts.name = opts.name or vim.bo.filetype or ""
-
-  if #opts.name == 0 then
-    return
-  end
-
-  local name, cmd = opts.name, self.command
-  local r = get(name)
-
-  if opts.force and r then
-    r:stop()
-    r:start(opts)
-  elseif r and r.id then
-    return r
-  end
-
-  local buf = vim.api.nvim_create_buf(false, true)
-  local id = start(buf, cmd)
-  self.id = id
-  self.running = true
-  self.command = cmd
-  self.name = name
-  self.bufnr = buf
-  REPL.id[id] = self
-  REPL.id[name] = self
-  REPL.buffer[buf] = self
+  assert(self.command, "No command specified for filetype " .. ft)
+  V.asss(self.command)
 
   return self
 end
 
-function REPL.hide(self)
-  if not self:is_visible() then
-    return
+local function start(cmd)
+  local buf = Buffer()
+  local id
+
+  buf:call(function()
+    vim.cmd("term")
+    id = vim.b.terminal_job_id
+    vim.bo.buflisted = false
+    vim.wo.number = false
+    vim.bo.modified = true
+    vim.api.nvim_chan_send(id, cmd .. "\r")
+  end)
+
+  return id, buf
+end
+
+function REPL:start(force)
+  if force or not self:is_running() then
+    self:stop()
+    start(self.command)
   end
 
-  local bufnr = self.bufnr
-  vim.api.nvim_buf_call(bufnr, function()
-    local winid = vim.fn.bufwinid(bufnr)
-    vim.fn.win_gotoid(winid)
-    vim.cmd("hide")
-  end)
+  if self:is_running() then
+    return self
+  end
+
+  local id, buf = start(self.command)
+  self.id = id
+  self.running = true
+  self.buffer = buf
+  buf:setvar({ _repl_filetype = self.filetype })
+
+  REPL.ids[id] = self
+  REPL.ids[self.filetype] = self
+
+  return self
+end
+
+function REPL:hide()
+  if self:is_running() then
+    self.buffer:hide()
+  end
 end
 
 local function ensure(self)
   if self:is_running() then
     return self
   end
+
   self:start()
 end
 
-function REPL.split(self, direction)
+function REPL:split(direction)
   ensure(self)
 
   if self:is_visible() then
-    return
-  end
-
-  direction = direction or "s"
-  local terminal_buf = self.bufnr
-  if direction == "s" then
-    local height = vim.fn.winheight(0) / 3
-    local count = math.floor(height)
-    vim.cmd("split | wincmd j | b " .. terminal_buf .. " | resize " .. count)
+    return self
   else
-    local width = vim.fn.winwidth(0) / 3
-    local count = math.floor(width)
-    vim.cmd("vsplit | wincmd l | b " .. terminal_buf .. " | vertical resize " .. count)
+    self.buffer:split(direction)
   end
 end
 
