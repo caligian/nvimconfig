@@ -160,7 +160,7 @@ user.plugins.plugins = {
 
       Keybinding.bind(
         { noremap = true, leader = true, mode = "n" },
-        { "gs", ":Git stage %<CR>", { desc = "Stage buffer", desc = "stage_buffer" } },
+        { "gs", ":Git stage %<CR>", { desc = "Stage buffer", name = "stage_buffer" } },
         { "gc", ":Git commit <CR>", { desc = "Commit buffer", name = "commit buffer" } },
         {
           "gg",
@@ -174,7 +174,7 @@ user.plugins.plugins = {
             vim.cmd(":vertical Git")
             vim.cmd(":vertical resize " .. count)
           end,
-          { desc = "Open Fugitive", name = "fugitive" }
+          { desc = "Open Fugitive", name = "fugitive" },
         }
       )
 
@@ -258,7 +258,7 @@ user.plugins.plugins = {
       Keybinding.bind(
         opts,
         { "bq", "<cmd>Bdelete<CR>", { desc = "Delete buffer" } },
-        { "bQ", "<cmd>Bwiepout<CR>", { desc = "Wipeout buffer" } }
+        { "bQ", "<cmd>Bwipeout<CR>", { desc = "Wipeout buffer" } }
       )
       V.require("user.plugins.vim-bbye")
     end,
