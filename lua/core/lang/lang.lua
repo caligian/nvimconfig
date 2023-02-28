@@ -57,7 +57,7 @@ function Lang:_init(lang, opts)
   self.autocmd = false
 
   if opts.hooks then
-    for _, h in pairs(opts.hooks) do
+    for _, h in ipairs(opts.hooks) do
       if V.istable(h) then
         self:hook(unpack(h))
       else

@@ -1,6 +1,16 @@
 return {
   { "nvim-lua/plenary.nvim" },
 
+  { "hylang/vim-hy", ft = { "hy" } },
+
+  {
+    "nvim-neorg/neorg",
+    ft = "norg",
+    config = function()
+      V.require("core.plugins.neorg")
+    end,
+  },
+
   {
     "junegunn/vim-easy-align",
     event = "BufReadPre",

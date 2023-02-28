@@ -82,10 +82,3 @@ wk.register({
   x = { name = "Shell operations" },
   c = { name = "Compile buffer" },
 }, { prefix = "<leader>" })
-
-wk.register({
-  l = { name = "Conjure logs" },
-  g = { name = "Conjure definition" },
-  e = { name = "Conjure eval" },
-  r = { name = "Conjure reset" },
-}, { prefix = "<localleader>" })
