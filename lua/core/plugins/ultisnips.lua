@@ -1,5 +1,5 @@
 user.plugins["ultisnips"] = {
-  UltiSnipsExpandTrigger = "<C-o>",
+  UltiSnipsExpandSnippet = "<tab>",
   UltiSnipsJumpForwardTrigger = "<C-j>",
   UltiSnipsJumpBackwardTrigger = "<C-k>",
   UltiSnipsEditSplit = "tabdo",
