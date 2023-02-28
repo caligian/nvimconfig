@@ -183,7 +183,7 @@ function Process:stop()
 end
 
 function Process.stopall()
-  V.each(function(p)
+  V.each(V.values(Process.process), function(p)
     p:stop()
-  end, V.values(Process.process))
+  end)
 end

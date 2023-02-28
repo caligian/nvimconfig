@@ -25,7 +25,7 @@ local function parse_opts(opts)
   opts = opts or {}
   local parsed = { au = {}, kbd = {}, misc = {} }
 
-  V.teach(function(k, v)
+  V.teach(opts, function(k, v)
     -- For autocommands
     if V.match(k, "pattern", "once", "nested", "group") then
       parsed.au[k] = v
@@ -34,7 +34,7 @@ local function parse_opts(opts)
     else
       parsed.kbd[k] = v
     end
-  end, opts)
+  end)
 
   return parsed
 end
@@ -232,7 +232,7 @@ function Keybinding.bind(opts, ...)
   if #args == 1 then
     return bind(args[1])
   else
-    V.each(bind, args)
+    V.each(args, bind)
   end
 end
 

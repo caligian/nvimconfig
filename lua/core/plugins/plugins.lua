@@ -1,11 +1,17 @@
 return {
   { "nvim-lua/plenary.nvim" },
 
-  { "junegunn/vim-easy-align", event = "BufReadPre" },
+  {
+    "junegunn/vim-easy-align",
+    event = "BufReadPre",
+    config = function()
+      Keybinding.noremap("n", "<leader>=", ":EasyAlign ", "Align lines")
+    end,
+  },
 
   {
     "lambdalisue/suda.vim",
-    config = function(...)
+    config = function()
       vim.g.suda_smart_edit = 1
     end,
   },
@@ -15,7 +21,6 @@ return {
     "sainnhe/everforest",
     -- A hack to ensure that user.colorscheme is captured
     dependencies = {
-      { "RRethy/nvim-base16" },
       { "rktjmp/lush.nvim" },
       { "rose-pine/neovim" },
       { "navarasu/onedark.nvim" },
@@ -40,7 +45,7 @@ return {
       { "folke/tokyonight.nvim" },
     },
     config = function()
-      require("core.plugins.colorscheme")
+      V.require("core.plugins.colorscheme")
     end,
   },
 
@@ -54,7 +59,6 @@ return {
 
   {
     "nvim-tree/nvim-web-devicons",
-    event = "WinEnter",
     config = function()
       local web = V.require("nvim-web-devicons")
       if web then
@@ -65,21 +69,9 @@ return {
 
   {
     "nvim-tree/nvim-tree.lua",
-    event = "WinEnter",
+    event = "VimEnter",
     config = function()
       V.require("core.plugins.nvim-tree")
-    end,
-  },
-
-  {
-    "beauwilliams/statusline.lua",
-    config = function()
-      local statusline = V.require("statusline")
-      if statusline then
-        statusline.tabline = false
-        statusline.lsp_diagnostics = true
-        vim.o.laststatus = 3
-      end
     end,
   },
 
@@ -154,33 +146,8 @@ return {
 
   {
     "tpope/vim-fugitive",
-    keys = "<leader>g",
     config = function()
-      user.plugins["vim-fugitive"] = {
-        minwidth = 47,
-      }
-
-      Keybinding.bind(
-        { noremap = true, leader = true, mode = "n" },
-        { "gs", ":Git stage %<CR>", { desc = "Stage buffer", name = "stage_buffer" } },
-        { "gc", ":Git commit <CR>", { desc = "Commit buffer", name = "commit buffer" } },
-        {
-          "gg",
-          function()
-            -- Tree-like Git status
-            local minwidth = user.plugins["vim-fugitive"].minwidth
-            local width = vim.fn.winwidth(0)
-            local count = math.floor(vim.fn.winwidth(0) / 4)
-            count = count < minwidth and minwidth or count
-
-            vim.cmd(":vertical Git")
-            vim.cmd(":vertical resize " .. count)
-          end,
-          { desc = "Open Fugitive", name = "fugitive" },
-        }
-      )
-
-      V.require("user.plugins.vim-fugitive")
+      V.require("core.plugins.vim-fugitive")
     end,
   },
 
@@ -201,7 +168,7 @@ return {
 
   {
     "folke/which-key.nvim",
-    event = "WinEnter",
+    event = "VimEnter",
     config = function()
       V.require("core.plugins.which-key")
     end,
@@ -254,9 +221,8 @@ return {
     "moll/vim-bbye",
     event = "BufReadPre",
     config = function()
-      local opts = { noremap = true, leader = true }
-      Keybinding.bind(
-        opts,
+      local opts = Keybinding.bind(
+        { noremap = true, leader = true },
         { "bq", "<cmd>Bdelete<CR>", { desc = "Delete buffer" } },
         { "bQ", "<cmd>Bwipeout<CR>", { desc = "Wipeout buffer" } }
       )

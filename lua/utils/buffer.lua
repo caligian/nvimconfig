@@ -358,12 +358,12 @@ function Buffer.input(name, text, cb, opts)
     local sanitized = {}
     local idx = 1
 
-    V.each(function(s)
+    V.each(lines, function(s)
       if not s:match("^" .. comment) then
         sanitized[idx] = s
         idx = idx + 1
       end
-    end, lines)
+    end)
 
     cb(sanitized)
   end, { noremap = true })

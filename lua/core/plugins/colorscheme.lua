@@ -49,7 +49,12 @@ theme.onedark = function(config)
   vim.cmd("color onedark")
 end
 
-V.each(function(c)
+V.each({
+  "tokyonight-night",
+  "tokyonight-storm",
+  "tokyonight-day",
+  "tokyonight-moon",
+}, function(c)
   theme[c] = function(config)
     config = config
       or {
@@ -89,12 +94,7 @@ V.each(function(c)
       }
     vim.cmd("color " .. c)
   end
-end, {
-  "tokyonight-night",
-  "tokyonight-storm",
-  "tokyonight-day",
-  "tokyonight-moon",
-})
+end)
 
 -- You have to set two keys:
 -- colorscheme string Name of the theme
@@ -131,6 +131,14 @@ local function get_themes()
   themes = Set.map(themes, function(t)
     return vim.fn.fnamemodify(t, ":t:r")
   end)
+  local exclude = Set(dir.getfiles("/usr/share/nvim/runtime/colors"))
+  exclude = Set.map(exclude, function(s)
+    s = V.basename(s)
+    s = vim.fn.fnamemodify(s, ":r")
+    return s
+  end)
+
+  themes = Set.difference(themes, exclude)
   themes = List.sort(Set.values(themes))
 
   return themes

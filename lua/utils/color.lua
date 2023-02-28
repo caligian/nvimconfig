@@ -6,13 +6,21 @@ function V.highlight(hi)
 
   hi = {}
   out = vim.split(out, " +")
-  out = V.slice(out, 3, #out)
-  V.each(function(i)
+  out = table.filter(function(c)
+    if V.match(c, "xxx", "cleared") then
+      return false
+    else
+      return true
+    end
+  end, out)
+  out = V.slice(out, 1, #out)
+
+  V.each(out, function(i)
     local attrib, value = unpack(vim.split(i, "="))
     if value then
       hi[attrib] = value
     end
-  end, out)
+  end)
 
   return hi
 end
@@ -97,14 +105,18 @@ function V.luminance(hex)
   return luminance < (255 / 2)
 end
 
-function V.highlightset(hi, set)
+function V.highlightset(hi, set, defaults)
   local group = hi
   hi = V.highlight(hi)
   if V.isblank(hi) then
-    return
+    if defaults then
+      hi = defaults
+    else
+      return
+    end
   end
 
-  V.teach(function(attrib, transformer)
+  V.teach(set, function(attrib, transformer)
     if not hi[attrib] then
       return
     end
@@ -115,7 +127,7 @@ function V.highlightset(hi, set)
     hi[attrib] = transformer
 
     vim.cmd(sprintf("hi %s %s=%s", group, attrib, transformer))
-  end, set)
+  end)
 
   return hi
 end

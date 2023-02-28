@@ -65,13 +65,13 @@ function V.extend(tbl, ...)
   return tbl
 end
 
-function V.teach(f, t)
+function V.teach(t, f)
   for key, value in pairs(t) do
     f(key, value)
   end
 end
 
-function V.tmap(f, t)
+function V.tmap(t, f)
   local out = {}
   for key, value in pairs(t) do
     out[key] = f(key, value)
@@ -80,7 +80,7 @@ function V.tmap(f, t)
   return out
 end
 
-function V.tfilter(f, t)
+function V.tfilter(t, f)
   local filtered = {}
   for key, value in pairs(t) do
     local out = f(key, value)
@@ -92,19 +92,19 @@ function V.tfilter(f, t)
   return filtered
 end
 
-function V.each(f, t)
+function V.each(t, f)
   for _, value in ipairs(t) do
     f(value)
   end
 end
 
-function V.ieach(f, t)
+function V.ieach(t, f)
   for idx, value in ipairs(t) do
     f(idx, value)
   end
 end
 
-function V.imap(f, t)
+function V.imap(t, f)
   local out = {}
   for index, value in ipairs(t) do
     out[index] = f(index, value)
@@ -520,17 +520,17 @@ end
 function V.asserttype(e, t)
   assert(V.isa(e, t))
 end
-V.asss = V.rpartial(V.asserttype, 'string')
-V.asst = V.rpartial(V.asserttype, 'table')
-V.assn = V.rpartial(V.asserttype, 'number')
-V.assu = V.rpartial(V.asserttype, 'userdata')
-V.assf = V.rpartial(V.asserttype, 'function')
+V.asss = V.rpartial(V.asserttype, "string")
+V.asst = V.rpartial(V.asserttype, "table")
+V.assn = V.rpartial(V.asserttype, "number")
+V.assu = V.rpartial(V.asserttype, "userdata")
+V.assf = V.rpartial(V.asserttype, "function")
 
 function V.lmerge(...)
   local function _merge(t1, t2)
     local later = {}
 
-    V.teach(function(k, v)
+    V.teach(t2, function(k, v)
       local a, b = t1[k], t2[k]
 
       if a == nil then
@@ -538,11 +538,11 @@ function V.lmerge(...)
       elseif V.istable(a) and V.istable(b) then
         V.append(later, { a, b })
       end
-    end, t2)
+    end)
 
-    V.each(function(next)
+    V.each(later, function(next)
       _merge(unpack(next))
-    end, later)
+    end)
   end
 
   local args = { ... }
@@ -559,7 +559,7 @@ function V.merge(...)
   local function _merge(t1, t2)
     local later = {}
 
-    V.teach(function(k, v)
+    V.teach(t2, function(k, v)
       local a, b = t1[k], t2[k]
 
       if a == nil then
@@ -569,11 +569,11 @@ function V.merge(...)
       else
         t1[k] = v
       end
-    end, t2)
+    end)
 
-    V.each(function(next)
+    V.each(later, function(next)
       _merge(unpack(next))
-    end, later)
+    end)
   end
 
   local args = { ... }
@@ -590,19 +590,43 @@ function V.apply(f, args)
   return f(unpack(args))
 end
 
-function V.tapply(t, f)
-  local later = {}
+function V.items(t)
+  local it = {}
+  local i = 1
   for key, value in pairs(t) do
-    if V.istable(value) then
-      V.append(later, value)
-    else
-      t[key] = f(value)
-    end
+    it[i] = { key, value }
+    i = i + 1
   end
 
-  for _, value in ipairs(later) do
-    V.twalk(value, f)
-  end
-
-  return t
+  return it
 end
+
+table.get = V.get
+table.isblank = V.isblank
+table.extend = V.extend
+table.teach = V.teach
+table.each = V.each
+table.ieach = V.ieach
+table.map = V.map
+table.imap = V.imap
+table.tmap = V.tmap
+table.filter = V.filter
+table.tfilter = V.tfilter
+table.append = V.append
+table.iappend = V.iappend
+table.shift = V.shift
+table.unshift = V.unshift
+table.last = V.last
+table.butlast = V.butlast
+table.rest = V.rest
+table.first = V.first
+table.update = V.update
+table.slice = V.slice
+table.index = V.index
+table.haskey = V.haskey
+table.makepath = V.makepath
+table.lmerge = V.lmerge
+table.merge = V.merge
+table.keys = V.keys
+table.values = V.values
+table.items = V.items

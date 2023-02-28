@@ -8,16 +8,19 @@ user.plugins["nvim-cmp"] = {
   mapping = {
     ["<C-b>"] = cmp.mapping.scroll_docs(-4),
     ["<C-f>"] = cmp.mapping.scroll_docs(4),
-    ["<C-j>"] = cmp.mapping.select_next_item(),
-    ["<C-k>"] = cmp.mapping.select_prev_item(),
+    ["<C-n>"] = cmp.mapping.select_next_item(),
+    ["<C-p>"] = cmp.mapping.select_prev_item(),
     ["<C-Space>"] = cmp.mapping.complete(),
     ["<C-e>"] = cmp.mapping.abort(),
     ["<CR>"] = cmp.mapping.confirm({ select = true }),
-    ["<Tab>"] = cmp.mapping(function(fallback)
-      cmp_ultisnips_mappings.expand_or_jump_forwards(fallback)
+    ["<C-/>"] = cmp.mapping(function(fallback)
+      cmp_ultisnips_mappings.compose({ "expand" })(function() end)
+    end),
+    ["<C-j>"] = cmp.mapping(function(fallback)
+      cmp_ultisnips_mappings.compose({ "jump_forwards" })(function() end)
     end, { "i", "s" }),
-    ["<S-Tab>"] = cmp.mapping(function(fallback)
-      cmp_ultisnips_mappings.jump_backwards(fallback)
+    ["<C-k>"] = cmp.mapping(function(fallback)
+      cmp_ultisnips_mappings.compose({ "jump_backwards" })(function() end)
     end, { "i", "s" }),
   },
   snippet = {

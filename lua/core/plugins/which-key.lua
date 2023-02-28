@@ -30,12 +30,12 @@ user.plugins["which-key.nvim"] = {
     group = "+",
   },
   popup_mappings = {
-    scroll_down = "<c-d>",
-    scroll_up = "<c-u>",
+    scroll_down = "<c-j>",
+    scroll_up = "<c-k>",
   },
   window = {
     border = "none", -- none, single, double, shadow
-    position = "top", -- bottom, top
+    position = "bottom", -- bottom, top
     margin = { 1, 0, 1, 0 }, -- extra window margin [top, right, bottom, left]
     padding = { 2, 2, 2, 2 }, -- extra window padding [top, right, bottom, left]
     winblend = 0,
@@ -60,7 +60,7 @@ user.plugins["which-key.nvim"] = {
     v = { "j", "k" },
   },
   -- disable the WhichKey popup for certain buf types and file types.
-  -- Disabled by deafult for Telescope
+  -- Disabled by default for Telescope
   disable = {
     buftypes = {},
     filetypes = { "TelescopePrompt" },
@@ -76,9 +76,16 @@ wk.register({
   g = { name = "Git operations" },
   h = { name = "Help", t = { name = "Colorscheme" } },
   r = { name = "REPL operations" },
-  l = { name = "LSP management", t = { name = "Trouble" }, w = { name = "Workspaces" } },
+  l = { name = "LSP management", w = { name = "Workspaces" } },
   t = { name = "Tab management" },
   b = { name = "Buffer management" },
   x = { name = "Shell operations" },
   c = { name = "Compile buffer" },
 }, { prefix = "<leader>" })
+
+wk.register({
+  l = { name = "Conjure logs" },
+  g = { name = "Conjure definition" },
+  e = { name = "Conjure eval" },
+  r = { name = "Conjure reset" },
+}, { prefix = "<localleader>" })
