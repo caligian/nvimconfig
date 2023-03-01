@@ -103,7 +103,7 @@ function REPL:start(force)
   self.id = id
   self.running = true
   self.buffer = buf
-  buf:setvar({ _repl_filetype = self.filetype })
+  buf:setvar("_repl_filetype", self.filetype)
 
   REPL.ids[id] = self
   REPL.ids[self.filetype] = self

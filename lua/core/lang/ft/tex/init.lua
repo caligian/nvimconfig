@@ -3,7 +3,7 @@ return {
   hooks = {
     function()
       vim.bo.textwidth = 80
-      vim.bo.spell = true
+      vim.wo.spell = true
     end,
   },
   bo = {

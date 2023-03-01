@@ -444,7 +444,7 @@ end
 V.isstring = V.rpartial(V.isa, "string")
 V.isuserdata = V.rpartial(V.isa, "userdata")
 V.istable = V.rpartial(V.isa, "table")
-V.isnumber = V.rpartial(V.isa, "string")
+V.isnumber = V.rpartial(V.isa, "number")
 V.isnil = V.rpartial(V.isa)
 V.isfunction = V.rpartial(V.isa, "function")
 V.isfunc = V.isfunction

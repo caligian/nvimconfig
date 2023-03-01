@@ -41,7 +41,7 @@ function Buffer:_init(name, scratch)
   elseif scratch then
     bufnr = vim.fn.bufnr(name, true)
   else
-    V.isstring(name)
+    assert(V.iss(name))
     bufnr = vim.fn.bufnr(name, true)
   end
 
@@ -59,6 +59,36 @@ function Buffer:_init(name, scratch)
   self.fullname = vim.fn.bufname(bufnr)
   self.scratch = scratch
   self.name = name
+  self.wo = {}
+  self.o = {}
+
+  setmetatable(self.o, {
+    __index = function(_, k)
+      return self:getopt(k)
+    end,
+
+    __newindex = function(_, k, v)
+      return self:setopt(k, v)
+    end,
+  })
+
+  setmetatable(self.wo, {
+    __index = function(_, k)
+      if not self:is_visible() then
+        return
+      end
+
+      return self:getwinopt(k)
+    end,
+
+    __newindex = function(_, k, v)
+      if not self:is_visible() then
+        return
+      end
+
+      return self:setwinopt(k, v)
+    end,
+  })
 
   update(self)
 
@@ -70,9 +100,10 @@ end
 -- @return any
 function Buffer:getopt(opt)
   assert(self:exists())
+
   local _, out = pcall(vim.api.nvim_buf_get_option, self.bufnr, opt)
 
-  if out then
+  if out ~= nil then
     return out
   end
 end
@@ -82,34 +113,159 @@ end
 -- @return any
 function Buffer:getvar(var)
   assert(self:exists())
+  assert(V.iss(var))
 
   local _, out = pcall(vim.api.nvim_buf_get_var, self.bufnr, var)
+
+  if out ~= nil then
+    return out
+  end
+end
+
+function Buffer:setvar(k, v)
+  assert(self:exists())
+  assert(V.iss(k))
+  assert(v)
+
+  vim.api.nvim_buf_set_var(self.bufnr, k, v)
+end
+
+--- Set buffer variables
+-- @tparam table vars Dictionary of var name and value
+function Buffer:setvars(vars)
+  assert(self:exists())
+  assert(V.ist(vars))
+
+  V.teach(vars, V.partial(self.setvar, self))
+
+  return vars
+end
+
+--- Get buffer window option
+-- @tparam string opt Name of the option
+-- @return any
+function Buffer:getwinopt(opt)
+  assert(self:exists())
+  assert(V.iss(opt))
+
+  if not self:is_visible() then
+    return
+  end
+
+  local _, out = pcall(vim.api.nvim_win_get_option, self:winnr(), opt)
+
+  if out ~= nil then
+    return out
+  end
+end
+
+--- Get buffer window option
+-- @tparam string var Name of the variable
+-- @return any
+function Buffer:getwinvar(var)
+  assert(self:exists())
+
+  if not self:is_visible() then
+    return
+  end
+
+  local _, out = pcall(vim.api.nvim_win_get_var, self:winnr(), var)
 
   if out then
     return out
   end
 end
 
---- Set buffer variables
--- @tparam table vars Dictionary of var name and value
-function Buffer:setvar(vars)
+function Buffer:setwinvar(k, v)
   assert(self:exists())
 
-  vars = vars or {}
-  for key, value in pairs(vars) do
-    vim.api.nvim_buf_set_var(self.bufnr, key, value)
+  if not self:is_visible() then
+    return
+  end
+
+  vim.api.nvim_win_set_var(self:winnr(), k, v)
+end
+
+function Buffer:setwinvars(vars)
+  assert(self:exists())
+  assert(V.ist(vars))
+
+  if not self:is_visible() then
+    return
+  end
+
+  V.teach(vars, V.partial(self.setwinvar, self))
+
+  return vars
+end
+
+function Buffer:setopt(k, v)
+  assert(self:exists())
+
+  vim.api.nvim_buf_set_option(self.bufnr, k, v)
+end
+
+function Buffer:setopts(opts)
+  assert(self:exists())
+
+  V.teach(opts, V.partial(self.setopt, self))
+end
+
+function Buffer:winnr()
+  assert(self:exists())
+
+  local winnr = vim.fn.bufwinnr(self.bufnr)
+  if winnr == -1 then
+    return
+  end
+  return winnr
+end
+
+function Buffer:winid()
+  assert(self:exists())
+
+  local winid = vim.fn.bufwinid(self.bufnr)
+  if winid == -1 then
+    return
+  end
+  return winid
+end
+
+function Buffer:focus()
+  assert(self:exists())
+
+  local winid = self:winid()
+  if winid then
+    vim.fn.win_gotoid(winid)
+    return true
   end
 end
 
---- Set buffer options
--- @tparam table opts Dictionary of option name and value
-function Buffer:setopt(opts)
+function Buffer:setwinopt(k, v)
   assert(self:exists())
+  assert(V.iss(k))
+  assert(v)
 
-  opts = opts or {}
-  for key, value in pairs(opts) do
-    vim.api.nvim_buf_set_option(self.bufnr, key, value)
+  if not self:is_visible() then
+    return
   end
+
+  vim.api.nvim_win_set_option(self:winnr(), k, v)
+
+  return v
+end
+
+function Buffer:setwinopts(opts)
+  assert(self:exists())
+  assert(V.ist(opts))
+
+  if not self:is_visible() then
+    return
+  end
+
+  V.teach(opts, V.partial(self.setwinopt, self))
+
+  return opts
 end
 
 --- Make a new buffer local mapping.
@@ -200,6 +356,12 @@ end
 -- @return table
 function Buffer:lines(startrow, tillrow)
   assert(self:exists())
+
+  startrow = startrow or 0
+  tillrow = tillrow or -1
+
+  assert(V.isnumber(startrow))
+  assert(V.isnumber(tillrow))
 
   return vim.api.nvim_buf_get_lines(self.bufnr, startrow, tillrow, false)
 end
@@ -407,6 +569,110 @@ function Buffer:linenum()
   return self:call(function()
     return vim.fn.getpos(".")[2]
   end)
+end
+
+function Buffer:is_listed()
+  assert(self:exists())
+
+  return vim.fn.buflisted(self.bufnr) ~= 0
+end
+
+function Buffer:info()
+  assert(self:exists())
+
+  return vim.fn.getbufinfo(self.bufnr)
+end
+
+function Buffer:wininfo()
+  assert(self:exists())
+  if not self:is_visible() then
+    return
+  end
+  return vim.fn.getwininfo(self:winid())
+end
+
+function Buffer:string()
+  return table.concat(self:lines(0, -1), "\n")
+end
+
+function Buffer:current_line()
+  return self:call(function()
+    return vim.fn.getline(".")
+  end)
+end
+
+function Buffer:lines_till_point()
+  return self:call(function()
+    local line = vim.fn.line(".")
+    return self:lines(0, line)
+  end)
+end
+
+function Buffer:__tostring()
+  return self:string()
+end
+
+function Buffer:append(lines)
+  return self:setlines(-1, -1, lines)
+end
+
+function Buffer:prepend(lines)
+  return self:setlines(0, 0, lines)
+end
+
+function Buffer:maplines(f)
+  assert(self:exists())
+  return V.map(self:lines(0, -1), f)
+end
+
+function Buffer:filter(f)
+  assert(self:exists())
+  return V.filter(self:lines(0, -1), f)
+end
+
+function Buffer:match(pat)
+  assert(self:exists())
+  assert(V.iss(pat))
+
+  return V.filter(self:lines(0, -1), function(s)
+    return s:match(pat)
+  end)
+end
+
+function Buffer:readfile(fname)
+  assert(path.exists(fname))
+
+  local s = file.read(fname)
+  self:setlines(0, -1, s)
+end
+
+function Buffer:insertfile(fname)
+  assert(path.exists(fname))
+
+  local s = file.read(fname)
+  self:append(s)
+end
+
+function Buffer:save()
+  self:call(function()
+    vim.cmd("w! %:p")
+  end)
+end
+
+function Buffer:shell(command)
+  assert(V.iss(command))
+
+  self:call(function()
+    vim.cmd(":%! " .. command)
+  end)
+
+  return self:lines()
+end
+
+function Buffer:__add(s)
+  self:append(s)
+
+  return self
 end
 
 -- TODO: Add other buffer operations (if possible)

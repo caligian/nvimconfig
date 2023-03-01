@@ -171,7 +171,7 @@ Keybinding.bind(
       local themes = V.unshift(get_themes(), "[<CR>] Set colorscheme [l] Light bg [d] Dark bg")
       buf:setlines(0, -1, themes)
       buf:split("v")
-      buf:setopt({ modifiable = false })
+      buf:setopt("modifiable", false)
       buf:bind(
         { noremap = true },
         { "l", V.partial(set_colorscheme, "light") },
