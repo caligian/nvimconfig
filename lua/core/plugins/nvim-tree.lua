@@ -1,5 +1,5 @@
 user.plugins["nvim-tree"] = {
-  defaults = {
+  config = {
     auto_reload_on_write = true,
     disable_netrw = true,
     hijack_cursor = true,
@@ -238,14 +238,16 @@ user.plugins["nvim-tree"] = {
       },
     },
   },
-  kbd = {
-    toggle = Keybinding.noremap("n", "<leader>|", ":NvimTreeToggle<CR>", "Toggle file browser"),
-    focus = Keybinding.noremap("n", "<leader>\\", ":NvimTreeFocus<CR>", "Focus file browser"),
-  },
 }
+
+Keybinding.bind(
+  { noremap = true, leader = true },
+  { "<leader>|", ":NvimTreeToggle<CR>", "Toggle file browser" },
+  { "<leader>\\", ":NvimTreeFocus<CR>", "Focus file browser" }
+)
 
 local tree = require("nvim-tree")
 
 V.require("user.plugins.nvim-tree")
 
-tree.setup(user.plugins["nvim-tree"].defaults)
+tree.setup(user.plugins["nvim-tree"].config)

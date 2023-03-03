@@ -1,10 +1,5 @@
 return {
   server = "texlab",
-  hooks = {
-    function()
-      vim.wo.spell = true
-    end,
-  },
   bo = {
     textwidth = 80,
     shiftwidth = 2,

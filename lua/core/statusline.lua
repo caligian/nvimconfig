@@ -67,7 +67,7 @@ local function setup()
 
   local statusline = {
     -- bufnr
-    { 1, " %n" },
+    { 6, " %n" },
 
     -- readonly?
     { 2, " %R" },

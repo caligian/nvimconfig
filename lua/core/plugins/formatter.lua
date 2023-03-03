@@ -36,5 +36,7 @@ Autocmd("BufWritePost", {
 V.require("user.plugins.formatter")
 
 -- Finalize setup
-user.plugins["formatter.nvim"] = { filetype = formatters }
+user.plugins["formatter.nvim"] = {
+  config = { filetype = formatters },
+}
 require("formatter").setup(user.plugins["formatter.nvim"])

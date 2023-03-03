@@ -18,8 +18,8 @@ theme["rose-pine"] = function()
 end
 
 theme.onedark = function(config)
-  V.asserttype(e, "table")
-  V.asserttype(e, "boolean")
+  config = config or {}
+  assert(V.ist(config))
 
   config = config
     or {

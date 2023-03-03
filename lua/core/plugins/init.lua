@@ -7,6 +7,7 @@ end
 V.makepath(user, "plugins", "plugins")
 
 user.plugins.plugins = require("core.plugins.plugins")
+
 V.require("user.plugins.plugins")
 
 lazy.setup(user.plugins.plugins, { lazy = true })

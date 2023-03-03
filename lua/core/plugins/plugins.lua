@@ -231,7 +231,7 @@ return {
     "moll/vim-bbye",
     event = "BufReadPre",
     config = function()
-      local opts = Keybinding.bind(
+       Keybinding.bind(
         { noremap = true, leader = true },
         { "bq", "<cmd>Bdelete<CR>", { desc = "Delete buffer" } },
         { "bQ", "<cmd>Bwipeout<CR>", { desc = "Wipeout buffer" } }

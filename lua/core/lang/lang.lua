@@ -66,9 +66,6 @@ function Lang:_init(lang, opts)
     end
   end
 
-  if opts.wo then
-    self:setwinopts(opts.wo)
-  end
   if opts.bo then
     self:setbufopts(opts.bo)
   end

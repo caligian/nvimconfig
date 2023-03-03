@@ -1,14 +1,15 @@
 local nvimlint = V.require("lint")
 
 user.plugins["nvim-lint"] = {
-  linters_by_ft = {},
-  autocmd = {},
-  kbd = {},
+  config = {
+    linters_by_ft = {},
+  }
 }
+local config = user.plugins['nvim-lint'].config
 
 for lang, conf in pairs(Lang.langs) do
   if conf.linters and #conf.linters > 0 then
-    user.plugins["nvim-lint"].linters_by_ft[lang] = V.tolist(conf.linters)
+    config.linters_by_ft[lang] = V.tolist(conf.linters)
   end
 end
 
@@ -18,9 +19,10 @@ local callback = function()
   end
 end
 
-user.plugins["nvim-lint"].lint_on_save = Autocmd("BufWritePost", {
+Autocmd("BufWritePost", {
   pattern = "*",
   callback = callback,
+  name = "lint_buffer",
 })
 
 Keybinding.noremap("n", "<leader>ll", function()
@@ -31,7 +33,7 @@ end, { desc = "Try linting buffer", name = "lint_buffer" })
 V.require("user.plugins.nvim-lint")
 
 -- Setup nvim-lint
-nvimlint.linters_by_ft = user.plugins["nvim-lint"].linters_by_ft
+nvimlint.linters_by_ft = config.linters_by_ft
 
 -- Ignore globals
 nvimlint.linters.luacheck.args = {
