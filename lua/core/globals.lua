@@ -1,21 +1,29 @@
-user.lsp = user.lsp or {}
-user.plugins = user.plugins or {}
-user.shell = "/usr/bin/zsh"
-user.font = "Hack Nerd Font:h13"
-user.colorscheme = { dark = "terafox", light = "base16-gruvbox-material-light-soft" }
-user.conjure_langs = {
-  "clojure",
-  "fennel",
-  "common-lisp",
-  "guile",
-  "hy",
-  "janet",
-  "julia",
-  "lua",
-  "python",
-  "racket",
-  "rust",
-  "scheme",
-}
+local data_dir = vim.fn.stdpath("data")
+
+table.merge(user, {
+  lsp = user.lsp or {},
+  dir = vim.fn.stdpath("config"),
+  user_dir = path.join(os.getenv("HOME"), ".nvim"),
+  data_dir = data_dir,
+  plugins_dir = path.join(data_dir, "lazy"),
+  plugins = user.plugins or {},
+  shell = "/usr/bin/zsh",
+  font = "Hack Nerd Font:h13",
+  colorscheme = { dark = "oceanic", light = "OceanicNextLight" },
+  conjure_langs = {
+    "clojure",
+    "fennel",
+    "common-lisp",
+    "guile",
+    "hy",
+    "janet",
+    "julia",
+    "lua",
+    "python",
+    "racket",
+    "rust",
+    "scheme",
+  },
+})
 
 V.require("user.globals")

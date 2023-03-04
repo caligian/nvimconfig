@@ -12,9 +12,11 @@ end
 
 local function get_statusline_bg()
   local normal = V.highlight("Normal")
+  local defaults = { guibg = "#002b36", guifg = "#ffffff" }
   if table.isblank(normal) then
-    normal = { guibg = "#002b36", guifg = "#ffffff" }
+    normal = defaults
   end
+  table.lmerge(normal, defaults)
 
   local active = {
     guibg = V.darken(normal.guibg, "10"),

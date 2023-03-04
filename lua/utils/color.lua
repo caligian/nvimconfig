@@ -6,13 +6,13 @@ function V.highlight(hi)
 
   hi = {}
   out = vim.split(out, " +")
-  out = table.filter(function(c)
+  out = table.grep(out, function(c)
     if V.match(c, "xxx", "cleared") then
       return false
     else
       return true
     end
-  end, out)
+  end)
   out = V.slice(out, 1, #out)
 
   V.each(out, function(i)

@@ -41,6 +41,7 @@ return {
       { "jesseleite/nvim-noirbuddy" },
       { "ray-x/starry.nvim" },
       { "catppuccin/nvim" },
+      { "marko-cerovac/material.nvim" },
       { "fenetikm/falcon" },
       { "shaunsingh/nord.nvim" },
       { "rebelot/kanagawa.nvim" },
@@ -56,6 +57,7 @@ return {
     },
     config = function()
       V.require("core.plugins.colorscheme")
+      -- vim.cmd("color github_dark")
     end,
   },
 
@@ -200,11 +202,11 @@ return {
 
   {
     "neovim/nvim-lspconfig",
-    ft = V.filter(function(k)
+   ft = V.filter(V.keys(Lang.langs), function(k)
       if V.haskey(Lang.langs, k, "server") then
         return k
       end
-    end, V.keys(Lang.langs)),
+    end),
     dependencies = {
       { "lukas-reineke/lsp-format.nvim" },
       { "williamboman/mason.nvim" },
@@ -231,7 +233,7 @@ return {
     "moll/vim-bbye",
     event = "BufReadPre",
     config = function()
-       Keybinding.bind(
+      Keybinding.bind(
         { noremap = true, leader = true },
         { "bq", "<cmd>Bdelete<CR>", { desc = "Delete buffer" } },
         { "bQ", "<cmd>Bwipeout<CR>", { desc = "Wipeout buffer" } }

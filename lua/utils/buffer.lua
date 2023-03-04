@@ -95,6 +95,22 @@ function Buffer:_init(name, scratch)
   return self
 end
 
+function Buffer:getwidth()
+  if not self:is_visible() then
+    return
+  end
+
+  return vim.fn.winwidth(self:winnr())
+end
+
+function Buffer:getheight()
+  if not self:is_visible() then
+    return
+  end
+
+  return vim.fn.winheight(self:winnr())
+end
+
 --- Get buffer option
 -- @tparam string opt Name of the option
 -- @return any
@@ -295,16 +311,81 @@ end
 
 --- Split current window and focus this buffer
 -- @param[opt='s'] split Direction to split in: 's' or 'v'
-function Buffer:split(split)
+function Buffer:split(split, opts)
   assert(self:exists())
 
+  opts = opts or {}
   split = split or "s"
 
+  V.ass_s(split)
+  V.ass_t(opts)
+
+  local required
+  local reverse = opts.reverse
+  local width = opts.resize or 0.5
+  local height = opts.resize or 0.5
+  local min = opts.min or 0.01
+
+  -- Use decimal values to use percentage changes
   if split == "s" then
-    vim.cmd(V.sprintf("split | wincmd j | b %d", self.bufnr))
+    height = height or 0.5
+    local current = vim.fn.winheight(vim.fn.winnr())
+
+    assert(height ~= 0, "height cannot be 0")
+    assert(height > 0, "height cannot be < 0")
+
+    if height < 1 then
+      required = math.floor(current * height)
+    else
+      required = math.floor(current)
+    end
+
+    if min < 1 then
+      min = math.floor(current * min)
+    else
+      min = math.floor(min)
+    end
+
+    if required < min then
+      required = min
+    end
+
+    if reverse then
+      vim.cmd("split | b " .. self.bufnr)
+    else
+      vim.cmd(V.sprintf("split | wincmd j | b %d", self.bufnr))
+    end
+    vim.cmd("resize " .. required)
   elseif split == "v" then
-    vim.cmd(V.sprintf("vsplit | wincmd l | b %d", self.bufnr))
-  elseif split == "t" then
+    width = width or 0.5
+    local current = vim.fn.winwidth(vim.fn.winnr())
+
+    assert(width ~= 0, "width cannot be 0")
+    assert(width > 0, "width cannot be < 0")
+
+    if width < 1 then
+      required = math.floor(current * width)
+    else
+      required = math.floor(current)
+    end
+
+    if min < 1 then
+      min = math.floor(current * min)
+    else
+      min = math.floor(min)
+    end
+
+    if required < min then
+      required = min
+    end
+
+    if reverse then
+      vim.cmd("vsplit | b " .. self.bufnr)
+    else
+      vim.cmd(V.sprintf("vsplit | wincmd l | b %d", self.bufnr))
+    end
+    vim.cmd("vert resize " .. required)
+  else
     vim.cmd(sprintf("tabnew | b %d", self.bufnr))
   end
 end
@@ -595,6 +676,10 @@ function Buffer:string()
   return table.concat(self:lines(0, -1), "\n")
 end
 
+function Buffer:setbuffer(lines)
+  return self:setlines(0, -1, lines)
+end
+
 function Buffer:current_line()
   return self:call(function()
     return vim.fn.getline(".")
@@ -673,6 +758,52 @@ function Buffer:__add(s)
   self:append(s)
 
   return self
+end
+
+function Buffer.menu(desc, items, formatter, callback)
+  assert(V.iss(desc) or V.ist(items))
+  assert(V.iss(items) or V.ist(items))
+  assert(V.isf(callback))
+
+  if formatter then
+    assert(V.isf(formatter))
+  end
+  if V.iss(items) then
+    items = vim.split(items, "\n")
+  end
+
+  if V.iss(desc) then
+    desc = vim.split(desc, "\n")
+  end
+
+  local b = Buffer()
+  local desc_n = #desc
+  local s = table.extend(desc, items)
+  local lines = V.copy(s)
+
+  if formatter then
+    s = table.map(s, formatter)
+  end
+
+  local _callback = callback
+  callback = function()
+    local idx = vim.fn.line(".")
+    if idx <= desc_n then
+      return
+    end
+
+    _callback(lines[idx])
+  end
+
+  b:setbuffer(s)
+  b:setopt("modifiable", false)
+  b:hook("WinLeave", V.partial(b.delete, b))
+  b:bind(
+    { noremap = true, event = "BufEnter" },
+    { "q", V.partial(b.delete, b) },
+    { "<CR>", callback, "Apply theme" }
+  )
+  return b
 end
 
 -- TODO: Add other buffer operations (if possible)

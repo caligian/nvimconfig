@@ -29,7 +29,7 @@ Keybinding.noremap("n", "<leader>bf", "FormatWrite<CR>", {
 
 Autocmd("BufWritePost", {
   pattern = "*",
-  callback = ":FormatWrite",
+  callback = ":silent! FormatWrite",
   name = "format_buffer",
 })
 
@@ -39,4 +39,4 @@ V.require("user.plugins.formatter")
 user.plugins["formatter.nvim"] = {
   config = { filetype = formatters },
 }
-require("formatter").setup(user.plugins["formatter.nvim"])
+require("formatter").setup(user.plugins["formatter.nvim"].config)

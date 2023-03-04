@@ -12,10 +12,8 @@ V.isempty = V.tbl_is_empty
 V.islist = vim.tbl_islist
 V.keys = vim.tbl_keys
 V.values = vim.tbl_values
-V.map = vim.tbl_map
 V.trim = vim.trim
 V.validate = vim.validate
-V.filter = vim.tbl_filter
 
 function V.whereis(bin, regex)
   local out = vim.fn.system("whereis " .. bin .. [[ | cut -d : -f 2- | sed -r "s/(^ *| *$)//mg"]])
@@ -71,6 +69,15 @@ function V.teach(t, f)
   end
 end
 
+function V.map(t, f)
+  local out = {}
+  for key, value in ipairs(t) do
+    out[key] = f(value)
+  end
+
+  return out
+end
+
 function V.tmap(t, f)
   local out = {}
   for key, value in pairs(t) do
@@ -78,6 +85,46 @@ function V.tmap(t, f)
   end
 
   return out
+end
+
+function V.filter(t, f)
+  local filtered = {}
+  local i = 1
+  for idx, value in ipairs(t) do
+    local out = f(value)
+    if out then
+      filtered[i] = out
+      i = i + 1
+    end
+  end
+
+  return filtered
+end
+
+function V.grep(t, f)
+  local filtered = {}
+  local i = 1
+  for _, value in ipairs(t) do
+    local out = f(value)
+    if out then
+      filtered[i] = value
+      i = i + 1
+    end
+  end
+
+  return filtered
+end
+
+function V.tgrep(t, f)
+  local filtered = {}
+  for key, value in pairs(t) do
+    local out = f(value)
+    if out then
+      filtered[key] = value
+    end
+  end
+
+  return filtered
 end
 
 function V.tfilter(t, f)
@@ -517,14 +564,47 @@ function V.isblank(s)
   end
 end
 
-function V.asserttype(e, t)
-  assert(V.isa(e, t))
+function V.asserttype(e, t, name)
+  name = name or tostring(e)
+  assert(V.isa(e, t), V.sprintf("%s is not of type %s", name, t))
 end
-V.asss = V.rpartial(V.asserttype, "string")
-V.asst = V.rpartial(V.asserttype, "table")
-V.assn = V.rpartial(V.asserttype, "number")
-V.assu = V.rpartial(V.asserttype, "userdata")
-V.assf = V.rpartial(V.asserttype, "function")
+V.assert_type = V.asserttype
+
+function V.asss(e, name)
+  V.asserttype(e, "string", name)
+end
+
+function V.asst(e, name)
+  V.asserttype(e, "table", name)
+end
+
+function V.assf(e, name)
+  V.asserttype(e, "function", name)
+end
+
+function V.assn(e, name)
+  V.asserttype(e, "number", name)
+end
+
+function V.assu(e, name)
+  V.asserttype(e, "userdata", name)
+end
+
+V.assert_string = V.asss
+V.assert_function = V.assf
+V.assert_userdata = V.assu
+V.assert_number = V.assn
+V.assert_table = V.asst
+V.ass_string = V.asss
+V.ass_function = V.assf
+V.ass_userdata = V.assu
+V.ass_number = V.assn
+V.ass_table = V.asst
+V.ass_s = V.asss
+V.ass_f = V.assf
+V.ass_u = V.assu
+V.ass_n = V.assn
+V.ass_t = V.asst
 
 function V.lmerge(...)
   local function _merge(t1, t2)
@@ -601,6 +681,12 @@ function V.items(t)
   return it
 end
 
+function V.glob(d, expr, nosuf, alllinks)
+  nosuf = nosuf == nil and true or false
+
+  return vim.fn.globpath(d, expr, nosuf, true, alllinks) or {}
+end
+
 table.get = V.get
 table.isblank = V.isblank
 table.extend = V.extend
@@ -630,3 +716,6 @@ table.merge = V.merge
 table.keys = V.keys
 table.values = V.values
 table.items = V.items
+table.grep = V.grep
+table.tgrep = V.tgrep
+string.match_any = V.match
