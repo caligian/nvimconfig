@@ -555,6 +555,10 @@ new 'Buffer' {
     return table.concat(self:lines(0, -1), "\n")
   end,
 
+  getbuffer = function(self)
+    return self:lines(0, -1)
+  end,
+
   setbuffer = function(self, lines)
     return self:setlines(0, -1, lines)
   end,

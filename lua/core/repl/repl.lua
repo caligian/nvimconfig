@@ -1,5 +1,5 @@
 local function ensure(self)
-  if self:is_running() then
+  if self.running then
     return self
   end
 
@@ -34,26 +34,24 @@ new 'REPL' {
     return self:status() ~= false
   end,
 
-  is_running = function(self)
-    return self:status()
-  end,
-
   is_interrupted = function(self)
     return self:status() == "interrupted"
   end,
 
   stop = function(self)
-    if not self:is_running() then
+    if not self.running then
       return
     end
 
     vim.fn.chanclose(self.id)
 
     self.running = false
-    self.id = nil
-    self:hide()
     self.buffer:delete()
     self.buffer = nil
+    self.ids[self.id] = nil
+    self.ids[self.filetype] = nil
+
+    return self
   end,
 
   stopall = function()
@@ -68,7 +66,7 @@ new 'REPL' {
     ass_s(ft, "filetype")
 
     local r = REPL.ids[ft]
-    if r and not force and r:is_running() then
+    if r and not force and r.running then
       return r
     end
 
@@ -90,7 +88,7 @@ new 'REPL' {
 
       buf:setopts({
         buflisted = false,
-        modified = false,
+        modified = false
       })
 
       buf:setwinopts({
@@ -106,12 +104,11 @@ new 'REPL' {
       return id, buf
     end
 
-    if force or not self:is_running() then
+    if force then
       self:stop()
-      start(self.command)
     end
 
-    if self:is_running() then
+    if self.running then
       return self
     end
 
@@ -128,7 +125,7 @@ new 'REPL' {
   end,
 
   hide = function(self)
-    if self:is_running() then
+    if self.running then
       self.buffer:hide()
     end
   end,
