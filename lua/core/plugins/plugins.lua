@@ -15,7 +15,7 @@ return {
     "junegunn/vim-easy-align",
     event = "BufReadPre",
     config = function()
-      Keybinding.noremap("n", "<leader>=", ":EasyAlign ", "Align lines")
+      Keybinding.noremap("n", "<leader>=", ":EasyAlign ", { desc = "Align lines" })
     end,
   },
 
@@ -174,6 +174,7 @@ return {
         ":TagbarToggle<CR>",
         { desc = "Toggle tagbar", name = "tagbar" }
       )
+      vim.g.tagbar_position = 'leftabove vertical'
       V.require("user.plugins.tagbar")
     end,
   },
@@ -202,7 +203,7 @@ return {
 
   {
     "neovim/nvim-lspconfig",
-   ft = V.filter(V.keys(Lang.langs), function(k)
+    ft = V.filter(V.keys(Lang.langs), function(k)
       if V.haskey(Lang.langs, k, "server") then
         return k
       end

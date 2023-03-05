@@ -9,7 +9,11 @@ table.merge(user, {
   plugins = user.plugins or {},
   shell = "/usr/bin/zsh",
   font = "Hack Nerd Font:h13",
-  colorscheme = { dark = "oceanic", light = "OceanicNextLight" },
+  colorscheme = {
+    dark = "nordic",
+    light = "vimbones",
+    use = "dark",
+  },
   conjure_langs = {
     "clojure",
     "fennel",

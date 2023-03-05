@@ -1,19 +1,14 @@
 _class = require("pl.class")
 
+class = function(name, base)
+	return _class[name](base)
+end
+
 function new(name)
-  return function(opts)
+    return function(opts)
+        opts = opts or {}
     local base = opts.base
-    local cls = _class[name](base)
-    local initialize = opts.initialize
-
-    cls._init = function(self, ...)
-      if opts.initialize then
-        opts.initialize(self, ...)
-      end
-
-      return self
-    end
-
+    local cls = class(name, base)
     opts.initialize = nil
     opts.base = nil
 

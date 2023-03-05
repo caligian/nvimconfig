@@ -1,14 +1,11 @@
 --- Autocommand creater for this framework
 --
-class("Autocmd")
-A = A or Autocmd
-
 new 'Autocmd' {
   ids = {},
   defaults = {},
   groups = {},
 
-  initialize = function(self, event, opts)
+  _init = function(self, event, opts)
     assert(V.istable(opts))
     assert(opts.callback)
     assert(opts.pattern)
@@ -100,3 +97,5 @@ new 'Autocmd' {
     return Autocmd(self.event, opts)
   end
 }
+
+A = Autocmd

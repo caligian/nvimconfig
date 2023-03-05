@@ -1,20 +1,3 @@
-V.command = vim.api.nvim_create_user_command
-V.autocmd = vim.api.nvim_create_autocmd
-V.augroup = vim.api.nvim_create_augroup
-V.bind = vim.keymap.set
-V.stdpath = vim.fn.stdpath
-V.flatten = vim.tbl_flatten
-V.substr = string.sub
-V.deep_copy = vim.deepcopy
-V.deepcopy = V.deep_copy
-V.copy = vim.deepcopy
-V.isempty = V.tbl_is_empty
-V.islist = vim.tbl_islist
-V.keys = vim.tbl_keys
-V.values = vim.tbl_values
-V.trim = vim.trim
-V.validate = vim.validate
-
 function V.whereis(bin, regex)
   local out = vim.fn.system("whereis " .. bin .. [[ | cut -d : -f 2- | sed -r "s/(^ *| *$)//mg"]])
   out = V.trim(out)
@@ -45,8 +28,6 @@ function V.sprintf(s, fmt, ...)
 
   return string.format(s, fmt, unpack(args))
 end
-
-sprintf = V.sprintf
 
 function V.extend(tbl, ...)
   local l = #tbl
@@ -90,7 +71,8 @@ end
 function V.filter(t, f)
   local filtered = {}
   local i = 1
-  for idx, value in ipairs(t) do
+
+  for _, value in ipairs(t) do
     local out = f(value)
     if out then
       filtered[i] = out
@@ -104,6 +86,7 @@ end
 function V.grep(t, f)
   local filtered = {}
   local i = 1
+
   for _, value in ipairs(t) do
     local out = f(value)
     if out then
@@ -117,6 +100,7 @@ end
 
 function V.tgrep(t, f)
   local filtered = {}
+
   for key, value in pairs(t) do
     local out = f(value)
     if out then
@@ -129,6 +113,7 @@ end
 
 function V.tfilter(t, f)
   local filtered = {}
+
   for key, value in pairs(t) do
     local out = f(key, value)
     if out then
@@ -173,8 +158,6 @@ function V.inspect(...)
   vim.api.nvim_echo({ { final_s } }, false, {})
 end
 
-inspect = V.inspect
-
 function V.tolist(e, force)
   if force then
     return { e }
@@ -201,12 +184,11 @@ function V.append_at_index(t, idx, ...)
 
   return t
 end
-V.iappend = V.append_at_index
 
 function V.shift(t, times)
   local l = #t
   for i = 1, times do
-    if i > t then
+    if i > l then
       return t
     end
     table.remove(t, 1)
@@ -400,7 +382,6 @@ function V.with_open(fname, mode, callback)
 
   return out
 end
-V.open = V.with_open
 
 function V.slice(t, from, till)
   local l = #t
@@ -475,7 +456,7 @@ function V.nvimerr(...)
   end
 end
 
-function V.isa(e, c)
+local function _isa(e, c)
   if type(c) == "string" then
     return type(e) == c
   elseif type(e) == "table" then
@@ -488,18 +469,33 @@ function V.isa(e, c)
     return e == nil
   end
 end
-V.isstring = V.rpartial(V.isa, "string")
-V.isuserdata = V.rpartial(V.isa, "userdata")
-V.istable = V.rpartial(V.isa, "table")
-V.isnumber = V.rpartial(V.isa, "number")
-V.isnil = V.rpartial(V.isa)
-V.isfunction = V.rpartial(V.isa, "function")
-V.isfunc = V.isfunction
-V.ist = V.istable
-V.iss = V.isstring
-V.isu = V.isuserdata
-V.isn = V.isnumber
-V.isf = V.isfunc
+
+V.isa = setmetatable({}, {
+  __call = function(_, e, c)
+    if e == nil and c == nil then
+      return true
+    end
+
+    return _isa(e, c)
+  end,
+  __index = function(_, k)
+    local _tr = {
+      n = "number",
+      t = "table",
+      u = "userdata",
+      f = "function",
+      b = "boolean",
+      s = "string",
+    }
+
+    assert(type(k) == "string", "key is not a string")
+    assert(k:match("^[ntufbs]$"), "Invalid spec provided. Need any one of [ntufbs]")
+
+    return function(e)
+      return _isa(e, _tr[k])
+    end
+  end,
+})
 
 -- If multiple keys are supplied, the table is going to be assumed to be nested
 function V.haskey(tbl, ...)
@@ -568,7 +564,6 @@ function V.asserttype(e, t, name)
   name = name or tostring(e)
   assert(V.isa(e, t), V.sprintf("%s is not of type %s", name, t))
 end
-V.assert_type = V.asserttype
 
 function V.asss(e, name)
   V.asserttype(e, "string", name)
@@ -586,25 +581,13 @@ function V.assn(e, name)
   V.asserttype(e, "number", name)
 end
 
+function V.assb(e, name)
+  V.asserttype(e, "boolean", name)
+end
+
 function V.assu(e, name)
   V.asserttype(e, "userdata", name)
 end
-
-V.assert_string = V.asss
-V.assert_function = V.assf
-V.assert_userdata = V.assu
-V.assert_number = V.assn
-V.assert_table = V.asst
-V.ass_string = V.asss
-V.ass_function = V.assf
-V.ass_userdata = V.assu
-V.ass_number = V.assn
-V.ass_table = V.asst
-V.ass_s = V.asss
-V.ass_f = V.assf
-V.ass_u = V.assu
-V.ass_n = V.assn
-V.ass_t = V.asst
 
 function V.lmerge(...)
   local function _merge(t1, t2)
@@ -687,19 +670,122 @@ function V.glob(d, expr, nosuf, alllinks)
   return vim.fn.globpath(d, expr, nosuf, true, alllinks) or {}
 end
 
+V.ass = setmetatable({}, {
+  __index = function(_, k)
+    local _tr = {
+      n = "number",
+      t = "table",
+      u = "userdata",
+      f = "function",
+      s = "string",
+      b = "boolean",
+    }
+
+    V.ass_s(k, "spec")
+
+    assert(V.match(k, "[snftu]+"), "Use any of [snftu]")
+
+    k = vim.split(k, "")
+
+    return function(e, name)
+      local failure = {}
+
+      V.each(k, function(x)
+        if not V["is" .. x](e) then
+          V.append(failure, x)
+        end
+      end)
+
+      if #failure < #k then
+        return true
+      elseif #k == #failure then
+        name = name or tostring(e)
+        failure = V.map(failure, function(x)
+          return _tr[x]
+        end)
+
+        name = name or tostring(e)
+        error(V.sprintf("%s is not of type[s]: %s", name, failure))
+      end
+    end
+  end,
+
+  __newindex = function(_, _, _)
+    error("Readonly table")
+  end,
+})
+
+V.assert_type = V.asserttype
+V.has_key = V.haskey
+V.command = vim.api.nvim_create_user_command
+V.autocmd = vim.api.nvim_create_autocmd
+V.augroup = vim.api.nvim_create_augroup
+V.bind = vim.keymap.set
+V.stdpath = vim.fn.stdpath
+V.flatten = vim.tbl_flatten
+V.substr = string.sub
+V.deep_copy = vim.deepcopy
+V.deepcopy = V.deep_copy
+V.copy = vim.deepcopy
+V.isempty = V.tbl_is_empty
+V.islist = vim.tbl_islist
+V.keys = vim.tbl_keys
+V.values = vim.tbl_values
+V.trim = vim.trim
+V.validate = vim.validate
+V.iappend = V.append_at_index
+V.isstring = V.rpartial(V.isa, "string")
+V.isuserdata = V.rpartial(V.isa, "userdata")
+V.istable = V.rpartial(V.isa, "table")
+V.isnumber = V.rpartial(V.isa, "number")
+V.isfunction = V.rpartial(V.isa, "function")
+V.isboolean = V.rpartial(V.isa, "boolean")
+V.isnil = V.rpartial(V.isa)
+V.is_t = V.istable
+V.is_s = V.isstring
+V.is_u = V.isuserdata
+V.is_n = V.isnumber
+V.is_f = V.isfunction
+V.is_b = V.isboolean
+V.is_nil = V.isnil
+V.ist = V.istable
+V.iss = V.isstring
+V.isu = V.isuserdata
+V.isn = V.isnumber
+V.isf = V.isfunction
+V.isb = V.isboolean
+V.isnil = V.isnil
+V.assert_string = V.asss
+V.assert_function = V.assf
+V.assert_userdata = V.assu
+V.assert_number = V.assn
+V.assert_table = V.asst
+V.assert_boolean = V.assb
+V.ass_s = V.asss
+V.ass_f = V.assf
+V.ass_u = V.assu
+V.ass_n = V.assn
+V.ass_t = V.asst
+V.ass_b = V.assb
+V.open = V.with_open
+V.is_a = V.isa
+
 table.get = V.get
 table.isblank = V.isblank
 table.extend = V.extend
 table.teach = V.teach
 table.each = V.each
 table.ieach = V.ieach
+table.each_with_index = table.ieach
 table.map = V.map
 table.imap = V.imap
+table.map_with_index = table.imap
 table.tmap = V.tmap
 table.filter = V.filter
 table.tfilter = V.tfilter
 table.append = V.append
 table.iappend = V.iappend
+table.append_at_index = table.iappend
 table.shift = V.shift
 table.unshift = V.unshift
 table.last = V.last
@@ -719,3 +805,71 @@ table.items = V.items
 table.grep = V.grep
 table.tgrep = V.tgrep
 string.match_any = V.match
+string.matchany = string.match_any
+
+flatten = V.flatten
+substr = string.sub
+get = V.get
+isblank = V.isblank
+extend = V.extend
+teach = V.teach
+each = V.each
+ieach = V.ieach
+map = V.map
+imap = V.imap
+tmap = V.tmap
+filter = V.filter
+tfilter = V.tfilter
+append = V.append
+iappend = V.iappend
+remove = table.remove
+append_at_index = table.iappend
+map_with_index = table.imap
+each_with_index = table.ieach
+shift = V.shift
+unshift = V.unshift
+last = V.last
+butlast = V.butlast
+rest = V.rest
+first = V.first
+update = V.update
+slice = V.slice
+index = V.index
+haskey = V.haskey
+makepath = V.makepath
+lmerge = V.lmerge
+merge = V.merge
+keys = V.keys
+values = V.values
+items = V.items
+grep = V.grep
+tgrep = V.tgrep
+match_any = V.match
+matchany = V.match
+glob = V.glob
+copy = V.deepcopy
+global = V.global
+isa = V.isa
+nvimerr = V.nvimerr
+open = V.withopen
+partial = V.partial
+lpartial = V.lpartial
+sprintf = V.sprintf
+printf = V.printf
+inspect = V.inspect
+pp = V.inspect
+is_t = V.istable
+is_s = V.isstring
+is_u = V.isuserdata
+is_n = V.isnumber
+is_f = V.isfunction
+is_nil = V.is_nil
+isnil = is_nil
+assert_type = assert_type
+asserttype = assert_type
+ass = V.ass
+ass_s = V.asss
+ass_f = V.assf
+ass_u = V.assu
+ass_n = V.assn
+ass_t = V.asst

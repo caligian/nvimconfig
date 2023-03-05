@@ -1,11 +1,10 @@
 -- Disable this useless keybinding
 vim.cmd("noremap gQ <nop>")
 
-local opts = { noremap = true, leader = true, mode = "n" }
+local opts = { noremap = true, leader = true }
 
 K.bind(
   opts,
-
   -- File and buffer operations
   { "fb", "mA", { desc = "Bookmark current file at pos", name = "save_bookmark" } },
   {
@@ -15,17 +14,16 @@ K.bind(
   },
   { "fp", ":chdir ~/.nvim <bar> e .<CR>", { desc = "Open user config", name = "user_conf" } },
   { "be", ":e!<CR>", { desc = "Reload buffer", name = "reload_buffer" } },
-  { "fs", ":w %<CR>", { desc = "Save buffer", name = "save_buffer" } },
+  { "fs", ":w! %<CR>", { desc = "Save buffer", name = "save_buffer" } },
   { "bk", ":hide<CR>", { desc = "Hide buffer", name = "hide_buffer" } },
-  { "bK", ":w <bar> hide<CR>", { desc = "Save and hide buffer", name = "save_and_hide_buffer" } },
+  { "bK", ":w! <bar> hide<CR>", { desc = "Save and hide buffer", name = "save_and_hide_buffer" } },
   { "bp", ":bprev<CR>", { desc = "Previous buffer", name = "prev_buffer" } },
   { "bn", ":bnext<CR>", { desc = "Next buffer", name = "next_buffe" } },
   { "b0", ":bfirst<CR>", { desc = "First buffer", name = "first_buffer" } },
   { "b$", ":blast<CR>", { desc = "Last buffer", name = "last_buffer" } },
-  { "bq", ":bwipeout % <bar> bprev<CR>", { desc = "Wipeout buffer", name = "wipeout_buffer" } },
   {
     "fv",
-    ":w % <bar> :source %<CR>",
+    ":w! % <bar> :source %<CR>",
     {
       event = "BufEnter",
       pattern = { "*.vim", "*.lua" },

@@ -1,7 +1,6 @@
 require("core.plugins.colorscheme.colorscheme")
 
 user.plugins.colorscheme = {
-  background = "light",
   colorscheme = user.colorscheme,
   config = {},
 }
@@ -17,7 +16,6 @@ K.bind({ noremap = true, leader = true }, {
       Colorscheme.set(choice)
     end)
     menu:split("v", { resize = 0.2, reverse = true, min = 29 })
-    menu:hook("WinLeave", V.partial(menu.delete, menu))
     Buffer.ids[menu.bufnr] = nil
   end,
   "Choose colorscheme",

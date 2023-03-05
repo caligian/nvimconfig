@@ -80,12 +80,6 @@ if path.exists(log_path) then
   vim.fn.system("rm " .. log_path)
 end
 
--- class creation of penlight is not so intuitive
-local old_class = class
-class = function(name, Base)
-  old_class[name](Base)
-  return _G[name]
-end
-
--- Require essential utils
+-- My modifications to penlight class
+require("class")
 require("utils")

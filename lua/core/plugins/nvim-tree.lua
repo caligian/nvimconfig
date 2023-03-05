@@ -241,7 +241,7 @@ user.plugins["nvim-tree"] = {
 }
 
 Keybinding.bind(
-  { noremap = true, leader = true },
+  { noremap = true },
   { "<leader>|", ":NvimTreeToggle<CR>", "Toggle file browser" },
   { "<leader>\\", ":NvimTreeFocus<CR>", "Focus file browser" }
 )
