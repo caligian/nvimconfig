@@ -83,4 +83,5 @@ wk.register({
   b = { name = "Buffer management" },
   x = { name = "Shell operations" },
   c = { name = "Compile buffer" },
+  q = { name = 'Quit nvim'},
 }, { prefix = "<leader>" })

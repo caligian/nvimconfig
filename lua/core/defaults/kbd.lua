@@ -1,10 +1,9 @@
 -- Disable this useless keybinding
 vim.cmd("noremap gQ <nop>")
 
-local opts = { noremap = true, leader = true }
-
 K.bind(
-  opts,
+  { noremap = true, leader = true },
+
   -- File and buffer operations
   { "fb", "mA", { desc = "Bookmark current file at pos", name = "save_bookmark" } },
   {
@@ -63,7 +62,14 @@ K.bind(
   { "tp", ":tabprev<CR>", { desc = "Previous tab", name = "prev_tab" } },
 
   -- Show startup logs
-  { "hl", ":ShowLogs<CR>", { desc = "Show startup logs", name = "startup_logs" } }
+  { "hl", ":ShowLogs<CR>", { desc = "Show startup logs", name = "startup_logs" } },
+
+
+  -- Quit
+  {'qa', ':qall<CR>'},
+  {'qq', ':qa!<CR>'},
+  {'q!', ':qa!<CR>'},
+  {'qx', ':xa<CR>'}
 )
 
 K.noremap("n", "\\\\", ":noh<CR>", { desc = "No highlight", silent = true, name = "noh" })
