@@ -1,4 +1,4 @@
-user.plugins["neorg"] = {
+user.plugins.neorg = {
   config = {
     load = {
       ["core.defaults"] = {},
@@ -17,4 +17,4 @@ user.plugins["neorg"] = {
 
 V.require("user.plugins.neorg")
 
-require("neorg").setup(user.plugins["neorg"].config)
+require("neorg").setup(user.plugins.neorg.config)

@@ -15,7 +15,6 @@ return {
         "--line-endings Unix",
         "--column-width 100",
         "--quote-style AutoPreferDouble",
-        "--call-parentheses Never",
         "--indent-type Spaces",
         "--indent-width 2",
         "-",
