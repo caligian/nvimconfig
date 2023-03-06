@@ -1,6 +1,14 @@
 -- Disable this useless keybinding
 vim.cmd("noremap gQ <nop>")
 
+local function clean_before_quitting()
+  for _,buf in pairs(Buffer.ids) do
+    buf:delete()
+  end
+
+  REPL.stopall()
+end
+
 K.bind(
   { noremap = true, leader = true },
 
@@ -66,10 +74,18 @@ K.bind(
 
 
   -- Quit
-  {'qa', ':qall<CR>'},
-  {'qq', ':qa!<CR>'},
-  {'q!', ':qa!<CR>'},
-  {'qx', ':xa<CR>'}
+  {'qa', function ()
+    clean_before_quitting()
+    vim.cmd('qa')
+  end, {desc=':qall'}},
+  {'qq', function ()
+    clean_before_quitting()
+    vim.cmd('qa!')
+  end},
+  {'qx', function ()
+    clean_before_quitting()
+    vim.cmd('xa')
+  end}
 )
 
 K.noremap("n", "\\\\", ":noh<CR>", { desc = "No highlight", silent = true, name = "noh" })
