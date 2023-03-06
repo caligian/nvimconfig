@@ -1,7 +1,3 @@
--- Disable netrw
-vim.g.loaded_netrw = 1
-vim.g.loaded_netrwPlugin = 1
-
 -- Install lazy.nvim if not present
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 local exists = vim.loop.fs_stat(lazypath)

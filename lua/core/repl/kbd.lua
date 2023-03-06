@@ -1,5 +1,5 @@
 Keybinding.bind(
-  { leader = true, noremap = true },
+  { leader = true, noremap = true, unique = true },
   { "xc", "<cmd>TerminateInputREPL sh<CR>", { name = "shell_terminate_input" } },
   { "xi", "<cmd>StartREPL sh<CR>", { name = "shell_start" } },
   { "xs", "<cmd>SplitREPL sh<CR>", { name = "shell_split" } },
@@ -14,7 +14,7 @@ Keybinding.bind(
   { "rv", "<cmd>VsplitREPL<CR>", { name = "repl_vsplit" } },
   { "rk", "<cmd>HideREPL<CR>", { name = "repl_hide" } },
   { "rq", "<cmd>StopREPL<CR>", { name = "repl_stop" } },
-  { "rQ", REPL.stopall, { name = "stop_all" } },
+  { "rQ", REPL.stopall, { desc = 'Stop all REPLs', name = "stop_all" } },
   { "re", "<cmd>SendLineREPL<CR>", { name = "repl_send_line" } },
   { "rb", "<cmd>SendBufferREPL<CR>", { name = "repl_send_buffer" } },
   { "r.", "<cmd>SendTillPointREPL<CR>", { name = "repl_send_till_point" } },

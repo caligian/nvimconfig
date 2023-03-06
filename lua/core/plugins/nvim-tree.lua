@@ -1,9 +1,9 @@
 user.plugins["nvim-tree"] = {
   config = {
     auto_reload_on_write = true,
-    disable_netrw = true,
+    disable_netrw = false,
     hijack_cursor = true,
-    hijack_netrw = true,
+    hijack_netrw = false,
     hijack_unnamed_buffer_when_opening = false,
     ignore_buffer_on_setup = false,
     open_on_setup = false,
@@ -111,7 +111,7 @@ user.plugins["nvim-tree"] = {
     },
     hijack_directories = {
       enable = true,
-      auto_open = true,
+      auto_open = false,
     },
     update_focused_file = {
       enable = true,
@@ -124,7 +124,7 @@ user.plugins["nvim-tree"] = {
       args = {},
     },
     diagnostics = {
-      enable = true,
+      enable = false,
       show_on_dirs = false,
       show_on_open_dirs = true,
       debounce_delay = 50,

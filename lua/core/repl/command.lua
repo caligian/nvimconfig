@@ -1,3 +1,10 @@
+local function check_filetype(ft)
+  if not Lang.langs[ft] then
+    return false
+  end
+  return ft
+end
+
 local function get_filetype(args)
   local ft = args.args
   if #ft == 0 then
@@ -17,7 +24,7 @@ end
 
 local function wrap(f)
   return function(args)
-    local ft = get_filetype(args)
+    local ft = check_filetype(get_filetype(args))
     if ft then
       local r = REPL(ft)
       r:start()
@@ -29,7 +36,7 @@ local function wrap(f)
 end
 
 local function stop(args)
-  local ft = get_filetype(args)
+  local ft = check_filetype(get_filetype(args))
   if ft then
     local r = REPL(ft)
     r:stop()

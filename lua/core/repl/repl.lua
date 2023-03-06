@@ -1,16 +1,35 @@
-local function ensure(self)
-  if self.running then
-    return self
-  end
-
-  self:start()
-end
-
 new 'REPL' {
   ids = {},
 
+  _init = function(self, ft, force)
+    ft = ft or vim.bo.filetype
+
+    ass_s(ft, "filetype")
+
+    local r = REPL.ids[ft]
+    if r and not force and r.running then
+      return r
+    end
+
+    self.filetype = ft
+    self.command = V.get(Lang.langs, { ft, "repl" })
+
+    assert(self.command, "No command specified for filetype " .. ft)
+    ass_s(self.command, "self.command")
+
+    return self
+  end,
+
   is_visible = function(self)
     return self.buffer:is_visible()
+  end,
+
+  ensure = function(self)
+    if self.running then
+      return self
+    end
+
+    self:start()
   end,
 
   status = function(self)
@@ -58,25 +77,6 @@ new 'REPL' {
     for _, r in pairs(REPL.ids) do
       r:stop()
     end
-  end,
-
-  _init = function(self, ft, force)
-    ft = ft or vim.bo.filetype
-
-    ass_s(ft, "filetype")
-
-    local r = REPL.ids[ft]
-    if r and not force and r.running then
-      return r
-    end
-
-    self.filetype = ft
-    self.command = V.get(Lang.langs, { ft, "repl" })
-
-    assert(self.command, "No command specified for filetype " .. ft)
-    ass_s(self.command, "self.command")
-
-    return self
   end,
 
   start = function(self, force)
@@ -131,7 +131,7 @@ new 'REPL' {
   end,
 
   split = function(self, direction)
-    ensure(self)
+    self:ensure()
 
     if self:is_visible() then
       return self
@@ -141,7 +141,7 @@ new 'REPL' {
   end,
 
   send = function(self, s)
-    ensure(self)
+    self:ensure()
 
     local id = self.id
     if V.isa(s, "table") then
