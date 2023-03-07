@@ -1,3 +1,5 @@
+require "utils._utils"
+
 local function new_module(opts)
   validate {
     module_spec = {

@@ -4,10 +4,22 @@ return {
   { "hylang/vim-hy", ft = { "hy" } },
 
   {
+    "lukas-reineke/indent-blankline.nvim",
+    event = "BufEnter",
+    config = function()
+      require("indent_blankline").setup {
+        -- for example, context is off by default, use this to turn it on
+        show_current_context = false,
+        show_current_context_start = false,
+      }
+    end,
+  },
+
+  {
     "nvim-neorg/neorg",
     ft = "norg",
     config = function()
-      V.require("core.plugins.neorg")
+      V.require "core.plugins.neorg"
     end,
   },
 
@@ -56,7 +68,7 @@ return {
       { "folke/tokyonight.nvim" },
     },
     config = function()
-      V.require("core.plugins.colorscheme")
+      V.require "core.plugins.colorscheme"
       -- vim.cmd("color github_dark")
     end,
   },
@@ -64,7 +76,7 @@ return {
   {
     "lervag/vimtex",
     config = function()
-      V.require("core.plugins.vimtex")
+      V.require "core.plugins.vimtex"
     end,
     ft = "tex",
   },
@@ -72,9 +84,9 @@ return {
   {
     "nvim-tree/nvim-web-devicons",
     config = function()
-      local web = V.require("nvim-web-devicons")
+      local web = V.require "nvim-web-devicons"
       if web then
-        web.setup({})
+        web.setup {}
       end
     end,
   },
@@ -83,7 +95,7 @@ return {
     "nvim-tree/nvim-tree.lua",
     event = "VimEnter",
     config = function()
-      V.require("core.plugins.nvim-tree")
+      V.require "core.plugins.nvim-tree"
     end,
   },
 
@@ -97,7 +109,7 @@ return {
     "mfussenegger/nvim-lint",
     event = "BufReadPost",
     config = function()
-      V.require("core.plugins.nvim-lint")
+      V.require "core.plugins.nvim-lint"
     end,
   },
 
@@ -124,7 +136,7 @@ return {
       "nvim-treesitter/nvim-treesitter-textobjects",
     },
     config = function()
-      V.require("core.plugins.nvim-treesitter")
+      V.require "core.plugins.nvim-treesitter"
     end,
   },
 
@@ -133,7 +145,7 @@ return {
     event = "InsertEnter",
     dependencies = { { "honza/vim-snippets" } },
     config = function()
-      V.require("core.plugins.ultisnips")
+      V.require "core.plugins.ultisnips"
     end,
   },
 
@@ -152,14 +164,14 @@ return {
       { "hrsh7th/cmp-nvim-lsp-document-symbol" },
     },
     config = function()
-      V.require("core.plugins.nvim-cmp")
+      V.require "core.plugins.nvim-cmp"
     end,
   },
 
   {
     "tpope/vim-fugitive",
     config = function()
-      V.require("core.plugins.vim-fugitive")
+      V.require "core.plugins.vim-fugitive"
     end,
   },
 
@@ -174,8 +186,8 @@ return {
         ":TagbarToggle<CR>",
         { desc = "Toggle tagbar", name = "tagbar" }
       )
-      vim.g.tagbar_position = 'leftabove vertical'
-      V.require("user.plugins.tagbar")
+      vim.g.tagbar_position = "leftabove vertical"
+      V.require "user.plugins.tagbar"
     end,
   },
 
@@ -183,7 +195,7 @@ return {
     "folke/which-key.nvim",
     event = "VimEnter",
     config = function()
-      V.require("core.plugins.which-key")
+      V.require "core.plugins.which-key"
     end,
   },
 
@@ -197,7 +209,7 @@ return {
     "mhartington/formatter.nvim",
     event = "BufReadPost",
     config = function()
-      V.require("core.plugins.formatter")
+      V.require "core.plugins.formatter"
     end,
   },
 
@@ -213,7 +225,7 @@ return {
       { "williamboman/mason.nvim" },
     },
     config = function()
-      V.require("core.plugins.nvim-lspconfig")
+      V.require "core.plugins.nvim-lspconfig"
     end,
   },
 
@@ -225,7 +237,7 @@ return {
       { "nvim-telescope/telescope-fzf-native.nvim", run = "make" },
     },
     config = function()
-      V.require("core.plugins.telescope")
+      V.require "core.plugins.telescope"
     end,
     event = "VimEnter",
   },
@@ -239,7 +251,7 @@ return {
         { "bq", "<cmd>Bdelete<CR>", { desc = "Delete buffer" } },
         { "bQ", "<cmd>Bwipeout<CR>", { desc = "Wipeout buffer" } }
       )
-      V.require("user.plugins.vim-bbye")
+      V.require "user.plugins.vim-bbye"
     end,
   },
 }

@@ -1,11 +1,12 @@
 dump = vim.inspect
 trim = vim.trim
+deepcopy = vim.deepcopy
 
 function setro(t)
   assert(type(t) == "table", tostring(t) .. " is not a table")
 
   local function __newindex()
-    error("Attempting to edit a readonly table")
+    error "Attempting to edit a readonly table"
   end
 
   local mt = getmetatable(t)
@@ -80,6 +81,8 @@ local _tr = setmetatable({
   string = "string",
   struct = "struct",
   module = "module",
+  class = "class",
+  c = "class",
   n = "number",
   t = "table",
   u = "userdata",
@@ -98,13 +101,26 @@ local _tr = setmetatable({
   end,
 })
 
+local function _is_class(t)
+  local mt = getmetatable(t)
+  if not mt then
+    return false
+  end
+
+  if mt.__type == "class" then
+    return true
+  else
+    return false
+  end
+end
+
 local function _is_struct(t)
   local mt = getmetatable(t)
   if not mt then
     return false
   end
 
-  if mt.__name and mt.__struct then
+  if mt.__type == "struct" then
     return true
   else
     return false
@@ -117,7 +133,7 @@ local function _is_module(t)
     return false
   end
 
-  if mt.__name and not mt.__module then
+  if mt.__type == "module" then
     return true
   else
     return false
@@ -141,7 +157,9 @@ end
 
 local function _isa(e, c)
   if type(c) == "string" then
-    if c == "r" or c == "struct" then
+    if c == "c" or c == "class" then
+      return _is_class(t)
+    elseif c == "r" or c == "struct" then
       return _is_struct(e)
     elseif c == "m" or c == "module" then
       return _is_module(e)
@@ -220,13 +238,14 @@ local function _is_pure_table(t)
 end
 
 local function _error_s(name, t)
+  name = name or "<nonexistent>"
   return string.format("%s is not of type %s", name, t)
 end
 
 local function _validate(name, var, test)
-  assert(name)
-  assert(var)
-  assert(test)
+  assert(name, "name not provided")
+  assert(var, "var not provided")
+  assert(test, "test spec not provided")
 
   if isa.f(test) then
     assert(test(var), string.format("callable failed %s", name))
@@ -246,15 +265,19 @@ end
 local function _validate_table(t, spec)
   local allowed = {}
   local allow_nonexistent = spec.__allow_nonexistent
-  local id = spec.__name or id
+  local id = spec.__name or tostring(t)
   spec.__name = nil
   spec.__allow_nonexistent = nil
 
   local not_supplied = {}
-  for name, _ in pairs(spec) do
-    if name:match("^%?") then
+  for key, val in pairs(spec) do
+    local name = key
+
+    if name:match "^%?" then
       name = name:gsub("^%?", "")
       allowed[name] = "optional"
+      spec[name] = val
+      spec[key] = nil
     else
       allowed[name] = "required"
       if not t[name] then
@@ -277,9 +300,11 @@ local function _validate_table(t, spec)
 
   for name, var in pairs(t) do
     local required = spec[name]
-    name = string.format("%s(%s)", id, name)
-    if _validate(name, var, required) == "pure_table" then
-      _validate_table(var, required)
+    if required ~= nil then
+      name = string.format("%s(%s)", id, name)
+      if _validate(name, var, required) == "pure_table" then
+        _validate_table(var, required)
+      end
     end
   end
 end

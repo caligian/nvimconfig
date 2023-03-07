@@ -1,7 +1,8 @@
-local data_dir = vim.fn.stdpath("data")
+local data_dir = vim.fn.stdpath "data"
 
 user.option = {
   o = {
+    showcmd = false,
     cursorline = false,
     updatetime = 300,
     foldenable = false,
@@ -12,7 +13,7 @@ user.option = {
     history = 1000,
     ruler = true,
     autochdir = true,
-    showcmd = true,
+    ruler = false,
     wildmode = "longest,list,full",
     wildmenu = true,
     termguicolors = true,
@@ -37,7 +38,7 @@ user.option = {
   },
 }
 
-V.require("user.option")
+V.require "user.option"
 
 local font = user.font:gsub(" ", "\\ ")
 vim.cmd("set guifont=" .. font)

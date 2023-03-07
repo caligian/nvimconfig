@@ -18,11 +18,11 @@ user.plugins["nvim-tree"] = {
     remove_keymaps = false,
     select_prompts = false,
     view = {
-      centralize_selection = false,
+      centralize_selection = true,
       cursorline = true,
       debounce_delay = 15,
       width = 30,
-      hide_root_folder = false,
+      hide_root_folder = true,
       side = "left",
       preserve_window_proportions = false,
       number = false,
@@ -35,13 +35,13 @@ user.plugins["nvim-tree"] = {
         },
       },
       float = {
-        enable = false,
+        enable = true,
         quit_on_focus_loss = true,
         open_win_config = {
           relative = "editor",
           border = "rounded",
-          width = 30,
-          height = 30,
+          width = 40,
+          height = 50,
           row = 1,
           col = 1,
         },
@@ -140,7 +140,7 @@ user.plugins["nvim-tree"] = {
       },
     },
     filters = {
-      dotfiles = true,
+      dotfiles = false,
       git_clean = false,
       no_buffer = false,
       custom = {},
@@ -178,7 +178,7 @@ user.plugins["nvim-tree"] = {
         open_win_config = {
           col = 1,
           row = 1,
-          relative = "cursor",
+          relative = "editor",
           border = "shadow",
           style = "minimal",
         },
