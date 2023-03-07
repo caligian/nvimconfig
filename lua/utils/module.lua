@@ -108,10 +108,10 @@ local function new_module(opts)
     mod.freeze()
   end
 
-  mt.__add = function(_, other)
+  mt.__add = function(self, other)
     validate { other_module = { other, "module" } }
 
-    return deepcopy(mod).include(other)
+    return deepcopy(self).include(other)
   end
 
   add_attribs(opts)

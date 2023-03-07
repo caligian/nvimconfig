@@ -1,4 +1,5 @@
+lazy*
 luarocks/
 plugin/
 nvim.log
-lazy*
+spell/*

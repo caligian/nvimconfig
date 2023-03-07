@@ -129,7 +129,7 @@ local function new_struct(opts)
   end
 
   -- Metamethods will be skipped
-  methods.include = function(other)
+  methods.include = function(_, other)
     local other_mt = getmetatable(other)
     if isa.m(include) then
       add_attribs(other_mt.__constants)

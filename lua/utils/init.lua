@@ -5,9 +5,12 @@ V = V or {}
 V.global = V.global or {}
 
 --
-require("utils.utils")
-require("utils.autocmd")
-require("utils.kbd")
-require("utils.buffer")
-require("utils.process")
-require("utils.color")
+require "utils.class"
+require "utils.struct"
+require "utils.module"
+require "utils.utils"
+require "utils.autocmd"
+require "utils.kbd"
+require "utils.buffer"
+require "utils.process"
+require "utils.color"
