@@ -15,6 +15,7 @@ local function new_module(opts)
   local include = opts.__include
   local freeze = opts.__freeze
   local mt = {
+    __common = {},
     __constants = {},
     __type = "module",
     __name = name,
@@ -49,6 +50,8 @@ local function new_module(opts)
   local get_attrib = function(_, k)
     if mt.__constants[k] then
       return mt.__constants[k]
+    elseif mt.__common then
+      return mt.__common[k]
     end
     return mod[k]
   end
@@ -82,30 +85,31 @@ local function new_module(opts)
 
   mt.__newindex = __newindex
 
-  mod.get_type = function(_)
+  local common = mt.__common
+  common.get_type = function(_)
     return mt.__type
   end
 
-  mod.include = function(other)
+  common.include = function(other)
     validate { other_module = { other, "module" } }
     add_attribs(other)
     add_attribs(mtget(other, "__constants"))
   end
 
-  mod.freeze = function()
+  common.freeze = function()
     mt.__frozen = true
     mt.__newindex = function(_, _, _)
       error "Attempting to make changes to a frozen module"
     end
   end
 
-  mod.unfreeze = function()
+  common.unfreeze = function()
     mt.__frozen = false
     mt.__newindex = __newindex
   end
 
   if freeze then
-    mod.freeze()
+    common.freeze()
   end
 
   mt.__add = function(self, other)
