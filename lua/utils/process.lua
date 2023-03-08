@@ -1,185 +1,195 @@
+class 'Process'
+
+Process.ids = {}
+
 local function parse(d, out)
-  if type(d) == "string" then
-    d = vim.split(d, "\n")
-  elseif type(d) == "table" then
-    for _, s in ipairs(d) do
-      s = vim.split(s, "\n")
-      V.extend(out, s)
-    end
-  end
+	if type(d) == "string" then
+		d = vim.split(d, "\n")
+	elseif type(d) == "table" then
+		for _, s in ipairs(d) do
+			s = vim.split(s, "\n")
+			extend(out, s)
+		end
+	end
 end
 
-new 'Process' {
-  process = {},
+function Process._on_exit(self, cb)
+	return vim.schedule_wrap(function(j, exit_code)
+		j = get(j)
+		j.exited = true
+		j.exit_code = exit_code
 
-  _on_exit = function(cb)
-    return vim.schedule_wrap(function(j, exit_code)
-      j = get(j)
-      j.exited = true
-      j.exit_code = exit_code
+		if cb then
+			cb(j)
+		end
+	end)
+end
 
-      if cb then
-        cb(j)
-      end
-    end)
-  end,
+function Process._on_stderr(self, cb)
+	self.stderr = self.stderr or {}
+	local stderr = self.stderr
 
-  _on_stderr = function(cb)
-    self.stderr = self.stderr or {}
-    local stderr = self.stderr
+	return vim.schedule_wrap(function(j, d)
+		if d then
+			extend(stderr, parse(d, self.stderr))
+		end
+		if cb then
+			cb(get(j))
+		end
+	end)
+end
 
-    return vim.schedule_wrap(function(j, d)
-      if d then
-        V.extend(stderr, parse(d, self.stderr))
-      end
-      if cb then
-        cb(get(j))
-      end
-    end)
-  end,
+function Process._on_stdout(self, cb)
+	self.stdout = self.stdout or {}
+	local stdout = self.stdout
 
-  _on_stdout = function(cb)
-    self.stdout = self.stdout or {}
-    local stdout = self.stdout
+	return vim.schedule_wrap(function(j, d)
+		if d then
+			extend(stdout, parse(d, self.stdout))
+		end
+		if cb then
+			cb(get(j))
+		end
+	end)
+end
 
-    return vim.schedule_wrap(function(j, d)
-      if d then
-        V.extend(stdout, parse(d, self.stdout))
-      end
-      if cb then
-        cb(get(j))
-      end
-    end)
-  end,
+function Process._init(self, command, opts)
+	validate { 
+		command = {'string', command},
+		opts = {'table', opts},
+	}
 
-  _init = function(command, opts)
-    assert(V.isstring(command) or V.istable(command))
+	opts = opts or {}
 
-    opts = opts or {}
+	validate {opts = {'table', opts}}
 
-    assert(V.istable(opts))
+	opts = opts or {}
+	opts.env = opts.env or {
+		HOME = os.getenv("HOME"),
+		PATH = os.getenv("PATH"),
+	}
+	opts.cwd = opts.cwd or vim.fn.getcwd()
+	opts.stdin = opts.stdin == nil and "pipe" or opts.stdin
 
-    opts = opts or {}
-    opts.env = opts.env or {
-      HOME = os.getenv("HOME"),
-      PATH = os.getenv("PATH"),
-    }
-    opts.cwd = opts.cwd or vim.fn.getcwd()
-    opts.stdin = opts.stdin == nil and "pipe" or opts.stdin
+	if not opts.terminal then
+		if not opts.on_stderr then
+			opts.on_stderr = self:_on_stderr()
+		else
+			local current = opts.on_stderr
+			opts.on_stderr = self:_on_stderr(current)
+		end
 
-    if not opts.terminal then
-      if not opts.on_stderr then
-        opts.on_stderr = self:_on_stderr()
-      else
-        local current = opts.on_stderr
-        opts.on_stderr = self:_on_stderr(current)
-      end
+		if not opts.on_stdout then
+			opts.on_stdout = self:_on_stdout()
+		else
+			local current = opts.on_stdout
+			opts.on_stdout = self:_on_stdout(current)
+		end
+	else
+		-- For the terminal buffer
+		self.buffer = Buffer(false, true)
+	end
 
-      if not opts.on_stdout then
-        opts.on_stdout = self:_on_stdout()
-      else
-        local current = opts.on_stdout
-        opts.on_stdout = self:_on_stdout(current)
-      end
-    else
-      -- For the terminal buffer
-      self.buffer = Buffer(false, true)
-    end
+	if not opts.on_exit then
+		opts.on_exit = self:_on_exit()
+	else
+		local current = opts.on_exit
+		opts.on_exit = self:_on_exit(current)
+	end
 
-    if not opts.on_exit then
-      opts.on_exit = self:_on_exit()
-    else
-      local current = opts.on_exit
-      opts.on_exit = self:_on_exit(current)
-    end
+	self.command = command
+	self.opts = opts
 
-    self.command = command
-    self.opts = opts
+	return lmerge(self, opts)
+end
 
-    return V.lmerge(self, opts)
-  end,
+function Process.status(self, timeout)
+	if not self.id then
+		return false
+	end
 
-  status = function(timeout)
-    if not self.id then
-      return false
-    end
+	timeout = timeout or 0
+	return vim.fn.jobwait({ self.id }, timeout)[1]
+end
 
-    timeout = timeout or 0
-    return vim.fn.jobwait({ self.id }, timeout)[1]
-  end,
+function Process.is_invalid (self)
+	return self:status() == -3
+end
 
-  is_invalid = function()
-    return self:status() == -3
-  end,
+function Process.is_interrupted(self)
+	return self:status() == -2
+end
 
-  is_interrupted = function()
-    return self:status() == -2
-  end,
+function Process.is_running(self, timeout)
+	return self:status(timeout) == -1
+end
 
-  is_running = function(timeout)
-    return self:status(timeout) == -1
-  end,
+function Process.wait(self, timeout)
+	if not self:is_running() then
+		return
+	end
 
-  wait = function(timeout)
-    if not self:is_running() then
-      return
-    end
+	return vim.fn.jobwait({ self.id }, timeout)
+end
 
-    return vim.fn.jobwait({ self.id }, timeout)
-  end,
+function Process.run(self)
+	if self:is_running() then
+		return
+	end
 
-  run = function()
-    if self:is_running() then
-      return
-    end
+	local id
+	if self.terminal then
+		id = self.buffer:call(function()
+			return vim.fn.termopen(self.command, self.opts)
+		end)
+	else
+		id = vim.fn.jobstart(self.command, self.opts)
+	end
 
-    local id
-    if self.terminal then
-      id = self.buffer:call(function()
-        return vim.fn.termopen(self.command, self.opts)
-      end)
-    else
-      id = vim.fn.jobstart(self.command, self.opts)
-    end
+	assert(id ~= -1, "Could not start job with command " .. self.command)
 
-    assert(id ~= -1, "Could not start job with command " .. self.command)
+	self.id = id
 
-    self.id = id
+	update(Process.ids, { id }, self)
 
-    V.update(Process.process, { id }, self)
+	return self
+end
 
-    return self
-  end,
+function Process.send(self, s)
+	if not self:is_running() then
+		return
+	end
 
-  send = function(s)
-    if not self:is_running() then
-      return
-    end
+	validate {
+		s = {
+			function(x)
+				return (isa.s(x) or isa.t(x))
+			end, 
+			s
+		}
+	}
 
-    assert(V.isstring(s) or V.istable(s))
+	if isa.t(s) then
+		s = table.concat(s, "\n")
+	end
 
-    if V.istable(s) then
-      s = table.concat(s, "\n")
-    end
+	return vim.api.nvim_chan_send(self.id, s)
+end
 
-    return vim.api.nvim_chan_send(self.id, s)
-  end,
+function Process.stop(self)
+	if not self:is_running() then
+		return
+	end
 
-  stop = function()
-    if not self:is_running() then
-      return
-    end
+	vim.fn.chanclose(self.id)
+	if self.buffer then
+		self.buffer:delete()
+	end
+	self.buffer = nil
+end
 
-    vim.fn.chanclose(self.id)
-    if self.buffer then
-      self.buffer:delete()
-    end
-    self.buffer = nil
-  end,
-
-  stopall = function()
-    V.each(V.values(Process.process), function(p)
-      p:stop()
-    end)
-  end,
-}
+function Process.stopall()
+	each(values(Process.ids), function(p)
+		p:stop()
+	end)
+end

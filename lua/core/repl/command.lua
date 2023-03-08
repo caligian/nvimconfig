@@ -43,7 +43,7 @@ local function stop(args)
   end
 end
 
-V.command(
+command(
   "StartREPL",
   wrap(function(r)
     r:split("s")
@@ -51,7 +51,7 @@ V.command(
   { nargs = "?" }
 )
 
-V.command(
+command(
   "TerminateInputREPL",
   wrap(function(r)
     r:terminate_input()
@@ -59,9 +59,9 @@ V.command(
   { nargs = "?" }
 )
 
-V.command("StopREPL", stop, { nargs = "?" })
+command("StopREPL", stop, { nargs = "?" })
 
-V.command(
+command(
   "SplitREPL",
   wrap(function(r)
     r:split("s")
@@ -69,7 +69,7 @@ V.command(
   { nargs = "?" }
 )
 
-V.command(
+command(
   "VsplitREPL",
   wrap(function(r)
     r:split("v")
@@ -77,7 +77,7 @@ V.command(
   { nargs = "?" }
 )
 
-V.command(
+command(
   "HideREPL",
   wrap(function(r)
     r:hide()
@@ -85,7 +85,7 @@ V.command(
   { nargs = "?" }
 )
 
-V.command(
+command(
   "SendREPL",
   wrap(function(r)
     r:send(vim.fn.input("Send string > "))
@@ -93,7 +93,7 @@ V.command(
   { nargs = "?" }
 )
 
-V.command(
+command(
   "SendLineREPL",
   wrap(function(r)
     r:send_current_line()
@@ -101,7 +101,7 @@ V.command(
   { nargs = "?" }
 )
 
-V.command(
+command(
   "SendBufferREPL",
   wrap(function(r)
     r:send_buffer()
@@ -109,7 +109,7 @@ V.command(
   { nargs = "?" }
 )
 
-V.command(
+command(
   "SendTillPointREPL",
   wrap(function(r)
     r:send_till_point()
@@ -117,7 +117,7 @@ V.command(
   { nargs = "?" }
 )
 
-V.command(
+command(
   "SendRangeREPL",
   wrap(function(r)
     r:send_visual_range()

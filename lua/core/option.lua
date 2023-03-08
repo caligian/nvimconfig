@@ -38,7 +38,7 @@ user.option = {
   },
 }
 
-V.require "user.option"
+req "user.option"
 
 local font = user.font:gsub(" ", "\\ ")
 vim.cmd("set guifont=" .. font)

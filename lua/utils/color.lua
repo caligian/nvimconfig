@@ -1,4 +1,4 @@
-function V.highlight(hi)
+function highlight(hi)
   local ok, out = pcall(vim.api.nvim_exec, "hi " .. hi, true)
   if not ok then
     return {}
@@ -6,16 +6,16 @@ function V.highlight(hi)
 
   hi = {}
   out = vim.split(out, " +")
-  out = table.grep(out, function(c)
-    if V.match(c, "xxx", "cleared") then
+  out = grep(out, function(c)
+    if match(c, "xxx", "cleared") then
       return false
     else
       return true
     end
   end)
-  out = V.slice(out, 1, #out)
+  out = slice(out, 1, #out)
 
-  V.each(out, function(i)
+  each(out, function(i)
     local attrib, value = unpack(vim.split(i, "="))
     if value then
       hi[attrib] = value
@@ -25,7 +25,7 @@ function V.highlight(hi)
   return hi
 end
 
-function V.hex2rgb(hex)
+function hex2rgb(hex)
   hex = hex:gsub("#", "")
   return tonumber("0x" .. hex:sub(1, 2)),
     tonumber("0x" .. hex:sub(3, 4)),
@@ -33,7 +33,7 @@ function V.hex2rgb(hex)
 end
 
 -- Taken from https://github.com/iskolbin/lhsx/blob/master/hsx.lua
-function V.rgb2hsv(r, g, b)
+function rgb2hsv(r, g, b)
   local M, m = math.max(r, g, b), math.min(r, g, b)
   local C = M - m
   local K = 1.0 / (6.0 * C)
@@ -50,7 +50,7 @@ function V.rgb2hsv(r, g, b)
   return h, M == 0.0 and 0.0 or C / M, M
 end
 
-function V.hsv2rgb(h, s, v)
+function hsv2rgb(h, s, v)
   local C = v * s
   local m = v - C
   local r, g, b = m, m, m
@@ -75,7 +75,7 @@ function V.hsv2rgb(h, s, v)
   return r, g, b
 end
 
-function V.darken(hex, darker_n)
+function darken(hex, darker_n)
   local result = "#"
 
   for s in hex:gmatch("[a-fA-F0-9][a-fA-F0-9]") do
@@ -95,20 +95,20 @@ function V.darken(hex, darker_n)
   return result
 end
 
-function V.lighten(hex, lighten_n)
-  return V.darken(hex, lighten_n * -1)
+function lighten(hex, lighten_n)
+  return darken(hex, lighten_n * -1)
 end
 
-function V.luminance(hex)
-  local r, g, b = V.hex2rgb(hex)
+function luminance(hex)
+  local r, g, b = hex2rgb(hex)
   local luminance = (r * 0.2126) + (g * 0.7152) + (b * 0.0722)
   return luminance < (255 / 2)
 end
 
-function V.highlightset(hi, set, defaults)
+function highlightset(hi, set, defaults)
   local group = hi
-  hi = V.highlight(hi)
-  if V.isblank(hi) then
+  hi = highlight(hi)
+  if isblank(hi) then
     if defaults then
       hi = defaults
     else
@@ -116,12 +116,12 @@ function V.highlightset(hi, set, defaults)
     end
   end
 
-  V.teach(set, function(attrib, transformer)
+  teach(set, function(attrib, transformer)
     if not hi[attrib] then
       return
     end
 
-    if V.isa(transformer, "function") then
+    if isa(transformer, "function") then
       transformer = transformer(hi[attrib])
     end
     hi[attrib] = transformer

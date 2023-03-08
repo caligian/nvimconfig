@@ -5,8 +5,8 @@ local formatters = {}
 for lang, conf in pairs(Lang.langs) do
   if conf.formatters then
     for idx, formatter in ipairs(conf.formatters) do
-      if V.isstring(formatter) then
-        local out = V.require(sprintf("formatter.filetypes.%s", lang))
+      if isa.s(formatter) then
+        local out = require(sprintf("formatter.filetypes.%s", lang))
         if out then
           conf.formatters[idx] = out
         else
@@ -21,7 +21,7 @@ end
 -- Setup autocmd for autoformatting
 Keybinding.noremap("n", "<leader>bf", "FormatWrite<CR>", {
   event = "FileType",
-  pattern = V.keys(formatters),
+  pattern = keys(formatters),
   desc = "Formatter buffer",
   silent = true,
   name = "format_buffer",
@@ -42,6 +42,6 @@ user.plugins.formatter = {
   },
 }
 
-V.require("user.plugins.formatter")
+req "user.plugins.formatter"
 
 require("formatter").setup(user.plugins.formatter.config)

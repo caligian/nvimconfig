@@ -15,6 +15,5 @@ user.plugins.neorg = {
   },
 }
 
-V.require("user.plugins.neorg")
-
+req "user.plugins.neorg"
 require("neorg").setup(user.plugins.neorg.config)

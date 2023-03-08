@@ -1,9 +1,334 @@
-function V.whereis(bin, regex)
-  local out = vim.fn.system("whereis " .. bin .. [[ | cut -d : -f 2- | sed -r "s/(^ *| *$)//mg"]])
-  out = V.trim(out)
-  out = vim.split(out, " ")
+user = user or {}
+concat = table.concat
+substr = string.sub
+keys = vim.tbl_keys
+values = vim.tbl_values
+copy = vim.deepcopy
+flatten = vim.tbl_flatten
+stdpath = vim.fn.stdpath
+isempty = vim.tbl_is_empty
+islist = vim.tbl_islist
+dump = vim.inspect
+trim = vim.trim
+deepcopy = vim.deepcopy
+command = vim.api.nvim_create_user_command
+autocmd = vim.api.nvim_create_autocmd
+augroup = vim.api.nvim_create_augroup
+bindkeys = vim.keymap.set
+remkeys = vim.keymap.del
+class_of = require('pl.class').class_of
 
-  if V.isblank(out) then
+function is_callable(t)
+	local k = type(t)
+	if k ~= 'table' and k ~= 'function' then
+		return false
+	elseif k == 'function' then
+		return true
+	end
+
+	local mt = getmetatable(t)
+	if mt then
+		if mt.__call then
+			return true
+		end
+	end
+	return false
+end
+
+function is_class(e)
+	if type(e) ~= 'table' then
+		return e
+	end
+
+	local mt = getmetatable(e)
+	if mt then
+		if 
+			mt._base and 
+			mt._base.is_a then
+			return true
+		end
+	end
+	return false
+end
+
+local _tr = {
+	s = 'string',
+	t = 'table',
+	u = 'userdata',
+	n = 'number',
+	f = 'callable',
+	b = 'boolean',
+	c = 'class',
+	string = 'string',
+	table = 'table',
+	userdata = 'userdata',
+	number = 'number',
+	boolean = 'boolean',
+	['function'] = 'callable',
+	callable = 'callable',
+}
+-- This needs a rewrite
+isa = setmetatable({ }, {
+	__call = function (self, e, c)
+		return self[c](e)
+	end,
+
+	-- Only works for native datatypes + callables
+	__index = function(self, k)
+		local fullform = _tr[k]
+		if not fullform then
+			error("Valid spec: '^[stunbf]$' or '^(string|table|userdata|function|callable|number|boolean)$'. spec provided: " .. k)
+		elseif fullform then
+			k = fullform
+		end
+
+		return function(e)
+			local T = require 'pl.types'
+			if k == 'callable' then
+				return is_callable(e)
+			elseif k == 'class' then
+				return is_class(e)
+			else
+				return T.is_type(e, k)
+			end
+		end
+	end
+})
+
+function setro(t)
+  assert(type(t) == "table", tostring(t) .. " is not a table")
+
+  local function __newindex()
+    error "Attempting to edit a readonly table"
+  end
+
+  local mt = getmetatable(t)
+  if not mt then
+    setmetatable(t, { __newindex = __newindex })
+    mt = getmetatable(t)
+  else
+    mt.__newindex = __newindex
+  end
+
+  return t
+end
+
+function mtget(t, k)
+  assert(type(t) == "table", tostring(t) .. " is not a table")
+  assert(k, "No attribute provided to query")
+
+  local mt = getmetatable(t)
+  if not mt then
+    return nil
+  end
+
+  return mt[k]
+end
+
+function mtset(t, k, v)
+  assert(type(t) == "table", tostring(t) .. " is not a table")
+  assert(k, "No attribute provided to query")
+
+  local mt = getmetatable(t)
+  if not mt then
+    setmetatable(t, { [k] = v })
+    mt = getmetatable(t)
+  else
+    mt[k] = v
+  end
+
+  return mt[k]
+end
+
+function isblank(s)
+  assert(type(s) == "string" or type(s) == "table", "Need a string or a table")
+
+  if type(s) == "string" then
+    return #s == 0
+  elseif type(s) == "table" then
+    local i = 0
+    for _, _ in pairs(s) do
+      i = i + 1
+    end
+    return i == 0
+  end
+end
+
+function split(s, delim)
+  assert(type(s) == "string", "s is not a string")
+
+  delim = delim or " "
+  assert(type(delim) == "string", "delim is not a string")
+
+  return vim.split(s, delim)
+end
+
+-- Type checking
+
+local function _is_class(t)
+  local mt = getmetatable(t)
+  if not mt then
+    return false
+  end
+
+  if t.is_a then
+    return true
+  else
+    return false
+  end
+end
+
+local function _is_callable(f)
+  if type(f) == "function" then
+    return true
+  elseif type(f) ~= "table" then
+    return false
+  end
+
+  local mt = getmetatable(f) or {}
+  if mt.__call then
+    return true
+  else
+    return false
+  end
+end
+
+--[[
+Usage: 
+
+validate {
+  <display-var> = {
+    <var>,
+    <spec>,
+  }
+}
+
+<var> string
+Variable
+
+<display-var> string
+Varname to be used in assert
+
+<spec> string|table
+if <spec> == string then
+  Either of [ntufbsc]. 
+  If prefixed with ?, it will be considered optional
+elseif <spec> == 'table' then
+  Will be recursively matched against var. isa will be used.
+  If __allow_nonexistent (default: false) is passed, keys not present in <spec-table> will not raise an error.
+end
+
+--]]
+local function _is_pure_table(t)
+  return isa.t(t) and not isa.c(t) and not isa.f(t)
+end
+
+local function _error_s(name, t)
+  name = name or "<nonexistent>"
+  return string.format("%s is not of type %s", name, t)
+end
+
+local function _validate(name, var, test)
+  assert(name, "name not provided")
+  assert(var, "var not provided")
+  assert(test, "test spec not provided")
+
+  if isa.f(test) then
+    assert(test(var), string.format("callable failed %s", name))
+  elseif not isa.t(test) then
+    assert(isa(var, test), _error_s(name, _tr[test]))
+  else
+    assert(isa.t(var), _error_s(name, "table"))
+
+    if _is_pure_table(var) and _is_pure_table(test) then
+      return "pure_table"
+    else
+      assert(isa(var, test), _error_s(name, test))
+    end
+  end
+end
+
+local function _validate_table(t, spec)
+  local allow_nonexistent = spec.__allow_nonexistent
+  local id = spec.__table or tostring(t)
+  spec.__table = nil
+  spec.__allow_nonexistent = nil
+  local not_supplied = {}
+
+  for key, val in pairs(spec) do
+    local name = key
+
+    if not name:match "^%?" and not t[name] then
+      print(name)
+      table.insert(not_supplied, name)
+    end
+  end
+
+  for key, val in pairs(spec) do
+    spec[key:gsub("^%?", "")] = val
+    spec[key] = nil
+  end
+
+  if #not_supplied > 0 then
+    error(string.format("%s not supplied in %s", dump(not_supplied), id))
+  end
+
+  if not allow_nonexistent then
+    for name, _ in pairs(t) do
+      if not allowed[name] then
+        error("unneeded key found: " .. name)
+      end
+    end
+  end
+
+  for name, var in pairs(t) do
+    local required = spec[name]
+    if required ~= nil then
+      name = string.format("%s(%s)", id, name)
+      if _validate(name, var, required) == "pure_table" then
+        _validate_table(var, required)
+      end
+    end
+  end
+end
+
+function validate(params)
+  for name, param in pairs(params) do
+    assert(isa.t(param) and #param >= 1, name .. " should be {spec, variable}")
+
+    local spec, var = unpack(param)
+    if _is_pure_table(var) and _is_pure_table(spec) then
+      _validate_table(var, spec)
+    else
+      if name:match "^%?" then
+        name = name:gsub("^%?", "")
+        if var ~= nil then
+          if isa.f(spec) then
+            assert(spec(var), "callable failed " .. tostring(var))
+          elseif isa.s(spec) then
+            assert(isa(var, spec), name .. " is not of type " .. tostring(_tr[spec]))
+          end
+        end
+      elseif isa.f(spec) then
+        assert(spec(var), "callable failed " .. tostring(var))
+      elseif isa.s(spec) then
+        assert(isa(var, spec), name .. " is not of type " .. tostring(_tr[spec]))
+      end
+    end
+  end
+end
+
+function whereis(bin, regex)
+  validate {
+    command = { "string", bin },
+    ["?regex"] = { "string", regex },
+  }
+
+  local out = vim.fn.system("whereis " .. bin .. [[ | cut -d : -f 2- | sed -r "s/(^ *| *$)//mg"]])
+  out = trim(out)
+  out = split(out, " ")
+
+  if isblank(out) then
     return false
   end
 
@@ -17,21 +342,27 @@ function V.whereis(bin, regex)
   return out[1]
 end
 
-function V.sprintf(s, fmt, ...)
+function sprintf(fmt, ...)
+  validate {
+    format = { "string", fmt },
+  }
+
   local args = { ... }
 
   for i = 1, #args do
-    if type(args[i]) == "table" then
-      args[i] = vim.inspect(args[i])
+    if isa.t(args[i]) then
+      args[i] = dump(args[i])
     end
   end
 
-  return string.format(s, fmt, unpack(args))
+  return string.format(fmt, unpack(args))
 end
 
-function V.extend(tbl, ...)
+function extend(tbl, ...)
+  validate { tbl = { "table", tbl } }
+
   local l = #tbl
-  for i, t in ipairs({ ... }) do
+  for i, t in ipairs { ... } do
     if type(t) == "table" then
       for j, value in ipairs(t) do
         tbl[l + j] = value
@@ -44,13 +375,23 @@ function V.extend(tbl, ...)
   return tbl
 end
 
-function V.teach(t, f)
+function teach(t, f)
+  validate {
+    t = { "t", t },
+    f = { "f", f },
+  }
+
   for key, value in pairs(t) do
     f(key, value)
   end
 end
 
-function V.map(t, f)
+function map(t, f)
+  validate {
+    t = { "t", t },
+    f = { "f", f },
+  }
+
   local out = {}
   for key, value in ipairs(t) do
     out[key] = f(value)
@@ -59,7 +400,12 @@ function V.map(t, f)
   return out
 end
 
-function V.tmap(t, f)
+function tmap(t, f)
+  validate {
+    t = { "t", t },
+    f = { "f", f },
+  }
+
   local out = {}
   for key, value in pairs(t) do
     out[key] = f(key, value)
@@ -68,7 +414,12 @@ function V.tmap(t, f)
   return out
 end
 
-function V.filter(t, f)
+function filter(t, f)
+  validate {
+    t = { "t", t },
+    f = { "f", f },
+  }
+
   local filtered = {}
   local i = 1
 
@@ -83,7 +434,12 @@ function V.filter(t, f)
   return filtered
 end
 
-function V.grep(t, f)
+function grep(t, f)
+  validate {
+    t = { "t", t },
+    f = { "f", f },
+  }
+
   local filtered = {}
   local i = 1
 
@@ -98,7 +454,12 @@ function V.grep(t, f)
   return filtered
 end
 
-function V.tgrep(t, f)
+function tgrep(t, f)
+  validate {
+    t = { "t", t },
+    f = { "f", f },
+  }
+
   local filtered = {}
 
   for key, value in pairs(t) do
@@ -111,7 +472,12 @@ function V.tgrep(t, f)
   return filtered
 end
 
-function V.tfilter(t, f)
+function tfilter(t, f)
+  validate {
+    t = { "t", t },
+    f = { "f", f },
+  }
+
   local filtered = {}
 
   for key, value in pairs(t) do
@@ -124,19 +490,34 @@ function V.tfilter(t, f)
   return filtered
 end
 
-function V.each(t, f)
+function each(t, f)
+  validate {
+    t = { "t", t },
+    f = { "f", f },
+  }
+
   for _, value in ipairs(t) do
     f(value)
   end
 end
 
-function V.ieach(t, f)
+function ieach(t, f)
+  validate {
+    t = { "t", t },
+    f = { "f", f },
+  }
+
   for idx, value in ipairs(t) do
     f(idx, value)
   end
 end
 
-function V.imap(t, f)
+function imap(t, f)
+  validate {
+    t = { "t", t },
+    f = { "f", f },
+  }
+
   local out = {}
   for index, value in ipairs(t) do
     out[index] = f(index, value)
@@ -145,10 +526,10 @@ function V.imap(t, f)
   return out
 end
 
-function V.inspect(...)
+function pp(...)
   local final_s = ""
 
-  for _, obj in ipairs({ ... }) do
+  for _, obj in ipairs { ... } do
     if type(obj) == "table" then
       obj = vim.inspect(obj)
     end
@@ -158,7 +539,7 @@ function V.inspect(...)
   vim.api.nvim_echo({ { final_s } }, false, {})
 end
 
-function V.tolist(e, force)
+function tolist(e, force)
   if force then
     return { e }
   elseif type(e) ~= "table" then
@@ -168,25 +549,38 @@ function V.tolist(e, force)
   end
 end
 
-function V.append(t, ...)
+function append(t, ...)
+  validate { t = { "t", t } }
+
   local idx = #t
-  for i, value in ipairs({ ... }) do
+  for i, value in ipairs { ... } do
     t[idx + i] = value
   end
 
   return t
 end
 
-function V.append_at_index(t, idx, ...)
-  for _, value in ipairs({ ... }) do
+function iappend(t, idx, ...)
+  validate {
+    t = { "t", t },
+    ["?index"] = { "n", idx },
+  }
+
+  for _, value in ipairs { ... } do
     table.insert(t, idx, value)
   end
 
   return t
 end
 
-function V.shift(t, times)
+function shift(t, times)
+  validate {
+    t = { "t", t },
+    ["?times"] = { "n", times },
+  }
+
   local l = #t
+  times = times or 1
   for i = 1, times do
     if i > l then
       return t
@@ -197,8 +591,9 @@ function V.shift(t, times)
   return t
 end
 
-function V.unshift(t, ...)
-  for idx, value in ipairs({ ... }) do
+function unshift(t, ...)
+  validate { t = { "t", t } }
+  for idx, value in ipairs { ... } do
     table.insert(t, idx, value)
   end
 
@@ -206,8 +601,10 @@ function V.unshift(t, ...)
 end
 
 -- For multiple patterns, OR matching will be used
-function V.match(s, ...)
-  for _, value in ipairs({ ... }) do
+function match(s, ...)
+  validate { s = { "s", s } }
+
+  for _, value in ipairs { ... } do
     local m = s:match(value)
     if m then
       return m
@@ -216,19 +613,19 @@ function V.match(s, ...)
 end
 
 -- If varname in [varname] = var is prefixed with '!' then it will be overwritten
-function V.global(vars)
+function global(vars)
   for var, value in pairs(vars) do
-    if var:match("^!") then
+    if var:match "^!" then
       var = var:gsub("^!", "")
       _G[var] = value
     elseif _G[var] == nil then
       _G[var] = value
     end
-    V.globals[var] = value
+    globals[var] = value
   end
 end
 
-function V.range(from, till, step)
+function range(from, till, step)
   local index = from
   step = step or 1
 
@@ -240,7 +637,7 @@ function V.range(from, till, step)
   end
 end
 
-function V.butlast(t)
+function butlast(t)
   local new = {}
 
   for i = 1, #t - 1 do
@@ -250,7 +647,7 @@ function V.butlast(t)
   return new
 end
 
-function V.last(t, n)
+function last(t, n)
   if n then
     local len = #t
     local new = {}
@@ -266,7 +663,7 @@ function V.last(t, n)
   end
 end
 
-function V.first(t, n)
+function first(t, n)
   if n then
     local new = {}
     for i = 1, n do
@@ -279,7 +676,7 @@ function V.first(t, n)
   end
 end
 
-function V.rest(t)
+function rest(t)
   local new = {}
   local len = #t
   local idx = 1
@@ -292,8 +689,8 @@ function V.rest(t)
   return new
 end
 
-function V.update(tbl, keys, value)
-  keys = V.tolist(keys)
+function update(tbl, keys, value)
+  keys = tolist(keys)
   local len_ks = #keys
   local t = tbl
 
@@ -314,7 +711,7 @@ function V.update(tbl, keys, value)
   end
 end
 
-function V.rpartial(f, ...)
+function rpartial(f, ...)
   local outer = { ... }
   return function(...)
     local inner = { ... }
@@ -327,7 +724,7 @@ function V.rpartial(f, ...)
   end
 end
 
-function V.partial(f, ...)
+function partial(f, ...)
   local outer = { ... }
   return function(...)
     local inner = { ... }
@@ -340,7 +737,7 @@ function V.partial(f, ...)
   end
 end
 
-function V.get(tbl, ks, create_path)
+function get(tbl, ks, create_path)
   if type(ks) ~= "table" then
     ks = { ks }
   end
@@ -368,11 +765,11 @@ function V.get(tbl, ks, create_path)
   return v, t, tbl
 end
 
-function V.printf(...)
-  print(V.sprintf(...))
+function printf(...)
+  print(sprintf(...))
 end
 
-function V.with_open(fname, mode, callback)
+function with_open(fname, mode, callback)
   local fh = io.open(fname, mode)
   local out = nil
   if fh then
@@ -383,7 +780,7 @@ function V.with_open(fname, mode, callback)
   return out
 end
 
-function V.slice(t, from, till)
+function slice(t, from, till)
   local l = #t
   if from < 0 then
     from = l + from
@@ -406,7 +803,7 @@ function V.slice(t, from, till)
   return out
 end
 
-function V.index(t, item, test)
+function index(t, item, test)
   for key, v in pairs(t) do
     if test then
       if test(v, item) then
@@ -418,30 +815,30 @@ function V.index(t, item, test)
   end
 end
 
-function V.buffer_has_keymap(bufnr, mode, lhs)
+function buffer_has_keymap(bufnr, mode, lhs)
   bufnr = bufnr or 0
   local keymaps = vim.api.nvim_buf_get_keymap(bufnr, mode)
   lhs = lhs:gsub("<leader>", vim.g.mapleader)
   lhs = lhs:gsub("<localleader>", vim.g.maplocalleader)
 
-  return V.index(keymaps, lhs, function(t, item)
+  return index(keymaps, lhs, function(t, item)
     return t.lhs == item
   end)
 end
 
-function V.joinpath(...)
+function joinpath(...)
   return table.concat({ ... }, "/")
 end
 
-function V.basename(s)
+function basename(s)
   s = vim.split(s, "/")
   return s[#s]
 end
 
-function V.visualrange(bufnr)
+function visualrange(bufnr)
   return vim.api.nvim_buf_call(bufnr or vim.fn.bufnr(), function()
-    local _, csrow, cscol, _ = unpack(vim.fn.getpos("'<"))
-    local _, cerow, cecol, _ = unpack(vim.fn.getpos("'>"))
+    local _, csrow, cscol, _ = unpack(vim.fn.getpos "'<")
+    local _, cerow, cecol, _ = unpack(vim.fn.getpos "'>")
     if csrow < cerow or (csrow == cerow and cscol <= cecol) then
       return vim.api.nvim_buf_get_text(0, csrow - 1, cscol - 1, cerow - 1, cecol, {})
     else
@@ -450,93 +847,40 @@ function V.visualrange(bufnr)
   end)
 end
 
-function V.nvimerr(...)
-  for _, s in ipairs({ ... }) do
+function nvimerr(...)
+  for _, s in ipairs { ... } do
     vim.api.nvim_err_writeln(s)
   end
 end
 
-local function _isa(e, c)
-  if type(c) == "string" then
-    return type(e) == c
-  elseif type(e) == "table" then
-    if e.is_a and e:is_a(c) then
-      return true
-    else
-      return "table" == c
-    end
-  elseif c == nil then
-    return e == nil
-  end
-end
-
-V.isa = setmetatable({}, {
-  __call = function(_, e, c)
-    if e == nil and c == nil then
-      return true
-    end
-
-    return _isa(e, c)
-  end,
-  __index = function(_, k)
-    local _tr = {
-      n = "number",
-      t = "table",
-      u = "userdata",
-      f = "function",
-      b = "boolean",
-      s = "string",
-    }
-
-    assert(type(k) == "string", "key is not a string")
-    assert(k:match("^[ntufbs]$"), "Invalid spec provided. Need any one of [ntufbs]")
-
-    return function(e)
-      return _isa(e, _tr[k])
-    end
-  end,
-})
-
 -- If multiple keys are supplied, the table is going to be assumed to be nested
-function V.haskey(tbl, ...)
-  return (V.get(tbl, { ... }))
+function haskey(tbl, ...)
+  return (get(tbl, { ... }))
 end
 
-function V.pcall(f, ...)
-  local ok, out = pcall(f, ...)
-  if ok then
-    return {
-      error = false,
-      success = true,
-      out = out,
-    }
-  else
-    return {
-      error = ok,
-      success = false,
-    }
-  end
+function makepath(t, ...)
+  return get(t, { ... }, true)
 end
 
-function V.makepath(t, ...)
-  return V.get(t, { ... }, true)
-end
-
-function V.require(req, do_assert)
+function req(req, do_assert)
   local ok, out = pcall(require, req)
 
+  if isa.s(out) then
+    out = split(out, "\n")
+    out = grep(out, function(x)
+      if x:match "^%s*no file '" or x:match "no field package.preload" or x:match "lazy_loader" then
+        return false
+      end
+      return true
+    end)
+
+    out = concat(out, "\n")
+  end
+
   if not ok then
-    V.makepath(V, "logs")
-
-    local nonexistent = out:match("module '[^']+' not found")
-
-    if nonexistent then
-      V.append(V.logs, nonexistent)
-      logger:debug(nonexistent)
-    else
-      V.append(V.logs, nonexistent)
-      logger:debug(out)
-    end
+    makepath(user, "logs")
+    append(user.logs, out)
+    logger:debug(out)
 
     if do_assert then
       error(out)
@@ -546,64 +890,21 @@ function V.require(req, do_assert)
   end
 end
 
-function V.isblank(s)
-  assert(V.isstring(s) or V.istable(s))
-
-  if V.isstring(s) then
-    return #s == 0
-  elseif V.istable(s) then
-    local i = 0
-    for _, _ in pairs(s) do
-      i = i + 1
-    end
-    return i == 0
-  end
-end
-
-function V.asserttype(e, t, name)
-  name = name or tostring(e)
-  assert(V.isa(e, t), V.sprintf("%s is not of type %s", name, t))
-end
-
-function V.asss(e, name)
-  V.asserttype(e, "string", name)
-end
-
-function V.asst(e, name)
-  V.asserttype(e, "table", name)
-end
-
-function V.assf(e, name)
-  V.asserttype(e, "function", name)
-end
-
-function V.assn(e, name)
-  V.asserttype(e, "number", name)
-end
-
-function V.assb(e, name)
-  V.asserttype(e, "boolean", name)
-end
-
-function V.assu(e, name)
-  V.asserttype(e, "userdata", name)
-end
-
-function V.lmerge(...)
+function lmerge(...)
   local function _merge(t1, t2)
     local later = {}
 
-    V.teach(t2, function(k, v)
+    teach(t2, function(k, v)
       local a, b = t1[k], t2[k]
 
       if a == nil then
         t1[k] = v
-      elseif V.istable(a) and V.istable(b) then
-        V.append(later, { a, b })
+      elseif isa.t(a) and isa.t(b) then
+        append(later, { a, b })
       end
     end)
 
-    V.each(later, function(next)
+    each(later, function(next)
       _merge(unpack(next))
     end)
   end
@@ -611,30 +912,34 @@ function V.lmerge(...)
   local args = { ... }
   local l = #args
   local start = args[1]
+
+  validate { start_table = { "t", start } }
+
   for i = 2, l do
+    validate { ["table_" .. i] = { "t", args[i] } }
     _merge(start, args[i])
   end
 
   return start
 end
 
-function V.merge(...)
+function merge(...)
   local function _merge(t1, t2)
     local later = {}
 
-    V.teach(t2, function(k, v)
+    teach(t2, function(k, v)
       local a, b = t1[k], t2[k]
 
       if a == nil then
         t1[k] = v
-      elseif V.istable(a) and V.istable(b) then
-        V.append(later, { a, b })
+      elseif isa.t(a) and isa.t(b) then
+        append(later, { a, b })
       else
         t1[k] = v
       end
     end)
 
-    V.each(later, function(next)
+    each(later, function(next)
       _merge(unpack(next))
     end)
   end
@@ -642,18 +947,28 @@ function V.merge(...)
   local args = { ... }
   local l = #args
   local start = args[1]
+  validate { start_table = { "t", start } }
+
   for i = 2, l do
+    validate { ["table_" .. i] = { "t", args[i] } }
     _merge(start, args[i])
   end
 
   return start
 end
 
-function V.apply(f, args)
+function apply(f, args)
+  validate {
+    f = { "f", f },
+    params = { "t", args },
+  }
+
   return f(unpack(args))
 end
 
-function V.items(t)
+function items(t)
+  validate { t = { "t", t } }
+
   local it = {}
   local i = 1
   for key, value in pairs(t) do
@@ -664,212 +979,14 @@ function V.items(t)
   return it
 end
 
-function V.glob(d, expr, nosuf, alllinks)
+function glob(d, expr, nosuf, alllinks)
+  validate {
+    directory = { "s", d },
+    glob = { "s", expr },
+    ["?no_suffix"] = { "b", nosuf },
+    ["?all_links"] = { "b", alllinks },
+  }
   nosuf = nosuf == nil and true or false
 
   return vim.fn.globpath(d, expr, nosuf, true, alllinks) or {}
 end
-
-V.ass = setmetatable({}, {
-  __index = function(_, k)
-    local _tr = {
-      n = "number",
-      t = "table",
-      u = "userdata",
-      f = "function",
-      s = "string",
-      b = "boolean",
-    }
-
-    V.ass_s(k, "spec")
-
-    assert(V.match(k, "[snftu]+"), "Use any of [snftu]")
-
-    k = vim.split(k, "")
-
-    return function(e, name)
-      local failure = {}
-
-      V.each(k, function(x)
-        if not V["is" .. x](e) then
-          V.append(failure, x)
-        end
-      end)
-
-      if #failure < #k then
-        return true
-      elseif #k == #failure then
-        name = name or tostring(e)
-        failure = V.map(failure, function(x)
-          return _tr[x]
-        end)
-
-        name = name or tostring(e)
-        error(V.sprintf("%s is not of type[s]: %s", name, failure))
-      end
-    end
-  end,
-
-  __newindex = function(_, _, _)
-    error("Readonly table")
-  end,
-})
-
-V.assert_type = V.asserttype
-V.has_key = V.haskey
-V.command = vim.api.nvim_create_user_command
-V.autocmd = vim.api.nvim_create_autocmd
-V.augroup = vim.api.nvim_create_augroup
-V.bind = vim.keymap.set
-V.stdpath = vim.fn.stdpath
-V.flatten = vim.tbl_flatten
-V.substr = string.sub
-V.deep_copy = vim.deepcopy
-V.deepcopy = V.deep_copy
-V.copy = vim.deepcopy
-V.isempty = V.tbl_is_empty
-V.islist = vim.tbl_islist
-V.keys = vim.tbl_keys
-V.values = vim.tbl_values
-V.trim = vim.trim
-V.validate = vim.validate
-V.iappend = V.append_at_index
-V.isstring = V.rpartial(V.isa, "string")
-V.isuserdata = V.rpartial(V.isa, "userdata")
-V.istable = V.rpartial(V.isa, "table")
-V.isnumber = V.rpartial(V.isa, "number")
-V.isfunction = V.rpartial(V.isa, "function")
-V.isboolean = V.rpartial(V.isa, "boolean")
-V.isnil = V.rpartial(V.isa)
-V.is_t = V.istable
-V.is_s = V.isstring
-V.is_u = V.isuserdata
-V.is_n = V.isnumber
-V.is_f = V.isfunction
-V.is_b = V.isboolean
-V.is_nil = V.isnil
-V.ist = V.istable
-V.iss = V.isstring
-V.isu = V.isuserdata
-V.isn = V.isnumber
-V.isf = V.isfunction
-V.isb = V.isboolean
-V.isnil = V.isnil
-V.assert_string = V.asss
-V.assert_function = V.assf
-V.assert_userdata = V.assu
-V.assert_number = V.assn
-V.assert_table = V.asst
-V.assert_boolean = V.assb
-V.ass_s = V.asss
-V.ass_f = V.assf
-V.ass_u = V.assu
-V.ass_n = V.assn
-V.ass_t = V.asst
-V.ass_b = V.assb
-V.open = V.with_open
-V.is_a = V.isa
-
-table.get = V.get
-table.isblank = V.isblank
-table.extend = V.extend
-table.teach = V.teach
-table.each = V.each
-table.ieach = V.ieach
-table.each_with_index = table.ieach
-table.map = V.map
-table.imap = V.imap
-table.map_with_index = table.imap
-table.tmap = V.tmap
-table.filter = V.filter
-table.tfilter = V.tfilter
-table.append = V.append
-table.iappend = V.iappend
-table.append_at_index = table.iappend
-table.shift = V.shift
-table.unshift = V.unshift
-table.last = V.last
-table.butlast = V.butlast
-table.rest = V.rest
-table.first = V.first
-table.update = V.update
-table.slice = V.slice
-table.index = V.index
-table.haskey = V.haskey
-table.makepath = V.makepath
-table.lmerge = V.lmerge
-table.merge = V.merge
-table.keys = V.keys
-table.values = V.values
-table.items = V.items
-table.grep = V.grep
-table.tgrep = V.tgrep
-string.match_any = V.match
-string.matchany = string.match_any
-
-flatten = V.flatten
-substr = string.sub
-get = V.get
-isblank = V.isblank
-extend = V.extend
-teach = V.teach
-each = V.each
-ieach = V.ieach
-map = V.map
-imap = V.imap
-tmap = V.tmap
-filter = V.filter
-tfilter = V.tfilter
-append = V.append
-iappend = V.iappend
-remove = table.remove
-append_at_index = table.iappend
-map_with_index = table.imap
-each_with_index = table.ieach
-shift = V.shift
-unshift = V.unshift
-last = V.last
-butlast = V.butlast
-rest = V.rest
-first = V.first
-update = V.update
-slice = V.slice
-index = V.index
-haskey = V.haskey
-makepath = V.makepath
-lmerge = V.lmerge
-merge = V.merge
-keys = V.keys
-values = V.values
-items = V.items
-grep = V.grep
-tgrep = V.tgrep
-match_any = V.match
-matchany = V.match
-glob = V.glob
-copy = V.deepcopy
-global = V.global
-isa = V.isa
-nvimerr = V.nvimerr
-open = V.withopen
-partial = V.partial
-lpartial = V.lpartial
-sprintf = V.sprintf
-printf = V.printf
-inspect = V.inspect
-pp = V.inspect
-is_t = V.istable
-is_s = V.isstring
-is_u = V.isuserdata
-is_n = V.isnumber
-is_f = V.isfunction
-is_nil = V.is_nil
-isnil = is_nil
-assert_type = assert_type
-asserttype = assert_type
-ass = V.ass
-ass_s = V.asss
-ass_f = V.assf
-ass_u = V.assu
-ass_n = V.assn
-ass_t = V.asst

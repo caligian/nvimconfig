@@ -103,9 +103,9 @@ user.plugins["nvim-treesitter"] = {
   },
 }
 
-V.require("user.plugins.nvim-treesitter")
+req "user.plugins.nvim-treesitter"
 
-local configs = V.require("nvim-treesitter.configs")
+local configs = require "nvim-treesitter.configs"
 if configs then
   configs.setup(user.plugins["nvim-treesitter"].config)
 end

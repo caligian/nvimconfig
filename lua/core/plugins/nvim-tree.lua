@@ -246,8 +246,8 @@ Keybinding.bind(
   { "<leader>\\", ":NvimTreeFocus<CR>", "Focus file browser" }
 )
 
-local tree = require("nvim-tree")
+local tree = require "nvim-tree"
 
-V.require("user.plugins.nvim-tree")
+req "user.plugins.nvim-tree"
 
 tree.setup(user.plugins["nvim-tree"].config)

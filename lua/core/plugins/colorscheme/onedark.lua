@@ -27,9 +27,9 @@ local function onedark_theme(theme, config)
     },
   }
 
-  assert(V.ist(config))
+  assert(ist(config))
 
-  table.lmerge(config, defaults)
+  lmerge(config, defaults)
 
   config.style = theme
 
@@ -38,7 +38,7 @@ local function onedark_theme(theme, config)
   vim.cmd("color onedark")
 end
 
-V.each({ "deep", "warm", "warmer", "light", "dark", "darker" }, function(t)
+each({ "deep", "warm", "warmer", "light", "dark", "darker" }, function(t)
   local theme_name = "onedark_" .. t
   onedark[theme_name] = function(config)
     onedark_theme(t, config)

@@ -1,4 +1,4 @@
-V.require("core.repl.repl")
-V.require("core.repl.autocmd")
-V.require("core.repl.command")
-V.require("core.repl.kbd")
+require("core.repl.repl")
+require("core.repl.autocmd")
+require("core.repl.command")
+require("core.repl.kbd")

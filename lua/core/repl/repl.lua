@@ -1,182 +1,175 @@
-new 'REPL' {
-  ids = {},
+class 'REPL'
 
-  _init = function(self, ft, force)
-    ft = ft or vim.bo.filetype
+REPL.ids = REPL.ids or {}
 
-    ass_s(ft, "filetype")
+function REPL._init(self, ft, force)
+	ft = ft or vim.bo.filetype
 
-    local r = REPL.ids[ft]
-    if r and not force and r.running then
-      return r
-    end
+	validate {
+		filetype = { "s", ft },
+	}
 
-    self.filetype = ft
-    self.command = V.get(Lang.langs, { ft, "repl" })
+	local r = REPL.ids[ft]
+	if r and not force and r.running then
+		return r
+	end
 
-    assert(self.command, "No command specified for filetype " .. ft)
-    ass_s(self.command, "self.command")
+	self.filetype = ft
+	self.command = get(Lang.langs, { ft, "repl" })
 
-    return self
-  end,
+	validate { command = { "s", self.command } }
+end
 
-  is_visible = function(self)
-    return self.buffer:is_visible()
-  end,
+function REPL.is_visible(self)
+	return self.buffer:is_visible()
+end
 
-  ensure = function(self)
-    if self.running then
-      return self
-    end
+function REPL.ensure(self)
+	if self.running then
+		return self
+	end
 
-    self:start()
-  end,
+	self:start()
+end
 
-  status = function(self)
-    if not self.id then
-      return false
-    end
+function REPL.status(self)
+	if not self.id then
+		return false
+	end
 
-    local id = self.id
-    id = vim.fn.jobwait({ id }, 0)[1]
+	local id = self.id
+	id = vim.fn.jobwait({ id }, 0)[1]
 
-    if id == -1 then
-      return true
-    elseif id == -2 then
-      return "interrupted"
-    else
-      return false
-    end
-  end,
+	if id == -1 then
+		return true
+	elseif id == -2 then
+		return "interrupted"
+	else
+		return false
+	end
+end
 
-  is_valid = function(self)
-    return self:status() ~= false
-  end,
+function REPL.is_valid(self)
+	return self:status() ~= false
+end
 
-  is_interrupted = function(self)
-    return self:status() == "interrupted"
-  end,
+function REPL.is_interrupted(self)
+	return self:status() == "interrupted"
+end
 
-  stop = function(self)
-    if not self.running then
-      return
-    end
+function REPL.stop(self)
+	if not self.running then
+		return
+	end
 
-    vim.fn.chanclose(self.id)
+	vim.fn.chanclose(self.id)
 
-    self.running = false
-    self.buffer:delete()
-    self.buffer = nil
-    self.ids[self.id] = nil
-    self.ids[self.filetype] = nil
+	self.running = false
+	self.buffer:delete()
+	self.buffer = nil
+	self.ids[self.id] = nil
+	self.ids[self.filetype] = nil
 
-    return self
-  end,
+	return self
+end
 
-  stopall = function()
-    for _, r in pairs(REPL.ids) do
-      r:stop()
-    end
-  end,
+function REPL.stopall()
+	for _, r in pairs(REPL.ids) do
+		r:stop()
+	end
+end
 
-  start = function(self, force)
-    local function start(cmd)
-      ass_s(cmd, "command")
+function REPL.start(self, force)
+	if self.running then
+		return self
+	end
 
-      local buf = Buffer()
-      local id
+	local buf = Buffer()
+	local id
+	local cmd = self.command
 
-      buf:setopts({
-        buflisted = false,
-        modified = false
-      })
+	buf:setopts {
+		buflisted = false,
+		modified = false,
+	}
 
-      buf:setwinopts({
-        number = false,
-      })
+	buf:setwinopts {
+		number = false,
+	}
 
-      buf:call(function()
-        vim.cmd("term")
-        id = vim.b.terminal_job_id
-        vim.api.nvim_chan_send(id, cmd .. "\r")
-      end)
+	buf:call(function()
+		vim.cmd "term"
+		id = vim.b.terminal_job_id
+		vim.api.nvim_chan_send(id, cmd .. "\r")
+	end)
 
-      return id, buf
-    end
+	if force then
+		self:stop()
+	end
 
-    if force then
-      self:stop()
-    end
+	self.id = id
+	self.running = true
+	self.buffer = buf
+	buf:setvar("_repl_filetype", self.filetype)
 
-    if self.running then
-      return self
-    end
+	REPL.ids[id] = self
+	REPL.ids[self.filetype] = self
 
-    local id, buf = start(self.command)
-    self.id = id
-    self.running = true
-    self.buffer = buf
-    buf:setvar("_repl_filetype", self.filetype)
+	return self
+end
 
-    REPL.ids[id] = self
-    REPL.ids[self.filetype] = self
+function REPL.hide(self)
+	if self.running then
+		self.buffer:hide()
+	end
+end
 
-    return self
-  end,
+function REPL.split(self, direction)
+	self:ensure()
 
-  hide = function(self)
-    if self.running then
-      self.buffer:hide()
-    end
-  end,
+	if self:is_visible() then
+		return self
+	else
+		self.buffer:split(direction)
+	end
+end
 
-  split = function(self, direction)
-    self:ensure()
+function REPL.send(self, s)
+	self:ensure()
 
-    if self:is_visible() then
-      return self
-    else
-      self.buffer:split(direction)
-    end
-  end,
+	local id = self.id
+	if isa(s, "table") then
+		s = table.concat(s, "\n")
+	end
+	s = s .. "\r"
+	vim.api.nvim_chan_send(id, s)
+end
 
-  send = function(self, s)
-    self:ensure()
+function REPL.send_current_line(self, src_bufnr)
+	src_bufnr = src_bufnr or vim.fn.bufnr()
+	vim.api.nvim_buf_call(src_bufnr, function()
+		self:send(vim.fn.getline ".")
+	end)
+end
 
-    local id = self.id
-    if V.isa(s, "table") then
-      s = table.concat(s, "\n")
-    end
-    s = s .. "\r"
-    vim.api.nvim_chan_send(id, s)
-  end,
+function REPL.send_buffer(self, src_bufnr)
+	src_bufnr = src_bufnr or vim.fn.bufnr()
+	self:send(vim.api.nvim_buf_get_lines(src_bufnr, 0, -1, false))
+end
 
-  send_current_line = function(self, src_bufnr)
-    src_bufnr = src_bufnr or vim.fn.bufnr()
-    vim.api.nvim_buf_call(src_bufnr, function()
-      self:send(vim.fn.getline("."))
-    end)
-  end,
+function REPL.send_till_point(self, src_bufnr)
+	src_bufnr = src_bufnr or vim.fn.bufnr()
+	vim.api.nvim_buf_call(src_bufnr, function()
+		local line = vim.fn.line "."
+		self:send(vim.api.nvim_buf_get_lines(src_bufnr, 0, line, false))
+	end)
+end
 
-  send_buffer = function(self, src_bufnr)
-    src_bufnr = src_bufnr or vim.fn.bufnr()
-    self:send(vim.api.nvim_buf_get_lines(src_bufnr, 0, -1, false))
-  end,
+function REPL.send_visual_range(self, src_bufnr)
+	src_bufnr = src_bufnr or vim.fn.bufnr()
+	return self:send(visualrange(src_bufnr))
+end
 
-  send_till_point = function(self, src_bufnr)
-    src_bufnr = src_bufnr or vim.fn.bufnr()
-    vim.api.nvim_buf_call(src_bufnr, function()
-      local line = vim.fn.line(".")
-      self:send(vim.api.nvim_buf_get_lines(src_bufnr, 0, line, false))
-    end)
-  end,
-
-  send_visual_range = function(self, src_bufnr)
-    src_bufnr = src_bufnr or vim.fn.bufnr()
-    return self:send(V.visualrange(src_bufnr))
-  end,
-
-  terminate_input = function(self)
-    return self:send("")
-  end
-}
+function REPL.terminate_input(self)
+	return self:send ""
+end

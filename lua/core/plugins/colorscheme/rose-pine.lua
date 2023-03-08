@@ -56,7 +56,7 @@ local function apply(variant, config)
   vim.cmd("colorscheme rose-pine")
 end
 
-V.each({ "main", "moon" }, function(variant)
+each({ "main", "moon" }, function(variant)
   rose_pine["rose-pine_" .. variant] = function(config)
     apply(variant, config)
   end

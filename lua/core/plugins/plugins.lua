@@ -7,7 +7,8 @@ return {
     "lukas-reineke/indent-blankline.nvim",
     event = "BufEnter",
     config = function()
-      require("indent_blankline").setup {
+	    local indent = req 'indent_blankline'
+      indent.setup {
         -- for example, context is off by default, use this to turn it on
         show_current_context = false,
         show_current_context_start = false,
@@ -19,7 +20,7 @@ return {
     "nvim-neorg/neorg",
     ft = "norg",
     config = function()
-      V.require "core.plugins.neorg"
+      req "core.plugins.neorg"
     end,
   },
 
@@ -68,7 +69,7 @@ return {
       { "folke/tokyonight.nvim" },
     },
     config = function()
-      V.require "core.plugins.colorscheme"
+      req "core.plugins.colorscheme"
       -- vim.cmd("color github_dark")
     end,
   },
@@ -76,7 +77,7 @@ return {
   {
     "lervag/vimtex",
     config = function()
-      V.require "core.plugins.vimtex"
+      req "core.plugins.vimtex"
     end,
     ft = "tex",
   },
@@ -84,7 +85,7 @@ return {
   {
     "nvim-tree/nvim-web-devicons",
     config = function()
-      local web = V.require "nvim-web-devicons"
+      local web = req "nvim-web-devicons"
       if web then
         web.setup {}
       end
@@ -95,7 +96,7 @@ return {
     "nvim-tree/nvim-tree.lua",
     event = "VimEnter",
     config = function()
-      V.require "core.plugins.nvim-tree"
+      req "core.plugins.nvim-tree"
     end,
   },
 
@@ -109,7 +110,7 @@ return {
     "mfussenegger/nvim-lint",
     event = "BufReadPost",
     config = function()
-      V.require "core.plugins.nvim-lint"
+      req "core.plugins.nvim-lint"
     end,
   },
 
@@ -136,7 +137,7 @@ return {
       "nvim-treesitter/nvim-treesitter-textobjects",
     },
     config = function()
-      V.require "core.plugins.nvim-treesitter"
+      req "core.plugins.nvim-treesitter"
     end,
   },
 
@@ -145,7 +146,7 @@ return {
     event = "InsertEnter",
     dependencies = { { "honza/vim-snippets" } },
     config = function()
-      V.require "core.plugins.ultisnips"
+      req "core.plugins.ultisnips"
     end,
   },
 
@@ -164,14 +165,14 @@ return {
       { "hrsh7th/cmp-nvim-lsp-document-symbol" },
     },
     config = function()
-      V.require "core.plugins.nvim-cmp"
+      req "core.plugins.nvim-cmp"
     end,
   },
 
   {
     "tpope/vim-fugitive",
     config = function()
-      V.require "core.plugins.vim-fugitive"
+      req "core.plugins.vim-fugitive"
     end,
   },
 
@@ -187,7 +188,7 @@ return {
         { desc = "Toggle tagbar", name = "tagbar" }
       )
       vim.g.tagbar_position = "leftabove vertical"
-      V.require "user.plugins.tagbar"
+      req "user.plugins.tagbar"
     end,
   },
 
@@ -195,7 +196,7 @@ return {
     "folke/which-key.nvim",
     event = "VimEnter",
     config = function()
-      V.require "core.plugins.which-key"
+      req "core.plugins.which-key"
     end,
   },
 
@@ -209,14 +210,14 @@ return {
     "mhartington/formatter.nvim",
     event = "BufReadPost",
     config = function()
-      V.require "core.plugins.formatter"
+      req "core.plugins.formatter"
     end,
   },
 
   {
     "neovim/nvim-lspconfig",
-    ft = V.filter(V.keys(Lang.langs), function(k)
-      if V.haskey(Lang.langs, k, "server") then
+    ft = filter(keys(Lang.langs), function(k)
+      if haskey(Lang.langs, k, "server") then
         return k
       end
     end),
@@ -225,7 +226,7 @@ return {
       { "williamboman/mason.nvim" },
     },
     config = function()
-      V.require "core.plugins.nvim-lspconfig"
+      req "core.plugins.nvim-lspconfig"
     end,
   },
 
@@ -237,7 +238,7 @@ return {
       { "nvim-telescope/telescope-fzf-native.nvim", run = "make" },
     },
     config = function()
-      V.require "core.plugins.telescope"
+      req "core.plugins.telescope"
     end,
     event = "VimEnter",
   },
@@ -251,7 +252,7 @@ return {
         { "bq", "<cmd>Bdelete<CR>", { desc = "Delete buffer" } },
         { "bQ", "<cmd>Bwipeout<CR>", { desc = "Wipeout buffer" } }
       )
-      V.require "user.plugins.vim-bbye"
+      req "user.plugins.vim-bbye"
     end,
   },
 }

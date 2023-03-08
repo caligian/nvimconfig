@@ -1,5 +1,5 @@
 local lsp = user.lsp
-lsp.capabilties = V.require("cmp_nvim_lsp").default_capabilities()
+lsp.capabilties = require("cmp_nvim_lsp").default_capabilities()
 
 -- Turn off annoying virtual text
 lsp.diagnostic = {
@@ -13,7 +13,7 @@ function lsp.on_attach(client, bufnr)
   -- Enable completion triggered by <c-x><c-o>
   vim.api.nvim_buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 
-  if not V.haskey(Lang.langs, vim.bo.filetype, "formatters") then
+  if not haskey(Lang.langs, vim.bo.filetype, "formatters") then
     require("lsp-format").on_attach(client)
   end
 
@@ -48,14 +48,14 @@ function lsp.setup_server(server, opts)
   local flags = opts.flags or lsp.flags
   local default_conf = { capabilities = capabilities, on_attach = on_attach, flags = flags }
 
-  default_conf = V.merge(default_conf, opts)
+  default_conf = merge(default_conf, opts)
 
-  V.require("lspconfig")[server].setup(default_conf)
+  require("lspconfig")[server].setup(default_conf)
 end
 
 function lsp.setup()
   -- Mason.vim, trouble and lsp autoformatting
-  V.require("mason").setup()
+  require("mason").setup()
 
   -- Other settings
   vim.diagnostic.config(lsp.diagnostic)
@@ -69,7 +69,7 @@ function lsp.setup()
 end
 
 user.plugins["nvim-lspconfig"] = lsp
-V.require("user.plugins.nvim-lspconfig")
-V.require("core.plugins.nvim-lspconfig.keybindings")
+req "user.plugins.nvim-lspconfig"
+require "core.plugins.nvim-lspconfig.keybindings"
 
 lsp.setup()

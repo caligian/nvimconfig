@@ -1,5 +1,5 @@
-local action_state = V.require("telescope.actions.state")
-local actions = V.require("telescope.actions")
+local action_state = require("telescope.actions.state")
+local actions = require("telescope.actions")
 
 local mod = setmetatable({}, {
   __newindex = function(self, name, f)
@@ -19,7 +19,7 @@ local mod = setmetatable({}, {
 })
 
 local function gitcmd(op, fname)
-  vim.fn.system(V.sprintf("git %s %s", op, fname))
+  vim.fn.system(sprintf("git %s %s", op, fname))
 end
 
 function mod.stage(sel)

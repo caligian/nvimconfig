@@ -1,8 +1,8 @@
-local cmp = require("cmp")
-local cmp_ultisnips_mappings = require("cmp_nvim_ultisnips.mappings")
-local cmp_zsh = require("cmp_zsh")
+local cmp = require "cmp"
+local cmp_ultisnips_mappings = require "cmp_nvim_ultisnips.mappings"
+local cmp_zsh = require "cmp_zsh"
 
-cmp_zsh.setup({ zshrc = true, filetypes = { "zsh" } })
+cmp_zsh.setup { zshrc = true, filetypes = { "zsh" } }
 
 user.plugins["nvim-cmp"] = {
   config = {
@@ -13,15 +13,15 @@ user.plugins["nvim-cmp"] = {
       ["<C-p>"] = cmp.mapping.select_prev_item(),
       ["<C-Space>"] = cmp.mapping.complete(),
       ["<C-e>"] = cmp.mapping.abort(),
-      ["<CR>"] = cmp.mapping.confirm({ select = true }),
+      ["<CR>"] = cmp.mapping.confirm { select = true },
       ["<C-/>"] = cmp.mapping(function(fallback)
-        cmp_ultisnips_mappings.compose({ "expand" })(function() end)
+        cmp_ultisnips_mappings.compose { "expand" }(function() end)
       end),
       ["<C-j>"] = cmp.mapping(function(fallback)
-        cmp_ultisnips_mappings.compose({ "jump_forwards" })(function() end)
+        cmp_ultisnips_mappings.compose { "jump_forwards" }(function() end)
       end, { "i", "s" }),
       ["<C-k>"] = cmp.mapping(function(fallback)
-        cmp_ultisnips_mappings.compose({ "jump_backwards" })(function() end)
+        cmp_ultisnips_mappings.compose { "jump_backwards" }(function() end)
       end, { "i", "s" }),
     },
     snippet = {
@@ -51,12 +51,12 @@ user.plugins["nvim-cmp"] = {
   },
 }
 
-V.require("user.plugins.nvim-cmp")
+req "user.plugins.nvim-cmp"
 
 cmp.setup(user.plugins["nvim-cmp"].config)
 
 cmp.setup.cmdline("/", {
-  sources = cmp.config.sources({
+  sources = cmp.config.sources {
     { name = "nvim_lsp_document_symbol" },
-  }),
+  },
 })

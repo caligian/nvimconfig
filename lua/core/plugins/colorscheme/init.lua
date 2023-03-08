@@ -1,4 +1,4 @@
-require("core.plugins.colorscheme.colorscheme")
+require "core.plugins.colorscheme.colorscheme"
 
 user.plugins.colorscheme = {
   colorscheme = user.colorscheme,
@@ -11,7 +11,7 @@ Colorscheme.setdefault()
 K.bind({ noremap = true, leader = true }, {
   "htt",
   function()
-    local themes = table.keys(Colorscheme.colorscheme)
+    local themes = keys(Colorscheme.colorscheme)
     local menu = Buffer.menu("<CR> Apply colorscheme", themes, false, function(choice)
       Colorscheme.set(choice)
     end)

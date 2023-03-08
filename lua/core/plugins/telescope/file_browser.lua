@@ -1,6 +1,6 @@
-local action_state = V.require("telescope.actions.state")
-local actions = V.require("telescope.actions")
-local job = V.require("plenary.job")
+local action_state = require("telescope.actions.state")
+local actions = require("telescope.actions")
+local job = require("plenary.job")
 
 local mod = setmetatable({}, {
   __newindex = function(self, name, f)

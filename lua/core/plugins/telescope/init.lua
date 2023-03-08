@@ -4,7 +4,7 @@ local buffer_actions = require("core.plugins.telescope.buffers")
 local git_status_actions = require("core.plugins.telescope.git_status")
 
 user.plugins["telescope.nvim"] = {}
-local T = V.merge(user.plugins["telescope.nvim"], ivy)
+local T = merge(user.plugins["telescope.nvim"], ivy)
 
 -- To seem more like emacs ivy
 T.disable_devicons = true
@@ -13,7 +13,7 @@ T.previewer = false
 
 --  Setup telescope default configuration
 T.extensions = {
-  file_browser = V.merge({
+  file_browser = merge({
     disable_devicons = true,
     mappings = {
       n = {
@@ -26,7 +26,7 @@ T.extensions = {
     },
   }, ivy),
 
-  project = V.merge({
+  project = merge({
     hidden_files = false,
     order_by = "desc",
     search_by = "title",
@@ -56,10 +56,10 @@ T.pickers = {
 
 -- Setup telescope with extensions
 -- Require user overrides
-V.require("user.plugins.telescope")
-V.require("telescope").setup(T)
-V.require("telescope").load_extension("file_browser")
-V.require("telescope").load_extension("project")
+req("user.plugins.telescope")
+require("telescope").setup(T)
+require("telescope").load_extension("file_browser")
+require("telescope").load_extension("project")
 
 -- Start keymappings
 local function picker(p)

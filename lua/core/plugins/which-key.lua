@@ -1,4 +1,4 @@
-local wk = V.require("which-key")
+local wk = require "which-key"
 
 user.plugins["which-key.nvim"] = {
   config = {
@@ -69,7 +69,7 @@ user.plugins["which-key.nvim"] = {
   },
 }
 
-V.require("user.plugins.which-key_nvim")
+req "user.plugins.which-key_nvim"
 
 wk.setup(user.plugins["which-key.nvim"].config)
 
@@ -83,5 +83,5 @@ wk.register({
   b = { name = "Buffer management" },
   x = { name = "Shell operations" },
   c = { name = "Compile buffer" },
-  q = { name = 'Quit nvim'},
+  q = { name = "Quit nvim" },
 }, { prefix = "<leader>" })

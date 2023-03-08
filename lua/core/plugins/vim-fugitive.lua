@@ -5,4 +5,4 @@ Keybinding.bind(
   { "gg", ":tab Git<CR>", { desc = "Open Fugitive", name = "fugitive" } }
 )
 
-V.require("user.plugins.vim-fugitive")
+req "user.plugins.vim-fugitive"

@@ -2,12 +2,10 @@
 V = V or {}
 
 -- @field global Tracks the global variables made by V
-V.global = V.global or {}
+global = global or {}
 
 --
 require "utils.class"
-require "utils.struct"
-require "utils.module"
 require "utils.utils"
 require "utils.autocmd"
 require "utils.kbd"

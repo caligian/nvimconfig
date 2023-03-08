@@ -8,7 +8,7 @@ user.plugins["ultisnips"] = {
   },
 }
 
-V.require("user.plugins.ultisnips")
+req "user.plugins.ultisnips"
 
 for k, v in pairs(user.plugins["ultisnips"].config) do
   vim.g[k] = v

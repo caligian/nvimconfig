@@ -1,7 +1,7 @@
 local opts = { noremap = true }
 Keybinding.bind(opts, {
   "<leader>li",
-  V.partial(vim.diagnostic.open_float, { scope = "l", focus = false }),
+  partial(vim.diagnostic.open_float, { scope = "l", focus = false }),
   { desc = "LSP diagnostic float", name = "lsp_diagnostic_float" },
 }, {
   "[d",
