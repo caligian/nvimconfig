@@ -1,7 +1,7 @@
 local lazy = require("lazy")
 if not lazy then
-  logger:error("Cannot load lazy.nvim. Fatal error")
-  return
+	logger:error("Cannot load lazy.nvim. Fatal error")
+	return
 end
 
 makepath(user, "plugins", "plugins")

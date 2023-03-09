@@ -1,4 +1,4 @@
-class 'Process'
+class("Process")
 
 Process.ids = {}
 
@@ -54,14 +54,14 @@ function Process._on_stdout(self, cb)
 end
 
 function Process._init(self, command, opts)
-	validate { 
-		command = {'string', command},
-		opts = {'table', opts},
-	}
+	validate({
+		command = { "string", command },
+		opts = { "table", opts },
+	})
 
 	opts = opts or {}
 
-	validate {opts = {'table', opts}}
+	validate({ opts = { "table", opts } })
 
 	opts = opts or {}
 	opts.env = opts.env or {
@@ -112,7 +112,7 @@ function Process.status(self, timeout)
 	return vim.fn.jobwait({ self.id }, timeout)[1]
 end
 
-function Process.is_invalid (self)
+function Process.is_invalid(self)
 	return self:status() == -3
 end
 
@@ -160,14 +160,14 @@ function Process.send(self, s)
 		return
 	end
 
-	validate {
+	validate({
 		s = {
 			function(x)
 				return (is_a.s(x) or is_a.t(x))
-			end, 
-			s
-		}
-	}
+			end,
+			s,
+		},
+	})
 
 	if is_a.t(s) then
 		s = table.concat(s, "\n")

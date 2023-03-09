@@ -1,13 +1,13 @@
-class 'REPL'
+class("REPL")
 
 REPL.ids = REPL.ids or {}
 
 function REPL._init(self, ft, force)
 	ft = ft or vim.bo.filetype
 
-	validate {
+	validate({
 		filetype = { "s", ft },
-	}
+	})
 
 	local r = REPL.ids[ft]
 	if r and not force and r.running then
@@ -17,7 +17,7 @@ function REPL._init(self, ft, force)
 	self.filetype = ft
 	self.command = get(Lang.langs, { ft, "repl" })
 
-	validate { command = { "s", self.command } }
+	validate({ command = { "s", self.command } })
 end
 
 function REPL.is_visible(self)
@@ -88,17 +88,17 @@ function REPL.start(self, force)
 	local id
 	local cmd = self.command
 
-	buf:setopts {
+	buf:setopts({
 		buflisted = false,
 		modified = false,
-	}
+	})
 
-	buf:setwinopts {
+	buf:setwinopts({
 		number = false,
-	}
+	})
 
 	buf:call(function()
-		vim.cmd "term"
+		vim.cmd("term")
 		id = vim.b.terminal_job_id
 		vim.api.nvim_chan_send(id, cmd .. "\r")
 	end)
@@ -148,7 +148,7 @@ end
 function REPL.send_current_line(self, src_bufnr)
 	src_bufnr = src_bufnr or vim.fn.bufnr()
 	vim.api.nvim_buf_call(src_bufnr, function()
-		self:send(vim.fn.getline ".")
+		self:send(vim.fn.getline("."))
 	end)
 end
 
@@ -160,7 +160,7 @@ end
 function REPL.send_till_point(self, src_bufnr)
 	src_bufnr = src_bufnr or vim.fn.bufnr()
 	vim.api.nvim_buf_call(src_bufnr, function()
-		local line = vim.fn.line "."
+		local line = vim.fn.line(".")
 		self:send(vim.api.nvim_buf_get_lines(src_bufnr, 0, line, false))
 	end)
 end
@@ -171,5 +171,5 @@ function REPL.send_visual_range(self, src_bufnr)
 end
 
 function REPL.terminate_input(self)
-	return self:send ""
+	return self:send("")
 end

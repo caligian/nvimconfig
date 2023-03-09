@@ -1,4 +1,4 @@
-class 'Keybinding'
+class("Keybinding")
 
 K = Keybinding
 K.ids = {}
@@ -67,12 +67,12 @@ end
 -- @see autocmd
 -- @return object
 function K._init(self, mode, lhs, cb, rest)
-	validate { 
-		mode = {{'s', 't'}, mode},
-		lhs = {'s', lhs},
-		cb = {{'s', 'f'}, cb},
-		['?rest'] = {'t', rest}
-	}
+	validate({
+		mode = { { "s", "t" }, mode },
+		lhs = { "s", lhs },
+		cb = { { "s", "f" }, cb },
+		["?rest"] = { "t", rest },
+	})
 
 	rest = rest or {}
 	mode = mode or rest.mode or "n"
@@ -208,24 +208,24 @@ function K.bind(opts, ...)
 	opts = opts or {}
 	local args = { ... }
 	local bind = function(kbd)
-		validate { 
-			kbd_spec = {'table', kbd}
-		}
+		validate({
+			kbd_spec = { "table", kbd },
+		})
 		assert(#kbd >= 2)
 
 		local lhs, cb, o = unpack(kbd)
-		validate {
-			lhs = {'s', lhs},
-			cb = {{'s', 'f'}, cb}
-		}
+		validate({
+			lhs = { "s", lhs },
+			cb = { { "s", "f" }, cb },
+		})
 
 		o = o or {}
 		if is_a.s(o) then
 			o = { desc = o }
 		end
-		validate {
-			kbd_opts = {'table', o}
-		}
+		validate({
+			kbd_opts = { "table", o },
+		})
 
 		for key, value in pairs(opts) do
 			if not o[key] then

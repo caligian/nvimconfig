@@ -1,6 +1,6 @@
 return {
-  repl = user.shell,
-  compile = user.shell,
-  server = "bashls",
-  linters = "shellcheck",
+	repl = user.shell,
+	compile = user.shell,
+	server = "bashls",
+	linters = "shellcheck",
 }

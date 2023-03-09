@@ -1,6 +1,6 @@
 --- Autocommand creater for this framework
 --
-class 'Autocmd'
+class("Autocmd")
 
 A = Autocmd
 A.ids = A.ids or {}
@@ -8,14 +8,17 @@ A.defaults = A.defaults or {}
 A.groups = A.groups or {}
 
 function Autocmd._init(self, event, opts)
-  validate {
-    event = {{'s', 't'}, event},
-    options = {{
-      __allow_nonexistent = true,
-      callback = {'f', 's'},
-      pattern = {'s', 't'},
-    }, opts}
-  }
+	validate({
+		event = { { "s", "t" }, event },
+		options = {
+			{
+				__allow_nonexistent = true,
+				callback = { "f", "s" },
+				pattern = { "s", "t" },
+			},
+			opts,
+		},
+	})
 
 	local augroup
 	local group = copy(opts.group or {})
@@ -32,19 +35,19 @@ function Autocmd._init(self, event, opts)
 
 	local callback = opts.callback
 	opts.callback = function()
-    if opts.once then
-      if is_a.s(callback) then
-        vim.cmd(callback)
-      else
-        callback()
-      end
-    else
-      if is_a.s(callback) then
-        vim.cmd(callback)
-      else
-        callback()
-      end
-    end
+		if opts.once then
+			if is_a.s(callback) then
+				vim.cmd(callback)
+			else
+				callback()
+			end
+		else
+			if is_a.s(callback) then
+				vim.cmd(callback)
+			else
+				callback()
+			end
+		end
 	end
 
 	local id = autocmd(event, opts)
@@ -71,7 +74,7 @@ function Autocmd._init(self, event, opts)
 	return self
 end
 
-function Autocmd.disable (self)
+function Autocmd.disable(self)
 	if not self.enabled then
 		return
 	end
