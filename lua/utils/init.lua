@@ -5,7 +5,6 @@ V = V or {}
 global = global or {}
 
 --
-require("utils.class")
 require("utils.utils")
 require("utils.autocmd")
 require("utils.kbd")
