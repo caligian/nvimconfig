@@ -12,7 +12,8 @@ K.bind({ noremap = true, leader = true }, {
   "htt",
   function()
     local themes = keys(Colorscheme.colorscheme)
-    local menu = Buffer.menu("<CR> Apply colorscheme", themes, false, function(choice)
+    local current = vim.g.colors_name or "<unknown>"
+    local menu = Buffer.menu("Current: " .. current, themes, nil, function(choice)
       Colorscheme.set(choice)
     end)
     menu:split("v", { resize = 0.2, reverse = true, min = 29 })

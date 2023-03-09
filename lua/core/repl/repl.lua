@@ -138,7 +138,7 @@ function REPL.send(self, s)
 	self:ensure()
 
 	local id = self.id
-	if isa(s, "table") then
+	if is_a(s, "table") then
 		s = table.concat(s, "\n")
 	end
 	s = s .. "\r"

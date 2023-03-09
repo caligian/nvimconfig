@@ -5,7 +5,7 @@ local formatters = {}
 for lang, conf in pairs(Lang.langs) do
   if conf.formatters then
     for idx, formatter in ipairs(conf.formatters) do
-      if isa.s(formatter) then
+      if is_a.s(formatter) then
         local out = require(sprintf("formatter.filetypes.%s", lang))
         if out then
           conf.formatters[idx] = out

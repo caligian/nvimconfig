@@ -121,7 +121,7 @@ function highlightset(hi, set, defaults)
       return
     end
 
-    if isa(transformer, "function") then
+    if is_a(transformer, "function") then
       transformer = transformer(hi[attrib])
     end
     hi[attrib] = transformer

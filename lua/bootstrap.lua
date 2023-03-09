@@ -55,16 +55,9 @@ install_luarock("lualogging", "logging.file")
 
 -- Make some global variables
 local log_path = vim.fn.stdpath "config" .. "/nvim.log"
-class = require "pl.class"
-Set = require "pl.Set"
-List = require "pl.List"
 yaml = require "yaml"
 path = require "pl.path"
 listcomp = require "pl.comprehension"
-stringx = require "pl.stringx"
-tablex = require "pl.tablex"
-operator = require "pl.operator"
-types = require "pl.types"
 file = require "pl.file"
 dir = require "pl.dir"
 json = { encode = vim.json_encode, decode = vim.json_decode }

@@ -8,9 +8,14 @@ A.defaults = A.defaults or {}
 A.groups = A.groups or {}
 
 function Autocmd._init(self, event, opts)
-	assert(isa.t(opts))
-	assert(opts.callback)
-	assert(opts.pattern)
+  validate {
+    event = {{'s', 't'}, event},
+    options = {{
+      __allow_nonexistent = true,
+      callback = {'f', 's'},
+      pattern = {'s', 't'},
+    }, opts}
+  }
 
 	local augroup
 	local group = copy(opts.group or {})
@@ -27,20 +32,19 @@ function Autocmd._init(self, event, opts)
 
 	local callback = opts.callback
 	opts.callback = function()
-		self.enabled = true
-		if isa.s(callback) then
-			vim.cmd(callback)
-		else
-			callback()
-		end
-	end
-
-	if opts.once then
-		callback = opts.callback
-		opts.callback = function()
-			self.enabled = false
-			callback()
-		end
+    if opts.once then
+      if is_a.s(callback) then
+        vim.cmd(callback)
+      else
+        callback()
+      end
+    else
+      if is_a.s(callback) then
+        vim.cmd(callback)
+      else
+        callback()
+      end
+    end
 	end
 
 	local id = autocmd(event, opts)
@@ -90,7 +94,7 @@ function Autocmd.delete(self)
 	return self
 end
 
-function Autocmd.replace (self, opts)
+function Autocmd.replace(self, opts)
 	self:delete()
 
 	local opts = self.opts

@@ -68,23 +68,20 @@ end
 -- @return object
 function K._init(self, mode, lhs, cb, rest)
 	validate { 
-		mode = {function(x) return isa.t(mode) or isa.s(mode) end, mode},
+		mode = {{'s', 't'}, mode},
 		lhs = {'s', lhs},
-		cb = {function(x) 
-			return (isa.f(x) or isa.s(x)) 
-		end, 
-		cb},
+		cb = {{'s', 'f'}, cb},
 		['?rest'] = {'t', rest}
 	}
 
 	rest = rest or {}
 	mode = mode or rest.mode or "n"
 
-	if isa.s(mode) then
+	if is_a.s(mode) then
 		mode = vim.split(mode, "")
 	end
 
-	if isa.s(rest) then
+	if is_a.s(rest) then
 		rest = { desc = rest }
 	end
 
@@ -219,13 +216,11 @@ function K.bind(opts, ...)
 		local lhs, cb, o = unpack(kbd)
 		validate {
 			lhs = {'s', lhs},
-			cb = {function(x) 
-				return isa.s(cb) or isa.f(cb)
-			end, cb}
+			cb = {{'s', 'f'}, cb}
 		}
 
 		o = o or {}
-		if isa.s(o) then
+		if is_a.s(o) then
 			o = { desc = o }
 		end
 		validate {
@@ -253,35 +248,13 @@ end
 
 --- Simple classmethod that does the same thing as Keybinding()
 function K.map(mode, lhs, cb, opts)
-	validate {
-		mode = {function(x)
-			return isa.s(x) or isa.t(x)
-		end, mode},
-		lhs = {'s', lhs},
-		cb = {function(x)
-			return isa.s(x) or isa.f(x)
-		end, cb},
-		opts = {'t', opts},
-	}
-
 	return K(mode, lhs, cb, opts)
 end
 
 --- Same as map but sets noremap to true
 function K.noremap(mode, lhs, cb, opts)
 	opts = opts or {}
-	validate {
-		mode = {function(x)
-			return isa.s(x) or isa.t(x)
-		end, mode},
-		lhs = {'s', lhs},
-		cb = {function(x)
-			return isa.s(x) or isa.f(x)
-		end, cb},
-		opts = {'t', opts},
-	}
-
-	if isa.s(opts) then
+	if is_a.s(opts) then
 		opts = { desc = opts }
 	end
 	opts.noremap = true

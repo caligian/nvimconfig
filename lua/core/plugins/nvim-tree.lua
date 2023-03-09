@@ -22,12 +22,12 @@ user.plugins["nvim-tree"] = {
       cursorline = true,
       debounce_delay = 15,
       width = 30,
-      hide_root_folder = true,
+      hide_root_folder = false,
       side = "left",
       preserve_window_proportions = false,
-      number = false,
+      number = true,
       relativenumber = false,
-      signcolumn = "yes",
+      signcolumn = "no",
       mappings = {
         custom_only = false,
         list = {
@@ -40,7 +40,7 @@ user.plugins["nvim-tree"] = {
         open_win_config = {
           relative = "editor",
           border = "rounded",
-          width = 40,
+          width = 45,
           height = 50,
           row = 1,
           col = 1,
@@ -247,7 +247,5 @@ Keybinding.bind(
 )
 
 local tree = require "nvim-tree"
-
 req "user.plugins.nvim-tree"
-
 tree.setup(user.plugins["nvim-tree"].config)

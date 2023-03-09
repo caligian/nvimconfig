@@ -163,13 +163,13 @@ function Process.send(self, s)
 	validate {
 		s = {
 			function(x)
-				return (isa.s(x) or isa.t(x))
+				return (is_a.s(x) or is_a.t(x))
 			end, 
 			s
 		}
 	}
 
-	if isa.t(s) then
+	if is_a.t(s) then
 		s = table.concat(s, "\n")
 	end
 

@@ -10,7 +10,7 @@ merge(user, {
   shell = "/usr/bin/zsh",
   font = "Hack Nerd Font:h13",
   colorscheme = {
-    dark = "moonfly",
+    dark = "material",
     light = "vimbones",
     use = "dark",
   },

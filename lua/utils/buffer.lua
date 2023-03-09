@@ -37,8 +37,6 @@ end
 -- @tparam string opt Name of the option
 -- @return any
 function Buffer.getopt(self, opt)
-  assert(self:exists())
-
   local _, out = pcall(vim.api.nvim_buf_get_option, self.bufnr, opt)
 
   if out ~= nil then
@@ -50,7 +48,6 @@ end
 -- @tparam string var Name of the variable
 -- @return any
 function Buffer.getvar(self, var)
-  assert(self:exists())
   validate { buffer_var = { "s", var } }
 
   local _, out = pcall(vim.api.nvim_buf_get_var, self.bufnr, var)
@@ -61,7 +58,6 @@ function Buffer.getvar(self, var)
 end
 
 function Buffer.setvar(self, k, v)
-  assert(self:exists())
   validate { buffer_var = { "s", v } }
   assert(v, "No value provided")
 
@@ -71,7 +67,6 @@ end
 --- Set buffer variables
 -- @tparam table vars Dictionary of var name and value
 function Buffer.setvars(self, vars)
-  assert(self:exists())
   validate { buffer_vars = { "t", var } }
 
   teach(vars, partial(self.setvar, self))
@@ -83,7 +78,6 @@ end
 -- @tparam string opt Name of the option
 -- @return any
 function Buffer.getwinopt(self, opt)
-  assert(self:exists())
   validate { win_option = { "s", opt } }
 
   if not self:is_visible() then
@@ -101,7 +95,6 @@ end
 -- @tparam string var Name of the variable
 -- @return any
 function Buffer.getwinvar(self, var)
-  assert(self:exists())
   validate { win_var = { "s", var } }
 
   if not self:is_visible() then
@@ -116,8 +109,6 @@ function Buffer.getwinvar(self, var)
 end
 
 function Buffer.setwinvar(self, k, v)
-  assert(self:exists())
-
   if not self:is_visible() then
     return
   end
@@ -126,7 +117,6 @@ function Buffer.setwinvar(self, k, v)
 end
 
 function Buffer.setwinvars(self, vars)
-  assert(self:exists())
   validate { win_vars = { "t", var } }
 
   if not self:is_visible() then
@@ -139,22 +129,16 @@ function Buffer.setwinvars(self, vars)
 end
 
 function Buffer.setopt(self, k, v)
-  assert(self:exists())
-
   vim.api.nvim_buf_set_option(self.bufnr, k, v)
 end
 
 function Buffer.setopts(self, opts)
-  assert(self:exists())
-
   teach(opts, function(k, v)
     self:setopt(k, v)
   end)
 end
 
 function Buffer.winnr(self)
-  assert(self:exists())
-
   local winnr = vim.fn.bufwinnr(self.bufnr)
   if winnr == -1 then
     return
@@ -163,8 +147,6 @@ function Buffer.winnr(self)
 end
 
 function Buffer.winid(self)
-  assert(self:exists())
-
   local winid = vim.fn.bufwinid(self.bufnr)
   if winid == -1 then
     return
@@ -173,8 +155,6 @@ function Buffer.winid(self)
 end
 
 function Buffer.focus(self)
-  assert(self:exists())
-
   local winid = self:winid()
   if winid then
     vim.fn.win_gotoid(winid)
@@ -183,7 +163,6 @@ function Buffer.focus(self)
 end
 
 function Buffer.setwinopt(self, k, v)
-  assert(self:exists())
   assert(v ~= nil, "No value provided")
   validate { window_option = { "s", k } }
 
@@ -197,7 +176,6 @@ function Buffer.setwinopt(self, k, v)
 end
 
 function Buffer.setwinopts(self, opts)
-  assert(self:exists())
   validate { window_options = { "t", opts } }
 
   if not self:is_visible() then
@@ -211,6 +189,10 @@ function Buffer.setwinopts(self, opts)
   return opts
 end
 
+local function assert_exists(self)
+  assert(self:exists(), "buffer does not exist: " .. self.bufnr)
+end
+
 --- Make a new buffer local mapping.
 -- @param mode Mode to bind in
 -- @param lhs Keys to bind callback to
@@ -218,7 +200,7 @@ end
 -- @tparam[opt] table opts Additional vim.keymap.set options. You cannot set opts.pattern as it will be automatically set by this function
 -- @return object Keybinding object
 function Buffer.map(self, mode, lhs, callback, opts)
-  assert(self:exists())
+  assert_exists(self)
 
   opts = opts or {}
   opts.buffer = self.bufnr
@@ -228,10 +210,10 @@ end
 --- Create a nonrecursive mapping
 -- @see map
 function Buffer.noremap(self, mode, lhs, callback, opts)
-  assert(self:exists())
+  assert_exists(self)
 
   opts = opts or {}
-  if isa.s(opts) then
+  if is_a.s(opts) then
     opts = { desc = opts }
   end
   opts.buffer = self.bufnr
@@ -242,7 +224,7 @@ end
 --- Split current window and focus this buffer
 -- @param[opt='s'] split Direction to split in: 's' or 'v'
 function Buffer.split(self, split, opts)
-  assert(self:exists())
+  assert_exists(self)
 
   opts = opts or {}
   split = split or "s"
@@ -325,12 +307,15 @@ end
 --- Create a buffer local autocommand. The  pattern will be automatically set to '<buffer=%d>'
 -- @see autocmd._init
 function Buffer.hook(self, event, callback, opts)
-  assert(self:exists())
+  assert_exists(self)
+
+  validate {
+    event = { { "s", "t" }, event },
+    callback = { { "s", "f" }, callback },
+    ["?opts"] = { "t", opts },
+  }
 
   opts = opts or {}
-
-  assert(event, "No event provided")
-  assert(callback, "No callback provided")
 
   return Autocmd(
     event,
@@ -343,8 +328,6 @@ end
 
 --- Hide current buffer if visible
 function Buffer.hide(self)
-  assert(self:exists())
-
   local winid = vim.fn.bufwinid(self.bufnr)
   if winid ~= -1 then
     local current_tab = vim.api.nvim_get_current_tabpage()
@@ -359,7 +342,6 @@ end
 ---  Is buffer visible?
 --  @return boolean
 function Buffer.is_visible(self)
-  assert(self:exists())
   return vim.fn.bufwinid(self.bufnr) ~= -1
 end
 
@@ -368,8 +350,6 @@ end
 -- @param tillrow Ending row
 -- @return table
 function Buffer.lines(self, startrow, tillrow)
-  assert(self:exists())
-
   startrow = startrow or 0
   tillrow = tillrow or -1
 
@@ -391,12 +371,12 @@ function Buffer.text(self, start, till, repl)
     start_cood = { "t", start },
     till_cood = { "t", till },
     replacement = { "t", repl },
+    repl = { { "s", "t" }, repl },
   }
 
-  assert(self:exists())
-  assert(repl)
+  assert_exists(self)
 
-  if isa(repl) == "string" then
+  if is_a(repl) == "string" then
     repl = vim.split(repl, "[\n\r]")
   end
 
@@ -407,7 +387,7 @@ function Buffer.text(self, start, till, repl)
 end
 
 function Buffer.bind(self, opts, ...)
-  assert(self:exists())
+  assert_exists(self)
   validate { kbd_opts = { "t", opts } }
 
   opts.buffer = self.bufnr
@@ -420,11 +400,10 @@ end
 -- @param endrow Ending row
 -- @param repl Replacement line[s]
 function Buffer.setlines(self, startrow, endrow, repl)
-  assert(self:exists())
   assert(startrow)
   assert(endrow)
 
-  if isa(repl, "string") then
+  if is_a(repl, "string") then
     repl = vim.split(repl, "[\n\r]")
   end
 
@@ -436,24 +415,21 @@ end
 -- @tparam table till Should be table containing end row and col
 -- @tparam string|table repl Replacement text
 function Buffer.set(self, start, till, repl)
-  assert(self:exists())
-  assert(isa(start, "table"))
-  assert(isa(till, "table"))
+  assert(is_a(start, "table"))
+  assert(is_a(till, "table"))
 
   vim.api.nvim_buf_set_text(self.bufnr, start[1], till[1], start[2], till[2], repl)
 end
 
 --- Switch to this buffer
 function Buffer.switch(self)
-  assert(self:exists())
+  assert_exists(self)
 
   vim.cmd("b " .. self.bufnr)
 end
 
 --- Load buffer
 function Buffer.load(self)
-  assert(self:exists())
-
   if vim.fn.bufloaded(self.bufnr) == 1 then
     return true
   else
@@ -494,30 +470,22 @@ end
 -- @param cb Function to call in this buffer
 -- @return self
 function Buffer.call(self, cb)
-  assert(self:exists())
-
   return vim.api.nvim_buf_call(self.bufnr, cb)
 end
 
 --- Get buffer-local keymap.
 -- @see buffer_has_keymap
 function Buffer.getmap(self, mode, lhs)
-  assert(self:exists())
-
   return buffer_has_keymap(self.bufnr, mode, lhs)
 end
 
 --- Return visually highlighted range in this buffer
 -- @see visualrange
 function Buffer.range(self)
-  assert(self:exists())
-
   return visualrange(self.bufnr)
 end
 
 function Buffer.linecount(self)
-  assert(self:exists())
-
   return vim.api.nvim_buf_line_count(self.bufnr)
 end
 
@@ -532,27 +500,20 @@ end
 --- Return current linenumber
 -- @return number
 function Buffer.linenum(self)
-  assert(self:exists())
-
   return self:call(function()
     return vim.fn.getpos(".")[2]
   end)
 end
 
 function Buffer.is_listed(self)
-  assert(self:exists())
-
   return vim.fn.buflisted(self.bufnr) ~= 0
 end
 
 function Buffer.info(self)
-  assert(self:exists())
-
   return vim.fn.getbufinfo(self.bufnr)
 end
 
 function Buffer.wininfo(self)
-  assert(self:exists())
   if not self:is_visible() then
     return
   end
@@ -597,18 +558,15 @@ function Buffer.prepend(self, lines)
 end
 
 function Buffer.maplines(self, f)
-  assert(self:exists())
   return map(self:lines(0, -1), f)
 end
 
 function Buffer.filter(self, f)
-  assert(self:exists())
   return filter(self:lines(0, -1), f)
 end
 
 function Buffer.match(self, pat)
-  assert(self:exists())
-  assert(isa.s(pat))
+  assert(is_a.s(pat))
 
   return filter(self:lines(0, -1), function(s)
     return s:match(pat)
@@ -616,14 +574,14 @@ function Buffer.match(self, pat)
 end
 
 function Buffer.readfile(self, fname)
-  assert(path.exists(fname))
+  assert(path.exists(fname), "invalid path provided: " .. fname)
 
   local s = file.read(fname)
   self:setlines(0, -1, s)
 end
 
 function Buffer.insertfile(self, fname)
-  assert(path.exists(fname))
+  assert(path.exists(fname), "invalid path provided: " .. fname)
 
   local s = file.read(fname)
   self:append(s)
@@ -636,7 +594,7 @@ function Buffer.save(self)
 end
 
 function Buffer.shell(self, command)
-  assert(isa.s(command))
+  validate { command = { "s", command } }
 
   self:call(function()
     vim.cmd(":%! " .. command)
@@ -653,32 +611,17 @@ end
 
 function Buffer.menu(desc, items, formatter, callback)
   validate {
-    description = {
-      function(x)
-        return isa.t(x) or isa.s(x)
-      end,
-      desc,
-    },
-    items = {
-      function(x)
-        return isa.t(x) or isa.s(x)
-      end,
-      items,
-    },
-    formatter = {
-      function(x)
-        return isa.f(x) or isa.b(x)
-      end,
-      formatter,
-    },
+    description = { { "s", "t" }, desc },
+    items = { { "s", "t" }, items },
     callback = { "f", callback },
+    ["?formatter"] = { "f", formatter },
   }
 
-  if isa.s(items) then
+  if is_a.s(items) then
     items = vim.split(items, "\n")
   end
 
-  if isa.s(desc) then
+  if is_a.s(desc) then
     desc = vim.split(desc, "\n")
   end
 
@@ -731,12 +674,7 @@ end
 -- @return Buffer
 function Buffer.input(text, cb, opts)
   validate {
-    text = {
-      function(x)
-        return isa.s(x) or isa.t(x)
-      end,
-      text,
-    },
+    text = { { "t", "s" }, text },
     cb = { "f", cb },
     ["?opts"] = { "t", opts },
   }
@@ -747,7 +685,7 @@ function Buffer.input(text, cb, opts)
   local trigger_keys = opts.keys or "gx"
   local comment = opts.comment or "#"
 
-  if isa(text, "string") then
+  if is_a(text, "string") then
     text = vim.split(text, "\n")
   end
 
@@ -779,20 +717,20 @@ end
 -- @param[opt] scratch Is a scratch buffer?
 -- @return self
 function Buffer._init(self, name, scratch)
+  local bufnr
+
   if not name then
     scratch = true
   end
 
-  validate {
-    ["?buffer_name"] = {
-      function(x)
-        return isa.b(name) or isa.s(name) or x == nil
-      end,
-      name,
-    },
-  }
+  if is_a.n(name) then
+    assert(vim.fn.bufexists(name) ~= 0, "invalid bufnr given: " .. tostring(name))
+    bufnr = name
+    name = vim.fn.bufname(bufnr)
+  end
 
-  local bufnr
+  validate { ["?buffer_name"] = { { "s", "n" }, name } }
+
   if not name and scratch then
     bufnr = vim.api.nvim_create_buf(false, true)
   elseif scratch then

@@ -18,7 +18,7 @@ end, {})
 
 -- Compile neovim lua
 local function compile_and_run(lines)
-  if isa(lines, "table") then
+  if is_a(lines, "table") then
     lines = table.concat(lines, "\n")
   end
 
