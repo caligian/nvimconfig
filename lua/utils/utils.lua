@@ -1,3 +1,10 @@
+local _class = require 'pl.class'
+types = require 'pl.types'
+Map = Map or require 'pl.Map'
+OrderedMap = OrderedMap or require 'pl.OrderedMap'
+MultiMap = MultiMap or require 'pl.MultiMap'
+Array = Array or {}
+Date = Date or require 'pl.Date'
 user = user or {}
 concat = table.concat
 substr = string.sub
@@ -16,8 +23,38 @@ autocmd = vim.api.nvim_create_autocmd
 augroup = vim.api.nvim_create_augroup
 bindkeys = vim.keymap.set
 remkeys = vim.keymap.del
-local _class = require 'pl.class'
-local T = require 'pl.types'
+
+_class.Set()
+_class.Array()
+
+function Array:_init(t)
+  assert(type(t) == 'table', 't: table expected, got ' .. tostring(t))
+  local idx = 1
+  for _, v in ipairs(t) do
+    self[idx] = v
+    idx = idx + 1
+  end
+
+  return self
+end
+
+function Array:len()
+  return #self
+end
+
+function Array:iter()
+  local idx, n = 1, self:len()
+  return function()
+    if idx > n then
+      return
+    end
+
+    local out = self[idx]
+    idx = idx + 1
+
+    return out
+  end
+end
 
 local function param_error_s(name, expected, got)
 	return string.format('%s: expected %s got %s', name, tostring(expected), tostring(got))
@@ -31,10 +68,21 @@ function class(name, base)
 	return _class[name](base)
 end
 
-class 'Set'
+function pp(...)
+  local final_s = ""
+
+  for _, obj in ipairs { ... } do
+    if type(obj) == "table" then
+      obj = vim.inspect(obj)
+    end
+    final_s = final_s .. tostring(obj) .. "\n\n"
+  end
+
+  vim.api.nvim_echo({ { final_s } }, false, {})
+end
 
 function index(t, item, test)
-	assert(type(t) == 'table', 't is not a table')
+  assert(type(t) == 'table', 't is not a table')
 
   for key, v in pairs(t) do
     if test then
@@ -142,6 +190,20 @@ local _types = {
   ["function"] = "callable",
   callable = "callable",
 	Set = 'Set',
+  Map = 'Map',
+  OrderedMap = 'OrderedMap',
+  Array = 'Array',
+  Date = 'Date',
+  Lang = 'Lang',
+  Colorscheme = 'Colorscheme',
+  REPL = 'REPL',
+  Buffer = 'Buffer',
+  Autocmd = 'Autocmd',
+  Keybinding = 'Keybinding',
+  A = 'Autocmd',
+  K = 'Keybinding',
+  B = 'Buffer',
+  Process = 'Process',
 }
 
 local _is_a = function(e, k)
@@ -179,6 +241,133 @@ local is_a = setmetatable({}, {
 		end
   end,
 })
+
+local function get_iterator(t, is_dict)
+  assert(
+  is_a.Map(t) or 
+  is_a.OrderedMap(t) or 
+  is_a.Array(t) or 
+  is_a.Set(t) or 
+  is_a.table(t), 
+  't: Map|OrderedMap|Array|Set|table expected, got ' .. t
+  )
+
+  if 
+    is_a.Map(t) or 
+    is_a.OrderedMap(t) or
+    is_a.Array(t) then
+      return t:iter()
+  elseif is_a.table(t) then
+    if is_dict then
+      return pairs
+    else
+      return ipairs
+    end
+  end
+
+  return it
+end
+
+function teach(t, f)
+  for key, value in get_iterator(t, true) do
+    f(key, value)
+  end
+end
+
+function map(t, f)
+  local out = {}
+  for key, value in get_iterator(t, false) do
+    out[key] = f(value)
+  end
+
+  return out
+end
+
+function tmap(t, f)
+  local out = {}
+  for key, value in get_iterator(t, true) do
+    out[key] = f(key, value)
+  end
+
+  return out
+end
+
+function filter(t, f)
+  local filtered = {}
+  local i = 1
+
+  for _, value in get_iterator(t) do
+    local out = f(value)
+    if out then
+      filtered[i] = out
+      i = i + 1
+    end
+  end
+
+  return filtered
+end
+
+function grep(t, f)
+  local filtered = {}
+  local i = 1
+
+  for _, value in get_iterator(t) do
+    local out = f(value)
+    if out then
+      filtered[i] = value
+      i = i + 1
+    end
+  end
+
+  return filtered
+end
+
+function tgrep(t, f)
+  local filtered = {}
+
+  for key, value in get_iterator(t, true) do
+    local out = f(value)
+    if out then
+      filtered[key] = value
+    end
+  end
+
+  return filtered
+end
+
+function tfilter(t, f)
+  local filtered = {}
+
+  for key, value in get_iterator(t, true) do
+    local out = f(key, value)
+    if out then
+      filtered[key] = out
+    end
+  end
+
+  return filtered
+end
+
+function each(t, f)
+  for _, value in get_iterator(t) do
+    f(value)
+  end
+end
+
+function ieach(t, f)
+  for idx, value in get_iterator(t) do
+    f(idx, value)
+  end
+end
+
+function imap(t, f)
+  local out = {}
+  for index, value in get_iterator(t) do
+    out[index] = f(index, value)
+  end
+
+  return out
+end
 
 function setro(t)
   assert(type(t) == "table", tostring(t) .. " is not a table")
@@ -519,7 +708,6 @@ local function _compare_level(a, b, compared, opts, depth)
 
 	common:each(function(key)
 		local x, y = a[key], b[key]
-		local s = string.format('%s(%s): callback failed %s and %s', level_name, key, x, y)
 
 		if is_pure_table(x) and is_pure_table(y) and x ~= a and y ~= b then
 			compared[key] = {}
@@ -533,12 +721,13 @@ local function _compare_level(a, b, compared, opts, depth)
 					if message then
 						error(message(level_name or x, x, y))
 					else
+            local s = string.format('%s(%s): callback failed %s and %s', level_name, key, x, y)
 						error(s)
 					end
 				end
 			else
 				local out = callback(x, y)
-				assert(out ~= nil, 'callback cannot return nil')
+				assert(out ~= nil, string.format('%s(callback cannot return nil)', level_name))
 				compared[key] = out
 			end
 		else
@@ -547,7 +736,7 @@ local function _compare_level(a, b, compared, opts, depth)
 				if message then
 					error(message(level_name or x, x, y))
 				else
-					error(s)
+					error(string.format('%s(%s): %s ~= %s', level_name, key, x, y))
 				end
 			else
 				compared[key] = x == y
@@ -572,8 +761,12 @@ function validate(params)
 		if _types[tp] then
 			tp = _types[tp]
 		end
-		if param == nil then
-			error(dispatch .. ': expected ' .. tostring(tp) .. 'got nil')
+
+    local optional = display:match('^%?')
+    display = display:gsub('^%?', '')
+
+		if param == nil and not optional  then
+			error(display .. ': expected ' .. tostring(tp) .. ' got nil')
 		end
 
 		if is_pure_table(tp) and is_pure_table(param) then
@@ -587,18 +780,32 @@ function validate(params)
 						x = full or x
 						return string.format('%s: %s expected, got %s', t_name or tostring(x), tostring(x), tostring(y))
 					end,
+          allow_nonexistent = tp.__allow_nonexistent,
+          allow_optional = true
+          name = tp.__table
 				},
 				name = display
 			})
 		elseif is_callable(tp) then
 			assert(tp(param), display .. '(callable failure): ' .. tostring(param))
-		else
-			assert(tp == typeof(param), string.format(
-				'%s: %s expected, got %s', 
-				display,
-				tostring(tp),
-				tostring(param)
-				))
+    else
+      if not optional then
+        assert(tp == typeof(param), string.format(
+        '%s: %s expected, got %s', 
+        display,
+        tostring(tp),
+        tostring(param)
+        ))
+      else
+        if param ~= nil then
+          assert(tp == typeof(param), string.format(
+          '%s: %s expected, got %s', 
+          display,
+          tostring(tp),
+          tostring(param)
+          ))
+        end
+      end
 		end
 	end
 end
@@ -628,10 +835,6 @@ function whereis(bin, regex)
 end
 
 function sprintf(fmt, ...)
-  validate {
-    format = { "string", fmt },
-  }
-
   local args = { ... }
 
   for i = 1, #args do
@@ -658,170 +861,6 @@ function extend(tbl, ...)
   end
 
   return tbl
-end
-
-function teach(t, f)
-  validate {
-    t = { "t", t },
-    f = { "f", f },
-  }
-
-  for key, value in pairs(t) do
-    f(key, value)
-  end
-end
-
-function map(t, f)
-  validate {
-    t = { "t", t },
-    f = { "f", f },
-  }
-
-  local out = {}
-  for key, value in ipairs(t) do
-    out[key] = f(value)
-  end
-
-  return out
-end
-
-function tmap(t, f)
-  validate {
-    t = { "t", t },
-    f = { "f", f },
-  }
-
-  local out = {}
-  for key, value in pairs(t) do
-    out[key] = f(key, value)
-  end
-
-  return out
-end
-
-function filter(t, f)
-  validate {
-    t = { "t", t },
-    f = { "f", f },
-  }
-
-  local filtered = {}
-  local i = 1
-
-  for _, value in ipairs(t) do
-    local out = f(value)
-    if out then
-      filtered[i] = out
-      i = i + 1
-    end
-  end
-
-  return filtered
-end
-
-function grep(t, f)
-  validate {
-    t = { "t", t },
-    f = { "f", f },
-  }
-
-  local filtered = {}
-  local i = 1
-
-  for _, value in ipairs(t) do
-    local out = f(value)
-    if out then
-      filtered[i] = value
-      i = i + 1
-    end
-  end
-
-  return filtered
-end
-
-function tgrep(t, f)
-  validate {
-    t = { "t", t },
-    f = { "f", f },
-  }
-
-  local filtered = {}
-
-  for key, value in pairs(t) do
-    local out = f(value)
-    if out then
-      filtered[key] = value
-    end
-  end
-
-  return filtered
-end
-
-function tfilter(t, f)
-  validate {
-    t = { "t", t },
-    f = { "f", f },
-  }
-
-  local filtered = {}
-
-  for key, value in pairs(t) do
-    local out = f(key, value)
-    if out then
-      filtered[key] = out
-    end
-  end
-
-  return filtered
-end
-
-function each(t, f)
-  validate {
-    t = { "t", t },
-    f = { "f", f },
-  }
-
-  for _, value in ipairs(t) do
-    f(value)
-  end
-end
-
-function ieach(t, f)
-  validate {
-    t = { "t", t },
-    f = { "f", f },
-  }
-
-  for idx, value in ipairs(t) do
-    f(idx, value)
-  end
-end
-
-function imap(t, f)
-  validate {
-    t = { "t", t },
-    f = { "f", f },
-  }
-
-  local out = {}
-  for index, value in ipairs(t) do
-    out[index] = f(index, value)
-  end
-
-  return out
-end
-
-function pp(...)
-  local final_s = ""
-
-  for _, obj in ipairs { ... } do
-    if type(obj) == "table" then
-      obj = vim.inspect(obj)
-    end
-    final_s = final_s .. tostring(obj) .. "\n\n"
-  end
-
-  vim.api.nvim_echo({ { final_s } }, false, {})
 end
 
 function append(t, ...)
