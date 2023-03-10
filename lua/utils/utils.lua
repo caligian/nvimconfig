@@ -80,6 +80,30 @@ function pp(...)
   vim.api.nvim_echo({ { final_s } }, false, {})
 end
 
+function class_of(e)
+  if type(e) ~= "table" then
+    return false
+  end
+  if e._class then
+    return e._class
+  end
+  local mt = getmetatable(e) or {}
+  if mt._class then
+    return mt._class
+  end
+end
+
+function is_instance(e, cls)
+  if type(e) ~= "table" then
+    return false
+  end
+  if type(cls) ~= "table" then
+    return false
+  end
+
+  return class_of(e) == class_of(cls)
+end
+
 function is_callable(t)
   local k = type(t)
   if k ~= "table" and k ~= "function" then
@@ -101,15 +125,14 @@ function get_class(e)
   if type(e) == "string" then
     local g = _G[e]
     if type(g) == "table" then
-      return (rawget(g, "_class") or mtget(g, "_class") or false)
+      return (class_of(g) or false)
     end
   end
 
   if type(e) ~= "table" then
     return false
   end
-  local out = (e._class or mtget(e, "_class") or false)
-  return out
+  return (class_of(e) or false)
 end
 
 function is_class(e)
@@ -117,11 +140,7 @@ function is_class(e)
     return false
   end
 
-  local cls = get_class(e)
-  if cls then
-    return cls
-  end
-  return false
+  return get_class(e) or false
 end
 
 function is_table(obj)
@@ -165,10 +184,25 @@ local _is_a = function(e, k)
   end
 
   local e_cls, k_cls
-  if _G[k] then
+  if k == "table" or k == table or k == "string" or k == string then
+    if k == table then
+      k = "table"
+    elseif k == string then
+      k = "string"
+    end
+    if e == table then
+      e = "table"
+    elseif e == string then
+      e = "string"
+    end
+    return type(e) == k
+  elseif _G[k] then
     local g = _G[k]
     e_cls = get_class(e)
     k_cls = get_class(g)
+  else
+    e_cls = get_class(e)
+    k_cls = get_class(k)
   end
 
   if e_cls and k_cls then
@@ -189,6 +223,24 @@ local _is_a = function(e, k)
 
   return type(e) == k
 end
+
+is_a = setmetatable({}, {
+  __call = function(self, e, ...)
+    local args = { ... }
+    local out = false
+    for _, tp in ipairs(args) do
+      out = out or self[tp](e)
+    end
+    return out
+  end,
+
+  -- Only works for native datatypes + callables
+  __index = function(_, k)
+    return function(e)
+      return _is_a(e, k)
+    end
+  end,
+})
 
 function Set:_init(t)
   local tp = typeof(t)
@@ -215,20 +267,6 @@ function Set:iter()
     return rawget(self, i)
   end
 end
-
--- This needs a rewrite
-is_a = setmetatable({}, {
-  __call = function(_, e, k)
-    return _is_a(e, k)
-  end,
-
-  -- Only works for native datatypes + callables
-  __index = function(_, k)
-    return function(e)
-      return _is_a(e, k)
-    end
-  end,
-})
 
 ---
 -- Mapping functions
@@ -284,9 +322,9 @@ local function iterate(t, is_dict, f, convert_to, ignore_false)
     local o = f(key, value)
     if o then
       if is_dict then
-        out[key] = value
+        out[key] = o
       else
-        append(out, value)
+        append(out, o)
       end
     elseif not ignore_false then
       if is_dict then

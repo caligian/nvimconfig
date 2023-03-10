@@ -80,7 +80,7 @@ function Colorscheme.loadall()
     end)
   end)
 
-  extend(all, keys(configured), map(installed, get_name))
+  -- extend(all, keys(configured), map(installed, get_name), map(user_themes, get_name))
 
   each(all, function(name)
     local c
