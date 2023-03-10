@@ -390,10 +390,7 @@ end
 
 function tgrep(t, f)
   return iterate(t, true, function(k, x)
-    out = f(k, x)
-    assert(out ~= nil, "tgrep test cannot return nil")
-
-    if out then
+    if f(x) then
       return x
     else
       return false
@@ -423,11 +420,8 @@ end
 
 function tfilter(t, f)
   return iterate(t, true, function(k, x)
-    local out = f(k, x)
-    assert(out ~= nil, "filter test cannot return nil")
-
-    if out then
-      return true
+    if f(k, x) then
+      return x
     else
       return false
     end
@@ -437,7 +431,7 @@ end
 function ifilter(t, f)
   return iterate(t, false, function(idx, x)
     if f(idx, x) then
-      return true
+      return x
     else
       return false
     end
@@ -447,7 +441,7 @@ end
 function filter(t, f)
   return iterate(t, false, function(_, x)
     if f(x) then
-      return true
+      return x
     else
       return false
     end
