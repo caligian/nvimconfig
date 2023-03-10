@@ -1,5 +1,4 @@
 local _class = require "pl.class"
-types = require "pl.types"
 Map = Map or require "pl.Map"
 OrderedMap = OrderedMap or require "pl.OrderedMap"
 MultiMap = MultiMap or require "pl.MultiMap"
@@ -23,7 +22,7 @@ autocmd = vim.api.nvim_create_autocmd
 augroup = vim.api.nvim_create_augroup
 bindkeys = vim.keymap.set
 remkeys = vim.keymap.del
-types = {
+TYPES = {
   s = "string",
   t = "table",
   u = "userdata",
@@ -160,8 +159,8 @@ function typeof(x)
 end
 
 local _is_a = function(e, k)
-  if types[k] then
-    k = types[k]
+  if TYPES[k] then
+    k = TYPES[k]
   end
 
   local e_cls, k_cls
@@ -204,6 +203,8 @@ is_a = setmetatable({}, {
   end,
 })
 
+---
+-- Mapping functions
 local function get_iterator(t, is_dict)
   assert(
     is_a.Map(t)
@@ -240,10 +241,33 @@ local function get_iterator(t, is_dict)
   end
 end
 
+local function iterate(t, is_dict, f, convert_to)
+  local it = get_iterator(t, is_dict)
+  local cls = convert_to or typeof(t)
+  local out
+
+  if is_a.t(cls) then
+    out = cls {}
+  end
+
+  for key, value in it(t) do
+    local o = f(key, value)
+    assert(o ~= nil, "mapping function cannot return nil")
+
+    out[key] = o
+  end
+
+  return out
+end
+
 function index(t, item, test)
   assert(is_a.t(t) or is_a.List(t), "expected table|list, got " .. tostring(t))
 
-  for key, v in get_iterator(t)(t) do
+  if test then
+    assert(is_a.f(test), "expected callable, got " .. tostring(test))
+  end
+
+  for key, v in get_iterator(t, false)(t) do
     if test then
       if test(v, item) then
         return key
@@ -255,115 +279,138 @@ function index(t, item, test)
 end
 
 function teach(t, f)
-  for key, value in get_iterator(t, true)(t) do
-    f(key, value)
-  end
+  iterate(t, true, f)
+end
+
+function ieach(t, f)
+  iterate(t, false, function(idx, x)
+    f(idx, x)
+  end)
+end
+
+function each(t, f)
+  iterate(t, false, function(_, x)
+    f(x)
+  end)
+end
+
+function imap(t, f)
+  return iterate(t, false, function(idx, x)
+    return f(idx, x)
+  end)
 end
 
 function map(t, f)
-  local out = {}
-  for key, value in get_iterator(t)(t) do
-    out[key] = f(value)
-  end
-
-  return out
+  return iterate(t, false, function(_, x)
+    return f(x)
+  end)
 end
 
 function tmap(t, f)
-  local out = {}
-  for key, value in get_iterator(t, true)(t) do
-    out[key] = f(key, value)
-  end
-
-  return out
+  return iterate(t, true, f)
 end
 
-function filter(t, f)
-  local filtered = {}
-  local i = 1
-
-  for _, value in get_iterator(t)(t) do
-    local out = f(value)
-    if out then
-      filtered[i] = out
-      i = i + 1
+function tgrep(t, f)
+  return iterate(t, true, function(k, x)
+    if f(k, x) then
+      return x
+    else
+      return false
     end
-  end
+  end)
+end
 
-  return filtered
+function igrep(t, f)
+  return iterate(t, false, function(idx, x)
+    if f(idx, x) then
+      return x
+    else
+      return false
+    end
+  end)
 end
 
 function grep(t, f)
-  local filtered = {}
-  local i = 1
-
-  for _, value in get_iterator(t)(t) do
-    local out = f(value)
-    if out then
-      filtered[i] = value
-      i = i + 1
+  return iterate(t, false, function(_, x)
+    if f(x) then
+      return x
+    else
+      return false
     end
-  end
-
-  return filtered
+  end)
 end
-List.grep = grep
-
-function tgrep(t, f)
-  local filtered = {}
-
-  for key, value in get_iterator(t, true)(t) do
-    local out = f(value)
-    if out then
-      filtered[key] = value
-    end
-  end
-
-  return filtered
-end
-Map.tgrep = tgrep
-OrderedMap.tgrep = tgrep
-MultiMap.tgrep = tgrep
 
 function tfilter(t, f)
-  local filtered = {}
-
-  for key, value in get_iterator(t, true)(t) do
-    local out = f(key, value)
-    if out then
-      filtered[key] = out
+  return iterate(t, true, function(k, x)
+    if f(k, x) then
+      return true
+    else
+      return false
     end
-  end
-
-  return filtered
+  end)
 end
-Map.tfilter = tfilter
-OrderedMap.tfilter = tfilter
-MultiMap.tfilter = tfilter
 
-function each(t, f)
-  for _, value in get_iterator(t)(t) do
-    f(value)
-  end
+function ifilter(t, f)
+  return iterate(t, false, function(idx, x)
+    if f(idx, x) then
+      return true
+    else
+      return false
+    end
+  end)
 end
-List.each = each
 
-function ieach(t, f)
-  for idx, value in get_iterator(t)(t) do
-    f(idx, value)
-  end
+function filter(t, f)
+  return iterate(t, false, function(_, x)
+    if f(x) then
+      return true
+    else
+      return false
+    end
+  end)
 end
-List.ieach = ieach
 
-function imap(t, f)
-  local out = {}
-  for index, value in get_iterator(t)(t) do
-    out[index] = f(index, value)
+function items(t)
+  assert(not is_a.List(t) and not is_a.Set(t), "expected t/Map/Map-like, got " .. tostring(t))
+
+  local it = get_iterator(t)
+  local out = List {}
+  for key, val in it(t) do
+    out[#out + 1] = { key, val }
   end
 
   return out
 end
-List.imap = imap
+
+MultiMap.filter = tfilter
+MultiMap.each = teach
+MultiMap.map = tmap
+MultiMap.grep = tgrep
+MultiMap.items = items
+
+OrderedMap.filter = tfilter
+OrderedMap.each = teach
+OrderedMap.map = tmap
+OrderedMap.grep = tgrep
+OrderedMap.items = items
+
+Map.filter = tfilter
+Map.each = teach
+Map.map = tmap
+Map.grep = tgrep
+Map.items = items
+
+List.each = each
+List.map = map
+List.grep = grep
+List.filter = filter
+
+List.ifilter = ifilter
+List.ieach = ieach
+List.imap = ieach
+List.igrep = igrep
+
+List.index = index
 
 function setro(t)
   assert(type(t) == "table", tostring(t) .. " is not a table")
@@ -617,34 +664,30 @@ function Set:values()
   return keys(self)
 end
 
-function Set:each(f)
-  for x, _ in pairs(self) do
-    f(x)
-  end
-  return self
+Set.each = each
+Set.map = map
+Set.grep = grep
+Set.filter = filter
+
+Set.ifilter = ifilter
+Set.ieach = ieach
+Set.imap = ieach
+Set.igrep = igrep
+
+function Set:__le(other)
+  return self:is_subset(other)
 end
 
-function Set:filter(f)
-  local out = Set {}
-  for x, _ in pairs(self) do
-    if f(x) then
-      out:add(x)
-    end
-  end
-
-  return out
+function Set:__ge(other)
+  return self:is_superset(other)
 end
 
-function Set:map(f)
-  local out = Set {}
-  for x, _ in pairs(self) do
-    local o = f(x)
-    if o ~= nil then
-      out:add(o)
-    end
-  end
+function Set:__lt(other)
+  return self:is_subset(other)
+end
 
-  return out
+function Set:__gt(other)
+  return self:is_superset(other)
 end
 
 function Set:__mod(f)
@@ -750,8 +793,8 @@ function validate(params)
     assert(is_a.t(value) and #value >= 1, "spec: {type, var}")
 
     local tp, param = unpack(value)
-    if types[tp] then
-      tp = types[tp]
+    if TYPES[tp] then
+      tp = TYPES[tp]
     end
 
     local optional = display:match "^%?"
@@ -809,7 +852,7 @@ function validate(params)
       local ok = nil
       for i = 1, #tp do
         local k = tp[i]
-        if types[k] then
+        if TYPES[k] then
           tp[i] = k
         end
         ok = ok or is_a(param, tp[i])
