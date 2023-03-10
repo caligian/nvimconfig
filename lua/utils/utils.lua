@@ -1271,8 +1271,8 @@ end
 Map.merge = merge
 OrderedMap.merge = merge
 MultiMap.merge = merge
-Map.lmerge = lmerge
-Map.lmerge = lmerge
+OrderedMap.lmerge = lmerge
+MultiMap.lmerge = lmerge
 Map.lmerge = lmerge
 
 function apply(f, args)
@@ -1284,7 +1284,7 @@ function items(t)
     tbl = { { "Map", "OrderedMap", "table", "MultiMap" }, t },
   }
 
-  if is_a.Map(t) or is_a.OrderedMap(t) then
+  if is_a.Map(t) or is_a.OrderedMap(t) or is_a.MultiMap(t) then
     return t:items()
   end
 
