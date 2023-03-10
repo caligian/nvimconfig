@@ -65,6 +65,7 @@ function class(name, base)
 
   return _class[name](base)
 end
+class "Set"
 
 function pp(...)
   local final_s = ""
@@ -189,6 +190,32 @@ local _is_a = function(e, k)
   return type(e) == k
 end
 
+function Set:_init(t)
+  local tp = typeof(t)
+  assert(tp == List or tp == "table", "expected List|table, got " .. tostring(t))
+
+  for i = 1, #t do
+    rawset(self, i, t[i])
+  end
+
+  return self
+end
+
+function Set:len()
+  return #self
+end
+
+function Set:iter()
+  local i = 1
+  local n = self:len()
+  return function()
+    if n > i then
+      return
+    end
+    return rawget(self, i)
+  end
+end
+
 -- This needs a rewrite
 is_a = setmetatable({}, {
   __call = function(_, e, k)
@@ -241,20 +268,33 @@ local function get_iterator(t, is_dict)
   end
 end
 
-local function iterate(t, is_dict, f, convert_to)
+local function iterate(t, is_dict, f, convert_to, ignore_false)
   local it = get_iterator(t, is_dict)
   local cls = convert_to or typeof(t)
   local out
 
   if is_a.t(cls) then
     out = cls {}
+  else
+    out = {}
   end
 
+  local i = 1
   for key, value in it(t) do
     local o = f(key, value)
-    assert(o ~= nil, "mapping function cannot return nil")
-
-    out[key] = o
+    if o then
+      if is_dict then
+        out[key] = value
+      else
+        append(out, value)
+      end
+    elseif not ignore_false then
+      if is_dict then
+        out[key] = o
+      else
+        append(out, o)
+      end
+    end
   end
 
   return out
@@ -312,12 +352,15 @@ end
 
 function tgrep(t, f)
   return iterate(t, true, function(k, x)
-    if f(k, x) then
+    out = f(k, x)
+    assert(out ~= nil, "tgrep test cannot return nil")
+
+    if out then
       return x
     else
       return false
     end
-  end)
+  end, false, true)
 end
 
 function igrep(t, f)
@@ -327,7 +370,7 @@ function igrep(t, f)
     else
       return false
     end
-  end)
+  end, false, true)
 end
 
 function grep(t, f)
@@ -337,17 +380,20 @@ function grep(t, f)
     else
       return false
     end
-  end)
+  end, false, true)
 end
 
 function tfilter(t, f)
   return iterate(t, true, function(k, x)
-    if f(k, x) then
+    local out = f(k, x)
+    assert(out ~= nil, "filter test cannot return nil")
+
+    if out then
       return true
     else
       return false
     end
-  end)
+  end, false, true)
 end
 
 function ifilter(t, f)
@@ -367,7 +413,7 @@ function filter(t, f)
     else
       return false
     end
-  end)
+  end, false, true)
 end
 
 function items(t)
@@ -482,7 +528,6 @@ function split(s, delim)
   return vim.split(s, delim or " ")
 end
 
-class "Set"
 function Set:_init(x)
   assert(is_a.List(x) or is_a.Set(x) or is_a.t(x), "expected Set|List|table, got " .. tostring(x))
 
@@ -1222,31 +1267,25 @@ Map.makepath = makepath
 OrderedMap.makepath = makepath
 MultiMap.makepath = makepath
 
-function req(req, do_assert)
-  local ok, out = pcall(require, req)
-
-  if is_a.s(out) then
-    out = split(out, "\n")
-    out = grep(out, function(x)
-      if x:match "^%s*no file '" or x:match "no field package.preload" or x:match "lazy_loader" then
-        return false
-      end
-      return true
-    end)
-
-    out = concat(out, "\n")
+function req(require_string, do_assert)
+  local ok, out = pcall(require, require_string)
+  if ok then
+    return out
   end
 
-  if not ok then
-    makepath(user, "logs")
-    append(user.logs, out)
-    logger:debug(out)
+  local no_file = false
+  no_file = out:match "^module '[^']+' not found"
 
-    if do_assert then
-      error(out)
-    end
-  else
-    return out
+  if no_file then
+    out = "Could not require " .. require_string
+  end
+
+  makepath(user, "logs")
+  append(user.logs, out)
+  logger:debug(out)
+
+  if do_assert then
+    error(out)
   end
 end
 
