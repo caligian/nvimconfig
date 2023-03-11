@@ -11,7 +11,6 @@ user.option = {
 		completeopt = "menu,menuone,noselect",
 		mouse = "a",
 		history = 1000,
-		ruler = true,
 		autochdir = true,
 		ruler = false,
 		wildmode = "longest,list,full",

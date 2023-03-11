@@ -54,6 +54,47 @@ TYPES = {
   Process = "Process",
 }
 
+function append(t, ...)
+  local idx = #t
+  for i, value in ipairs { ... } do
+    t[idx + i] = value
+  end
+
+  return t
+end
+
+function iappend(t, idx, ...)
+  for _, value in ipairs { ... } do
+    table.insert(t, idx, value)
+  end
+
+  return t
+end
+List.iappend = iappend
+
+function shift(t, times)
+  local l = #t
+  times = times or 1
+  for i = 1, times do
+    if i > l then
+      return t
+    end
+    table.remove(t, 1)
+  end
+
+  return t
+end
+List.shift = shift
+
+function unshift(t, ...)
+  for idx, value in ipairs { ... } do
+    table.insert(t, idx, value)
+  end
+
+  return t
+end
+List.unshift = unshift
+
 local function param_error_s(name, expected, got)
   return string.format("%s: expected %s got %s", name, tostring(expected), tostring(got))
 end
@@ -156,7 +197,7 @@ function class_name(obj)
 end
 
 function is_pure_table(t)
-  return is_table(t) and not is_class(t)
+  return is_table(t) and not getmetatable(t)
 end
 
 function typeof(x)
@@ -189,11 +230,6 @@ local _is_a = function(e, k)
       k = "table"
     elseif k == string then
       k = "string"
-    end
-    if e == table then
-      e = "table"
-    elseif e == string then
-      e = "string"
     end
     return type(e) == k
   elseif _G[k] then
@@ -244,27 +280,33 @@ is_a = setmetatable({}, {
 
 function Set:_init(t)
   local tp = typeof(t)
-  assert(tp == List or tp == "table", "expected List|table, got " .. tostring(t))
+  assert(tp == List or tp == "table" or tp == Set, "expected Set|List|table, got " .. tostring(t))
+
+  if tp == Set then
+    return t
+  end
 
   for i = 1, #t do
-    rawset(self, i, t[i])
+    rawset(self, t[i], t[i])
   end
 
   return self
 end
 
 function Set:len()
-  return #self
+  return #(keys(self))
 end
 
 function Set:iter()
+  local ks = keys(self)
   local i = 1
   local n = self:len()
   return function()
-    if n > i then
+    if i > n then
       return
     end
-    return rawget(self, i)
+    i = i + 1
+    return i - 1, rawget(self, ks[i - 1])
   end
 end
 
@@ -317,7 +359,6 @@ local function iterate(t, is_dict, f, convert_to, ignore_false)
     out = {}
   end
 
-  local i = 1
   for key, value in it(t) do
     local o = f(key, value)
     if o then
@@ -390,7 +431,7 @@ end
 
 function tgrep(t, f)
   return iterate(t, true, function(k, x)
-    if f(x) then
+    if f(k, x) then
       return x
     else
       return false
@@ -465,29 +506,24 @@ MultiMap.each = teach
 MultiMap.map = tmap
 MultiMap.grep = tgrep
 MultiMap.items = items
-
 OrderedMap.filter = tfilter
 OrderedMap.each = teach
 OrderedMap.map = tmap
 OrderedMap.grep = tgrep
 OrderedMap.items = items
-
 Map.filter = tfilter
 Map.each = teach
 Map.map = tmap
 Map.grep = tgrep
 Map.items = items
-
 List.each = each
 List.map = map
 List.grep = grep
 List.filter = filter
-
 List.ifilter = ifilter
 List.ieach = ieach
 List.imap = ieach
 List.igrep = igrep
-
 List.index = index
 
 function setro(t)
@@ -560,24 +596,6 @@ function split(s, delim)
   return vim.split(s, delim or " ")
 end
 
-function Set:_init(x)
-  assert(is_a.List(x) or is_a.Set(x) or is_a.t(x), "expected Set|List|table, got " .. tostring(x))
-
-  if is_a.Set(x) then
-    return x:clone()
-  elseif is_a.List(x) then
-    for value in x:iter() do
-      rawset(self, value, true)
-    end
-  else
-    for _, v in ipairs(x) do
-      rawset(self, v, true)
-    end
-  end
-
-  return self
-end
-
 function Set:contains(e)
   return self[e] ~= nil
 end
@@ -586,7 +604,7 @@ function Set:add(element)
   assert(element ~= nil, "Element cannot be nil")
 
   if not self[element] then
-    self[element] = true
+    self[element] = element
   end
 
   return self
@@ -745,7 +763,6 @@ Set.each = each
 Set.map = map
 Set.grep = grep
 Set.filter = filter
-
 Set.ifilter = ifilter
 Set.ieach = ieach
 Set.imap = ieach
@@ -779,10 +796,6 @@ function Set:__mul(f)
   return self:each(f)
 end
 
-function Set:len()
-  return #(keys(self))
-end
-
 function Set:is_subset(other)
   other = Set(other)
   return self:difference(other):len() == 0
@@ -793,163 +806,154 @@ function Set:is_superset(other)
   return other:difference(self):len() == 0
 end
 
-local function _compare_level(a, b, compared, opts, depth)
-  opts = opts or {}
-  local maxdepth = opts.depth
-  if maxdepth and maxdepth < depth then
-    return compared
+function compare(a, b, callback)
+  local depth, compared, state = 1, {}, nil
+  state = compared
+
+  local function _compare(a, b)
+    local ks_a = Set(keys(a))
+    local ks_b = Set(keys(b))
+    local common =  ks_a:intersection(ks_b)
+    local missing = ks_a - ks_b
+
+    each(missing, function(key)
+      state[key] = false
+    end)
+
+    each(common, function(key)
+      local x, y = a[key], b[key]
+      if is_a.t(x) and is_a.t(y) then
+        depth = depth + 1
+        state[key] = {}
+        state = state[key]
+        _compare(x, y)
+      elseif callback then
+        state[key] = callback(x, y)
+      else
+        state[key] = typeof(x) == typeof(y) and x == y
+        if depth > 1 then
+          pp(compared)
+        end
+      end
+    end)
   end
 
-  depth = depth or 1
-  local ks_a = Set(keys(a))
-  local ks_b = Set(keys(b))
-  local common = ks_a ^ ks_b
-  local missing = ks_a - ks_b
-  local foreign = ks_b - ks_a
+  _compare(a, b, _state)
+  return _state
+end
+
+function is(type_spec)
+  type_spec = map(tolist(type_spec), function(i)
+    return TYPES[i]
+  end)
+
+  return setmetatable({}, {
+    __call = function(_, e)
+      local invalid = {}
+      for _, t in ipairs(type_spec) do
+        if not is_a(e, t) then
+          invalid[#invalid + 1] = t
+        end
+      end
+
+      if #invalid == #type_spec then
+        return false, string.format("expected %s, got %s", table.concat(invalid, "|"), tostring(e))
+      end
+
+      return true
+    end,
+    required = table.concat(type_spec, "|")
+  })
+end
+
+local function _validate(a, b)
   opts = opts or {}
   local callback = opts.callback
-  local allow_nonexistent = opts.allow_nonexistent == nil and true or opts.allow_nonexistent
-  local allow_missing = opts.allow_missing == nil and true or opts.allow_missing
-  local level_name = opts.name or tostring(a)
 
-  if level_name then
-    if not is_a.s(level_name) then
-      error("level_name: string expected, got " .. level_name)
-    end
-  end
+  local function _compare(a, b)
+    local nonexistent = a.__nonexistent == nil and true
+    local level_name = a.__table or tostring(a)
+    a.__nonexistent = nil
+    a.__table = nil
+    local optional = {}
+    local ks_a = keys(a)
+    local ks_b = keys(b)
 
-  if not allow_nonexistent and foreign:len() ~= 0 then
-    error(string.format("%s(extra keys supplied): ", level_name, dump(foreign:values())))
-  end
-
-  missing = missing:filter(function(x)
-    x = tostring(x)
-    if x:match "^%?" then
-      return false
-    end
-    return true
-  end)
-
-  if not allow_missing and missing:len() ~= 0 then
-    error(string.format("%s(missing keys): %s", level_name, dump(missing:values())))
-  end
-
-  missing:map(function(k)
-    compared[k] = false
-  end)
-
-  common:each(function(key)
-    local x, y = a[key], b[key]
-    local current_level = string.format("%s.%s", level_name, key)
-
-    if is_pure_table(x) and is_pure_table(y) and x ~= a and y ~= b then
-      compared[key] = {}
-      opts.name = current_level
-      _compare_level(x, y, compared[key], opts, depth + 1)
-    elseif callback then
-      local out = callback(current_level, x, y)
-      if out ~= nil then
-        compared[key] = out
+    ieach(ks_a, function(idx, k)
+      k = tostring(k)
+      local opt = k:gsub('^%?', '')
+      if opt then
+        optional[opt] = true
       end
-    else
-      compared[key] = x == y
-    end
-  end)
-
-  return compared
-end
-
-function compare(t1, t2, opts)
-  return _compare_level(t1, t2, {}, opts or {})
-end
-
-function validate(params)
-  assert(is_a.t(params), "params: expected table, got " .. tostring(params))
-
-  for display, value in pairs(params) do
-    assert(is_a.t(value) and #value >= 1, "spec: {type, var}")
-
-    local tp, param = unpack(value)
-    if TYPES[tp] then
-      tp = TYPES[tp]
-    end
-
-    local optional = display:match "^%?"
-    display = display:gsub("^%?", "")
-
-    if param == nil and not optional then
-      error(display .. ": expected " .. tostring(tp) .. " got nil")
-    end
-
-    if is_pure_table(tp) and is_pure_table(param) then
-      local allow_nonexistent = tp.__allow_nonexistent
-      tp.__allow_nonexistent = nil
-
-      compare(tp, param, {
-        allow_nonexistent = allow_nonexistent,
-        allow_optional = true,
-        name = display,
-        callback = function(id, check, var)
-          if not is_a.f(check) and not is_a.t(check) then
-            check = type(check)
-          end
-
-          if is_a.f(check) then
-            local out = check(var)
-            local msg = string.format("callback failed for %s", id, tostring(var))
-            local ok = out
-            if is_a.t(out) then
-              ok = out[1]
-              msg = out[2] or msg
-            end
-            assert(ok, id .. ": " .. msg)
-          elseif is_a.t(check) then
-            local ok = nil
-            for i = 1, #check do
-              ok = ok or is_a(var, check[i])
-            end
-            assert(ok, string.format("%s: expected %s, got %s", id, dump(check), tostring(var)))
-          else
-            assert(
-              is_a(var, check),
-              string.format("%s: expected %s, got %s", id, check, tostring(var))
-            )
-          end
-        end,
-      })
-    elseif is_callable(tp) then
-      if param == nil and optional then
-        return
+      if opt:match('^[0-9]+$') then
+        opt = tonumber(opt)
       end
-      assert(tp(param), string.format("%s: callable failed for %s", display, tostring(param)))
-    elseif is_pure_table(tp) then
-      if param == nil and optional then
-        return
-      end
-      local ok = nil
-      for i = 1, #tp do
-        local k = tp[i]
-        if TYPES[k] then
-          tp[i] = k
+      ks_a[idx] = opt
+    end)
+
+    ks_a = Set(ks_a)
+    ks_b = Set(ks_b)
+    local common =  ks_a:intersection(ks_b)
+    local missing = ks_a:difference(ks_b)
+    local foreign = ks_b:difference(ks_a)
+    
+    assert(
+      missing:len() == 0, 
+      string.format('%s: missing keys: %s', level_name, dump(missing:values()))
+    )
+
+    if not nonexistent then
+      assert(
+        foreign:len() == 0, 
+        string.format('%s: unrequired keys: %s', level_name, dump(foreign:values()))
+      )
+    end
+
+    each(common, function(key)
+      level_name = level_name  .. '.' .. key
+      local x, y = a[key], b[key]
+
+      if optional[key] and b == nil then return end
+
+      local x_tp, y_tp = typeof(x), typeof(y)
+      x_tp = tostring(x_tp)
+      y_tp = tostring(y_tp)
+      if is_a.t(x_tp) and is_a.t(y_tp) then
+        assert(
+          x_tp == y_tp,
+          string.format('%s: expected %s, got %s', level_name, x_tp, y)
+        )
+      elseif is_a.t(x) and is_a.t(y) then
+        x.__table = key
+        _compare(x, y)
+      elseif is_a.f(x) then
+        local ok, msg = x(y)
+        if not ok then
+          error(level_name .. ':' .. ' ' .. msg)
         end
-        ok = ok or is_a(param, tp[i])
-      end
-      assert(ok, string.format("%s: expected %s, got %s", display, dump(tp), tostring(param)))
-    else
-      if not optional then
+      else
+        x = TYPES[x] or x
         assert(
-          is_a[tp](param),
-          string.format("%s: %s expected, got %s", display, tostring(tp), tostring(param))
-        )
-      elseif param ~= nil then
-        assert(
-          is_a[tp](param),
-          string.format("%s: %s expected, got %s", display, tostring(tp), tostring(param))
+          is_a(y, x),
+          string.format('%s: expected %s, got %s', level_name, x, y)
         )
       end
-    end
+    end)
   end
+
+  _compare(a, b)
 end
+
+function validate(type_spec)
+  teach(type_spec, function(display, spec)
+    local tp, param = unpack(spec)
+    if display:match('^%?') and param == nil then 
+      return
+    end
+    _validate( { __table = display, tp }, { param })
+  end)
+end
+
 
 function whereis(bin, regex)
   local out = vim.fn.system("whereis " .. bin .. [[ | cut -d : -f 2- | sed -r "s/(^ *| *$)//mg"]])
@@ -997,47 +1001,6 @@ function extend(tbl, ...)
   return tbl
 end
 List.extend = extend
-
-function append(t, ...)
-  local idx = #t
-  for i, value in ipairs { ... } do
-    t[idx + i] = value
-  end
-
-  return t
-end
-
-function iappend(t, idx, ...)
-  for _, value in ipairs { ... } do
-    table.insert(t, idx, value)
-  end
-
-  return t
-end
-List.iappend = iappend
-
-function shift(t, times)
-  local l = #t
-  times = times or 1
-  for i = 1, times do
-    if i > l then
-      return t
-    end
-    table.remove(t, 1)
-  end
-
-  return t
-end
-List.shift = shift
-
-function unshift(t, ...)
-  for idx, value in ipairs { ... } do
-    table.insert(t, idx, value)
-  end
-
-  return t
-end
-List.unshift = unshift
 
 -- For multiple patterns, OR matching will be used
 function match(s, ...)
@@ -1415,4 +1378,28 @@ end
 function glob(d, expr, nosuf, alllinks)
   nosuf = nosuf == nil and true or false
   return vim.fn.globpath(d, expr, nosuf, true, alllinks) or {}
+end
+
+function get_font()
+  font = vim.o.guifont:match "^([^:]+)"
+  height = vim.o.guifont:match "h([0-9]+)" or 12
+  return font, height
+end
+
+function set_font(font, height)
+  validate {
+    ["?font"] = { "s", font },
+    ["?height"] = { "n", height },
+  }
+
+  local current_font, current_height = get_font()
+  if not font then
+    font = current_font
+  end
+  if not height then
+    height = current_height
+  end
+
+  font = font:gsub(" ", "\\ ")
+  vim.cmd("set guifont=" .. sprintf("%s:h%d", font, height))
 end

@@ -4,12 +4,54 @@ return {
   { "hylang/vim-hy", ft = { "hy" } },
 
   {
+    "dhruvasagar/vim-buffer-history",
+    event = "BufEnter",
+    config = function()
+      vim.cmd [[
+      unmap gbl
+      unmap gbp
+      unmap gbn
+      ]]
+
+      K.bind(
+        { noremap = true, leader = true },
+        { "bh", "<Plug>(buffer-history-list)", "Show buffer history for window" },
+        { "bp", "<Plug>(buffer-history-back)", "Previous buffer in history" },
+        { "bn", "<Plug>(buffer-history-forward)", "Next buffer in history" }
+      )
+
+      K.noremap("n", "s", "<Plug>(easymotion-s2)")
+    end,
+  },
+
+  {
+    "easymotion/vim-easymotion",
+    dependencies = { "tpope/vim-repeat" },
+    config = function()
+      vim.g.EasyMotion_do_mapping = 0
+      vim.g.EasyMotion_smartcase = 1
+      K.bind(
+        { noremap = true },
+        { "<localleader><localleader>", "<Plug>(easymotion-bd-jk)", "Goto line" },
+        { "gH", "<Plug>(easymotion-linebackward)", "Current line backward search" },
+        { "gJ", "<Plug>(easymotion-j)", "Goto line below" },
+        { "gK", "<Plug>(easymotion-k)", "Goto line above" },
+        { "gL", "<Plug>(easymotion-forward)", "Current line forward search" },
+        { "g,", "<Plug>(easymotion-repeat)", "Motion repeat" },
+        { "/", "<Plug>(easymotion-sn)", "Search" },
+        { "n", "<Plug>(easymotion-next)" },
+        { "N", "<Plug>(easymotion-prev)" }
+      )
+    end,
+    event = "BufEnter",
+  },
+
+  {
     "lukas-reineke/indent-blankline.nvim",
     event = "BufEnter",
     config = function()
       local indent = req "indent_blankline"
       indent.setup {
-        -- for example, context is off by default, use this to turn it on
         show_current_context = false,
         show_current_context_start = false,
       }
@@ -70,7 +112,6 @@ return {
     },
     config = function()
       req "core.plugins.colorscheme"
-      -- vim.cmd("color github_dark")
     end,
   },
 
@@ -101,8 +142,6 @@ return {
   },
 
   { "tpope/vim-surround", event = "InsertEnter", dependencies = { "tpope/vim-repeat" } },
-
-  { "justinmk/vim-sneak", event = "InsertEnter" },
 
   { "Raimondi/delimitMate", event = "InsertEnter" },
 

@@ -346,7 +346,7 @@ function Buffer.text(self, start, till, repl)
     start_cood = { "t", start },
     till_cood = { "t", till },
     replacement = { "t", repl },
-    repl = { { "s", "t" }, repl },
+    repl = { is { "s", "t" }, repl },
   }
 
   assert_exists(self)
@@ -583,8 +583,8 @@ end
 
 function Buffer.menu(desc, items, formatter, callback)
   validate {
-    description = { { "s", "t" }, desc },
-    items = { { "s", "t" }, items },
+    description = { is { "s", "t" }, desc },
+    items = { is { "s", "t" }, items },
     callback = { "f", callback },
     ["?formatter"] = { "f", formatter },
   }
@@ -649,7 +649,7 @@ end
 -- @return Buffer
 function Buffer.input(text, cb, opts)
   validate {
-    text = { { "t", "s" }, text },
+    text = { is { "t", "s" }, text },
     cb = { "f", cb },
     ["?opts"] = { "t", opts },
   }
@@ -708,7 +708,7 @@ function Buffer._init(self, name, scratch)
     name = vim.fn.bufname(bufnr)
   end
 
-  validate { ["?buffer_name"] = { { "s", "n" }, name } }
+  validate { ["?buffer_name"] = { is { "s", "n" }, name } }
 
   if not name and scratch then
     bufnr = vim.api.nvim_create_buf(false, true)

@@ -9,12 +9,11 @@ A.groups = A.groups or {}
 
 function Autocmd._init(self, event, opts)
 	validate({
-		event = { { "s", "t" }, event },
+		event = { is { "s", "t" }, event },
 		options = {
 			{
-				__allow_nonexistent = true,
-				callback = { "f", "s" },
-				pattern = { "s", "t" },
+				callback =  is { "f", "s" },
+				pattern = is { "s", "t" },
 			},
 			opts,
 		},
