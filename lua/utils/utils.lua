@@ -869,6 +869,7 @@ end
 local function _validate(a, b)
   opts = opts or {}
   local callback = opts.callback
+  local depth = 1
 
   local function _compare(a, b)
     local nonexistent = a.__nonexistent == nil and true
@@ -910,7 +911,11 @@ local function _validate(a, b)
     end
 
     each(common, function(key)
-      level_name = level_name  .. '.' .. key
+      -- Depth 1 is always the param to be checked
+      if depth > 1 then
+        level_name = level_name  .. '.' .. key
+      end
+
       local x, y = a[key], b[key]
 
       if optional[key] and b == nil then return end
@@ -925,6 +930,7 @@ local function _validate(a, b)
         )
       elseif is_a.t(x) and is_a.t(y) then
         x.__table = key
+        depth = depth + 1
         _compare(x, y)
       elseif is_a.f(x) then
         local ok, msg = x(y)
@@ -1116,6 +1122,7 @@ function update(tbl, keys, value)
     end
   end
 end
+List.update = update
 
 function rpartial(f, ...)
   local outer = { ... }
@@ -1172,6 +1179,8 @@ function get(tbl, ks, create_path)
 end
 List.get = get
 Map.get = get
+OrderedMap.get = get
+MultiMap.get = get
 
 function printf(...)
   print(sprintf(...))
@@ -1250,10 +1259,13 @@ function nvimerr(...)
 end
 
 -- If multiple keys are supplied, the table is going to be assumed to be nested
-function haskey(tbl, ...)
+function contains(tbl, ...)
   return (get(tbl, { ... }))
 end
-contains = haskey
+List.contains = contains
+Map.contains = contains
+OrderedMap.contains = contains
+MultiMap.contains = contains
 
 function makepath(t, ...)
   return get(t, { ... }, true)
@@ -1261,6 +1273,7 @@ end
 Map.makepath = makepath
 OrderedMap.makepath = makepath
 MultiMap.makepath = makepath
+List.makepath = makepath
 
 function req(require_string, do_assert)
   local ok, out = pcall(require, require_string)
@@ -1351,6 +1364,8 @@ MultiMap.merge = merge
 OrderedMap.lmerge = lmerge
 MultiMap.lmerge = lmerge
 Map.lmerge = lmerge
+List.lmerge = lmerge
+List.merge = merge
 
 function apply(f, args)
   return f(unpack(args))
@@ -1358,7 +1373,7 @@ end
 
 function items(t)
   validate {
-    tbl = { { "Map", "OrderedMap", "table", "MultiMap" }, t },
+    tbl = { is { "Map", "OrderedMap", "table", "MultiMap" }, t },
   }
 
   if is_a.Map(t) or is_a.OrderedMap(t) or is_a.MultiMap(t) then
