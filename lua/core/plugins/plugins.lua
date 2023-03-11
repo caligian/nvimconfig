@@ -38,9 +38,6 @@ return {
         { "gK", "<Plug>(easymotion-k)", "Goto line above" },
         { "gL", "<Plug>(easymotion-forward)", "Current line forward search" },
         { "g,", "<Plug>(easymotion-repeat)", "Motion repeat" },
-        { "/", "<Plug>(easymotion-sn)", "Search" },
-        { "n", "<Plug>(easymotion-next)" },
-        { "N", "<Plug>(easymotion-prev)" }
       )
     end,
     event = "BufEnter",
