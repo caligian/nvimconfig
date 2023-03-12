@@ -1,0 +1,6 @@
+===
+CONTENTS *framework-funcs-contents*
+
+1. Aliased functions *framework-funcs-aliased*
+2. Builtin functions *framework-funcs-builtin*
+

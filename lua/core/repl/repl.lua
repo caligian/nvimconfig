@@ -144,6 +144,14 @@ function REPL.float(self, opts)
   end
 end
 
+function REPL.center_float(self, opts)
+  self:float(merge({center=true}, opts or {}))
+end
+
+function REPL.dock(self, opts)
+  self:float(merge({dock=0.3}, opts or {}))
+end
+
 function REPL.send(self, s)
   self:ensure()
 

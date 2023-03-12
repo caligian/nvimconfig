@@ -6,6 +6,7 @@ Buffer.ids = {}
 Buffer.scratch = {}
 
 local function percent_width(current, width, min)
+  current = current or vim.fn.winwidth(0)
   width = width or 0.5
 
   assert(width ~= 0, "width cannot be 0")
@@ -31,7 +32,8 @@ local function percent_width(current, width, min)
 end
 
 local function percent_height(current, height, min)
-    height = height or 0.5
+  current = current or vim.fn.winheight(0)
+  height = height or 0.5
 
     assert(height ~= 0, "height cannot be 0")
     assert(height > 0, "height cannot be < 0")
