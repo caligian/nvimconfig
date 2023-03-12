@@ -13,3 +13,8 @@ Autocmd("BufEnter", {
 		vim.bo.tabstop = 2
 	end,
 })
+
+Autocmd('BufEnter', {
+  pattern = '*txt',
+  callback = 'setlocal ft=help'
+})
