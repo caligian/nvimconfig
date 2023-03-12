@@ -16,7 +16,7 @@ K.bind({ noremap = true, leader = true }, {
     local menu = Buffer.menu("Current: " .. current, themes, nil, function(choice)
       Colorscheme.set(choice)
     end)
-    menu:split("v", { resize = 0.2, reverse = true, min = 29 })
+    menu:float {panel=0.3}
     Buffer.ids[menu.bufnr] = nil
   end,
   "Choose colorscheme",

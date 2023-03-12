@@ -5,6 +5,136 @@ class "Buffer"
 Buffer.ids = {}
 Buffer.scratch = {}
 
+local function percent_width(current, width, min)
+  width = width or 0.5
+
+  assert(width ~= 0, "width cannot be 0")
+  assert(width > 0, "width cannot be < 0")
+
+  if width < 1 then
+    required = math.floor(current * width)
+  else
+    required = math.floor(current)
+  end
+
+  if min < 1 then
+    min = math.floor(current * min)
+  else
+    min = math.floor(min)
+  end
+
+  if required < min then
+    required = min
+  end
+
+  return required
+end
+
+local function percent_height(current, height, min)
+    height = height or 0.5
+
+    assert(height ~= 0, "height cannot be 0")
+    assert(height > 0, "height cannot be < 0")
+
+    if height < 1 then
+      required = math.floor(current * height)
+    else
+      required = math.floor(current)
+    end
+
+    if min < 1 then
+      min = math.floor(current * min)
+    else
+      min = math.floor(min)
+    end
+
+    if required < min then
+      required = min
+    end
+
+    return required
+end
+
+function Buffer.vimsize()
+  local fullwidth, fullheight
+  local scratch = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_call(scratch, function()
+    vim.cmd "tabnew"
+    local tabpage = vim.fn.tabpagenr()
+    width = vim.fn.winwidth(0)
+    height = vim.fn.winheight(0)
+    vim.cmd("tabclose " .. tabpage)
+  end)
+
+  return { width, height }
+end
+
+function Buffer.float(self, opts)
+  validate {
+    win_options = {
+      {
+        __nonexistent = true,
+        ["?center"] = "n",
+        ["?panel"] = "n",
+        ["?dock"] = "n",
+        ['?reverse'] = 'b',
+      },
+      opts or {},
+    },
+  }
+
+  bufnr = self.bufnr
+  opts = opts or {}
+  local dock = opts.dock
+  local panel = opts.panel
+  local center = opts.center
+  local focus = opts.focus
+  opts.dock = nil
+  opts.panel = nil
+  opts.style = opts.style or "minimal"
+  opts.border = opts.border or "single"
+  local editor_size = Buffer.vimsize()
+  local current_width = vim.fn.winwidth(0)
+  local current_height = vim.fn.winheight(0)
+  opts.width = current_width
+  opts.height = current_height
+  opts.relative = opts.relative or "editor"
+  focus = focus == nil and true or focus
+  local reverse = opts.reverse
+  opts.reverse = nil
+
+  if center then
+    current_width = editor_size[1]
+    current_height = editor_size[2]
+    opts.relative = "editor"
+    opts.col = math.floor((current_width - (current_width - 5)) * 0.5)
+    opts.row = math.floor((current_height - (current_height - 5)) * 0.5)
+  elseif panel then
+    current_width = editor_size[1]
+    current_height = editor_size[2]
+    opts.relative = "editor"
+    opts.row = 0
+    opts.col = 1
+    opts.width = percent_width(current_width, panel, 30)
+    opts.height = current_height
+    if reverse then
+      opts.col = current_width - opts.width
+    end
+  elseif dock then
+    current_width = editor_size[1]
+    current_height = editor_size[2]
+    opts.relative = "editor"
+    opts.col = 0
+    opts.row = opts.height - dock
+    opts.height = percent_height(current_height, dock, 20)
+    if reverse then
+      opts.row = current_height - opts.height
+    end
+  end
+
+  return vim.api.nvim_open_win(bufnr, focus, opts)
+end
+
 function Buffer.exists(self)
   return vim.fn.bufexists(self.bufnr) ~= 0
 end
@@ -223,66 +353,50 @@ function Buffer.split(self, split, opts)
 
   -- Use decimal values to use percentage changes
   if split == "s" then
-    height = height or 0.5
-    local current = vim.fn.winheight(vim.fn.winnr())
-
-    assert(height ~= 0, "height cannot be 0")
-    assert(height > 0, "height cannot be < 0")
-
-    if height < 1 then
-      required = math.floor(current * height)
-    else
-      required = math.floor(current)
-    end
-
-    if min < 1 then
-      min = math.floor(current * min)
-    else
-      min = math.floor(min)
-    end
-
-    if required < min then
-      required = min
-    end
-
-    if reverse then
+    required = percent_height(current, height or 0.5, min)
+    if not reverse then
       vim.cmd("split | b " .. self.bufnr)
     else
       vim.cmd(sprintf("split | wincmd j | b %d", self.bufnr))
     end
     vim.cmd("resize " .. required)
   elseif split == "v" then
-    width = width or 0.5
-    local current = vim.fn.winwidth(vim.fn.winnr())
-
-    assert(width ~= 0, "width cannot be 0")
-    assert(width > 0, "width cannot be < 0")
-
-    if width < 1 then
-      required = math.floor(current * width)
-    else
-      required = math.floor(current)
-    end
-
-    if min < 1 then
-      min = math.floor(current * min)
-    else
-      min = math.floor(min)
-    end
-
-    if required < min then
-      required = min
-    end
-
-    if reverse then
+    required = percent_width(current, width or 0.5, min)
+    if not reverse then
       vim.cmd("vsplit | b " .. self.bufnr)
     else
       vim.cmd(sprintf("vsplit | wincmd l | b %d", self.bufnr))
     end
     vim.cmd("vert resize " .. required)
-  else
+  elseif split == "f" then
+    self:float(opts)
+  elseif split == "t" then
     vim.cmd(sprintf("tabnew | b %d", self.bufnr))
   end
+end
+
+function Buffer:splitright(opts)
+  opts = opts or {}
+  opts.reverse = nil
+  return self:split("s", opts)
+end
+
+function Buffer:splitabove(opts)
+  opts = opts or {}
+  opts.reverse = true
+  return self:split("s", opts)
+end
+
+function Buffer:splitbelow(opts)
+  opts = opts or {}
+  opts.reverse = nil
+  return self:split("s", opts)
+end
+
+function Buffer:splitleft(opts)
+  opts = opts or {}
+  opts.reverse = true
+  return self:split("v", opts)
 end
 
 --- Create a buffer local autocommand. The  pattern will be automatically set to '<buffer=%d>'
@@ -308,8 +422,7 @@ function Buffer.hide(self)
     local current_tab = vim.api.nvim_get_current_tabpage()
     local n_wins = #(vim.api.nvim_tabpage_list_wins(current_tab))
     if n_wins > 1 then
-      vim.fn.win_gotoid(winid)
-      vim.cmd "hide"
+      vim.api.nvim_win_hide(winid)
     end
   end
 end

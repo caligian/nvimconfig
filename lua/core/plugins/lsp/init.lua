@@ -13,7 +13,7 @@ function lsp.on_attach(client, bufnr)
 	-- Enable completion triggered by <c-x><c-o>
 	vim.api.nvim_buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 
-	if not haskey(Lang.langs, vim.bo.filetype, "formatters") then
+	if not contains(Lang.langs, vim.bo.filetype, "formatters") then
 		require("lsp-format").on_attach(client)
 	end
 
@@ -68,8 +68,8 @@ function lsp.setup()
 	end
 end
 
-user.plugins["nvim-lspconfig"] = lsp
-req("user.plugins.nvim-lspconfig")
-require("core.plugins.nvim-lspconfig.keybindings")
+user.plugins.lsp = lsp
+req("user.plugins.lsp")
+require("core.plugins.lsp.kbd")
 
 lsp.setup()

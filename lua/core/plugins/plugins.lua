@@ -1,5 +1,5 @@
 return {
-  { "nvim-lua/plenary.nvim" },
+  { "nvim-lua/plenary.nvim", ft = 'VimEnter' },
 
   { "hylang/vim-hy", ft = { "hy" } },
 
@@ -36,8 +36,8 @@ return {
         { "gH", "<Plug>(easymotion-linebackward)", "Current line backward search" },
         { "gJ", "<Plug>(easymotion-j)", "Goto line below" },
         { "gK", "<Plug>(easymotion-k)", "Goto line above" },
-        { "gL", "<Plug>(easymotion-forward)", "Current line forward search" },
-        { "g,", "<Plug>(easymotion-repeat)", "Motion repeat" },
+        { "gL", "<Plug>(easymotion-lineforward)", "Current line forward search" },
+        { "g,", "<Plug>(easymotion-repeat)", "Motion repeat" }
       )
     end,
     event = "BufEnter",
@@ -134,7 +134,7 @@ return {
     "nvim-tree/nvim-tree.lua",
     event = "VimEnter",
     config = function()
-      req "core.plugins.nvim-tree"
+      req "core.plugins.tree"
     end,
   },
 
@@ -146,7 +146,7 @@ return {
     "mfussenegger/nvim-lint",
     event = "BufReadPost",
     config = function()
-      req "core.plugins.nvim-lint"
+      req "core.plugins.lint"
     end,
   },
 
@@ -173,7 +173,7 @@ return {
       "nvim-treesitter/nvim-treesitter-textobjects",
     },
     config = function()
-      req "core.plugins.nvim-treesitter"
+      req "core.plugins.treesitter"
     end,
   },
 
@@ -201,14 +201,15 @@ return {
       { "hrsh7th/cmp-nvim-lsp-document-symbol" },
     },
     config = function()
-      req "core.plugins.nvim-cmp"
+      req "core.plugins.cmp"
     end,
   },
 
   {
     "tpope/vim-fugitive",
+    keys = '<leader>g',
     config = function()
-      req "core.plugins.vim-fugitive"
+      req "core.plugins.fugitive"
     end,
   },
 
@@ -253,7 +254,7 @@ return {
   {
     "neovim/nvim-lspconfig",
     ft = grep(keys(Lang.langs), function(k)
-      if haskey(Lang.langs, k, "server") then
+      if contains(Lang.langs, k, "server") then
         return k
       end
     end),
@@ -262,7 +263,7 @@ return {
       { "williamboman/mason.nvim" },
     },
     config = function()
-      req "core.plugins.nvim-lspconfig"
+      req "core.plugins.lsp"
     end,
   },
 

@@ -872,7 +872,7 @@ local function _validate(a, b)
   local depth = 1
 
   local function _compare(a, b)
-    local nonexistent = a.__nonexistent == nil and true
+    local nonexistent = a.__nonexistent == nil and true or a.__nonexistent
     local level_name = a.__table or tostring(a)
     a.__nonexistent = nil
     a.__table = nil
@@ -882,14 +882,15 @@ local function _validate(a, b)
 
     ieach(ks_a, function(idx, k)
       k = tostring(k)
-      local opt = k:gsub('^%?', '')
+      local opt = k:match('^%?')
+      local _k = k:gsub('^%?', '')
       if opt then
-        optional[opt] = true
+        optional[_k] = true
       end
-      if opt:match('^[0-9]+$') then
-        opt = tonumber(opt)
+      if _k:match('^[0-9]+$') then
+        _k = tonumber(_k)
       end
-      ks_a[idx] = opt
+      ks_a[idx] = _k
     end)
 
     ks_a = Set(ks_a)
@@ -897,12 +898,15 @@ local function _validate(a, b)
     local common =  ks_a:intersection(ks_b)
     local missing = ks_a:difference(ks_b)
     local foreign = ks_b:difference(ks_a)
-    
-    assert(
-      missing:len() == 0, 
-      string.format('%s: missing keys: %s', level_name, dump(missing:values()))
-    )
 
+    missing:each(function(k)
+      if optional[k] then
+        return
+      else
+        error(string.format('%s: missing key: %s', level_name, dump(missing:values())))
+      end
+    end)
+    
     if not nonexistent then
       assert(
         foreign:len() == 0, 
@@ -911,14 +915,19 @@ local function _validate(a, b)
     end
 
     each(common, function(key)
+      local x, y
+
       -- Depth 1 is always the param to be checked
       if depth > 1 then
         level_name = level_name  .. '.' .. key
       end
 
-      local x, y = a[key], b[key]
-
-      if optional[key] and b == nil then return end
+      if optional[key] then
+        x = a['?' .. key]
+      else
+        x = a[key]
+      end
+      y = b[key]
 
       local x_tp, y_tp = typeof(x), typeof(y)
       x_tp = tostring(x_tp)

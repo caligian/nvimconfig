@@ -1,7 +1,6 @@
 -- Textobjects are broken for some reason
-user.plugins["nvim-treesitter"] = {
+user.plugins.treesitter = {
   config = {
-
     ensure_installed = {
       "lua",
       "python",
@@ -103,8 +102,8 @@ user.plugins["nvim-treesitter"] = {
   },
 }
 
-req "user.plugins.nvim-treesitter"
+req "user.plugins.treesitter"
 
 if configs then
-  configs.setup(user.plugins["nvim-treesitter"].config)
+  configs.setup(user.plugins.treesitter.config)
 end

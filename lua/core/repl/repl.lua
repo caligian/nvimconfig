@@ -125,13 +125,22 @@ function REPL.hide(self)
   end
 end
 
-function REPL.split(self, direction)
+function REPL.split(self, direction, opts)
   self:ensure()
 
   if self:is_visible() then
     return self
   else
-    self.buffer:split(direction)
+    self.buffer:split(direction, opts)
+  end
+end
+
+function REPL.float(self, opts)
+  self:ensure()
+  if self:is_visible() then
+    return self
+  else
+    self.buffer:float(opts)
   end
 end
 

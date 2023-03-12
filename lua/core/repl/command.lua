@@ -46,7 +46,7 @@ end
 command(
 	"StartREPL",
 	wrap(function(r)
-		r:split("s")
+		r:float {dock=0.4}
 	end),
 	{ nargs = "?" }
 )
@@ -64,7 +64,7 @@ command("StopREPL", stop, { nargs = "?" })
 command(
 	"SplitREPL",
 	wrap(function(r)
-		r:split("s")
+		r:float {dock=0.4, reverse=true}
 	end),
 	{ nargs = "?" }
 )
@@ -72,7 +72,7 @@ command(
 command(
 	"VsplitREPL",
 	wrap(function(r)
-		r:split("v")
+		r:float {panel=0.4, reverse=true}
 	end),
 	{ nargs = "?" }
 )

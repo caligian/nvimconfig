@@ -1,1 +1,2 @@
-vim.cmd("cabbrev h vert h")
+user.abbrevs = user.abbrevs or {}
+req 'user.abbrevs'
