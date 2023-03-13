@@ -284,10 +284,23 @@ return {
     "moll/vim-bbye",
     event = "BufReadPre",
     config = function()
+      local function delete_and_hide(wipeout)
+        local bufname = vim.fn.bufname(vim.fn.bufnr())
+        if wipeout then
+          vim.cmd(':Bwipeout ' .. bufname)
+        else
+          vim.cmd(':Bdelete ' .. bufname)
+        end
+        local tab = vim.fn.tabpagenr()
+        local n_wins = #(vim.fn.tabpagebuflist(tab))
+        if n_wins > 1 then
+          vim.cmd 'hide'
+        end
+      end
       Keybinding.bind(
         { noremap = true, leader = true },
-        { "bq", "<cmd>Bdelete<CR>", { desc = "Delete buffer" } },
-        { "bQ", "<cmd>Bwipeout<CR>", { desc = "Wipeout buffer" } }
+        { "bq", delete_and_hide, { desc = "Delete buffer" } },
+        { "bQ", partial(delete_and_hide, true), { desc = "Wipeout buffer" } }
       )
       req "user.plugins.vim-bbye"
     end,

@@ -2,8 +2,9 @@
 command("ShowLogs", function()
   local log_path = vim.fn.stdpath "config" .. "/nvim.log"
   if path.exists(log_path) then
-    vim.cmd("e " .. log_path)
-    vim.cmd "set readonly"
+    vim.cmd("tabnew " .. log_path)
+    vim.cmd "setlocal readonly"
+    vim.cmd 'noremap <buffer> q :bwipeout<CR>'
   end
 end, {})
 
@@ -95,3 +96,9 @@ command("FontSize", function(args)
 
   set_font(font, height)
 end, { nargs = "+" })
+
+command("TrimWhiteSpace", function ()
+  local layout = vim.fn.winsaveview()
+  vim.cmd "keeppatterns %s/\\s\\+$//e"    
+  vim.fn.winrestview(layout)
+end, {})

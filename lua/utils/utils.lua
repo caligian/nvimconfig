@@ -54,6 +54,20 @@ TYPES = {
   Process = "Process",
 }
 
+function len(t)
+  if type(t) == 'string' then
+    return #t
+  elseif type(t) == 'table' then
+    if t.len then
+      return t:len()
+    elseif t.length then
+      return t:length()
+    end
+    return #t
+  end
+  return false
+end
+
 function append(t, ...)
   local idx = #t
   for i, value in ipairs { ... } do
