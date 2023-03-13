@@ -813,7 +813,7 @@ function compare(a, b, callback)
   local function _compare(a, b)
     local ks_a = Set(keys(a))
     local ks_b = Set(keys(b))
-    local common =  ks_a:intersection(ks_b)
+    local common = ks_a:intersection(ks_b)
     local missing = ks_a - ks_b
 
     each(missing, function(key)
@@ -862,7 +862,7 @@ function is(type_spec)
 
       return true
     end,
-    required = table.concat(type_spec, "|")
+    required = table.concat(type_spec, "|"),
   })
 end
 
@@ -882,12 +882,12 @@ local function _validate(a, b)
 
     ieach(ks_a, function(idx, k)
       k = tostring(k)
-      local opt = k:match('^%?')
-      local _k = k:gsub('^%?', '')
+      local opt = k:match "^%?"
+      local _k = k:gsub("^%?", "")
       if opt then
         optional[_k] = true
       end
-      if _k:match('^[0-9]+$') then
+      if _k:match "^[0-9]+$" then
         _k = tonumber(_k)
       end
       ks_a[idx] = _k
@@ -895,7 +895,7 @@ local function _validate(a, b)
 
     ks_a = Set(ks_a)
     ks_b = Set(ks_b)
-    local common =  ks_a:intersection(ks_b)
+    local common = ks_a:intersection(ks_b)
     local missing = ks_a:difference(ks_b)
     local foreign = ks_b:difference(ks_a)
 
@@ -903,14 +903,14 @@ local function _validate(a, b)
       if optional[k] then
         return
       else
-        error(string.format('%s: missing key: %s', level_name, dump(missing:values())))
+        error(string.format("%s: missing key: %s", level_name, dump(missing:values())))
       end
     end)
-    
+
     if not nonexistent then
       assert(
-        foreign:len() == 0, 
-        string.format('%s: unrequired keys: %s', level_name, dump(foreign:values()))
+        foreign:len() == 0,
+        string.format("%s: unrequired keys: %s", level_name, dump(foreign:values()))
       )
     end
 
@@ -919,11 +919,11 @@ local function _validate(a, b)
 
       -- Depth 1 is always the param to be checked
       if depth > 1 then
-        level_name = level_name  .. '.' .. key
+        level_name = level_name .. "." .. key
       end
 
       if optional[key] then
-        x = a['?' .. key]
+        x = a["?" .. key]
       else
         x = a[key]
       end
@@ -933,10 +933,7 @@ local function _validate(a, b)
       x_tp = tostring(x_tp)
       y_tp = tostring(y_tp)
       if is_a.t(x_tp) and is_a.t(y_tp) then
-        assert(
-          x_tp == y_tp,
-          string.format('%s: expected %s, got %s', level_name, x_tp, y)
-        )
+        assert(x_tp == y_tp, string.format("%s: expected %s, got %s", level_name, x_tp, y))
       elseif is_a.t(x) and is_a.t(y) then
         x.__table = key
         depth = depth + 1
@@ -944,14 +941,11 @@ local function _validate(a, b)
       elseif is_a.f(x) then
         local ok, msg = x(y)
         if not ok then
-          error(level_name .. ':' .. ' ' .. msg)
+          error(level_name .. ":" .. " " .. msg)
         end
       else
         x = TYPES[x] or x
-        assert(
-          is_a(y, x),
-          string.format('%s: expected %s, got %s', level_name, x, y)
-        )
+        assert(is_a(y, x), string.format("%s: expected %s, got %s", level_name, x, y))
       end
     end)
   end
@@ -962,13 +956,12 @@ end
 function validate(type_spec)
   teach(type_spec, function(display, spec)
     local tp, param = unpack(spec)
-    if display:match('^%?') and param == nil then 
+    if display:match "^%?" and param == nil then
       return
     end
-    _validate( { __table = display, tp }, { param })
+    _validate({ __table = display, tp }, { param })
   end)
 end
-
 
 function whereis(bin, regex)
   local out = vim.fn.system("whereis " .. bin .. [[ | cut -d : -f 2- | sed -r "s/(^ *| *$)//mg"]])
@@ -1426,4 +1419,13 @@ function set_font(font, height)
 
   font = font:gsub(" ", "\\ ")
   vim.cmd("set guifont=" .. sprintf("%s:h%d", font, height))
+end
+
+function log_pcall(f, ...)
+  local ok, out = pcall(f, ...)
+  if ok then
+    return out
+  else
+    logger:debug(out)
+  end
 end
