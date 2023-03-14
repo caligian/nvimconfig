@@ -1,5 +1,5 @@
 return {
-  { "nvim-lua/plenary.nvim", ft = 'VimEnter' },
+  { "nvim-lua/plenary.nvim", ft = "VimEnter" },
 
   { "hylang/vim-hy", ft = { "hy" } },
 
@@ -68,6 +68,7 @@ return {
     event = "BufReadPre",
     config = function()
       Keybinding.noremap("n", "<leader>=", ":EasyAlign ", { desc = "Align lines" })
+      Keybinding.noremap("v", "<leader>=", ":'<,'>EasyAlign ", { desc = "Align lines" })
     end,
   },
 
@@ -192,7 +193,6 @@ return {
     dependencies = {
       { "quangnguyen30192/cmp-nvim-ultisnips" },
       { "tamago324/cmp-zsh" },
-      { "f3fora/cmp-spell" },
       { "hrsh7th/cmp-nvim-lsp" },
       { "ray-x/cmp-treesitter" },
       { "hrsh7th/cmp-nvim-lua" },
@@ -207,7 +207,7 @@ return {
 
   {
     "tpope/vim-fugitive",
-    keys = '<leader>g',
+    keys = "<leader>g",
     config = function()
       req "core.plugins.fugitive"
     end,
@@ -270,8 +270,6 @@ return {
   {
     "nvim-telescope/telescope.nvim",
     dependencies = {
-      { "nvim-telescope/telescope-file-browser.nvim" },
-      { "nvim-telescope/telescope-project.nvim" },
       { "nvim-telescope/telescope-fzf-native.nvim", run = "make" },
     },
     config = function()
@@ -287,14 +285,16 @@ return {
       local function delete_and_hide(wipeout)
         local bufname = vim.fn.bufname(vim.fn.bufnr())
         if wipeout then
-          vim.cmd(':Bwipeout ' .. bufname)
+          vim.cmd(":Bwipeout " .. bufname)
         else
-          vim.cmd(':Bdelete ' .. bufname)
+          vim.cmd(":Bdelete " .. bufname)
         end
         local tab = vim.fn.tabpagenr()
         local n_wins = #(vim.fn.tabpagebuflist(tab))
         if n_wins > 1 then
-          vim.cmd 'hide'
+          vim.cmd ":hide"
+        else
+          vim.cmd ":b#"
         end
       end
       Keybinding.bind(

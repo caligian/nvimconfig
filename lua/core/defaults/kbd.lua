@@ -1,6 +1,6 @@
 -- Only works for toggleable options
 local function _toggle_option(option)
-  local ok, out = pcall(function ()
+  local ok, out = pcall(function()
     return vim.o[option]
   end)
 
@@ -22,13 +22,6 @@ local function clean_before_quitting()
 
   REPL.stopall()
 end
-
--- Disable this useless keybinding
-vim.cmd "noremap gQ <nop>"
-vim.cmd 'noremap gj j'
-vim.cmd 'noremap gk k'
-vim.cmd 'noremap j gj'
-vim.cmd 'noremap k gk'
 
 K.bind(
   { noremap = true, leader = true },
@@ -121,18 +114,21 @@ K.bind(
   },
 
   -- Set options
-  { "ot", partial(_toggle_option, 'textwrap'), "Toggle wrapping" },
-  { "or", partial(_toggle_option, 'readonly'), "Toggle readonly" },
-  { "oc", partial(_toggle_option, 'cursorline'), "Toggle cursorline" },
-  { "ol", partial(_toggle_option, 'buflisted'), "Toggle buflisted" },
-  { "ob", partial(_toggle_option, 'backup'), "Toggle backup" },
-  { "oe", partial(_toggle_option, 'expandtab'), "Toggle expandtab" },
-  { "os", partial(_toggle_option, 'smartindent'), "Toggle smartindent" },
-  { "ou", partial(_toggle_option, 'ruler'), "Toggle ruler" },
-  { "om", partial(_toggle_option, 'modifiable'), "Toggle modifiable" },
+  { "ot", partial(_toggle_option, "textwrap"), "Toggle wrapping" },
+  { "or", partial(_toggle_option, "readonly"), "Toggle readonly" },
+  { "oc", partial(_toggle_option, "cursorline"), "Toggle cursorline" },
+  { "ol", partial(_toggle_option, "buflisted"), "Toggle buflisted" },
+  { "ob", partial(_toggle_option, "backup"), "Toggle backup" },
+  { "oe", partial(_toggle_option, "expandtab"), "Toggle expandtab" },
+  { "os", partial(_toggle_option, "smartindent"), "Toggle smartindent" },
+  { "ou", partial(_toggle_option, "ruler"), "Toggle ruler" },
+  { "om", partial(_toggle_option, "modifiable"), "Toggle modifiable" },
 
   -- Window management
   { "wh", "<C-w>h", "Left win" },
+  { "wo", "<C-w>o", "Hide other wins" },
+  { "w_", "<C-w>_", "Max out height" },
+  { "w|", "<C-w>|", "Max out width" },
   { "wj", "<C-w>j", "Down win" },
   { "wk", "<C-w>k", "Up win" },
   { "wl", "<C-w>l", "Right win" },

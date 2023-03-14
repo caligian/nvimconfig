@@ -1,38 +1,13 @@
 local ivy = require("telescope.themes").get_ivy()
-local file_browser_actions = require "core.plugins.telescope.file_browser"
 local buffer_actions = require "core.plugins.telescope.buffers"
 local git_status_actions = require "core.plugins.telescope.git_status"
 
-user.plugins["telescope.nvim"] = {}
-local T = merge(user.plugins["telescope.nvim"], ivy)
-
--- To seem more like emacs ivy
+user.plugins.telescope = { config = ivy }
+local T = user.plugins.telescope.config
 T.disable_devicons = true
 T.layout_config.height = 0.6
 T.previewer = false
-
---  Setup telescope default configuration
-T.extensions = {
-  file_browser = merge({
-    disable_devicons = true,
-    mappings = {
-      n = {
-        d = file_browser_actions.delete_recursively,
-        l = file_browser_actions.luafile,
-        ["<C-g>"] = file_browser_actions.git_init,
-        ["<C-d>"] = file_browser_actions.open_in_netrw,
-        ["<C-T>"] = file_browser_actions.touch,
-      },
-    },
-  }, ivy),
-
-  project = merge({
-    hidden_files = false,
-    order_by = "desc",
-    search_by = "title",
-    sync_with_nvim_tree = true,
-  }, ivy),
-}
+T.extensions = {}
 
 T.pickers = {
   buffers = {
@@ -58,8 +33,6 @@ T.pickers = {
 -- Require user overrides
 req "user.plugins.telescope"
 require("telescope").setup(T)
-require("telescope").load_extension "file_browser"
-require("telescope").load_extension "project"
 
 -- Start keymappings
 local function picker(p)
@@ -98,7 +71,5 @@ Keybinding.bind(
   { "ld", picker "diagnostics", { desc = "Show LSP diagnostics", name = "ts_diagnostics" } },
   { "gC", picker "git_commits", { desc = "Show commits", name = "ts_git_commits" } },
   { "gB", picker "git_bcommits", { desc = "Show branch commits", name = "ts_branch_commits" } },
-  { "g?", picker "git_status", { desc = "Git status", name = "ts_git_status" } },
-  { "ff", ":Telescope file_browser<CR>", { desc = "File browser", name = "ts_file_browser" } },
-  { "p", ":Telescope project<CR>", { desc = "Project management", name = "ts_project" } }
+  { "g?", picker "git_status", { desc = "Git status", name = "ts_git_status" } }
 )
