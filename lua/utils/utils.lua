@@ -1274,6 +1274,11 @@ function nvimerr(...)
   end
 end
 
+function nvimexec(s, output)
+  output = output == nil and true or output
+  return vim.api.nvim_exec(s, output)
+end
+
 -- If multiple keys are supplied, the table is going to be assumed to be nested
 function contains(tbl, ...)
   return (get(tbl, { ... }))

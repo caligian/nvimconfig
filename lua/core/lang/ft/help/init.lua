@@ -21,7 +21,6 @@ local function put_ref(jump)
   local bufnr = vim.fn.bufnr()
   local linenum = vim.fn.line "."
   local line = trim(vim.fn.getline(linenum))
-  local tag
 
   if #line == 0 or line:match('^====') then
     nvimerr('Cannot put a tag on an empty line or a separator line')
@@ -36,7 +35,7 @@ local function put_ref(jump)
   prefix = ok and prefix or false
   local tag = vim.fn.input "Tag name: "
   if prefix then
-    tag = prefix  .. '-' .. tag
+    tag = prefix  .. '_' .. tag
   end
 
   local l = #tag
@@ -91,6 +90,6 @@ return {
         return
       end
       vim.api.nvim_buf_set_var(vim.fn.bufnr(), '_tag_prefix', prefix)
-    end, "Put jump reference" },
+    end, "Set tag prefix" },
   },
 }

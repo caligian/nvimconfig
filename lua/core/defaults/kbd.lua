@@ -1,5 +1,19 @@
--- Disable this useless keybinding
-vim.cmd "noremap gQ <nop>"
+-- Only works for toggleable options
+local function _toggle_option(option)
+  local ok, out = pcall(function ()
+    return vim.o[option]
+  end)
+
+  if not ok then
+    return
+  end
+
+  if not out then
+    vim.o[option] = true
+  else
+    vim.o[option] = false
+  end
+end
 
 local function clean_before_quitting()
   for _, buf in pairs(Buffer.ids) do
@@ -8,6 +22,13 @@ local function clean_before_quitting()
 
   REPL.stopall()
 end
+
+-- Disable this useless keybinding
+vim.cmd "noremap gQ <nop>"
+vim.cmd 'noremap gj j'
+vim.cmd 'noremap gk k'
+vim.cmd 'noremap j gj'
+vim.cmd 'noremap k gk'
 
 K.bind(
   { noremap = true, leader = true },
@@ -88,6 +109,7 @@ K.bind(
       clean_before_quitting()
       vim.cmd "qa!"
     end,
+    ":qall!",
   },
   {
     "qx",
@@ -95,14 +117,35 @@ K.bind(
       clean_before_quitting()
       vim.cmd "xa"
     end,
+    ":xa",
   },
 
   -- Set options
-  { "hot", ":setlocal textwrap<CR>", "Set text wrapping" },
-  { "hor", ":setlocal readonly<CR>", "Set readonly" },
+  { "ot", partial(_toggle_option, 'textwrap'), "Toggle wrapping" },
+  { "or", partial(_toggle_option, 'readonly'), "Toggle readonly" },
+  { "oc", partial(_toggle_option, 'cursorline'), "Toggle cursorline" },
+  { "ol", partial(_toggle_option, 'buflisted'), "Toggle buflisted" },
+  { "ob", partial(_toggle_option, 'backup'), "Toggle backup" },
+  { "oe", partial(_toggle_option, 'expandtab'), "Toggle expandtab" },
+  { "os", partial(_toggle_option, 'smartindent'), "Toggle smartindent" },
+  { "ou", partial(_toggle_option, 'ruler'), "Toggle ruler" },
+  { "om", partial(_toggle_option, 'modifiable'), "Toggle modifiable" },
 
   -- Window management
-  { "w", "<C-w>", "Window commands" }
+  { "wh", "<C-w>h", "Left win" },
+  { "wj", "<C-w>j", "Down win" },
+  { "wk", "<C-w>k", "Up win" },
+  { "wl", "<C-w>l", "Right win" },
+  { "w+", "<C-w>+", "Increase height" },
+  { "w-", "<C-w>-", "Decrease height" },
+  { "w=", "<C-w>=", "Equalize height and width" },
+  { "w>", "<C-w>>", "Increase width" },
+  { "w<", "<C-w><", "Decrease width" },
+  { "ws", "<C-w>s", "Split win" },
+  { "wv", "<C-w>v", "Vsplit win" },
+  { "wt", "<C-w>T", "Tabnew win" },
+  { "ww", "<C-w>w", "Other win" },
+  { "wx", "<C-w>x", "Swap win" }
 )
 
 K.noremap("n", "\\\\", ":noh<CR>", { desc = "No highlight", silent = true, name = "noh" })

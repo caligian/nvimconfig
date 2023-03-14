@@ -10,7 +10,7 @@ merge(user, {
   shell = "/usr/bin/zsh",
   font = "Liberation Mono:h12",
   colorscheme = {
-    dark = "github_dark",
+    dark = "rosebones",
     light = "github_light_default",
     use = "dark",
   },

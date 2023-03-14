@@ -1,6 +1,18 @@
-===
-CONTENTS *framework-funcs-contents*
+================================================================================
+CONTENTS                                                     |doom_funcs_contents|
 
-1. Aliased functions *framework-funcs-aliased*
-2. Builtin functions *framework-funcs-builtin*
+1. Introduction                                                 *doom_funcs_intro*
+2. Aliased functions                                          *doom_funcs_aliased*
+3. Builtin functions                                          *doom_funcs_builtin*
 
+================================================================================
+INTRODUCTION                                                    |doom_funcs_intro|
+
+Many of the functions are simply aliases of neovim API or penlight. In that
+case, I would recommend you to go through their documentation. Rest of the
+functions are documented here. Another caveat is that all these functions are
+global in scope because they are likely to be widely used all over the
+configuration done. The performance penalty is rather trivial.
+
+================================================================================
+ALIASED                                                       |doom_funcs_aliased|
