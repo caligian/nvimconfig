@@ -275,8 +275,6 @@ return {
         local n_wins = #(vim.fn.tabpagebuflist(tab))
         if n_wins > 1 then
           vim.cmd ":hide"
-        else
-          vim.cmd ":b#"
         end
       end
       Keybinding.bind(
