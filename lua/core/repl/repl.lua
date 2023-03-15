@@ -103,6 +103,7 @@ function REPL.start(self, force)
 
   local buf = Buffer(scratch)
 	buf.wo.number = false
+	buf.wo.relativenumber = false
 	buf.var._repl_filetype = self.filetype
 
 	self.id = id
