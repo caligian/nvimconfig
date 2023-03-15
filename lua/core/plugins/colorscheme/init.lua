@@ -13,7 +13,7 @@ K.bind({ noremap = true, leader = true }, {
   function()
     local themes = table.keys(Colorscheme.colorscheme)
     local current = vim.g.colors_name or "<unknown>"
-    local prompt = sprintf('Select colorscheme (current: %s) > ')
+    local prompt = sprintf('Select colorscheme (current: %s) > ', current)
 
     vim.ui.select(themes, {
       prompt = prompt
