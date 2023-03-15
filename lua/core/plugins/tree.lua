@@ -1,9 +1,9 @@
 user.plugins["nvim-tree"] = {
 	config = {
 		auto_reload_on_write = true,
-		disable_netrw = false,
+		disable_netrw = true,
 		hijack_cursor = true,
-		hijack_netrw = false,
+		hijack_netrw = true,
 		hijack_unnamed_buffer_when_opening = false,
 		ignore_buffer_on_setup = false,
 		open_on_setup = false,
@@ -12,7 +12,7 @@ user.plugins["nvim-tree"] = {
 		root_dirs = {},
 		prefer_startup_root = false,
 		sync_root_with_cwd = true,
-		reload_on_bufenter = false,
+		reload_on_bufenter = true,
 		respect_buf_cwd = true,
 		on_attach = "disable",
 		remove_keymaps = false,
@@ -21,12 +21,12 @@ user.plugins["nvim-tree"] = {
 			centralize_selection = true,
 			cursorline = true,
 			debounce_delay = 15,
-			width = 50,
-			hide_root_folder = false,
+			width = 40,
+			hide_root_folder = true,
 			side = "left",
-			preserve_window_proportions = false,
+			preserve_window_proportions = true,
 			number = true,
-			relativenumber = false,
+			relativenumber = true,
 			signcolumn = "no",
 			mappings = {
 				custom_only = false,
@@ -241,10 +241,9 @@ user.plugins["nvim-tree"] = {
 }
 
 Keybinding.bind(
-	{ noremap = true },
-	{ "<leader>|", ":NvimTreeToggle<CR>", "Toggle file browser" },
-	{ "<leader>ff", ":NvimTreeToggle<CR>", "Toggle file browser" },
-	{ "<leader>\\", ":NvimTreeFocus<CR>", "Focus file browser" }
+	{ noremap = true, leader=true },
+	{ "\\", ":NvimTreeFocus<CR>", "Toggle file browser" },
+	{ "|", ":NvimTreeToggle<CR>", "Toggle file browser" }
 )
 
 local tree = require("nvim-tree")

@@ -35,7 +35,8 @@ package.path = package.path .. ";" .. home_dir .. "/lua/?/init.lua"
 -- Install missing luarocks
 local dest = vim.fn.stdpath "config" .. "/luarocks"
 function install_luarock(rock, req)
-  local ok, _ = pcall(require, req)
+  local _
+  ok, _ = pcall(require, req)
   local cmd = string.format("luarocks --lua-version 5.1 --tree %s install %s", dest, rock)
   if not ok then
     print("Attempting to install luarock " .. rock)

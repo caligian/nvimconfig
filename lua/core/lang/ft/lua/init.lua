@@ -13,9 +13,9 @@ return {
 			exe = "stylua",
 			args = {
 				"--call-parentheses None",
-				"--collapse-simple-statement Never",
+				"--collapse-simple-statement Always",
 				"--line-endings Unix",
-				"--column-width 100",
+				"--column-width 80",
 				"--quote-style AutoPreferDouble",
 				"--indent-type Spaces",
 				"--indent-width 2",

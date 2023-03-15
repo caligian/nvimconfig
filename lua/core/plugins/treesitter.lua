@@ -6,13 +6,13 @@ user.plugins.treesitter = {
       "python",
       "ruby",
       "bash",
+      'perl',
       "gitcommit",
       "git_rebase",
       "gitattributes",
       "gitignore",
     },
     auto_install = true,
-
     textsubjects = {
       enable = true,
       prev_selection = ",", -- (Optional) keymap to select the previous selection
@@ -103,7 +103,4 @@ user.plugins.treesitter = {
 }
 
 req "user.plugins.treesitter"
-
-if configs then
-  configs.setup(user.plugins.treesitter.config)
-end
+require('nvim-treesitter.configs').setup(user.plugins.treesitter.config)

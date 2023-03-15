@@ -24,6 +24,8 @@ local function clean_before_quitting()
   REPL.stopall()
 end
 
+--------------------------------------------------------------------------------
+
 K.bind(
   { noremap = true, leader = true },
 
@@ -142,10 +144,34 @@ K.bind(
   { "wv", "<C-w>v", "Vsplit win" },
   { "wt", "<C-w>T", "Tabnew win" },
   { "ww", "<C-w>w", "Other win" },
-  { "wx", "<C-w>x", "Swap win" }
+  { "wx", "<C-w>x", "Swap win" },
+
+  -- Add comment separator line
+  {
+    "#",
+    function()
+      local tw = vim.bo.textwidth
+      local comment = string.split(vim.bo.commentstring or "#", " ")[1]
+      local l = #comment
+      tw = tw == 0 and 50 or tw
+
+      if l > 1 then
+        comment = string.rep(comment, math.floor(tw / l))
+      else
+        comment = string.rep(comment, tw)
+      end
+
+      vim.api.nvim_put({ comment }, "l", true, true)
+    end,
+    "Add separator line",
+  }
 )
 
+--------------------------------------------------------------------------------
+
 K.noremap("n", "\\\\", ":noh<CR>", { desc = "No highlight", silent = true, name = "noh" })
+
+--------------------------------------------------------------------------------
 
 K.noremap(
   "t",
@@ -153,6 +179,8 @@ K.noremap(
   "<C-\\><C-n>",
   { desc = "Terminal to normal mode", name = "fix_esc_in_terminal" }
 )
+
+--------------------------------------------------------------------------------
 
 K.bind(
   { prefix = "<C-x>", noremap = true, silent = true },

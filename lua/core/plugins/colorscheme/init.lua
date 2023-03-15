@@ -7,18 +7,21 @@ user.plugins.colorscheme = {
 
 Colorscheme.loadall()
 Colorscheme.setdefault()
-user.statusline.setup = {}
 
 K.bind({ noremap = true, leader = true }, {
   "htt",
   function()
     local themes = table.keys(Colorscheme.colorscheme)
     local current = vim.g.colors_name or "<unknown>"
-    local menu = Buffer.menu("Current: " .. current, themes, nil, function(choice)
-      Colorscheme.set(choice)
+    local prompt = sprintf('Select colorscheme (current: %s) > ')
+
+    vim.ui.select(themes, {
+      prompt = prompt
+    }, function (choice)
+      if choice then
+        Colorscheme.set(choice)
+      end
     end)
-    menu:float {panel=0.3}
-    Buffer.ids[menu.bufnr] = nil
   end,
   "Choose colorscheme",
 }, {
