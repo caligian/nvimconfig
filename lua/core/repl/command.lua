@@ -1,3 +1,5 @@
+local command = utils.command
+
 local function check_filetype(ft)
 	if not Lang.langs[ft] then
 		return false

@@ -1,17 +1,18 @@
 -- Only works for toggleable options
 local function _toggle_option(option)
-  local ok, out = pcall(function()
-    return vim.o[option]
-  end)
+  local bufnr = vim.fn.bufnr()
+  local winid = vim.fn.bufwinid(bufnr)
+  local ok, out = pcall(vim.api.nvim_buf_get_option, bufnr, option)
 
-  if not ok then
-    return
+  if ok then
+    vim.api.nvim_buf_set_option(bufnr, option, not out)
   end
 
-  if not out then
-    vim.o[option] = true
-  else
-    vim.o[option] = false
+  if not ok then
+    ok, out = pcall(vim.api.nvim_win_get_option, winid, option)
+    if ok then
+      vim.api.nvim_win_set_option(winid, option, not out)
+    end
   end
 end
 
@@ -64,7 +65,7 @@ K.bind(
     { desc = "Lua source till point", name = "source_till_point" },
   },
   {
-    "<leader>",
+    "ee",
     "<esc><cmd>NvimEvalRegion<CR>",
     { desc = "Lua source range", mode = "v", name = "Lua source range" },
   },

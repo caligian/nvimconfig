@@ -1,8 +1,10 @@
+user.statusline = user.statusline or {}
+
 local function set_statusline(...)
   local statusline = { ... }
   vim.cmd "set statusline="
 
-  each(statusline, function(line)
+  table.each(statusline, function(line)
     local user_n, s = unpack(line)
     s = s:gsub(" +", "\\ ")
     s = sprintf("%%%d*%s%%*", user_n, s or "")
@@ -11,17 +13,22 @@ local function set_statusline(...)
 end
 
 local function get_statusline_bg()
-  local normal = highlight "Normal"
+  local normal = utils.highlight "Normal"
   local defaults = { guibg = "#002b36", guifg = "#ffffff" }
-  if isblank(normal) then
+
+  if table.isblank(normal) then
     normal = defaults
   end
-  lmerge(normal, defaults)
+
+  table.lmerge(normal, defaults)
 
   local active = {
-    guibg = darken(normal.guibg, "10"),
-    guifg = lighten(normal.guifg, "20"),
+    guibg = utils.darken(normal.guibg, "10"),
+    guifg = utils.lighten(normal.guifg, "20"),
   }
+
+  normal.guibg = utils.lighten(normal.guibg, '10')
+  normal.guifg = utils.darken(normal.guifg, '20')
 
   return active, normal
 end
@@ -29,7 +36,7 @@ end
 local function highlight_statusline(...)
   local active = get_statusline_bg()
 
-  ieach({ ... }, function(idx, fg)
+  table.ieach({ ... }, function(idx, fg)
     fg = fg or "#efefef"
     vim.cmd(sprintf("hi User%d guibg=%s guifg=%s", idx or "", active.guibg or "", fg or ""))
   end)
@@ -40,7 +47,7 @@ local function get_colors(...)
   local c = {}
 
   for idx, val in ipairs { ... } do
-    local hi = highlight(val)
+    local hi = utils.highlight(val)
     local fg = hi.guifg or default
     c[idx] = fg
   end
@@ -50,8 +57,8 @@ end
 
 local function set_background()
   local active, inactive = get_statusline_bg()
-  highlightset("StatusLine", active)
-  highlightset("StatusLineNC", inactive)
+  utils.highlightset("StatusLine", active)
+  utils.highlightset("StatusLineNC", inactive)
 end
 
 local function setup()
@@ -100,3 +107,5 @@ Autocmd("ColorScheme", {
 })
 
 setup()
+
+user.statusline.setup = setup

@@ -1,5 +1,5 @@
 function is(type_spec)
-  type_spec = map(tolist(type_spec), function(i)
+  type_spec = table.map(table.tolist(type_spec), function(i)
     return TYPES[i]
   end)
 
@@ -32,10 +32,10 @@ local function _validate(a, b)
     a.__nonexistent = nil
     a.__table = nil
     local optional = {}
-    local ks_a = keys(a)
-    local ks_b = keys(b)
+    local ks_a = table.keys(a)
+    local ks_b = table.keys(b)
 
-    ieach(ks_a, function(idx, k)
+    table.ieach(ks_a, function(idx, k)
       k = tostring(k)
       local opt = k:match "^%?"
       local _k = k:gsub("^%?", "")
@@ -65,11 +65,11 @@ local function _validate(a, b)
     if not nonexistent then
       assert(
         foreign:len() == 0,
-        string.format("%s: unrequired keys: %s", level_name, dump(foreign:values()))
+        string.format("%s: unrequired table.keys: %s", level_name, dump(foreign:values()))
       )
     end
 
-    each(common, function(key)
+    table.each(common, function(key)
       local x, y
 
       -- Depth 1 is always the param to be checked
@@ -109,7 +109,7 @@ local function _validate(a, b)
 end
 
 function validate(type_spec)
-  teach(type_spec, function(display, spec)
+  table.teach(type_spec, function(display, spec)
     local tp, param = unpack(spec)
     if display:match "^%?" and param == nil then
       return

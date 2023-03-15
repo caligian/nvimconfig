@@ -13,7 +13,7 @@ function lsp.on_attach(client, bufnr)
 	-- Enable completion triggered by <c-x><c-o>
 	vim.api.nvim_buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 
-	if not contains(Lang.langs, vim.bo.filetype, "formatters") then
+	if not table.contains(Lang.langs, vim.bo.filetype, "formatters") then
 		require("lsp-format").on_attach(client)
 	end
 
@@ -48,7 +48,7 @@ function lsp.setup_server(server, opts)
 	local flags = opts.flags or lsp.flags
 	local default_conf = { capabilities = capabilities, on_attach = on_attach, flags = flags }
 
-	default_conf = merge(default_conf, opts)
+	default_conf = table.merge(default_conf, opts)
 
 	require("lspconfig")[server].setup(default_conf)
 end

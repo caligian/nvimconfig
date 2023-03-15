@@ -1,15 +1,15 @@
-function buffer_has_keymap(bufnr, mode, lhs)
+function utils.buffer_has_keymap(bufnr, mode, lhs)
   bufnr = bufnr or 0
   local keymaps = vim.api.nvim_buf_get_keymap(bufnr, mode)
   lhs = lhs:gsub("<leader>", vim.g.mapleader)
   lhs = lhs:gsub("<localleader>", vim.g.maplocalleader)
 
-  return index(keymaps, lhs, function(t, item)
+  return table.index(keymaps, lhs, function(t, item)
     return t.lhs == item
   end)
 end
 
-function visualrange(bufnr)
+function utils.visualrange(bufnr)
   return vim.api.nvim_buf_call(bufnr or vim.fn.bufnr(), function()
     local _, csrow, cscol, _ = unpack(vim.fn.getpos "'<")
     local _, cerow, cecol, _ = unpack(vim.fn.getpos "'>")
@@ -21,18 +21,18 @@ function visualrange(bufnr)
   end)
 end
 
-function nvimerr(...)
+function utils.nvimerr(...)
   for _, s in ipairs { ... } do
     vim.api.nvim_err_writeln(s)
   end
 end
 
-function nvimexec(s, output)
+function utils.nvimexec(s, output)
   output = output == nil and true or output
   return vim.api.nvim_exec(s, output)
 end
 
--- If multiple keys are supplied, the table is going to be assumed to be nested
+-- If multiple table.keys are supplied, the table is going to be assumed to be nested
 function req(require_string, do_assert)
   local ok, out = pcall(require, require_string)
   if ok then
@@ -46,8 +46,8 @@ function req(require_string, do_assert)
     out = "Could not require " .. require_string
   end
 
-  makepath(user, "logs")
-  append(user.logs, out)
+  table.makepath(user, "logs")
+  table.append(user.logs, out)
   logger:debug(out)
 
   if do_assert then
@@ -55,24 +55,24 @@ function req(require_string, do_assert)
   end
 end
 
-function glob(d, expr, nosuf, alllinks)
+function utils.glob(d, expr, nosuf, alllinks)
   nosuf = nosuf == nil and true or false
   return vim.fn.globpath(d, expr, nosuf, true, alllinks) or {}
 end
 
-function get_font()
+function utils.get_font()
   font = vim.o.guifont:match "^([^:]+)"
   height = vim.o.guifont:match "h([0-9]+)" or 12
   return font, height
 end
 
-function set_font(font, height)
+function utils.set_font(font, height)
   validate {
     ["?font"] = { "s", font },
     ["?height"] = { "n", height },
   }
 
-  local current_font, current_height = get_font()
+  local current_font, current_height = utils.get_font()
   if not font then
     font = current_font
   end
@@ -84,7 +84,7 @@ function set_font(font, height)
   vim.cmd("set guifont=" .. sprintf("%s:h%d", font, height))
 end
 
-function log_pcall(f, ...)
+function utils.log_pcall(f, ...)
   local ok, out = pcall(f, ...)
   if ok then
     return out

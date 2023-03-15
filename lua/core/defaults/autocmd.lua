@@ -23,3 +23,12 @@ Autocmd("BufEnter", {
   pattern = ".config/nvim/doc/*txt",
   callback = 'let b:_tag_prefix = "doom"',
 })
+
+-- Autocmd('BufAdd', {
+--   pattern = '*',
+--   callback = function()
+-- 	  if vim.fn.bufname('%') == '' then
+-- 		  vim.cmd 'bdelete'
+-- 	  end
+--   end
+-- })

@@ -1,10 +1,12 @@
+local command = utils.command
+
 -- Open logs
 command("ShowLogs", function()
   local log_path = vim.fn.stdpath "config" .. "/nvim.log"
   if path.exists(log_path) then
     vim.cmd("tabnew " .. log_path)
     vim.cmd "setlocal readonly"
-    vim.cmd 'noremap <buffer> q :bwipeout<CR>'
+    vim.cmd 'noremap <buffer> q :bwipeout <bar> b#<CR>'
   end
 end, {})
 
@@ -25,7 +27,7 @@ local function compile_and_run(lines)
 
   local compiled, err = loadstring(lines)
   if err then
-    nvimerr(err)
+    utils.nvimerr(err)
   elseif compiled then
     compiled()
   end
@@ -33,7 +35,7 @@ end
 
 -- Setup commands
 command("NvimEvalRegion", function()
-  local lines = visualrange()
+  local lines = utils.visualrange()
   compile_and_run(lines)
 end, { range = true })
 
@@ -59,7 +61,7 @@ command("Darken", function(args)
   assert(#args == 2)
 
   local what, by = unpack(args)
-  local hi = highlight "Normal"
+  local hi = utils.highlight "Normal"
 
   if isblank(hi) then
     return
@@ -67,12 +69,12 @@ command("Darken", function(args)
 
   local set = {}
   if what == "fg" then
-    set["guifg"] = darken(hi["guifg"], tonumber(by))
+    set["guifg"] = utils.darken(hi["guifg"], tonumber(by))
   else
-    set["guibg"] = darken(hi["guibg"], tonumber(by))
+    set["guibg"] = utils.darken(hi["guibg"], tonumber(by))
   end
 
-  highlightset("Normal", set)
+  utils.highlightset("Normal", set)
 end, { nargs = "+" })
 
 -- Only works with guifont
@@ -80,7 +82,7 @@ end, { nargs = "+" })
 command("FontSize", function(args)
   args = vim.split(args.args, " +")
   args = args[1]
-  local font, height = get_font()
+  local font, height = utils.get_font()
   local inc = args:match "^([-+])"
   args = args:gsub("^[-+]", "")
   args = tonumber(args)
@@ -94,7 +96,7 @@ command("FontSize", function(args)
   end
   height = args == "" and 12 or height
 
-  set_font(font, height)
+  utils.set_font(font, height)
 end, { nargs = "+" })
 
 command("TrimWhiteSpace", function ()

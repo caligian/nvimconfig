@@ -7,11 +7,12 @@ user.plugins.colorscheme = {
 
 Colorscheme.loadall()
 Colorscheme.setdefault()
+user.statusline.setup = {}
 
 K.bind({ noremap = true, leader = true }, {
   "htt",
   function()
-    local themes = keys(Colorscheme.colorscheme)
+    local themes = table.keys(Colorscheme.colorscheme)
     local current = vim.g.colors_name or "<unknown>"
     local menu = Buffer.menu("Current: " .. current, themes, nil, function(choice)
       Colorscheme.set(choice)

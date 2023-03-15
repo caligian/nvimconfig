@@ -2,7 +2,6 @@ class "Set"
 
 function Set:_init(t)
   local tp = typeof(t)
-  assert(tp == List or tp == "table" or tp == Set, "expected Set|List|table, got " .. tostring(t))
 
   if tp == Set then
     return t
@@ -16,11 +15,11 @@ function Set:_init(t)
 end
 
 function Set:len()
-  return #(keys(self))
+  return #(table.keys(self))
 end
 
 function Set:iter()
-  local ks = keys(self)
+  local ks = table.keys(self)
   local i = 1
   local n = self:len()
   return function()
@@ -28,7 +27,7 @@ function Set:iter()
       return
     end
     i = i + 1
-    return i - 1, rawget(self, ks[i - 1])
+    return rawget(self, ks[i - 1])
   end
 end
 
@@ -44,7 +43,7 @@ function Set:tolist()
 end
 
 function Set:clone()
-  return Set(deepcopy(self:tolist()))
+  return Set(vim.deepcopy(self:tolist()))
 end
 
 function Set:intersection(...)
@@ -52,7 +51,7 @@ function Set:intersection(...)
   local out = Set {}
 
   for _, Y in ipairs { ... } do
-    assert(is_a.t(Y) or is_a.Set(Y), "Y should either be an array or a Set")
+    assert(is_a(Y, Set, table), "table/Set expected, got " .. tostring(Y))
     Y = Set(Y)
 
     for x, _ in pairs(X) do
@@ -94,7 +93,7 @@ function Set:union(...)
   local out = Set {}
 
   for _, Y in ipairs { ... } do
-    assert(is_a.t(Y) or is_a.Set(Y), "Y should either be an array or a Set")
+    assert(is_a(Y, Set, table), "table/Set expected, got " .. tostring(Y))
     Y = Set(Y)
 
     for x, _ in pairs(X) do
@@ -137,7 +136,7 @@ function Set:sort(f)
 end
 
 function Set:values()
-  return keys(self)
+  return table.keys(self)
 end
 
 function Set:difference(...)
@@ -145,9 +144,7 @@ function Set:difference(...)
   local out = Set {}
 
   for _, Y in ipairs { ... } do
-    -- For performance reasons :(
-    assert(is_a.t(Y) or is_a.Set(Y), "Y should either be an array or a Set")
-
+    assert(is_a(Y, Set, table), "table/Set expected, got " .. tostring(Y))
     Y = Set(Y)
     for x, _ in pairs(X) do
       if not Y[x] then
@@ -198,17 +195,13 @@ function Set:is_superset(other)
 end
 
 function Set:remove(element)
-  assert(element ~= nil, "Element cannot be nil")
-
-  local value = deepcopy(self[element])
+  local value = vim.deepcopy(self[element])
   self[element] = nil
 
   return value
 end
 
 function Set:add(element)
-  assert(element ~= nil, "Element cannot be nil")
-
   if not self[element] then
     self[element] = element
   end
@@ -218,4 +211,53 @@ end
 
 function Set:contains(e)
   return self[e] ~= nil
+end
+
+function Set:grep(f)
+	local out = {}
+	local i = 1
+	for v in self:iter() do
+		local o = f(v) 
+		if o then
+			out[i] = o
+		end
+		i = i + 1
+	end
+
+	return out
+end
+
+function Set:filter(f)
+	local out = {}
+	local i = 1
+	for v in self:iter() do
+		local o = f(v) 
+		if o then
+			out[i] = o
+		else
+			out[i] = false
+		end
+		i = i + 1
+	end
+
+	return out
+end
+
+function Set:each(f)
+	for v in self:iter() do
+		f(v)
+	end
+end
+
+function Set:map(f)
+	local out = {}
+	local i = 1
+	for v in self:iter() do
+		local o = f(v) 
+		assert(o ~= nil, 'mapping function cannot return nil')
+		out[i] = o
+		i = i + 1
+	end
+
+	return out
 end

@@ -9,7 +9,7 @@ local config = user.plugins["nvim-lint"].config
 
 for lang, conf in pairs(Lang.langs) do
 	if conf.linters and #conf.linters > 0 then
-		config.linters_by_ft[lang] = tolist(conf.linters)
+		config.linters_by_ft[lang] = table.tolist(conf.linters)
 	end
 end
 

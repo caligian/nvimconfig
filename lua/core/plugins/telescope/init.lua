@@ -5,12 +5,13 @@ local git_status_actions = require "core.plugins.telescope.git_status"
 user.plugins.telescope = { config = ivy }
 local T = user.plugins.telescope.config
 T.disable_devicons = true
-T.layout_config.height = 0.6
+T.layout_config.height = 0.4
 T.previewer = false
 T.extensions = {}
 
 T.pickers = {
   buffers = {
+    show_all_buffers = false,
     mappings = {
       n = {
         x = buffer_actions.bwipeout,
@@ -45,7 +46,7 @@ local opts = { noremap = true, leader = true, mode = "n" }
 Keybinding.bind(
   opts,
   { "/", picker "grep_string", { desc = "Grep string in workspace", name = "ts_grep" } },
-  { "?", picker "live_grep", { desc = "Live grep in workspace", name = "ts_live_grep" } },
+  { "?", picker "live_grep", { desc = "Live table.grep in workspace", name = "ts_live_grep" } },
   { "'", picker "marks", { desc = "Show marks", name = "ts_marks" } },
   { '"', picker "registers", { desc = "Show registers", name = "ts_registers" } },
   { "<leader>", picker "resume", { desc = "Resume telescope", name = "ts_resume" } },

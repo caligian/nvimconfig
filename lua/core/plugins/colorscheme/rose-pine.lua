@@ -1,8 +1,7 @@
 local rose_pine = {}
 
 local function apply(variant, config)
-	config = config
-		or {
+	local defaults = {
 			--- @usage 'auto'|'main'|'moon'|'dawn'
 			variant = "auto",
 			--- @usage 'main'|'moon'|'dawn'
@@ -51,12 +50,12 @@ local function apply(variant, config)
 			},
 		}
 
-	config.variant = variant
-	require("rose-pine").setup(config)
+	defaults.variant = variant
+	require("rose-pine").setup(table.lmerge(defaults, config))
 	vim.cmd("colorscheme rose-pine")
 end
 
-each({ "main", "moon" }, function(variant)
+table.each({ "main", "moon" }, function(variant)
 	rose_pine["rose-pine_" .. variant] = function(config)
 		apply(variant, config)
 	end

@@ -4,10 +4,7 @@ if not lazy then
 	return
 end
 
-makepath(user, "plugins", "plugins")
-
+table.makepath(user, "plugins", "plugins")
 user.plugins.plugins = require("core.plugins.plugins")
-
 req("user.plugins.plugins")
-
 lazy.setup(user.plugins.plugins, { lazy = true })

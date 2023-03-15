@@ -48,7 +48,7 @@ user.plugins["which-key.nvim"] = {
       align = "left",
     },
     ignore_missing = false,
-    hidden = { "<silent>", "<cmd>", "<Cmd>", "<CR>", "call", "lua", "^:", "^ " },
+    hidden = { "<silent>", "<cmd>", "<Cmd>", "<CR>", "call", "lua", "", "^ " },
     show_help = true,
     show_keys = true,
     triggers = "auto",

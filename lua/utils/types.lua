@@ -105,10 +105,6 @@ function class_name(obj)
   return false
 end
 
-function is_pure_table(t)
-  return is_table(t) and not getmetatable(t)
-end
-
 function typeof(x)
   if type(x) == "table" then
     local cls = get_class(x)

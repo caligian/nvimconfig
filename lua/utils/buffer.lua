@@ -1,9 +1,11 @@
 --- Buffer object creater. This does not YET cover all the neovim buffer API functions
 
-class "Buffer"
+if not buffer then
+  class "Buffer"
+end
 
-Buffer.ids = {}
-Buffer.scratch = {}
+Buffer.ids = Buffer.ids or {}
+Buffer.scratch = Buffer.scratch or 1
 
 local function percent_width(current, width, min)
   current = current or vim.fn.winwidth(0)
@@ -35,26 +37,26 @@ local function percent_height(current, height, min)
   current = current or vim.fn.winheight(0)
   height = height or 0.5
 
-    assert(height ~= 0, "height cannot be 0")
-    assert(height > 0, "height cannot be < 0")
+  assert(height ~= 0, "height cannot be 0")
+  assert(height > 0, "height cannot be < 0")
 
-    if height < 1 then
-      required = math.floor(current * height)
-    else
-      required = math.floor(current)
-    end
+  if height < 1 then
+    required = math.floor(current * height)
+  else
+    required = math.floor(current)
+  end
 
-    if min < 1 then
-      min = math.floor(current * min)
-    else
-      min = math.floor(min)
-    end
+  if min < 1 then
+    min = math.floor(current * min)
+  else
+    min = math.floor(min)
+  end
 
-    if required < min then
-      required = min
-    end
+  if required < min then
+    required = min
+  end
 
-    return required
+  return required
 end
 
 function Buffer.vimsize()
@@ -79,7 +81,7 @@ function Buffer.float(self, opts)
         ["?center"] = "n",
         ["?panel"] = "n",
         ["?dock"] = "n",
-        ['?reverse'] = 'b',
+        ["?reverse"] = "b",
       },
       opts or {},
     },
@@ -142,10 +144,10 @@ function Buffer.exists(self)
 end
 
 function Buffer.update(self)
-  update(Buffer.ids, { self.bufnr }, self)
+  table.update(Buffer.ids, { self.bufnr }, self)
 
   if self.scratch then
-    update(Buffer.scratch, { self.bufnr }, self)
+    Buffer.scratch = Buffer.scratch + 1
   end
 end
 
@@ -194,7 +196,7 @@ end
 --- Set buffer variables
 -- @tparam table vars Dictionary of var name and value
 function Buffer.setvars(self, vars)
-  teach(vars, function(k, v)
+  table.teach(vars, function(k, v)
     self:setvar(k, v)
   end)
 
@@ -244,7 +246,7 @@ function Buffer.setwinvars(self, vars)
     return
   end
 
-  teach(vars, function(k, v)
+  table.teach(vars, function(k, v)
     self:setwinvar(k, v)
   end)
 
@@ -256,9 +258,9 @@ function Buffer.setopt(self, k, v)
 end
 
 function Buffer.setopts(self, opts)
-  teach(opts, function(k, v)
-    self:setopt(k, v)
-  end)
+  for key, val in pairs(opts) do
+    self:setopt(key, val)
+  end
 end
 
 function Buffer.winnr(self)
@@ -300,7 +302,7 @@ function Buffer.setwinopts(self, opts)
     return
   end
 
-  teach(opts, function(k, v)
+  table.teach(opts, function(k, v)
     self:setwinopt(k, v)
   end)
 
@@ -314,7 +316,7 @@ end
 --- Make a new buffer local mapping.
 -- @param mode Mode to bind in
 -- @param lhs Keys to bind callback to
--- @tparam function|string callback Callback to be bound to keys
+-- @tparam function|string callback Callback to be bound to table.keys
 -- @tparam[opt] table opts Additional vim.keymap.set options. You cannot set opts.pattern as it will be automatically set by this function
 -- @return object Keybinding object
 function Buffer.map(self, mode, lhs, callback, opts)
@@ -326,7 +328,7 @@ function Buffer.map(self, mode, lhs, callback, opts)
 end
 
 --- Create a nonrecursive mapping
--- @see map
+-- @see table.map
 function Buffer.noremap(self, mode, lhs, callback, opts)
   assert_exists(self)
 
@@ -353,7 +355,7 @@ function Buffer.split(self, split, opts)
   local height = opts.resize or 0.5
   local min = opts.min or 0.01
 
-  -- Use decimal values to use percentage changes
+  -- Use decimal table.values to use percentage changes
   if split == "s" then
     required = percent_height(current, height or 0.5, min)
     if not reverse then
@@ -410,7 +412,7 @@ function Buffer.hook(self, event, callback, opts)
 
   return Autocmd(
     event,
-    merge(opts, {
+    table.merge(opts, {
       pattern = sprintf("<buffer=%d>", self.bufnr),
       callback = callback,
     })
@@ -445,7 +447,7 @@ function Buffer.lines(self, startrow, tillrow)
 
   validate {
     start_row = { "n", startrow },
-    end_row = { "n", till_row },
+    end_row = { "n", tillrow },
   }
 
   return vim.api.nvim_buf_get_lines(self.bufnr, startrow, tillrow, false)
@@ -526,23 +528,6 @@ function Buffer.load(self)
   end
 end
 
---- Switch to scratch buffer
--- @param[opt] default If defined then use 'scratch_buffer' or display a menu to select the existing scratch buffer
-function Buffer.switch_to_scratch(default)
-  if default then
-    local b = Buffer("scratch_buffer", true)
-    b:switch()
-
-    return b
-  else
-    vim.ui.select(map(vim.fn.bufname, keys(Buffer.scratch)), {
-      prompt = "Switch to scratch buffer",
-    }, function(b)
-      vim.cmd("b " .. b)
-    end)
-  end
-end
-
 --- Open scratch buffer in split
 -- @param[opt='scratch_buffer'] name Name of the scratch buffer
 -- @param split 's' (vertically) or 'v' (horizontally)
@@ -568,7 +553,7 @@ function Buffer.getmap(self, mode, lhs)
   return buffer_has_keymap(self.bufnr, mode, lhs)
 end
 
---- Return visually highlighted range in this buffer
+--- Return visually highlighted table.range in this buffer
 -- @see visualrange
 function Buffer.range(self)
   return visualrange(self.bufnr)
@@ -579,10 +564,11 @@ function Buffer.linecount(self)
 end
 
 function Buffer.delete(self)
-  if self:exists() then
-    Buffer.ids[self.bufnr] = nil
-    vim.cmd("bwipeout! " .. self.bufnr)
-    return self
+  local bufnr = self.bufnr
+
+  if vim.api.nvim_buf_is_valid(bufnr) and vim.api.nvim_buf_is_loaded(bufnr) then
+    vim.api.nvim_buf_delete(bufnr, { force = true })
+    self.ids[self.bufnr] = nil
   end
 end
 
@@ -647,17 +633,15 @@ function Buffer.prepend(self, lines)
 end
 
 function Buffer.maplines(self, f)
-  return map(self:lines(0, -1), f)
+  return table.map(self:lines(0, -1), f)
 end
 
 function Buffer.filter(self, f)
-  return filter(self:lines(0, -1), f)
+  return table.filter(self:lines(0, -1), f)
 end
 
 function Buffer.match(self, pat)
-  assert(is_a.s(pat))
-
-  return filter(self:lines(0, -1), function(s)
+  return table.filter(self:lines(0, -1), function(s)
     return s:match(pat)
   end)
 end
@@ -704,8 +688,8 @@ function Buffer.menu(desc, items, formatter, callback)
     ["?formatter"] = { "f", formatter },
   }
 
-  if is_a.s(items) then
-    items = vim.split(items, "\n")
+  if is_a.s(table.items) then
+    table.items = vim.split(items, "\n")
   end
 
   if is_a.s(desc) then
@@ -714,11 +698,11 @@ function Buffer.menu(desc, items, formatter, callback)
 
   local b = Buffer()
   local desc_n = #desc
-  local s = extend(desc, items)
-  local lines = copy(s)
+  local s = table.extend(desc, items)
+  local lines = table.copy(s)
 
   if formatter then
-    s = map(s, formatter)
+    s = table.map(s, formatter)
   end
 
   local _callback = callback
@@ -729,24 +713,27 @@ function Buffer.menu(desc, items, formatter, callback)
     end
 
     _callback(lines[idx])
-    b:delete()
   end
 
   b:setbuffer(s)
-  b:setopt("modifiable", false)
-  b:hook("WinLeave", function()
+
+  b.o.modifiable = false
+
+  b:hook('WinLeave', function ()
     b:delete()
   end)
+
   b:bind({ noremap = true, event = "BufEnter" }, {
     "q",
     function()
       b:delete()
     end,
   }, { "<CR>", callback, "Run callback" })
+
   return b
 end
 
---- Open buffer and run callback when keys are pressed
+--- Open buffer and run callback when table.keys are pressed
 -- @param[opt=false] name Name of the scratch buffer. If skipped then create a unique id
 -- @param text Text to display in the input buffer
 -- @param cb Callback to run at keypress
@@ -759,7 +746,7 @@ end
 --   comment = '#' or string
 --
 --   -- When to run callback?
---   keys = 'gx' or string
+--   table.keys = 'gx' or string
 -- })
 -- @return Buffer
 function Buffer.input(text, cb, opts)
@@ -772,7 +759,7 @@ function Buffer.input(text, cb, opts)
   opts = opts or {}
 
   local split = opts.split or "s"
-  local trigger_keys = opts.keys or "gx"
+  local trigger_table= opts.keys or "gx"
   local comment = opts.comment or "#"
 
   if is_a(text, "string") then
@@ -781,16 +768,17 @@ function Buffer.input(text, cb, opts)
 
   local buf = Buffer()
   buf:setlines(0, -1, text)
+
   buf:split(split, { reverse = opts.reverse, resize = opts.resize })
-  buf:noremap("n", "gq", function()
-    buf:delete()
-  end, "Close buffer")
+
+  buf:noremap("n", "gQ", ':hide<CR>', "Close buffer")
+
   buf:noremap("n", trigger_keys, function()
     local lines = buf:lines(0, -1)
     local sanitized = {}
     local idx = 1
 
-    each(lines, function(s)
+    table.each(lines, function(s)
       if not s:match("^" .. comment) then
         sanitized[idx] = s
         idx = idx + 1
@@ -798,7 +786,6 @@ function Buffer.input(text, cb, opts)
     end)
 
     cb(sanitized)
-    buf:delete()
   end, "Execute callback")
 
   buf:hook("WinLeave", function()
@@ -817,6 +804,11 @@ function Buffer._init(self, name, scratch)
     scratch = true
   end
 
+  if scratch then
+    name = "_scratch_buffer_" .. Buffer.scratch
+    Buffer.scratch = Buffer.scratch + 1
+  end
+
   if is_a.n(name) then
     assert(vim.fn.bufexists(name) ~= 0, "invalid bufnr given: " .. tostring(name))
     bufnr = name
@@ -825,12 +817,10 @@ function Buffer._init(self, name, scratch)
 
   validate { ["?buffer_name"] = { is { "s", "n" }, name } }
 
-  if not name and scratch then
-    bufnr = vim.api.nvim_create_buf(false, true)
-  elseif scratch then
-    bufnr = vim.fn.bufnr(name, true)
+  if scratch then
+    bufnr = vim.fn.bufadd(name)
   else
-    bufnr = vim.fn.bufnr(name, true)
+    bufnr = vim.fn.bufadd(name)
   end
 
   if Buffer.ids[bufnr] then

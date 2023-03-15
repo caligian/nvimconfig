@@ -1,6 +1,6 @@
 local data_dir = vim.fn.stdpath "data"
 
-merge(user, {
+table.merge(user, {
   lsp = user.lsp or {},
   dir = vim.fn.stdpath "config",
   user_dir = path.join(os.getenv "HOME", ".nvim"),

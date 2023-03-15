@@ -27,3 +27,7 @@ function partial(f, ...)
     return f(unpack(outer))
   end
 end
+
+function identity(x)
+	return x
+end

@@ -1,27 +1,19 @@
 return {
-  { "nvim-lua/plenary.nvim", ft = "VimEnter" },
+  { "nvim-lua/plenary.nvim" },
 
   { "hylang/vim-hy", ft = { "hy" } },
 
   {
+    "airblade/vim-gitgutter",
+    event = "BufReadPost",
+    config = function()
+      req "core.plugins.git-gutter"
+    end,
+  },
+
+  {
     "dhruvasagar/vim-buffer-history",
     event = "BufEnter",
-    config = function()
-      vim.cmd [[
-      unmap gbl
-      unmap gbp
-      unmap gbn
-      ]]
-
-      K.bind(
-        { noremap = true, leader = true },
-        { "bh", "<Plug>(buffer-history-list)", "Show buffer history for window" },
-        { "bp", "<Plug>(buffer-history-back)", "Previous buffer in history" },
-        { "bn", "<Plug>(buffer-history-forward)", "Next buffer in history" }
-      )
-
-      K.noremap("n", "s", "<Plug>(easymotion-s2)")
-    end,
   },
 
   {
@@ -37,15 +29,16 @@ return {
         { "gJ", "<Plug>(easymotion-j)", "Goto line below" },
         { "gK", "<Plug>(easymotion-k)", "Goto line above" },
         { "gL", "<Plug>(easymotion-lineforward)", "Current line forward search" },
-        { "g,", "<Plug>(easymotion-repeat)", "Motion repeat" }
+        { "g,", "<Plug>(easymotion-repeat)", "Motion repeat" },
+        {'s', '<Plug>(easymotion-s2)'}
       )
     end,
-    event = "BufEnter",
+    event = "BufReadPost",
   },
 
   {
     "lukas-reineke/indent-blankline.nvim",
-    event = "BufEnter",
+    event = "BufReadPost",
     config = function()
       local indent = req "indent_blankline"
       indent.setup {
@@ -65,7 +58,7 @@ return {
 
   {
     "junegunn/vim-easy-align",
-    event = "BufReadPre",
+    event = "BufReadPost",
     config = function()
       Keybinding.noremap("n", "<leader>=", ":EasyAlign ", { desc = "Align lines" })
       Keybinding.noremap("v", "<leader>=", ":'<,'>EasyAlign ", { desc = "Align lines" })
@@ -74,6 +67,7 @@ return {
 
   {
     "lambdalisue/suda.vim",
+    event = "VimEnter",
     config = function()
       vim.g.suda_smart_edit = 1
     end,
@@ -111,6 +105,7 @@ return {
     config = function()
       req "core.plugins.colorscheme"
     end,
+    event = "VimEnter",
   },
 
   {
@@ -168,7 +163,7 @@ return {
 
   {
     "nvim-treesitter/nvim-treesitter",
-    event = "InsertEnter",
+    event = "BufReadPre",
     dependencies = {
       "RRethy/nvim-treesitter-textsubjects",
       "nvim-treesitter/nvim-treesitter-textobjects",
@@ -207,6 +202,7 @@ return {
 
   {
     "tpope/vim-fugitive",
+    dependencies = { "tpope/vim-git" },
     keys = "<leader>g",
     config = function()
       req "core.plugins.fugitive"
@@ -216,7 +212,7 @@ return {
   {
     "preservim/tagbar",
     keys = "<C-t>",
-    event = "BufEnter",
+    event = "BufReadPost",
     config = function()
       Keybinding.noremap(
         "n",
@@ -253,14 +249,17 @@ return {
 
   {
     "neovim/nvim-lspconfig",
-    ft = grep(keys(Lang.langs), function(k)
-      if contains(Lang.langs, k, "server") then
+    ft = table.grep(table.keys(Lang.langs), function(k)
+      if table.contains(Lang.langs, k, "server") then
         return k
       end
     end),
     dependencies = {
       { "lukas-reineke/lsp-format.nvim" },
       { "williamboman/mason.nvim" },
+      { "mfussenegger/nvim-dap" },
+      { "simrat39/rust-tools.nvim" },
+      { "Saecki/crates.nvim" },
     },
     config = function()
       req "core.plugins.lsp"

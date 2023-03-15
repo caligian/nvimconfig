@@ -4,72 +4,70 @@ Lang.langs = Lang.langs or {}
 local AUTOCMD_ID = 1
 
 function Lang._init(self, lang, opts)
-  return log_pcall(function ()
-    validate {
-      filetype = { "s", lang },
-      ['?opts'] = {
-        {
-          __nonexistent = false,
-          ["?hooks"] = is { "f", "t" },
-          ["?bo"] = "t",
-          ["?kbd"] = "t",
-          ["?compile"] = "s",
-          ["?linters"] = is { "s", "t" },
-          ["?formatters"] = "t",
-          ["?server"] = is { "s", t },
-          ["?repl"] = "s",
-          ["?test"] = "s",
-        },
-        opts,
-      },
-    }
+	validate {
+		filetype = { "s", lang },
+		['?opts'] = {
+			{
+				__nonexistent = false,
+				["?hooks"] = is { "f", "t" },
+				["?bo"] = "t",
+				["?kbd"] = "t",
+				["?compile"] = "s",
+				["?linters"] = is { "s", "t" },
+				["?formatters"] = "t",
+				["?server"] = is { "s", t },
+				["?repl"] = "s",
+				["?test"] = "s",
+			},
+			opts,
+		},
+	}
 
-    if Lang.langs[lang] then
-      return Lang.langs[lang]
-    end
+	if Lang.langs[lang] then
+		return Lang.langs[lang]
+	end
 
-    self.name = lang
-    self.autocmd = false
+	self.name = lang
+	self.autocmd = false
 
-    if opts.hooks then
-      if is_a.f(opts.hooks) then
-        self:hook(opts.hooks)
-      else
-        for _, h in ipairs(opts.hooks) do
-          if is_a.t(h) then
-            log_pcall(function()
-              self:hook(unpack(h))
-            end)
-          else
-            log_pcall(function()
-              self:hook(h)
-            end)
-          end
-        end
-      end
-    end
+	if opts.hooks then
+		if is_a.f(opts.hooks) then
+			self:hook(opts.hooks)
+		else
+			for _, h in ipairs(opts.hooks) do
+				if is_a.t(h) then
+					utils.log_pcall(function()
+						self:hook(unpack(h))
+					end)
+				else
+					utils.log_pcall(function()
+						self:hook(h)
+					end)
+				end
+			end
+		end
+	end
 
-    if opts.bo then
-      self:setbufopts(opts.bo)
-    end
-    if opts.kbd then
-      self:map(unpack(opts.kbd))
-    end
-    if opts.linters then
-      opts.linters = tolist(opts.linters)
-    end
-    if opts.server and is_a.s(opts.server) then
-      opts.server = { name = opts.server }
-    end
+	if opts.bo then
+		self:setbufopts(opts.bo)
+	end
+	if opts.kbd then
+		self:map(unpack(opts.kbd))
+	end
+	if opts.linters then
+		opts.linters = table.tolist(opts.linters)
+	end
+	if opts.server and is_a.s(opts.server) then
+		opts.server = { name = opts.server }
+	end
 
-    Lang.langs[lang] = merge(self, opts or {})
+	Lang.langs[lang] = table.merge(self, opts or {})
 
-    return self
-  end)
+	return self
 end
 
 function Lang.hook(self, callback, opts)
-  return log_pcall(function()
+  return utils.log_pcall(function()
     self.autocmd = self.autocmd or {}
     opts = opts or {}
     opts.pattern = self.name
@@ -89,7 +87,7 @@ function Lang.unhook(self, id)
 end
 
 function Lang.setbufopts(self, bo)
-  log_pcall(function()
+  utils.log_pcall(function()
     self:hook(function()
       local bufnr = vim.fn.bufnr()
       for key, value in pairs(bo) do
@@ -102,7 +100,7 @@ end
 function Lang.map(self, opts, ...)
   local args = { ... }
 
-  log_pcall(function()
+  utils.log_pcall(function()
     opts = opts or {}
     opts.event = 'FileType'
     opts.pattern = self.name
@@ -111,24 +109,22 @@ function Lang.map(self, opts, ...)
 end
 
 function Lang.load(lang)
-  return log_pcall(function()
-    local c = require("core.lang.ft." .. lang)
-    local u = req("user.lang.ft." .. lang)
+	local c = require("core.lang.ft." .. lang)
+	local u = req("user.lang.ft." .. lang)
 
-    if not c then
-      return
-    end
+	if not c then
+		return
+	end
 
-    return Lang(lang, lmerge(u or {}, c))
-  end)
+	return Lang(lang, table.lmerge(u or {}, c))
 end
 
 function Lang.loadall()
-  return log_pcall(function()
-    local src = joinpath(vim.fn.stdpath "config", "lua", "core", "lang", "ft")
+  return utils.log_pcall(function()
+    local src = utils.joinpath(vim.fn.stdpath "config", "lua", "core", "lang", "ft")
     local dirs = dir.getdirectories(src)
     for _, ft in ipairs(dirs) do
-      Lang.load(basename(ft))
+      Lang.load(utils.basename(ft))
     end
   end)
 end

@@ -1,8 +1,8 @@
 -- Will not work with userdata
-function whereis(bin, regex)
+function utils.whereis(bin, regex)
   local out = vim.fn.system("whereis " .. bin .. [[ | cut -d : -f 2- | sed -r "s/(^ *| *$)//mg"]])
-  out = trim(out)
-  out = split(out, " ")
+  out = string.trim(out)
+  out = string.split(out, " ")
 
   if isblank(out) then
     return false
@@ -32,7 +32,7 @@ function global(vars)
   end
 end
 
-function with_open(fname, mode, callback)
+function utils.with_open(fname, mode, callback)
   local fh = io.open(fname, mode)
   local out = nil
   if fh then
@@ -43,11 +43,11 @@ function with_open(fname, mode, callback)
   return out
 end
 
-function joinpath(...)
+function utils.joinpath(...)
   return table.concat({ ... }, "/")
 end
 
-function basename(s)
+function utils.basename(s)
   s = vim.split(s, "/")
   return s[#s]
 end

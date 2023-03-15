@@ -1,4 +1,4 @@
-function split(s, delim)
+function string.split(s, delim)
   return vim.split(s, delim or " ")
 end
 
@@ -18,7 +18,7 @@ function printf(...)
   print(sprintf(...))
 end
 
-function match(s, ...)
+function string.match_any(s, ...)
   for _, value in ipairs { ... } do
     local m = s:match(value)
     if m then

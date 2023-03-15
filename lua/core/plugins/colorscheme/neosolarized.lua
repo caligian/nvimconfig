@@ -5,7 +5,7 @@ return {
 			comment_italics = true,
 			background_set = true,
 		}
-		lmerge(config, defaults)
+		table.lmerge(config, defaults)
 		require("neosolarized").setup(config)
 	end,
 }

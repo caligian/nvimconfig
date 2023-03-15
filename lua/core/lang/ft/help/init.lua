@@ -57,9 +57,9 @@ local function put_ref(jump)
   local spaces_l = pos - line_l
   local new = { line, string.rep(" ", spaces_l) }
   if jump then
-    append(new, "|" .. tag .. "|")
+    table.append(new, "|" .. tag .. "|")
   else
-    append(new, "*" .. tag .. "*")
+    table.append(new, "*" .. tag .. "*")
   end
   new = { concat(new, "") }
 
@@ -79,7 +79,7 @@ return {
   kbd = {
     { noremap = true, prefix='<leader>m' },
 
-    -- If line already contains == then, reformat it
+    -- If line already table.contains == then, reformat it
     { "+", put_sep, "Put seperator: =" },
     { "=", partial(put_sep, true), "Put seperator (tw): =" },
     { "|", partial(put_ref, true), "Put reference" },

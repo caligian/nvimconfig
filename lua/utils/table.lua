@@ -1,23 +1,16 @@
+table.teach = table.foreach
+table.ieach = table.foreachi
+table.keys = vim.tbl_keys
+table.values = vim.tbl_values
+table.copy = vim.deepcopy
+table.isempty = vim.tbl_is_empty
+table.flatten = vim.tbl_flatten
 Map = require "pl.Map"
 OrderedMap = require "pl.OrderedMap"
 MultiMap = require "pl.MultiMap"
 List = require "pl.List"
 
-function len(t)
-  if type(t) == 'string' then
-    return #t
-  elseif type(t) == 'table' then
-    if t.len then
-      return t:len()
-    elseif t.length then
-      return t:length()
-    end
-    return #t
-  end
-  return false
-end
-
-function append(t, ...)
+function table.append(t, ...)
   local idx = #t
   for i, value in ipairs { ... } do
     t[idx + i] = value
@@ -26,7 +19,7 @@ function append(t, ...)
   return t
 end
 
-function iappend(t, idx, ...)
+function table.iappend(t, idx, ...)
   for _, value in ipairs { ... } do
     table.insert(t, idx, value)
   end
@@ -34,7 +27,7 @@ function iappend(t, idx, ...)
   return t
 end
 
-function unshift(t, ...)
+function table.unshift(t, ...)
   for idx, value in ipairs { ... } do
     table.insert(t, idx, value)
   end
@@ -42,11 +35,7 @@ function unshift(t, ...)
   return t
 end
 
-function tolist(x, force)
-  if is_a(x, Set) then
-    return x:tolist()
-  end
-
+function table.tolist(x, force)
   if force or type(x) ~= "table" then
     return { x }
   end
@@ -54,7 +43,20 @@ function tolist(x, force)
   return x
 end
 
-function shift(t, times)
+function table.todict(x)
+	if type(x) ~= 'table' then
+		return {[x] = x}
+	end
+
+	local out = {}
+	for _, v in pairs(x) do
+		out[v] = v
+	end
+
+	return out
+end
+
+function table.shift(t, times)
   local l = #t
   times = times or 1
   for i = 1, times do
@@ -67,81 +69,8 @@ function shift(t, times)
   return t
 end
 
-local function get_iterator(t, is_dict)
-  assert(
-    is_a.Map(t)
-      or is_a.MultiMap(t)
-      or is_a.OrderedMap(t)
-      or is_a.List(t)
-      or is_a.Set(t)
-      or is_a.table(t),
-    "t: Map|OrderedMap|MultiMap|List|Set|table expected, got " .. tostring(t)
-  )
-
-  if is_a.Map(t) or is_a.OrderedMap(t) or is_a.MultiMap(t) or is_a.List(t) or is_a.Set(t) then
-    if is_a.List(t) then
-      return function(list)
-        local it = list:iter()
-        local idx = 1
-        local n = list:len()
-        return function()
-          if idx > n then
-            return
-          end
-          idx = idx + 1
-          return idx - 1, it()
-        end
-      end
-    end
-    return t.iter
-  end
-
-  if is_dict then
-    return pairs
-  else
-    return ipairs
-  end
-end
-
-local function iterate(t, is_dict, f, convert_to, ignore_false)
-  local it = get_iterator(t, is_dict)
-  local cls = convert_to or typeof(t)
-  local out
-
-  if is_a.t(cls) then
-    out = cls {}
-  else
-    out = {}
-  end
-
-  for key, value in it(t) do
-    local o = f(key, value)
-    if o then
-      if is_dict then
-        out[key] = o
-      else
-        append(out, o)
-      end
-    elseif not ignore_false then
-      if is_dict then
-        out[key] = o
-      else
-        append(out, o)
-      end
-    end
-  end
-
-  return out
-end
-
-function index(t, item, test)
-  assert(is_a.t(t) or is_a.List(t), "expected table|list, got " .. tostring(t))
-
-  if test then
-    assert(is_a.f(test), "expected callable, got " .. tostring(test))
-  end
-
-  for key, v in get_iterator(t, false)(t) do
+function table.index(t, item, test)
+  for key, v in pairs(t) do
     if test then
       if test(v, item) then
         return key
@@ -152,111 +81,139 @@ function index(t, item, test)
   end
 end
 
-function teach(t, f)
-  iterate(t, true, f)
+function table.each(t, f)
+	for _, v in ipairs(t) do
+		f(v)
+	end
 end
 
-function ieach(t, f)
-  iterate(t, false, function(idx, x)
-    f(idx, x)
-  end)
+function table.igrep(t, f)
+	local out = {}
+	local i = 1
+
+	for k, v in ipairs(t) do
+		local o = f(k, v)
+		if o then
+			out[i] = v
+			i = i + 1
+		end
+	end
+
+	return out
 end
 
-function each(t, f)
-  iterate(t, false, function(_, x)
-    f(x)
-  end)
+function table.tgrep(t, f)
+	local out = {}
+
+	for k, v in pairs(t) do
+    local o = f(k, v)
+		if o then
+			out[k] = v
+		end
+	end
+
+	return out
 end
 
-function imap(t, f)
-  return iterate(t, false, function(idx, x)
-    return f(idx, x)
-  end)
+function table.grep(t, f)
+	local out = {}
+	local i = 1
+	for _, v in ipairs(t) do
+		local o = f(v)
+		if o then
+			out[i] = v
+			i = i + 1
+		end
+	end
+
+	return out
 end
 
-function map(t, f)
-  return iterate(t, false, function(_, x)
-    return f(x)
-  end)
+function table.filter(t, f)
+	local out = {}
+	for _, v in ipairs(t) do
+		local o = f(v)
+		if o then
+			out[idx] = v
+		else
+			out[idx] = false
+		end
+	end
+
+	return out
 end
 
-function tmap(t, f)
-  return iterate(t, true, f)
+function table.tfilter(t, f)
+	local out = {}
+	for idx, v in pairs(t) do
+		local o = f(idx, v)
+		if o then
+			out[idx] = v
+		else
+			out[idx] = false
+		end
+	end
+
+	return out
 end
 
-function tgrep(t, f)
-  return iterate(t, true, function(k, x)
-    if f(k, x) then
-      return x
-    else
-      return false
-    end
-  end, false, true)
+function table.ifilter(t, f)
+	local out = {}
+	for idx, v in ipairs(t) do
+		local o = f(idx, v)
+		if o then
+			out[idx] = v
+		else
+			out[idx] = false
+		end
+	end
+
+	return out
 end
 
-function igrep(t, f)
-  return iterate(t, false, function(idx, x)
-    if f(idx, x) then
-      return x
-    else
-      return false
-    end
-  end, false, true)
+function table.tmap(t, f)
+	local out = {}
+	for k, v in pairs(t) do
+		v = f(k, v)
+		assert(v ~= nil, 'non-nil expected, got ' .. v)
+		out[idx] = v
+	end
+
+	return out
 end
 
-function grep(t, f)
-  return iterate(t, false, function(_, x)
-    if f(x) then
-      return x
-    else
-      return false
-    end
-  end, false, true)
+function table.map(t, f)
+	local out = {}
+	for idx, v in ipairs(t) do
+		v = f(v)
+		assert(v ~= nil, 'non-nil expected, got ' .. v)
+		out[idx] = v
+	end
+
+	return out
 end
 
-function tfilter(t, f)
-  return iterate(t, true, function(k, x)
-    if f(k, x) then
-      return x
-    else
-      return false
-    end
-  end, false, true)
+function table.imap(t, f)
+	local out = {}
+	for idx, v in ipairs(t) do
+		v = f(idx, v)
+		assert(v ~= nil, 'non-nil expected, got ' .. v)
+		out[idx] = v
+	end
+
+	return out
 end
 
-function ifilter(t, f)
-  return iterate(t, false, function(idx, x)
-    if f(idx, x) then
-      return x
-    else
-      return false
-    end
-  end)
-end
-
-function filter(t, f)
-  return iterate(t, false, function(_, x)
-    if f(x) then
-      return x
-    else
-      return false
-    end
-  end, false, true)
-end
-
-function items(t)
-  assert(not is_a.List(t) and not is_a.Set(t), "expected t/Map/Map-like, got " .. tostring(t))
-
-  local it = get_iterator(t)
-  local out = List {}
-  for key, val in it(t) do
+function table.items(t)
+  local out = {}
+  for key, val in pairs(t) do
     out[#out + 1] = { key, val }
   end
 
   return out
 end
 
-function setro(t)
+function table.setro(t)
   assert(type(t) == "table", tostring(t) .. " is not a table")
 
   local function __newindex()
@@ -274,7 +231,7 @@ function setro(t)
   return t
 end
 
-function mtget(t, k)
+function table.mtget(t, k)
   assert(type(t) == "table", "expected table, got " .. tostring(t))
   assert(k, "No attribute provided to query")
 
@@ -283,46 +240,54 @@ function mtget(t, k)
     return nil
   end
 
+	local out = {}
+	if type(k) == 'table' then
+		for _, v in ipairs(k) do
+			out[v] = rawget(mt, v)
+		end
+
+		return out
+	end
+
   return rawget(mt, k)
 end
 
-function mtset(t, k, v)
+function table.mtset(t, k, v)
   assert(type(t) == "table", "expected table, got " .. tostring(t))
   assert(k, "No attribute provided to query")
 
-  local mt = getmetatable(t)
-  if not mt then
-    setmetatable(t, { [k] = v })
-    mt = getmetatable(t)
-  else
-    rawset(mt, k, v)
-  end
+  local mt = getmetatable(t) or {}
+	if type(k) == 'table' then
+		for idx, v in pairs(k) do
+			rawset(mt, idx, v)
+		end
+		return setmetatable(t, mt)
+	end
 
-  return mt[k]
+	rawset(mt, k, v)
+	setmetatable(t, mt)
+
+	return mt
 end
 
-function isblank(s)
-  assert(
-    is_a.s(s) or is_a.t(s) or is_a.Set(s) or is_a.List(s),
-    "expected string|table|Set|List, got " .. tostring(s)
-  )
+function table.len(t)
+	local i = 0
+	for _, _ in pairs(t) do
+		i = i + 1
+	end
 
-  if is_a.Set(s) or is_a.List(s) then
-    return s:len() == 0
-  end
+	return i
+end
 
+function table.isblank(s)
   if type(s) == "string" then
     return #s == 0
   elseif type(s) == "table" then
-    local i = 0
-    for _, _ in pairs(s) do
-      i = i + 1
-    end
-    return i == 0
+		return table.len(s) == 0
   end
 end
 
-function extend(tbl, ...)
+function table.extend(tbl, ...)
   local l = #tbl
   for i, t in ipairs { ... } do
     if type(t) == "table" then
@@ -337,43 +302,40 @@ function extend(tbl, ...)
   return tbl
 end
 
-function compare(a, b, callback)
+function table.compare(a, b, callback)
   local depth, compared, state = 1, {}, nil
   state = compared
 
   local function _compare(a, b)
-    local ks_a = Set(keys(a))
-    local ks_b = Set(keys(b))
+    local ks_a = Set(table.keys(a))
+    local ks_b = Set(table.keys(b))
     local common = ks_a:intersection(ks_b)
     local missing = ks_a - ks_b
 
-    each(missing, function(key)
-      state[key] = false
+    missing:each(function(key)
+      compared[key] = false
     end)
 
-    each(common, function(key)
+    common:each(function(key)
       local x, y = a[key], b[key]
       if is_a.t(x) and is_a.t(y) then
         depth = depth + 1
-        state[key] = {}
-        state = state[key]
+        compared[key] = {}
+        compared = state[key]
         _compare(x, y)
       elseif callback then
-        state[key] = callback(x, y)
+        compared[key] = callback(x, y)
       else
-        state[key] = typeof(x) == typeof(y) and x == y
-        if depth > 1 then
-          pp(compared)
-        end
+        compared[key] = typeof(x) == typeof(y) and x == y
       end
     end)
   end
 
-  _compare(a, b, _state)
-  return _state
+  _compare(a, b)
+  return state
 end
 
-function butlast(t)
+function table.butlast(t)
   local new = {}
 
   for i = 1, #t - 1 do
@@ -383,7 +345,7 @@ function butlast(t)
   return new
 end
 
-function last(t, n)
+function table.last(t, n)
   if n then
     local len = #t
     local new = {}
@@ -399,7 +361,7 @@ function last(t, n)
   end
 end
 
-function rest(t)
+function table.rest(t)
   local new = {}
   local len = #t
   local idx = 1
@@ -412,7 +374,7 @@ function rest(t)
   return new
 end
 
-function first(t, n)
+function table.first(t, n)
   if n then
     local new = {}
     for i = 1, n do
@@ -425,8 +387,8 @@ function first(t, n)
   end
 end
 
-function update(tbl, keys, value)
-  keys = tolist(keys)
+function table.update(tbl, keys, value)
+  keys = table.tolist(keys)
   local len_ks = #keys
   local t = tbl
 
@@ -447,7 +409,7 @@ function update(tbl, keys, value)
   end
 end
 
-function get(tbl, ks, create_path)
+function table.get(tbl, ks, create_path)
   if type(ks) ~= "table" then
     ks = { ks }
   end
@@ -475,7 +437,7 @@ function get(tbl, ks, create_path)
   return v, t, tbl
 end
 
-function slice(t, from, till)
+function table.slice(t, from, till)
   local l = #t
   if from < 0 then
     from = l + from
@@ -498,29 +460,29 @@ function slice(t, from, till)
   return out
 end
 
-function contains(tbl, ...)
-  return (get(tbl, { ... }))
+function table.contains(tbl, ...)
+  return (table.get(tbl, { ... }))
 end
 
-function makepath(t, ...)
-  return get(t, { ... }, true)
+function table.makepath(t, ...)
+  return table.get(t, { ... }, true)
 end
 
-function lmerge(...)
+function table.lmerge(...)
   local function _merge(t1, t2)
     local later = {}
 
-    teach(t2, function(k, v)
+    table.teach(t2, function(k, v)
       local a, b = t1[k], t2[k]
 
       if a == nil then
         t1[k] = v
       elseif is_a.t(a) and is_a.t(b) then
-        append(later, { a, b })
+        table.append(later, { a, b })
       end
     end)
 
-    each(later, function(next)
+    table.each(later, function(next)
       _merge(unpack(next))
     end)
   end
@@ -536,23 +498,23 @@ function lmerge(...)
   return start
 end
 
-function merge(...)
+function table.merge(...)
   local function _merge(t1, t2)
     local later = {}
 
-    teach(t2, function(k, v)
+    table.teach(t2, function(k, v)
       local a, b = t1[k], t2[k]
 
       if a == nil then
         t1[k] = v
       elseif is_a.t(a) and is_a.t(b) then
-        append(later, { a, b })
+        table.append(later, { a, b })
       else
         t1[k] = v
       end
     end)
 
-    each(later, function(next)
+    table.each(later, function(next)
       _merge(unpack(next))
     end)
   end
@@ -568,11 +530,7 @@ function merge(...)
   return start
 end
 
-function items(t)
-  if is_a.Map(t) or is_a.OrderedMap(t) or is_a.MultiMap(t) then
-    return t:items()
-  end
-
+function table.items(t)
   local it = {}
   local i = 1
   for key, value in pairs(t) do
@@ -583,83 +541,17 @@ function items(t)
   return it
 end
 
-function range(from, till, step)
-  local index = from
+function table.range(from, till, step)
   step = step or 1
+	local out = {}
+	local idx = 1
 
-  return function()
-    index = index + step
-    if index <= till then
-      return index
-    end
-  end
+	for i=from, till, step do
+		out[idx] = i
+		idx = idx + 1
+	end
+
+	return out
 end
 
-MultiMap.merge = merge
-MultiMap.lmerge = lmerge
-MultiMap.makepath = makepath
-MultiMap.filter = tfilter
-MultiMap.each = teach
-MultiMap.map = tmap
-MultiMap.grep = tgrep
-MultiMap.items = items
-MultiMap.update = update
-MultiMap.get = get
-MultiMap.contains = contains
-
-OrderedMap.merge = merge
-OrderedMap.lmerge = lmerge
-OrderedMap.filter = tfilter
-OrderedMap.each = teach
-OrderedMap.map = tmap
-OrderedMap.grep = tgrep
-OrderedMap.items = items
-OrderedMap.update = update
-OrderedMap.get = get
-OrderedMap.contains = contains
-OrderedMap.makepath = makepath
-
-Map.merge = merge
-Map.lmerge = lmerge
-Map.makepath = makepath
-Map.filter = tfilter
-Map.each = teach
-Map.map = tmap
-Map.grep = tgrep
-Map.items = items
-Map.update = update
-Map.get = get
-Map.contains = contains
-
-List.makepath = makepath
-List.get = get
-List.each = each
-List.map = map
-List.grep = grep
-List.filter = filter
-List.ifilter = ifilter
-List.ieach = ieach
-List.imap = ieach
-List.igrep = igrep
-List.index = index
-List.extend = extend
-List.butlast = butlast
-List.last = last
-List.first = first
-List.head = first
-List.rest = rest
-List.tail = rest
-List.update = update
-List.contains = contains
-List.lmerge = lmerge
-List.merge = merge
-
-
-Set.each = each
-Set.map = map
-Set.grep = grep
-Set.filter = filter
-Set.ifilter = ifilter
-Set.ieach = ieach
-Set.imap = ieach
-Set.igrep = igrep
+string.isblank = table.isblank

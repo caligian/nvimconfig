@@ -11,7 +11,8 @@ local mod = setmetatable({}, {
 					f(value)
 				end
 			else
-				f(picker:get_selected_entry())
+        local entry = picker:get_selected_entry()
+        if entry then f(entry) end
 			end
 			actions.close(bufnr)
 		end)

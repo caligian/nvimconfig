@@ -1,4 +1,4 @@
-function highlight(hi)
+function utils.highlight(hi)
   local ok, out = pcall(vim.api.nvim_exec, "hi " .. hi, true)
   if not ok then
     return {}
@@ -6,16 +6,16 @@ function highlight(hi)
 
   hi = {}
   out = vim.split(out, " +")
-  out = grep(out, function(c)
-    if match(c, "xxx", "cleared") then
+  out = table.grep(out, function(c)
+    if string.match_any(c, "xxx", "cleared") then
       return false
     else
       return true
     end
   end)
-  out = slice(out, 1, #out)
+  out = table.slice(out, 1, #out)
 
-  each(out, function(i)
+  table.each(out, function(i)
     local attrib, value = unpack(vim.split(i, "="))
     if value then
       hi[attrib] = value
@@ -25,7 +25,7 @@ function highlight(hi)
   return hi
 end
 
-function hex2rgb(hex)
+function utils.hex2rgb(hex)
   hex = hex:gsub("#", "")
   return tonumber("0x" .. hex:sub(1, 2)),
     tonumber("0x" .. hex:sub(3, 4)),
@@ -33,7 +33,7 @@ function hex2rgb(hex)
 end
 
 -- Taken from https://github.com/iskolbin/lhsx/blob/master/hsx.lua
-function rgb2hsv(r, g, b)
+function utils.rgb2hsv(r, g, b)
   local M, m = math.max(r, g, b), math.min(r, g, b)
   local C = M - m
   local K = 1.0 / (6.0 * C)
@@ -50,7 +50,7 @@ function rgb2hsv(r, g, b)
   return h, M == 0.0 and 0.0 or C / M, M
 end
 
-function hsv2rgb(h, s, v)
+function utils.hsv2rgb(h, s, v)
   local C = v * s
   local m = v - C
   local r, g, b = m, m, m
@@ -75,7 +75,7 @@ function hsv2rgb(h, s, v)
   return r, g, b
 end
 
-function darken(hex, darker_n)
+function utils.darken(hex, darker_n)
   local result = "#"
 
   for s in hex:gmatch "[a-fA-F0-9][a-fA-F0-9]" do
@@ -95,20 +95,20 @@ function darken(hex, darker_n)
   return result
 end
 
-function lighten(hex, lighten_n)
-  return darken(hex, lighten_n * -1)
+function utils.lighten(hex, lighten_n)
+  return utils.darken(hex, lighten_n * -1)
 end
 
-function luminance(hex)
+function utils.luminance(hex)
   local r, g, b = hex2rgb(hex)
   local luminance = (r * 0.2126) + (g * 0.7152) + (b * 0.0722)
   return luminance < (255 / 2)
 end
 
-function highlightset(hi, set, defaults)
+function utils.highlightset(hi, set, defaults)
   local group = hi
-  hi = highlight(hi)
-  if isblank(hi) then
+  hi = utils.highlight(hi)
+  if table.isblank(hi) then
     if defaults then
       hi = defaults
     else
@@ -116,7 +116,7 @@ function highlightset(hi, set, defaults)
     end
   end
 
-  teach(set, function(attrib, transformer)
+  table.teach(set, function(attrib, transformer)
     if not hi[attrib] then
       return
     end
@@ -131,3 +131,5 @@ function highlightset(hi, set, defaults)
 
   return hi
 end
+
+

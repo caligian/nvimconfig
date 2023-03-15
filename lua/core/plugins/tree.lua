@@ -21,7 +21,7 @@ user.plugins["nvim-tree"] = {
 			centralize_selection = true,
 			cursorline = true,
 			debounce_delay = 15,
-			width = 30,
+			width = 50,
 			hide_root_folder = false,
 			side = "left",
 			preserve_window_proportions = false,
@@ -35,7 +35,7 @@ user.plugins["nvim-tree"] = {
 				},
 			},
 			float = {
-				enable = true,
+				enable = false,
 				quit_on_focus_loss = true,
 				open_win_config = {
 					relative = "editor",

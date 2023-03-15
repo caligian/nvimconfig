@@ -15,7 +15,7 @@ end
 
 function Process._on_exit(self, cb)
   return vim.schedule_wrap(function(j, exit_code)
-    j = get(j)
+    j = table.get(j)
     j.exited = true
     j.exit_code = exit_code
 
@@ -34,7 +34,7 @@ function Process._on_stderr(self, cb)
       extend(stderr, parse(d, self.stderr))
     end
     if cb then
-      cb(get(j))
+      cb(table.get(j))
     end
   end)
 end
@@ -48,7 +48,7 @@ function Process._on_stdout(self, cb)
       extend(stdout, parse(d, self.stdout))
     end
     if cb then
-      cb(get(j))
+      cb(table.get(j))
     end
   end)
 end
@@ -150,7 +150,7 @@ function Process.run(self)
 
   self.id = id
 
-  update(Process.ids, { id }, self)
+  table.update(Process.ids, { id }, self)
 
   return self
 end
@@ -184,7 +184,7 @@ function Process.stop(self)
 end
 
 function Process.stopall()
-  each(values(Process.ids), function(p)
+  table.each(table.values(Process.ids), function(p)
     p:stop()
   end)
 end

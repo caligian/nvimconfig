@@ -19,9 +19,9 @@ end
 function Colorscheme.apply(self, override)
   local config = self.config
 
-  merge(config, override)
+  table.merge(config, override)
 
-  if not isblank(config) then
+  if not table.isblank(config) then
     config.callback(config)
   else
     vim.cmd("color " .. self.name)
@@ -38,40 +38,47 @@ function Colorscheme.loadall()
   local function get_name(p)
     return vim.fn.fnamemodify(p, ":t:r")
   end
-  local builtin = extend(glob(user.dir, "colors/*.vim"), glob(user.dir, "colors/*.lua"))
-  local user_themes =
-    extend(glob(user.user_dir, "colors/*.vim"), glob(user.user_dir, "colors/*.lua"))
-  local installed =
-    extend(glob(user.plugins_dir, "*/colors/*.vim"), glob(user.plugins_dir, "*/colors/*.lua"))
-  local configured_dir = path.join(user.dir, "lua", "core", "plugins", "colorscheme")
-  local all = map(extend(builtin, user_themes, installed), get_name)
-  local configured = {}
-  local exclude = map(dir.getfiles(configured_dir), get_name)
 
-  all = grep(all, function(c)
-    if index(exclude, c) then
+  local builtin = table.extend(utils.glob(user.dir, "colors/*.vim"), utils.glob(user.dir, "colors/*.lua"))
+
+  local user_themes =
+    table.extend(utils.glob(user.user_dir, "colors/*.vim"), utils.glob(user.user_dir, "colors/*.lua"))
+
+  local installed =
+    table.extend(utils.glob(user.plugins_dir, "*/colors/*.vim"), utils.glob(user.plugins_dir, "*/colors/*.lua"))
+
+  local configured_dir = path.join(user.dir, "lua", "core", "plugins", "colorscheme")
+
+  local all = table.map(table.extend(builtin, user_themes, installed), get_name)
+
+  local configured = {}
+
+  local exclude = table.map(dir.getfiles(configured_dir), get_name)
+
+  all = table.grep(all, function(c)
+    if table.index(exclude, c) then
       return false
     else
       return true
     end
   end)
 
-  each(exclude, function(name)
-    if match(name, "colorscheme", "init") then
+  table.each(exclude, function(name)
+    if string.match_any(name, "colorscheme", "init") then
       return
     end
 
     local defaults = require("core.plugins.colorscheme." .. name) or {}
     local user_config = req("user.colorscheme." .. name) or {}
 
-    teach(defaults, function(color, f)
+    table.teach(defaults, function(color, f)
       local callback
       if user_config[name] then
         validate {
           config = { "t", user_config[color] },
         }
         callback = function(_config)
-          f(merge(_config or {}, user_config[color]))
+          f(table.merge(_config or {}, user_config[color]))
         end
       else
         callback = f
@@ -80,9 +87,7 @@ function Colorscheme.loadall()
     end)
   end)
 
-  -- extend(all, keys(configured), map(installed, get_name), map(user_themes, get_name))
-
-  each(all, function(name)
+  table.each(all, function(name)
     local c
     if configured[name] then
       c = Colorscheme(name, configured[name])
