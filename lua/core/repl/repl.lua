@@ -95,20 +95,18 @@ function REPL.start(self, force)
 		vim.cmd "term"
 		id = vim.b.terminal_job_id
 		vim.api.nvim_chan_send(id, cmd .. "\r")
+    vim.wo.number = false
+    vim.wo.relativenumber = false
+    vim.api.nvim_buf_set_var(scratch, '_repl_filetype', self.filetype)
 	end)
 
 	if force then
 		self:stop()
 	end
 
-  local buf = Buffer(scratch)
-	buf.wo.number = false
-	buf.wo.relativenumber = false
-	buf.var._repl_filetype = self.filetype
-
 	self.id = id
 	self.running = true
-	self.buffer = buf
+	self.buffer = Buffer(scratch)
 
 	REPL.ids[id] = self
 	REPL.ids[self.filetype] = self
