@@ -292,7 +292,7 @@ function Buffer.setwinopt(self, k, v)
     return
   end
 
-  vim.api.nvim_win_set_option(self:winnr(), k, v)
+  vim.api.nvim_win_set_option(self:winid(), k, v)
 
   return v
 end
