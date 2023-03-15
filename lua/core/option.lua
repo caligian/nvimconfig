@@ -2,6 +2,7 @@ local data_dir = vim.fn.stdpath "data"
 
 user.option = {
   o = {
+    number = true,
     incsearch = false,
     hidden = false,
     relativenumber = true,
@@ -39,9 +40,6 @@ user.option = {
 }
 
 req "user.option"
-
-local font = user.font:gsub(" ", "\\ ")
-vim.cmd("set guifont=" .. font)
 
 for t, opts in pairs(user.option) do
   for k, v in pairs(opts) do

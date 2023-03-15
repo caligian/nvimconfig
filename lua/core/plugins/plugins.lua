@@ -20,11 +20,13 @@ return {
     "dhruvasagar/vim-buffer-history",
     event = "BufEnter",
     config = function()
-      vim.cmd [[ 
-      noremap <leader>bN gbn
-      noremap <leader>bP gbp
-      noremap <leader>bl gbl
-      ]]
+      K.bind({noremap=true, leader=true}, {
+        'bN', 'gbn'
+      }, {
+        'bP', 'gbp',
+      }, {
+        'bh', 'gbl'
+      })
     end,
   },
 
@@ -119,8 +121,22 @@ return {
   },
 
   {
-    "nvim-tree/nvim-tree.lua",
-    config = function() req "core.plugins.tree" end,
+    "prichrd/netrw.nvim",
+    config = function()
+      utils.log_pcall(
+        function()
+          require("netrw").setup {
+            icons = {
+              symlink = "",
+              directory = "",
+              file = "",
+            },
+            use_devicons = true,
+            mappings = {},
+          }
+        end
+      )
+    end,
   },
 
   {

@@ -10,9 +10,9 @@ table.merge(user, {
   shell = "/usr/bin/zsh",
   font = "Liberation Mono:h12",
   colorscheme = {
-    dark = "rosebones",
-    light = "github_light_default",
-    use = "dark",
+    dark = "neobones",
+    light = "vimbones",
+    use = "light",
   },
   conjure_langs = {
     "clojure",
@@ -30,5 +30,7 @@ table.merge(user, {
   },
   bitmap_font = "Terminus:h11",
 })
+
+utils.set_font(user.font, 13)
 
 req "user.globals"
