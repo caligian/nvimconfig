@@ -126,6 +126,11 @@ function Colorscheme.setdefault()
   local color = user.plugins.colorscheme
   local required = color.colorscheme[color.colorscheme.use]
   local conf = color.config
+  if color.use == 'dark' then
+    vim.o.background = 'dark'
+  else
+    vim.o.background = 'light'
+  end
 
   Colorscheme.set(required, conf or {})
 end
@@ -134,6 +139,7 @@ function Colorscheme.setlight()
   local color = user.plugins.colorscheme
   local required = color.colorscheme.light
   local conf = color.config or {}
+  vim.o.background = 'dark'
 
   Colorscheme.set(required, conf)
 end
@@ -142,6 +148,8 @@ function Colorscheme.setdark()
   local color = user.plugins.colorscheme
   local required = color.colorscheme.dark
   local conf = color.config or {}
+  vim.o.background = 'dark'
+  print(vim.o.background)
 
   Colorscheme.set(required, conf)
 end

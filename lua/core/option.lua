@@ -2,6 +2,7 @@ local data_dir = vim.fn.stdpath "data"
 
 user.option = {
   o = {
+    scrolloff = 5,
     number = true,
     incsearch = false,
     hidden = false,

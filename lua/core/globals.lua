@@ -8,11 +8,11 @@ table.merge(user, {
   plugins_dir = path.join(data_dir, "lazy"),
   plugins = user.plugins or {},
   shell = "/usr/bin/zsh",
-  font = "Liberation Mono:h12",
+  font = "Liberation Mono:h13",
   colorscheme = {
     dark = "neobones",
     light = "vimbones",
-    use = "light",
+    use = "dark",
   },
   conjure_langs = {
     "clojure",
