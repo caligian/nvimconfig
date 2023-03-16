@@ -20,12 +20,15 @@ return {
     "dhruvasagar/vim-buffer-history",
     event = "BufEnter",
     config = function()
-      K.bind({noremap=true, leader=true}, {
-        'bN', 'gbn'
+      K.bind({ noremap = true, leader = true }, {
+        "bN",
+        "gbn",
       }, {
-        'bP', 'gbp',
+        "bP",
+        "gbp",
       }, {
-        'bh', 'gbl'
+        "bh",
+        "gbl",
       })
     end,
   },
@@ -34,11 +37,13 @@ return {
     "lukas-reineke/indent-blankline.nvim",
     event = "BufReadPost",
     config = function()
-      local indent = req "indent_blankline"
-      indent.setup {
-        show_current_context = false,
-        show_current_context_start = false,
-      }
+      utils.log_pcall(function()
+        local indent = req "indent_blankline"
+        indent.setup {
+          show_current_context = false,
+          show_current_context_start = false,
+        }
+      end)
     end,
   },
 
@@ -169,18 +174,76 @@ return {
   },
 
   {
+    "cshuaimin/ssr.nvim",
+    event = "BufReadPre",
+    config = function() req "core.plugins.ssr" end,
+  },
+
+  {
+    "phaazon/hop.nvim",
+    event = "WinEnter",
+    config = function() req "user.plugins.hop" end,
+  },
+
+  {
+    "kiyoon/treesitter-indent-object.nvim",
+    keys = {
+      {
+        "ai",
+        "<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_outer()<CR>",
+        mode = { "x", "o" },
+        desc = "Select context-aware indent (outer)",
+      },
+      {
+        "aI",
+        "<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_outer(true)<CR>",
+        mode = { "x", "o" },
+        desc = "Select context-aware indent (outer, line-wise)",
+      },
+      {
+        "ii",
+        "<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_inner()<CR>",
+        mode = { "x", "o" },
+        desc = "Select context-aware indent (inner, partial range)",
+      },
+      {
+        "iI",
+        "<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_inner(true)<CR>",
+        mode = { "x", "o" },
+        desc = "Select context-aware indent (inner, entire range)",
+      },
+    },
+    event = "BufReadPre",
+  },
+
+  {
     "nvim-treesitter/nvim-treesitter",
+    event = "BufReadPre",
     dependencies = {
-      "RRethy/nvim-treesitter-textsubjects",
-      "nvim-treesitter/nvim-treesitter-textobjects",
+      { "RRethy/nvim-treesitter-textsubjects" },
+      { "nvim-treesitter/nvim-treesitter-textobjects" },
+      { "mfussenegger/nvim-treehopper" },
+      { "kiyoon/treesitter-indent-object.nvim" },
+      { "andymass/vim-matchup" },
+      { "cshuaimin/ssr.nvim" },
+      { "RRethy/nvim-treesitter-endwise" },
+      { "eddiebergman/nvim-treesitter-pyfold" },
+      { "nvim-treesitter/nvim-treesitter-refactor" },
+      { "phaazon/hop.nvim" },
+      { "MunifTanjim/nui.nvim" },
     },
     config = function() req "core.plugins.treesitter" end,
   },
 
   {
+    "wellle/context.vim",
+    config = function() req "core.plugins.context" end,
+  },
+
+  {
     "SirVer/ultisnips",
     event = "InsertEnter",
-    dependencies = { { "honza/vim-snippets" } },
+    dependencies = { "honza/vim-snippets" },
     config = function() req "core.plugins.ultisnips" end,
   },
 
@@ -273,9 +336,7 @@ return {
         end
         local tab = vim.fn.tabpagenr()
         local n_wins = #(vim.fn.tabpagebuflist(tab))
-        if n_wins > 1 then
-          vim.cmd ":hide"
-        end
+        if n_wins > 1 then vim.cmd ":hide" end
       end
       Keybinding.bind(
         { noremap = true, leader = true },

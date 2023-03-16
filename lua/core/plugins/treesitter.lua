@@ -1,12 +1,22 @@
 -- Textobjects are broken for some reason
 user.plugins.treesitter = {
   config = {
+    refactor = {
+      highlight_definitions = {
+        enable = true,
+        -- Set to false if you have an `updatetime` of ~100.
+        clear_on_cursor_move = true,
+      },
+    },
+    endwise = { enabled = true },
+    matchup = { enable = true },
+    pyfold = {enable=true, custom_foldtext=true},
     ensure_installed = {
       "lua",
       "python",
       "ruby",
       "bash",
-      'perl',
+      "perl",
       "gitcommit",
       "git_rebase",
       "gitattributes",
@@ -102,5 +112,22 @@ user.plugins.treesitter = {
   },
 }
 
+--------------------------------------------------
+--------------------------------------------------
+-- nvim-treehopper
+require("tsht").move { side = "end" }
+
+K.bind({ silent = true }, {
+  "m",
+  ':<C-U>lua require("tsht").nodes()<CR>',
+  { mode = "o" },
+}, {
+  "m",
+  ":lua require('tsht').nodes()<CR>",
+  { noremap = true, mode = "x" },
+})
+
+--------------------------------------------------
+-- Setup treesitter
 req "user.plugins.treesitter"
-require('nvim-treesitter.configs').setup(user.plugins.treesitter.config)
+require("nvim-treesitter.configs").setup(user.plugins.treesitter.config)

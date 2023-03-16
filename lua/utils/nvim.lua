@@ -92,3 +92,9 @@ function utils.log_pcall(f, ...)
     logger:debug(out)
   end
 end
+
+function utils.log_pcall_wrap(f)
+  return function (...)
+    return f(...)
+  end
+end
