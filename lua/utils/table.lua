@@ -530,17 +530,6 @@ function table.merge(...)
   return start
 end
 
-function table.items(t)
-  local it = {}
-  local i = 1
-  for key, value in pairs(t) do
-    it[i] = { key, value }
-    i = i + 1
-  end
-
-  return it
-end
-
 function table.range(from, till, step)
   step = step or 1
 	local out = {}

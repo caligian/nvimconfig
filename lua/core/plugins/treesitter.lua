@@ -2,15 +2,29 @@
 user.plugins.treesitter = {
   config = {
     refactor = {
+      navigation = {
+        enable = true,
+        keymaps = {
+          goto_definition = "gnd",
+          list_definitions = "gnD",
+          list_definitions_toc = "gO",
+          goto_next_usage = "<a-*>",
+          goto_previous_usage = "<a-#>",
+        },
+      },
       highlight_definitions = {
         enable = true,
-        -- Set to false if you have an `updatetime` of ~100.
         clear_on_cursor_move = true,
       },
+      smart_rename = {
+        enable = true,
+        keymaps = {
+          smart_rename = "grr",
+        },
+      }
     },
     endwise = { enabled = true },
     matchup = { enable = true },
-    pyfold = {enable=true, custom_foldtext=true},
     ensure_installed = {
       "lua",
       "python",
@@ -115,7 +129,7 @@ user.plugins.treesitter = {
 --------------------------------------------------
 --------------------------------------------------
 -- nvim-treehopper
-require("tsht").move { side = "end" }
+req('core.plugins.hop')
 
 K.bind({ silent = true }, {
   "m",

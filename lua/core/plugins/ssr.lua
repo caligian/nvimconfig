@@ -17,4 +17,10 @@ user.plugins.ssr = {
 
 req "user.plugins.ssr"
 require("ssr").setup(user.plugins.ssr.config)
-vim.keymap.set({ "n", "x" }, "<leader>%", function() require("ssr").open() end)
+
+K.noremap(
+  "nx",
+  "<leader>%",
+  function() require("ssr").open() end,
+  "Structural editing"
+)

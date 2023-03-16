@@ -1,12 +1,34 @@
 return {
   { "nvim-lua/plenary.nvim" },
 
+  { "nathom/filetype.nvim" },
+
+  { "Konfekt/vim-compilers", event = "BufEnter" },
+
   { "hylang/vim-hy", ft = { "hy" } },
 
   { "mfussenegger/nvim-fzy" },
 
+  { "rcarriga/nvim-notify" },
+
   {
-    "windwp/windline.nvim",
+    "krady21/compiler-explorer.nvim",
+    event = "BufReadPost",
+    config = function() req "user.plugins.compiler" end,
+  },
+
+  {
+    "RRethy/vim-illuminate",
+    config = function() req "user.plugins.illuminate" end,
+    event = "BufReadPre",
+  },
+
+  {
+    "nvim-lualine/lualine.nvim",
+    dependencies = {
+      "rcarriga/nvim-notify",
+      {'akinsho/bufferline.nvim', tag = 'v3.5.0'}
+    },
     config = function() req "core.plugins.statusline" end,
   },
 
@@ -22,13 +44,16 @@ return {
     config = function()
       K.bind({ noremap = true, leader = true }, {
         "bN",
-        "gbn",
+        "<Plug>(buffer-history-forward)",
+        "Next buffer in history",
       }, {
         "bP",
-        "gbp",
+        "<Plug>(buffer-history-back)",
+        "Previous buffer in history",
       }, {
         "bh",
-        "gbl",
+        "<Plug>(buffer-history-list)",
+        "Show buffer history",
       })
     end,
   },
@@ -36,15 +61,7 @@ return {
   {
     "lukas-reineke/indent-blankline.nvim",
     event = "BufReadPost",
-    config = function()
-      utils.log_pcall(function()
-        local indent = req "indent_blankline"
-        indent.setup {
-          show_current_context = false,
-          show_current_context_start = false,
-        }
-      end)
-    end,
+    config = function() req "core.plugins.indent-blankline" end,
   },
 
   {
@@ -74,7 +91,7 @@ return {
 
   {
     "lambdalisue/suda.vim",
-    event = "VimEnter",
+    cmd = "SudaRead",
     config = function() vim.g.suda_smart_edit = 1 end,
   },
 
@@ -83,30 +100,30 @@ return {
     "sainnhe/everforest",
     -- A hack to ensure that all colorschemes are loaded at once
     dependencies = {
-      { "mfussenegger/nvim-fzy" },
-      { "rktjmp/lush.nvim" },
-      { "rose-pine/neovim" },
-      { "navarasu/onedark.nvim" },
-      { "Shatur/neovim-ayu" },
-      { "svrana/neosolarized.nvim" },
-      { "mcchrish/zenbones.nvim" },
-      { "tjdevries/colorbuddy.nvim" },
-      { "jesseleite/nvim-noirbuddy" },
-      { "ray-x/starry.nvim" },
-      { "catppuccin/nvim" },
-      { "marko-cerovac/material.nvim" },
-      { "fenetikm/falcon" },
-      { "shaunsingh/nord.nvim" },
-      { "rebelot/kanagawa.nvim" },
-      { "EdenEast/nightfox.nvim" },
-      { "projekt0n/github-nvim-theme" },
-      { "bluz71/vim-nightfly-colors" },
-      { "bluz71/vim-moonfly-colors" },
-      { "folke/lsp-colors.nvim" },
-      { "savq/melange-nvim" },
-      { "AlexvZyl/nordic.nvim" },
-      { "mhartington/oceanic-next" },
-      { "folke/tokyonight.nvim" },
+      "mfussenegger/nvim-fzy",
+      "rktjmp/lush.nvim",
+      "rose-pine/neovim",
+      "navarasu/onedark.nvim",
+      "Shatur/neovim-ayu",
+      "svrana/neosolarized.nvim",
+      "mcchrish/zenbones.nvim",
+      "tjdevries/colorbuddy.nvim",
+      "jesseleite/nvim-noirbuddy",
+      "ray-x/starry.nvim",
+      "catppuccin/nvim",
+      "marko-cerovac/material.nvim",
+      "fenetikm/falcon",
+      "shaunsingh/nord.nvim",
+      "rebelot/kanagawa.nvim",
+      "EdenEast/nightfox.nvim",
+      "projekt0n/github-nvim-theme",
+      "bluz71/vim-nightfly-colors",
+      "bluz71/vim-moonfly-colors",
+      "folke/lsp-colors.nvim",
+      "savq/melange-nvim",
+      "AlexvZyl/nordic.nvim",
+      "mhartington/oceanic-next",
+      "folke/tokyonight.nvim",
     },
     config = function() req "core.plugins.colorscheme" end,
   },
@@ -127,6 +144,7 @@ return {
 
   {
     "prichrd/netrw.nvim",
+    cmd = "Lexplore",
     config = function()
       utils.log_pcall(
         function()
@@ -180,63 +198,69 @@ return {
   },
 
   {
-    "phaazon/hop.nvim",
-    event = "WinEnter",
-    config = function() req "user.plugins.hop" end,
-  },
-
-  {
     "kiyoon/treesitter-indent-object.nvim",
     keys = {
       {
         "ai",
         "<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_outer()<CR>",
         mode = { "x", "o" },
-        desc = "Select context-aware indent (outer)",
+        desc = "Select indent (outer)",
       },
       {
         "aI",
         "<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_outer(true)<CR>",
         mode = { "x", "o" },
-        desc = "Select context-aware indent (outer, line-wise)",
+        desc = "Select indent (outer, line-wise)",
       },
       {
         "ii",
         "<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_inner()<CR>",
         mode = { "x", "o" },
-        desc = "Select context-aware indent (inner, partial range)",
+        desc = "Select indent (inner, partial range)",
       },
       {
         "iI",
         "<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_inner(true)<CR>",
         mode = { "x", "o" },
-        desc = "Select context-aware indent (inner, entire range)",
+        desc = "Select indent (inner, entire range)",
       },
     },
     event = "BufReadPre",
+  },
+
+  {
+    "phaazon/hop.nvim",
+    event = "WinEnter",
+    config = function() req "core.plugins.hop" end,
   },
 
   {
     "nvim-treesitter/nvim-treesitter",
     event = "BufReadPre",
     dependencies = {
-      { "RRethy/nvim-treesitter-textsubjects" },
-      { "nvim-treesitter/nvim-treesitter-textobjects" },
-      { "mfussenegger/nvim-treehopper" },
-      { "kiyoon/treesitter-indent-object.nvim" },
-      { "andymass/vim-matchup" },
-      { "cshuaimin/ssr.nvim" },
-      { "RRethy/nvim-treesitter-endwise" },
-      { "eddiebergman/nvim-treesitter-pyfold" },
-      { "nvim-treesitter/nvim-treesitter-refactor" },
-      { "phaazon/hop.nvim" },
-      { "MunifTanjim/nui.nvim" },
+      "RRethy/vim-illuminate",
+      "RRethy/nvim-treesitter-textsubjects",
+      "nvim-treesitter/nvim-treesitter-textobjects",
+      {
+        "mfussenegger/nvim-treehopper",
+        dependencies = {
+          "phaazon/hop.nvim",
+          config = function() req "core.plugins.hop" end,
+        },
+      },
+      "kiyoon/treesitter-indent-object.nvim",
+      "andymass/vim-matchup",
+      "cshuaimin/ssr.nvim",
+      "RRethy/nvim-treesitter-endwise",
+      "nvim-treesitter/nvim-treesitter-refactor",
+      "MunifTanjim/nui.nvim",
     },
     config = function() req "core.plugins.treesitter" end,
   },
 
   {
     "wellle/context.vim",
+    event = "BufReadPre",
     config = function() req "core.plugins.context" end,
   },
 
@@ -251,14 +275,14 @@ return {
     "hrsh7th/nvim-cmp",
     event = "InsertEnter",
     dependencies = {
-      { "quangnguyen30192/cmp-nvim-ultisnips" },
-      { "tamago324/cmp-zsh" },
-      { "hrsh7th/cmp-nvim-lsp" },
-      { "ray-x/cmp-treesitter" },
-      { "hrsh7th/cmp-nvim-lua" },
-      { "hrsh7th/cmp-path" },
-      { "hrsh7th/cmp-nvim-lsp-signature-help" },
-      { "hrsh7th/cmp-nvim-lsp-document-symbol" },
+      "quangnguyen30192/cmp-nvim-ultisnips",
+      "tamago324/cmp-zsh",
+      "hrsh7th/cmp-nvim-lsp",
+      "ray-x/cmp-treesitter",
+      "hrsh7th/cmp-nvim-lua",
+      "hrsh7th/cmp-path",
+      "hrsh7th/cmp-nvim-lsp-signature-help",
+      "hrsh7th/cmp-nvim-lsp-document-symbol",
     },
     config = function() req "core.plugins.cmp" end,
   },
@@ -303,14 +327,19 @@ return {
     config = function() req "core.plugins.formatter" end,
   },
 
+  {'liuchengxu/vista.vim', keys = {'<C-t>', }},
+
   {
     "neovim/nvim-lspconfig",
     dependencies = {
-      { "lukas-reineke/lsp-format.nvim" },
-      { "williamboman/mason.nvim" },
-      { "mfussenegger/nvim-dap" },
-      { "simrat39/rust-tools.nvim" },
-      { "Saecki/crates.nvim" },
+      'ldelossa/litee.nvim',
+      'ldelossa/litee-symboltree.nvim',
+      "RRethy/vim-illuminate",
+      "lukas-reineke/lsp-format.nvim",
+      "williamboman/mason.nvim",
+      "mfussenegger/nvim-dap",
+      "simrat39/rust-tools.nvim",
+      "Saecki/crates.nvim",
     },
     config = function() req "core.plugins.lsp" end,
   },
@@ -318,6 +347,7 @@ return {
   {
     "nvim-telescope/telescope.nvim",
     dependencies = {
+      "neovim/nvim-lspconfig",
       { "nvim-telescope/telescope-fzf-native.nvim", run = "make" },
     },
     config = function() req "core.plugins.telescope" end,

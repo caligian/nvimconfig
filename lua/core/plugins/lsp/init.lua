@@ -69,6 +69,7 @@ function lsp.setup()
 end
 
 user.plugins.lsp = lsp
+
 req("user.plugins.lsp")
 require("core.plugins.lsp.kbd")
 

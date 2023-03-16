@@ -10,7 +10,7 @@ table.merge(user, {
   shell = "/usr/bin/zsh",
   font = "Liberation Mono:h13",
   colorscheme = {
-    dark = "neobones",
+    dark = "nordic",
     light = "vimbones",
     use = "dark",
   },

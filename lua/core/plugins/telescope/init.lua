@@ -52,16 +52,16 @@ telescope.load_extension "fzf"
 
 --------------------------------------------------------------------------------
 -- Start keymappings
-local function picker(p)
+local function picker(p, conf)
   return function()
-    require("telescope.builtin")[p](ivy)
+    require("telescope.builtin")[p](table.merge(conf or {}, ivy))
   end
 end
 
 local opts = Keybinding.bind(
   { noremap = true, leader = true, mode = "n" },
-  { "?", picker "grep_string", { desc = "Grep string in workspace", name = "ts_grep" } },
-  { "/", picker "live_grep", { desc = "Live grep in workspace", name = "ts_live_grep" } },
+  { "/", picker("live_grep", {search_dirs={vim.fn.expand('%:p')}}), { desc = "Grep string in workspace", name = "ts_grep" } },
+  { "?", picker "live_grep", { desc = "Live grep in workspace", name = "ts_live_grep" } },
   { "'", picker "marks", { desc = "Show marks", name = "ts_marks" } },
   { '"', picker "registers", { desc = "Show registers", name = "ts_registers" } },
   { "<leader>", picker "resume", { desc = "Resume telescope", name = "ts_resume" } },
