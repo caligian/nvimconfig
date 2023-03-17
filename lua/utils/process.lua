@@ -1,6 +1,6 @@
 class "Process"
 
-Process.ids = {}
+Process.ids = Process.ids or {}
 
 local function parse(d, out)
   if type(d) == "string" then
@@ -8,14 +8,14 @@ local function parse(d, out)
   elseif type(d) == "table" then
     for _, s in ipairs(d) do
       s = vim.split(s, "\n")
-      extend(out, s)
+      table.extend(out, s)
     end
   end
 end
 
 function Process._on_exit(self, cb)
   return vim.schedule_wrap(function(j, exit_code)
-    j = table.get(j)
+    j = Process.ids[j]
     j.exited = true
     j.exit_code = exit_code
 
@@ -31,7 +31,7 @@ function Process._on_stderr(self, cb)
 
   return vim.schedule_wrap(function(j, d)
     if d then
-      extend(stderr, parse(d, self.stderr))
+      table.extend(stderr, parse(d, self.stderr))
     end
     if cb then
       cb(table.get(j))
@@ -45,7 +45,7 @@ function Process._on_stdout(self, cb)
 
   return vim.schedule_wrap(function(j, d)
     if d then
-      extend(stdout, parse(d, self.stdout))
+      table.extend(stdout, parse(d, self.stdout))
     end
     if cb then
       cb(table.get(j))
@@ -56,7 +56,7 @@ end
 function Process._init(self, command, opts)
   validate {
     command = { "string", command },
-    opts = { "table", opts },
+    ['?opts'] = { "table", opts },
   }
 
   opts = opts or {}
@@ -100,7 +100,7 @@ function Process._init(self, command, opts)
   self.command = command
   self.opts = opts
 
-  return lmerge(self, opts)
+  return table.lmerge(self, opts)
 end
 
 function Process.status(self, timeout)
@@ -168,7 +168,9 @@ function Process.send(self, s)
     s = table.concat(s, "\n")
   end
 
-  return vim.api.nvim_chan_send(self.id, s)
+  vim.api.nvim_chan_send(self.id, s)
+
+  return self
 end
 
 function Process.stop(self)
@@ -181,6 +183,8 @@ function Process.stop(self)
     self.buffer:delete()
   end
   self.buffer = nil
+
+  return self
 end
 
 function Process.stopall()
