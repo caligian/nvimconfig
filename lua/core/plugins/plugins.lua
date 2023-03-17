@@ -63,10 +63,14 @@ return {
     "nvim-lualine/lualine.nvim",
     dependencies = {
       "rcarriga/nvim-notify",
+      {'akinsho/bufferline.nvim', config = utils.log_pcall_wrap(function ()
+        require('bufferline').setup {}
+      end)}
     },
     config = function()
       req "core.plugins.statusline"
     end,
+    priority = 400,
   },
 
   {
