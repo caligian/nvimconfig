@@ -12,7 +12,7 @@ T.previewer = false
 T.extensions = {}
 T.pickers = {
   buffers = {
-    show_all_buffers = false,
+    show_all_buffers = true,
     mappings = {
       n = {
         x = buffer_actions.bwipeout,
@@ -34,11 +34,9 @@ T.pickers = {
 --------------------------------------------------------------------------------
 -- Setup extensions
 T.extensions = {
-  fzf = {
-    fuzzy = true,
+  fzy = {
     override_generic_sorter = true,
-    override_file_sorted = true,
-    case_mode = "smart_case",
+    override_file_sorter = true,
   },
 }
 
@@ -48,7 +46,7 @@ T.extensions = {
 req "user.plugins.telescope"
 local telescope = require "telescope"
 telescope.setup(T)
-telescope.load_extension "fzf"
+telescope.load_extension "fzy_native"
 
 --------------------------------------------------------------------------------
 -- Start keymappings
@@ -60,20 +58,55 @@ end
 
 local opts = Keybinding.bind(
   { noremap = true, leader = true, mode = "n" },
-  { "/", picker("live_grep", {search_dirs={vim.fn.expand('%:p')}}), { desc = "Grep string in workspace", name = "ts_grep" } },
-  { "?", picker "live_grep", { desc = "Live grep in workspace", name = "ts_live_grep" } },
+  {
+    "/",
+    function() picker("live_grep", { search_dirs = { vim.fn.expand "%:p" } })() end,
+    { desc = "Grep string in workspace", name = "ts_grep" },
+  },
+  {
+    "?",
+    picker "live_grep",
+    { desc = "Live grep in workspace", name = "ts_live_grep" },
+  },
   { "'", picker "marks", { desc = "Show marks", name = "ts_marks" } },
-  { '"', picker "registers", { desc = "Show registers", name = "ts_registers" } },
-  { "<leader>", picker "resume", { desc = "Resume telescope", name = "ts_resume" } },
-  { "hv", picker "vim_options", { desc = "Show vim options", name = "ts_options" } },
-  { ".", picker "find_files", { desc = "Find files in workspace", name = "ts_ff" } },
+  {
+    '"',
+    picker "registers",
+    { desc = "Show registers", name = "ts_registers" },
+  },
+  {
+    "<leader>",
+    picker "resume",
+    { desc = "Resume telescope", name = "ts_resume" },
+  },
+  {
+    "hv",
+    picker "vim_options",
+    { desc = "Show vim options", name = "ts_options" },
+  },
+  {
+    ".",
+    function() picker("find_files", { cwd = vim.fn.expand "%:p:h" })() end,
+    { desc = "Find files in workspace", name = "ts_ff" },
+  },
   { "ff", picker "git_files", { desc = "Do git ls-files", name = "ts_git_ls" } },
   { "bb", picker "buffers", { desc = "Show buffers", name = "ts_buffers" } },
-  { "fr", picker "oldfiles", { desc = "Show recently opened files", name = "ts_mru" } },
+  {
+    "fr",
+    picker "oldfiles",
+    { desc = "Show recently opened files", name = "ts_mru" },
+  },
   { "hm", picker "man_pages", { desc = "Show man pages", name = "ts_man" } },
-  { "hc", picker "colorscheme", { desc = "Select colorscheme", name = "ts_colorscheme" } },
-  { "lt", picker "treesitter", { desc = "Telescope treesitter", name = "ts_treesitter" } },
-  { "lr", picker "lsp_references", { desc = "Show references", name = "ts_ref" } },
+  {
+    "lt",
+    picker "treesitter",
+    { desc = "Telescope treesitter", name = "ts_treesitter" },
+  },
+  {
+    "lr",
+    picker "lsp_references",
+    { desc = "Show references", name = "ts_ref" },
+  },
   {
     "ls",
     picker "lsp_document_symbols",
@@ -84,8 +117,32 @@ local opts = Keybinding.bind(
     picker "lsp_workspace_symbols",
     { desc = "Workspace symbols", name = "ts_workspace_symbols" },
   },
-  { "ld", picker "diagnostics", { desc = "Show LSP diagnostics", name = "ts_diagnostics" } },
-  { "gC", picker "git_commits", { desc = "Show commits", name = "ts_git_commits" } },
-  { "gB", picker "git_bcommits", { desc = "Show branch commits", name = "ts_branch_commits" } },
-  { "g?", picker "git_status", { desc = "Git status", name = "ts_git_status" } }
+  {
+    "ld",
+    function() picker("diagnostics", { bufnr = 0 })() end,
+    { desc = "Show buffer LSP diagnostics", name = "ts_diagnostics" },
+  },
+  {
+    "l`",
+    picker "diagnostics",
+    { desc = "Show LSP diagnostics", name = "ts_diagnostics" },
+  },
+  {
+    "gC",
+    picker "git_commits",
+    { desc = "Show commits", name = "ts_git_commits" },
+  },
+  {
+    "gB",
+    picker "git_bcommits",
+    { desc = "Show branch commits", name = "ts_branch_commits" },
+  },
+  { "g?", picker "git_status", { desc = "Git status", name = "ts_git_status" } },
+  {
+    "h:",
+    picker "command_history",
+    { desc = "Command history", name = "ts_git_status" },
+  }
 )
+
+req 'core.plugins.telescope.colorscheme'

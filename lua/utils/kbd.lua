@@ -258,6 +258,7 @@ function K.noremap(mode, lhs, cb, opts)
     opts = { desc = opts }
   end
   opts.noremap = true
+  opts.remap = false
 
   return K(mode, lhs, cb, opts)
 end

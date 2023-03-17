@@ -18,6 +18,9 @@ require('illuminate').configure({
         'fugitive',
         'help',
         'txt',
+        'text',
+        'startuptime',
+        'latex',
         'markdown',
     },
     -- filetypes_allowlist: filetypes to illuminate, this is overriden by filetypes_denylist

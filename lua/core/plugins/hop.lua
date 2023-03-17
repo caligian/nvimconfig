@@ -1,9 +1,10 @@
 -- place this in one of your configuration file(s)
 local hop = require "hop"
 local directions = require("hop.hint").HintDirection
+hop.setup()
 
 K.bind(
-  { mode = "nvx", noremap = false },
+  { mode = "nvx", noremap = false, remap=true },
   { "g/", function() hop.hint_patterns {} end, "Hop to pattern" },
   { "gl", function() hop.hint_lines_skip_whitespace {} end },
   {
@@ -14,12 +15,10 @@ K.bind(
   },
   {
     "gK",
-    function()
+    utils.log_pcall_wrap(function()
       hop.hint_lines_skip_whitespace { direction = directions.BEFORE_CURSOR }
-    end,
+    end),
   },
-  { "s", function() hop.hint_char2 {} end },
-  { "S", function() hop.hint_words {} end }
+  { "s", function() hop.hint_char2 {} end }
 )
 
-hop.setup()

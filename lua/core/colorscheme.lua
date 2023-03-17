@@ -1,6 +1,7 @@
 class "Colorscheme"
 
 Colorscheme.colorscheme = {}
+local color = user.colorscheme
 
 function Colorscheme._init(self, name, config)
   config = config or {}
@@ -21,8 +22,10 @@ function Colorscheme.apply(self, override)
 
   table.merge(config, override)
 
+  local cb = config.callback
+  config.callback = nil
   if not table.isblank(config) then
-    config.callback(config)
+    cb(config)
   else
     vim.cmd("color " .. self.name)
   end
@@ -35,6 +38,10 @@ colorscheme = config_table
 }
 --]]
 function Colorscheme.loadall()
+  if Colorscheme.loaded then
+    return
+  end
+
   local function get_name(p)
     return vim.fn.fnamemodify(p, ":t:r")
   end
@@ -73,7 +80,7 @@ function Colorscheme.loadall()
 
     table.teach(defaults, function(color, f)
       local callback
-      if user_config[name] then
+      if user_config[color] then
         validate {
           config = { "t", user_config[color] },
         }
@@ -83,7 +90,7 @@ function Colorscheme.loadall()
       else
         callback = f
       end
-      configured[name] = { callback = callback }
+      Colorscheme.colorscheme[color] = Colorscheme(color, {callback=callback})
     end)
   end)
 
@@ -97,7 +104,7 @@ function Colorscheme.loadall()
     Colorscheme.colorscheme[name] = c
   end)
 
-  return Colorscheme.colorscheme
+  Colorscheme.loaded = true
 end
 
 function Colorscheme.set(name, config)
@@ -123,33 +130,30 @@ function Colorscheme.set(name, config)
 end
 
 function Colorscheme.setdefault()
-  local color = user.plugins.colorscheme
-  local required = color.colorscheme[color.colorscheme.use]
+  local required = color[user.colorscheme.use]
   local conf = color.config
+
+  Colorscheme.set(required, conf or {})
+
   if color.use == 'dark' then
     vim.o.background = 'dark'
   else
     vim.o.background = 'light'
   end
-
-  Colorscheme.set(required, conf or {})
 end
 
 function Colorscheme.setlight()
-  local color = user.plugins.colorscheme
-  local required = color.colorscheme.light
+  local required = color.light
   local conf = color.config or {}
-  vim.o.background = 'dark'
 
   Colorscheme.set(required, conf)
+  vim.o.background = 'light'
 end
 
 function Colorscheme.setdark()
-  local color = user.plugins.colorscheme
-  local required = color.colorscheme.dark
+  local required = color.dark
   local conf = color.config or {}
-  vim.o.background = 'dark'
-  print(vim.o.background)
 
   Colorscheme.set(required, conf)
+  vim.o.background = 'dark'
 end

@@ -41,12 +41,5 @@ user.plugins.statusline = {
   },
 }
 
-user.plugins.bufferline = {
-  config = {}
-}
-
-req 'user.plugins.bufferline'
 req 'user.plugins.statusline'
-
 require("lualine").setup(user.plugins.statusline.config)
-require('bufferline').setup(user.plugins.bufferline.config)

@@ -3,8 +3,18 @@ return {
 
   { "nathom/filetype.nvim" },
 
-  { "tpope/vim-repeat" },
+  { "mfussenegger/nvim-fzy" },
 
+  {
+    "nvim-telescope/telescope-fzy-native.nvim",
+    dependencies = { "nvim-telescope/telescope.nvim" },
+  },
+
+  {
+    "nvim-telescope/telescope.nvim",
+    dependences = {"sainnhe/everforest"},
+    config = partial(req, "core.plugins.telescope"),
+  },
   {
     "tpope/vim-dispatch",
     keys = {
@@ -16,11 +26,18 @@ return {
           local compiler = Lang.langs[ft].build
           if not compiler then
             utils.nvimerr("No compiler defined for " .. ft)
+            return
           end
           vim.cmd("Dispatch " .. compiler .. " %:p")
         end,
         "n",
         { noremap = true, desc = "Build file" },
+      },
+      {
+        "<leader>cq",
+        ":Copen<CR>",
+        "n",
+        { desc = "Open qflist", noremap = true },
       },
       {
         "<leader>cc",
@@ -30,6 +47,7 @@ return {
           local compiler = Lang.langs[ft].compile
           if not compiler then
             utils.nvimerr("No compiler defined for " .. ft)
+            return
           end
           vim.cmd("Dispatch " .. compiler .. " %:p")
         end,
@@ -41,15 +59,7 @@ return {
 
   { "hylang/vim-hy", ft = { "hy" } },
 
-  { "mfussenegger/nvim-fzy" },
-
   { "rcarriga/nvim-notify" },
-
-  {
-    "RRethy/vim-illuminate",
-    config = function() req "user.plugins.illuminate" end,
-    event = "BufReadPost",
-  },
 
   {
     "nvim-lualine/lualine.nvim",
@@ -80,13 +90,15 @@ return {
   {
     "junegunn/vim-easy-align",
     event = "BufReadPost",
-    config = function()
-      K.bind(
-        { leader = true, noremap = true },
-        { "=", ":EasyAlign ", "Align" },
-        { "=", ":'<,'>EasyAlign ", { mode = "v", desc = "Align" } }
-      )
-    end,
+    config = utils.log_pcall_wrap(
+      function()
+        K.bind(
+          { leader = true, noremap = true },
+          { "=", ":EasyAlign ", "Align" },
+          { "=", ":'<,'>EasyAlign ", { mode = "v", desc = "Align" } }
+        )
+      end
+    ),
   },
 
   {
@@ -144,32 +156,35 @@ return {
   {
     "prichrd/netrw.nvim",
     cmd = "Lexplore",
-    config = function()
-      utils.log_pcall(
-        function()
-          require("netrw").setup {
-            icons = {
-              symlink = "",
-              directory = "",
-              file = "",
-            },
-            use_devicons = true,
-            mappings = {},
-          }
-        end
-      )
-    end,
+    config = utils.log_pcall_wrap(
+      function()
+        require("netrw").setup {
+          icons = {
+            symlink = "",
+            directory = "",
+            file = "",
+          },
+          use_devicons = true,
+          mappings = {},
+        }
+      end
+    ),
   },
 
   {
     "kylechui/nvim-surround",
     event = "InsertEnter",
+    config = utils.log_pcall_wrap(
+      function() require("nvim-surround").setup {} end
+    ),
   },
 
   {
     "windwp/nvim-autopairs",
     event = "InsertEnter",
-    config = function() require("nvim-autopairs").setup {} end,
+    config = utils.log_pcall_wrap(
+      function() require("nvim-autopairs").setup {} end
+    ),
   },
 
   { "Raimondi/delimitMate", event = "InsertEnter" },
@@ -184,7 +199,7 @@ return {
 
   { "dstein64/vim-startuptime", cmd = "StartupTime" },
 
-  { "tpope/vim-commentary", keys = "g" },
+  { "tpope/vim-commentary", event = "BufReadPost" },
 
   { "lervag/vimtex", ft = "tex" },
 
@@ -305,7 +320,7 @@ return {
     "preservim/tagbar",
     keys = "<C-t>",
     event = "BufReadPost",
-    config = function()
+    config = utils.log_pcall_wrap(function()
       Keybinding.noremap(
         "n",
         "<C-t>",
@@ -314,7 +329,7 @@ return {
       )
       vim.g.tagbar_position = "leftabove vertical"
       req "user.plugins.tagbar"
-    end,
+    end),
   },
 
   {
@@ -341,7 +356,6 @@ return {
     dependencies = {
       "ldelossa/litee.nvim",
       "ldelossa/litee-symboltree.nvim",
-      "RRethy/vim-illuminate",
       "lukas-reineke/lsp-format.nvim",
       "williamboman/mason.nvim",
       "mfussenegger/nvim-dap",
@@ -352,18 +366,9 @@ return {
   },
 
   {
-    "nvim-telescope/telescope.nvim",
-    dependencies = {
-      "neovim/nvim-lspconfig",
-      { "nvim-telescope/telescope-fzf-native.nvim", run = "make" },
-    },
-    config = function() req "core.plugins.telescope" end,
-  },
-
-  {
     "moll/vim-bbye",
     event = "BufReadPost",
-    config = function()
+    config = utils.log_pcall_wrap(function()
       local function delete_and_hide(wipeout)
         local bufname = vim.fn.bufname(vim.fn.bufnr())
         if wipeout then
@@ -381,6 +386,6 @@ return {
         { "bQ", partial(delete_and_hide, true), { desc = "Wipeout buffer" } }
       )
       req "user.plugins.vim-bbye"
-    end,
+    end),
   },
 }
