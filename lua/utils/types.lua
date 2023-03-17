@@ -8,6 +8,7 @@ TYPES = {
   c = "class",
   string = "string",
   table = "table",
+  thread = "thread",
   userdata = "userdata",
   number = "number",
   boolean = "boolean",
@@ -31,25 +32,15 @@ TYPES = {
 }
 
 function class_of(e)
-  if type(e) ~= "table" then
-    return false
-  end
-  if e._class then
-    return e._class
-  end
+  if type(e) ~= "table" then return false end
+  if e._class then return e._class end
   local mt = getmetatable(e) or {}
-  if mt._class then
-    return mt._class
-  end
+  if mt._class then return mt._class end
 end
 
 function is_instance(e, cls)
-  if type(e) ~= "table" then
-    return false
-  end
-  if type(cls) ~= "table" then
-    return false
-  end
+  if type(e) ~= "table" then return false end
+  if type(cls) ~= "table" then return false end
 
   return class_of(e) == class_of(cls)
 end
@@ -64,9 +55,7 @@ function is_callable(t)
 
   local mt = getmetatable(t)
   if mt then
-    if mt.__call then
-      return true
-    end
+    if mt.__call then return true end
   end
   return false
 end
@@ -74,34 +63,24 @@ end
 function get_class(e)
   if type(e) == "string" then
     local g = _G[e]
-    if type(g) == "table" then
-      return (class_of(g) or false)
-    end
+    if type(g) == "table" then return (class_of(g) or false) end
   end
 
-  if type(e) ~= "table" then
-    return false
-  end
+  if type(e) ~= "table" then return false end
   return (class_of(e) or false)
 end
 
 function is_class(e)
-  if type(e) ~= "table" then
-    return false
-  end
+  if type(e) ~= "table" then return false end
 
   return get_class(e) or false
 end
 
-function is_table(obj)
-  return type(obj) == "table"
-end
+function is_table(obj) return type(obj) == "table" end
 
 function class_name(obj)
   cls = get_class(obj)
-  if cls then
-    return cls._name
-  end
+  if cls then return cls._name end
   return false
 end
 
@@ -112,9 +91,7 @@ function typeof(x)
       return cls
     else
       local mt = getmetatable(x) or {}
-      if mt.__call then
-        return "callable"
-      end
+      if mt.__call then return "callable" end
       return "table"
     end
   elseif type(x) == "function" then
@@ -125,9 +102,7 @@ function typeof(x)
 end
 
 local _is_a = function(e, k)
-  if TYPES[k] then
-    k = TYPES[k]
-  end
+  if TYPES[k] then k = TYPES[k] end
 
   local e_cls, k_cls
   if k == "table" or k == table or k == "string" or k == string then
@@ -148,9 +123,7 @@ local _is_a = function(e, k)
 
   if e_cls and k_cls then
     local e_name, k_name = class_name(e_cls), class_name(k_cls)
-    if e_name and k_name then
-      return e_name == k_name
-    end
+    if e_name and k_name then return e_name == k_name end
     return e_cls == k_cls
   elseif e_cls and k == "table" then
     return true
@@ -177,8 +150,6 @@ is_a = setmetatable({}, {
 
   -- Only works for native datatypes + callables
   __index = function(_, k)
-    return function(e)
-      return _is_a(e, k)
-    end
+    return function(e) return _is_a(e, k) end
   end,
 })
