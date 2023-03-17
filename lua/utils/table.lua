@@ -44,16 +44,16 @@ function table.tolist(x, force)
 end
 
 function table.todict(x)
-	if type(x) ~= 'table' then
-		return {[x] = x}
-	end
+  if type(x) ~= "table" then
+    return { [x] = x }
+  end
 
-	local out = {}
-	for _, v in pairs(x) do
-		out[v] = v
-	end
+  local out = {}
+  for _, v in pairs(x) do
+    out[v] = v
+  end
 
-	return out
+  return out
 end
 
 function table.shift(t, times)
@@ -82,126 +82,126 @@ function table.index(t, item, test)
 end
 
 function table.each(t, f)
-	for _, v in ipairs(t) do
-		f(v)
-	end
+  for _, v in ipairs(t) do
+    f(v)
+  end
 end
 
 function table.igrep(t, f)
-	local out = {}
-	local i = 1
+  local out = {}
+  local i = 1
 
-	for k, v in ipairs(t) do
-		local o = f(k, v)
-		if o then
-			out[i] = v
-			i = i + 1
-		end
-	end
+  for k, v in ipairs(t) do
+    local o = f(k, v)
+    if o then
+      out[i] = v
+      i = i + 1
+    end
+  end
 
-	return out
+  return out
 end
 
 function table.tgrep(t, f)
-	local out = {}
+  local out = {}
 
-	for k, v in pairs(t) do
+  for k, v in pairs(t) do
     local o = f(k, v)
-		if o then
-			out[k] = v
-		end
-	end
+    if o then
+      out[k] = v
+    end
+  end
 
-	return out
+  return out
 end
 
 function table.grep(t, f)
-	local out = {}
-	local i = 1
-	for _, v in ipairs(t) do
-		local o = f(v)
-		if o then
-			out[i] = v
-			i = i + 1
-		end
-	end
+  local out = {}
+  local i = 1
+  for _, v in ipairs(t) do
+    local o = f(v)
+    if o then
+      out[i] = v
+      i = i + 1
+    end
+  end
 
-	return out
+  return out
 end
 
 function table.filter(t, f)
-	local out = {}
-	for _, v in ipairs(t) do
-		local o = f(v)
-		if o then
-			out[idx] = v
-		else
-			out[idx] = false
-		end
-	end
+  local out = {}
+  for _, v in ipairs(t) do
+    local o = f(v)
+    if o then
+      out[idx] = v
+    else
+      out[idx] = false
+    end
+  end
 
-	return out
+  return out
 end
 
 function table.tfilter(t, f)
-	local out = {}
-	for idx, v in pairs(t) do
-		local o = f(idx, v)
-		if o then
-			out[idx] = v
-		else
-			out[idx] = false
-		end
-	end
+  local out = {}
+  for idx, v in pairs(t) do
+    local o = f(idx, v)
+    if o then
+      out[idx] = v
+    else
+      out[idx] = false
+    end
+  end
 
-	return out
+  return out
 end
 
 function table.ifilter(t, f)
-	local out = {}
-	for idx, v in ipairs(t) do
-		local o = f(idx, v)
-		if o then
-			out[idx] = v
-		else
-			out[idx] = false
-		end
-	end
+  local out = {}
+  for idx, v in ipairs(t) do
+    local o = f(idx, v)
+    if o then
+      out[idx] = v
+    else
+      out[idx] = false
+    end
+  end
 
-	return out
+  return out
 end
 
 function table.tmap(t, f)
-	local out = {}
-	for k, v in pairs(t) do
-		v = f(k, v)
-		assert(v ~= nil, 'non-nil expected, got ' .. v)
-		out[idx] = v
-	end
+  local out = {}
+  for k, v in pairs(t) do
+    v = f(k, v)
+    assert(v ~= nil, "non-nil expected, got " .. v)
+    out[idx] = v
+  end
 
-	return out
+  return out
 end
 
 function table.map(t, f)
-	local out = {}
-	for idx, v in ipairs(t) do
-		v = f(v)
-		assert(v ~= nil, 'non-nil expected, got ' .. v)
-		out[idx] = v
-	end
+  local out = {}
+  for idx, v in ipairs(t) do
+    v = f(v)
+    assert(v ~= nil, "non-nil expected, got " .. v)
+    out[idx] = v
+  end
 
-	return out
+  return out
 end
 
 function table.imap(t, f)
-	local out = {}
-	for idx, v in ipairs(t) do
-		v = f(idx, v)
-		assert(v ~= nil, 'non-nil expected, got ' .. v)
-		out[idx] = v
-	end
+  local out = {}
+  for idx, v in ipairs(t) do
+    v = f(idx, v)
+    assert(v ~= nil, "non-nil expected, got " .. v)
+    out[idx] = v
+  end
 
-	return out
+  return out
 end
 
 function table.items(t)
@@ -240,14 +240,14 @@ function table.mtget(t, k)
     return nil
   end
 
-	local out = {}
-	if type(k) == 'table' then
-		for _, v in ipairs(k) do
-			out[v] = rawget(mt, v)
-		end
+  local out = {}
+  if type(k) == "table" then
+    for _, v in ipairs(k) do
+      out[v] = rawget(mt, v)
+    end
 
-		return out
-	end
+    return out
+  end
 
   return rawget(mt, k)
 end
@@ -257,33 +257,33 @@ function table.mtset(t, k, v)
   assert(k, "No attribute provided to query")
 
   local mt = getmetatable(t) or {}
-	if type(k) == 'table' then
-		for idx, v in pairs(k) do
-			rawset(mt, idx, v)
-		end
-		return setmetatable(t, mt)
-	end
+  if type(k) == "table" then
+    for idx, v in pairs(k) do
+      rawset(mt, idx, v)
+    end
+    return setmetatable(t, mt)
+  end
 
-	rawset(mt, k, v)
-	setmetatable(t, mt)
+  rawset(mt, k, v)
+  setmetatable(t, mt)
 
-	return mt
+  return mt
 end
 
 function table.len(t)
-	local i = 0
-	for _, _ in pairs(t) do
-		i = i + 1
-	end
+  local i = 0
+  for _, _ in pairs(t) do
+    i = i + 1
+  end
 
-	return i
+  return i
 end
 
 function table.isblank(s)
   if type(s) == "string" then
     return #s == 0
   elseif type(s) == "table" then
-		return table.len(s) == 0
+    return table.len(s) == 0
   end
 end
 
@@ -532,15 +532,15 @@ end
 
 function table.range(from, till, step)
   step = step or 1
-	local out = {}
-	local idx = 1
+  local out = {}
+  local idx = 1
 
-	for i=from, till, step do
-		out[idx] = i
-		idx = idx + 1
-	end
+  for i = from, till, step do
+    out[idx] = i
+    idx = idx + 1
+  end
 
-	return out
+  return out
 end
 
 string.isblank = table.isblank

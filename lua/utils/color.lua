@@ -121,7 +121,6 @@ function utils.highlightset(hi, set, defaults)
       return
     end
 
-    
     if is_a.f(transformer) then
       hi[attrib] = transformer(hi[attrib])
       vim.cmd(sprintf("hi %s %s=%s", group, attrib, hi[attrib]))
@@ -129,7 +128,6 @@ function utils.highlightset(hi, set, defaults)
       hi[attrib] = transformer
       vim.cmd(sprintf("hi %s %s=%s", group, attrib, transformer))
     end
-
   end)
 
   return hi

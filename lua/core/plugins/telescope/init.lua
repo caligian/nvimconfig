@@ -60,7 +60,9 @@ local opts = Keybinding.bind(
   { noremap = true, leader = true, mode = "n" },
   {
     "/",
-    function() picker("live_grep", { search_dirs = { vim.fn.expand "%:p" } })() end,
+    function()
+      picker("live_grep", { search_dirs = { vim.fn.expand "%:p" } })()
+    end,
     { desc = "Grep string in workspace", name = "ts_grep" },
   },
   {
@@ -86,7 +88,9 @@ local opts = Keybinding.bind(
   },
   {
     ".",
-    function() picker("find_files", { cwd = vim.fn.expand "%:p:h" })() end,
+    function()
+      picker("find_files", { cwd = vim.fn.expand "%:p:h" })()
+    end,
     { desc = "Find files in workspace", name = "ts_ff" },
   },
   { "ff", picker "git_files", { desc = "Do git ls-files", name = "ts_git_ls" } },
@@ -119,7 +123,9 @@ local opts = Keybinding.bind(
   },
   {
     "ld",
-    function() picker("diagnostics", { bufnr = 0 })() end,
+    function()
+      picker("diagnostics", { bufnr = 0 })()
+    end,
     { desc = "Show buffer LSP diagnostics", name = "ts_diagnostics" },
   },
   {
@@ -145,4 +151,4 @@ local opts = Keybinding.bind(
   }
 )
 
-req 'core.plugins.telescope.colorscheme'
+req "core.plugins.telescope.colorscheme"

@@ -1,2 +1,2 @@
 user.abbrevs = user.abbrevs or {}
-req 'user.abbrevs'
+req "user.abbrevs"

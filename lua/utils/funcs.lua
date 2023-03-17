@@ -29,5 +29,5 @@ function partial(f, ...)
 end
 
 function identity(x)
-	return x
+  return x
 end

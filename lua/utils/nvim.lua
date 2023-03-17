@@ -94,7 +94,7 @@ function utils.log_pcall(f, ...)
 end
 
 function utils.log_pcall_wrap(f)
-  return function (...)
+  return function(...)
     return utils.log_pcall(f, ...)
   end
 end

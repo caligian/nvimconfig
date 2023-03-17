@@ -1,5 +1,5 @@
 return {
-	repl = "/usr/bin/zsh",
-	compile = "/usr/bin/zsh",
-	linters = "shellcheck",
+  repl = "/usr/bin/zsh",
+  compile = "/usr/bin/zsh",
+  linters = "shellcheck",
 }

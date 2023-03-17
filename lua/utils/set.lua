@@ -214,50 +214,50 @@ function Set:contains(e)
 end
 
 function Set:grep(f)
-	local out = {}
-	local i = 1
-	for v in self:iter() do
-		local o = f(v) 
-		if o then
-			out[i] = o
-		end
-		i = i + 1
-	end
+  local out = {}
+  local i = 1
+  for v in self:iter() do
+    local o = f(v)
+    if o then
+      out[i] = o
+    end
+    i = i + 1
+  end
 
-	return out
+  return out
 end
 
 function Set:filter(f)
-	local out = {}
-	local i = 1
-	for v in self:iter() do
-		local o = f(v) 
-		if o then
-			out[i] = o
-		else
-			out[i] = false
-		end
-		i = i + 1
-	end
+  local out = {}
+  local i = 1
+  for v in self:iter() do
+    local o = f(v)
+    if o then
+      out[i] = o
+    else
+      out[i] = false
+    end
+    i = i + 1
+  end
 
-	return out
+  return out
 end
 
 function Set:each(f)
-	for v in self:iter() do
-		f(v)
-	end
+  for v in self:iter() do
+    f(v)
+  end
 end
 
 function Set:map(f)
-	local out = {}
-	local i = 1
-	for v in self:iter() do
-		local o = f(v) 
-		assert(o ~= nil, 'mapping function cannot return nil')
-		out[i] = o
-		i = i + 1
-	end
+  local out = {}
+  local i = 1
+  for v in self:iter() do
+    local o = f(v)
+    assert(o ~= nil, "mapping function cannot return nil")
+    out[i] = o
+    i = i + 1
+  end
 
-	return out
+  return out
 end

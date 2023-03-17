@@ -161,7 +161,7 @@ function Process.send(self, s)
   end
 
   validate {
-    s = is {'s', 't'},
+    s = is { "s", "t" },
   }
 
   if is_a.t(s) then

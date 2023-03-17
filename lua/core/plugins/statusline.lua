@@ -41,5 +41,5 @@ user.plugins.statusline = {
   },
 }
 
-req 'user.plugins.statusline'
+req "user.plugins.statusline"
 require("lualine").setup(user.plugins.statusline.config)

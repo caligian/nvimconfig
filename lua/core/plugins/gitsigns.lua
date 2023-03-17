@@ -6,16 +6,24 @@ user.plugins.gitsigns = {
       K.bind({ noremap = true, buffer = bufnr }, {
         "]c",
         function()
-          if vim.wo.diff then return "]c" end
-          vim.schedule(function() gs.next_hunk() end)
+          if vim.wo.diff then
+            return "]c"
+          end
+          vim.schedule(function()
+            gs.next_hunk()
+          end)
           return "<Ignore>"
         end,
         { expr = true, desc = "Next hunk" },
       }, {
         "[c",
         function()
-          if vim.wo.diff then return "[c" end
-          vim.schedule(function() gs.prev_hunk() end)
+          if vim.wo.diff then
+            return "[c"
+          end
+          vim.schedule(function()
+            gs.prev_hunk()
+          end)
           return "<Ignore>"
         end,
         { expr = true, desc = "Previous hunk" },
@@ -45,7 +53,9 @@ user.plugins.gitsigns = {
         "Preview hubk",
       }, {
         "<leader>ghb",
-        function() gs.blame_line { full = true } end,
+        function()
+          gs.blame_line { full = true }
+        end,
         "Blame line",
       }, {
         "<leader>gtb",
@@ -57,7 +67,9 @@ user.plugins.gitsigns = {
         "Diff this",
       }, {
         "<leader>ghD",
-        function() gs.diffthis "~" end,
+        function()
+          gs.diffthis "~"
+        end,
         "Diff this (~)",
       }, { "<leader>gtd", gs.toggle_deleted }, {
         "ih",

@@ -1,5 +1,5 @@
 -- goneovim-specific settings
-pcall(function ()
+pcall(function()
   vim.cmd [[
   noremap <space><tab><tab> :GonvimSidebarToggle<CR>
   noremap <space><tab>n :GonvimWorkspaceNew<CR>
@@ -24,21 +24,20 @@ end)
 
 vim.o.autochdir = true
 vim.o.showcmd = false
-vim.keymap.set('n', '<space>fv', ':w <bar> :luafile %<CR>', {noremap=true})
-vim.keymap.set('n', '<space>fs', ':w<CR>', {noremap=true})
-vim.keymap.set('n', '<space>fp', ':e ~/nvimconfig<CR>', {noremap=true})
+vim.keymap.set("n", "<space>fv", ":w <bar> :luafile %<CR>", { noremap = true })
+vim.keymap.set("n", "<space>fs", ":w<CR>", { noremap = true })
+vim.keymap.set("n", "<space>fp", ":e ~/nvimconfig<CR>", { noremap = true })
 
-vim.api.nvim_create_autocmd('BufEnter', {
-  pattern = '*.lua',
+vim.api.nvim_create_autocmd("BufEnter", {
+  pattern = "*.lua",
   callback = function()
     vim.bo.tabstop = 2
     vim.bo.shiftwidth = 2
-  end
+  end,
 })
 
-
 -- Bootstrap with requisite rocks and lazy.nvim
-require("bootstrap")
+require "bootstrap"
 
 -- Load the framework
-require("core")
+require "core"

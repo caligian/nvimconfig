@@ -18,9 +18,6 @@ user.plugins.ssr = {
 req "user.plugins.ssr"
 require("ssr").setup(user.plugins.ssr.config)
 
-K.noremap(
-  "nx",
-  "<leader>%",
-  function() require("ssr").open() end,
-  "Structural editing"
-)
+K.noremap("nx", "<leader>%", function()
+  require("ssr").open()
+end, "Structural editing")

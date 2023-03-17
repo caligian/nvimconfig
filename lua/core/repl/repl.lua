@@ -3,23 +3,23 @@ class "REPL"
 REPL.ids = REPL.ids or {}
 
 function REPL._init(self, ft, force)
-	ft = ft or vim.bo.filetype
+  ft = ft or vim.bo.filetype
 
-	validate {
-		filetype = { "s", ft },
-	}
+  validate {
+    filetype = { "s", ft },
+  }
 
-	local r = REPL.ids[ft]
-	if r and not force and r.running then
-		return r
-	end
+  local r = REPL.ids[ft]
+  if r and not force and r.running then
+    return r
+  end
 
-	self.filetype = ft
-	self.command = table.get(Lang.langs, { ft, "repl" })
+  self.filetype = ft
+  self.command = table.get(Lang.langs, { ft, "repl" })
 
-	validate { command = { "s", self.command } }
+  validate { command = { "s", self.command } }
 
-	return self
+  return self
 end
 
 function REPL.is_visible(self)
@@ -60,7 +60,7 @@ function REPL.is_interrupted(self)
 end
 
 function REPL.stop(self)
-  return utils.log_pcall(function ()
+  return utils.log_pcall(function()
     if not self.running then
       return
     end
@@ -84,38 +84,38 @@ function REPL.stopall()
 end
 
 function REPL.start(self, force)
-	if self.running then
-		return self
-	end
+  if self.running then
+    return self
+  end
 
   local scratch = vim.api.nvim_create_buf(false, true)
-	local cmd = self.command
+  local cmd = self.command
 
-	vim.api.nvim_buf_call(scratch, function()
-		vim.cmd "term"
-		id = vim.b.terminal_job_id
-		vim.api.nvim_chan_send(id, cmd .. "\r")
+  vim.api.nvim_buf_call(scratch, function()
+    vim.cmd "term"
+    id = vim.b.terminal_job_id
+    vim.api.nvim_chan_send(id, cmd .. "\r")
     vim.wo.number = false
     vim.wo.relativenumber = false
-    vim.api.nvim_buf_set_var(scratch, '_repl_filetype', self.filetype)
-	end)
+    vim.api.nvim_buf_set_var(scratch, "_repl_filetype", self.filetype)
+  end)
 
-	if force then
-		self:stop()
-	end
+  if force then
+    self:stop()
+  end
 
-	self.id = id
-	self.running = true
-	self.buffer = Buffer(scratch)
+  self.id = id
+  self.running = true
+  self.buffer = Buffer(scratch)
 
-	REPL.ids[id] = self
-	REPL.ids[self.filetype] = self
+  REPL.ids[id] = self
+  REPL.ids[self.filetype] = self
 
-	return self
+  return self
 end
 
 function REPL.hide(self)
-  return utils.log_pcall(function ()
+  return utils.log_pcall(function()
     if self.running then
       self.buffer:hide()
     end
@@ -123,7 +123,7 @@ function REPL.hide(self)
 end
 
 function REPL.split(self, direction, opts)
-  return utils.log_pcall(function ()
+  return utils.log_pcall(function()
     self:ensure()
 
     if self:is_visible() then
@@ -135,7 +135,7 @@ function REPL.split(self, direction, opts)
 end
 
 function REPL.float(self, opts)
-  return utils.log_pcall(function ()
+  return utils.log_pcall(function()
     self:ensure()
     if self:is_visible() then
       return self
@@ -146,19 +146,19 @@ function REPL.float(self, opts)
 end
 
 function REPL.center_float(self, opts)
-  return utils.log_pcall(function ()
-    self:float(table.merge({center=true}, opts or {}))
+  return utils.log_pcall(function()
+    self:float(table.merge({ center = true }, opts or {}))
   end)
 end
 
 function REPL.dock(self, opts)
-  return utils.log_pcall(function ()
-    self:float(table.merge({dock=0.3}, opts or {}))
+  return utils.log_pcall(function()
+    self:float(table.merge({ dock = 0.3 }, opts or {}))
   end)
 end
 
 function REPL.send(self, s)
-  return utils.log_pcall(function ()
+  return utils.log_pcall(function()
     self:ensure()
 
     local id = self.id
@@ -171,7 +171,7 @@ function REPL.send(self, s)
 end
 
 function REPL.send_current_line(self, src_bufnr)
-  return utils.log_pcall(function ()
+  return utils.log_pcall(function()
     src_bufnr = src_bufnr or vim.fn.bufnr()
     vim.api.nvim_buf_call(src_bufnr, function()
       self:send(vim.fn.getline ".")
@@ -180,14 +180,14 @@ function REPL.send_current_line(self, src_bufnr)
 end
 
 function REPL.send_buffer(self, src_bufnr)
-  return utils.log_pcall(function ()
+  return utils.log_pcall(function()
     src_bufnr = src_bufnr or vim.fn.bufnr()
     self:send(vim.api.nvim_buf_get_lines(src_bufnr, 0, -1, false))
   end)
 end
 
 function REPL.send_till_point(self, src_bufnr)
-  return utils.log_pcall(function ()
+  return utils.log_pcall(function()
     src_bufnr = src_bufnr or vim.fn.bufnr()
     vim.api.nvim_buf_call(src_bufnr, function()
       local line = vim.fn.line "."
@@ -197,7 +197,7 @@ function REPL.send_till_point(self, src_bufnr)
 end
 
 function REPL.send_visual_range(self, src_bufnr)
-  return utils.log_pcall(function ()
+  return utils.log_pcall(function()
     src_bufnr = src_bufnr or vim.fn.bufnr()
     return self:send(utils.visualrange(src_bufnr))
   end)
@@ -206,4 +206,3 @@ end
 function REPL.terminate_input(self)
   return self:send(vim.api.nvim_replace_termcodes("<C-c>", true, false, true))
 end
-

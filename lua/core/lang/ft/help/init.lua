@@ -22,20 +22,20 @@ local function put_ref(jump)
   local linenum = vim.fn.line "."
   local line = trim(vim.fn.getline(linenum))
 
-  if #line == 0 or line:match('^====') then
-    nvimerr('Cannot put a tag on an empty line or a separator line')
+  if #line == 0 or line:match "^====" then
+    nvimerr "Cannot put a tag on an empty line or a separator line"
     return
   end
 
-  if line:match('[|*][^|*]+[|*]') then
-    line = line:gsub(' *[|*][^|*]+[|*]', '')
+  if line:match "[|*][^|*]+[|*]" then
+    line = line:gsub(" *[|*][^|*]+[|*]", "")
   end
 
-  local ok, prefix = pcall(vim.api.nvim_buf_get_var, bufnr, '_tag_prefix')
+  local ok, prefix = pcall(vim.api.nvim_buf_get_var, bufnr, "_tag_prefix")
   prefix = ok and prefix or false
   local tag = vim.fn.input "Tag name: "
   if prefix then
-    tag = prefix  .. '_' .. tag
+    tag = prefix .. "_" .. tag
   end
 
   local l = #tag
@@ -73,23 +73,27 @@ return {
     shiftwidth = 2,
     tabstop = 2,
   },
-  hooks = function ()
+  hooks = function()
     vim.cmd [[ autocmd BufWrite <buffer> :TrimWhiteSpace ]]
   end,
   kbd = {
-    { noremap = true, prefix='<leader>m' },
+    { noremap = true, prefix = "<leader>m" },
 
     -- If line already table.contains == then, reformat it
     { "+", put_sep, "Put seperator: =" },
     { "=", partial(put_sep, true), "Put seperator (tw): =" },
     { "|", partial(put_ref, true), "Put reference" },
     { "*", put_ref, "Put jump reference" },
-    { "p", function ()
-      local prefix = vim.fn.input('Tag prefix: ')
-      if #prefix == 0 then
-        return
-      end
-      vim.api.nvim_buf_set_var(vim.fn.bufnr(), '_tag_prefix', prefix)
-    end, "Set tag prefix" },
+    {
+      "p",
+      function()
+        local prefix = vim.fn.input "Tag prefix: "
+        if #prefix == 0 then
+          return
+        end
+        vim.api.nvim_buf_set_var(vim.fn.bufnr(), "_tag_prefix", prefix)
+      end,
+      "Set tag prefix",
+    },
   },
 }

@@ -719,7 +719,7 @@ function Buffer.menu(desc, items, formatter, callback)
 
   b.o.modifiable = false
 
-  b:hook('WinLeave', function ()
+  b:hook("WinLeave", function()
     b:delete()
   end)
 
@@ -759,7 +759,7 @@ function Buffer.input(text, cb, opts)
   opts = opts or {}
 
   local split = opts.split or "s"
-  local trigger_table= opts.keys or "gx"
+  local trigger_table = opts.keys or "gx"
   local comment = opts.comment or "#"
 
   if is_a(text, "string") then
@@ -771,7 +771,7 @@ function Buffer.input(text, cb, opts)
 
   buf:split(split, { reverse = opts.reverse, resize = opts.resize })
 
-  buf:noremap("n", "gQ", ':hide<CR>', "Close buffer")
+  buf:noremap("n", "gQ", ":hide<CR>", "Close buffer")
 
   buf:noremap("n", trigger_keys, function()
     local lines = buf:lines(0, -1)

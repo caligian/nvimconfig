@@ -46,13 +46,18 @@ function Colorscheme.loadall()
     return vim.fn.fnamemodify(p, ":t:r")
   end
 
-  local builtin = table.extend(utils.glob(user.dir, "colors/*.vim"), utils.glob(user.dir, "colors/*.lua"))
+  local builtin =
+    table.extend(utils.glob(user.dir, "colors/*.vim"), utils.glob(user.dir, "colors/*.lua"))
 
-  local user_themes =
-    table.extend(utils.glob(user.user_dir, "colors/*.vim"), utils.glob(user.user_dir, "colors/*.lua"))
+  local user_themes = table.extend(
+    utils.glob(user.user_dir, "colors/*.vim"),
+    utils.glob(user.user_dir, "colors/*.lua")
+  )
 
-  local installed =
-    table.extend(utils.glob(user.plugins_dir, "*/colors/*.vim"), utils.glob(user.plugins_dir, "*/colors/*.lua"))
+  local installed = table.extend(
+    utils.glob(user.plugins_dir, "*/colors/*.vim"),
+    utils.glob(user.plugins_dir, "*/colors/*.lua")
+  )
 
   local configured_dir = path.join(user.dir, "lua", "core", "plugins", "colorscheme")
 
@@ -90,7 +95,7 @@ function Colorscheme.loadall()
       else
         callback = f
       end
-      Colorscheme.colorscheme[color] = Colorscheme(color, {callback=callback})
+      Colorscheme.colorscheme[color] = Colorscheme(color, { callback = callback })
     end)
   end)
 
@@ -135,10 +140,10 @@ function Colorscheme.setdefault()
 
   Colorscheme.set(required, conf or {})
 
-  if color.use == 'dark' then
-    vim.o.background = 'dark'
+  if color.use == "dark" then
+    vim.o.background = "dark"
   else
-    vim.o.background = 'light'
+    vim.o.background = "light"
   end
 end
 
@@ -147,7 +152,7 @@ function Colorscheme.setlight()
   local conf = color.config or {}
 
   Colorscheme.set(required, conf)
-  vim.o.background = 'light'
+  vim.o.background = "light"
 end
 
 function Colorscheme.setdark()
@@ -155,5 +160,5 @@ function Colorscheme.setdark()
   local conf = color.config or {}
 
   Colorscheme.set(required, conf)
-  vim.o.background = 'dark'
+  vim.o.background = "dark"
 end

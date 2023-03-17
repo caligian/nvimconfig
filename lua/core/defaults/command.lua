@@ -6,7 +6,7 @@ command("ShowLogs", function()
   if path.exists(log_path) then
     vim.cmd("tabnew " .. log_path)
     vim.cmd "setlocal readonly"
-    vim.cmd 'noremap <buffer> q :bwipeout <bar> b#<CR>'
+    vim.cmd "noremap <buffer> q :bwipeout <bar> b#<CR>"
   end
 end, {})
 
@@ -99,8 +99,8 @@ command("FontSize", function(args)
   utils.set_font(font, height)
 end, { nargs = "+" })
 
-command("TrimWhiteSpace", function ()
+command("TrimWhiteSpace", function()
   local layout = vim.fn.winsaveview()
-  vim.cmd "keeppatterns %s/\\s\\+$//e"    
+  vim.cmd "keeppatterns %s/\\s\\+$//e"
   vim.fn.winrestview(layout)
 end, {})

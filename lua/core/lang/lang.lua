@@ -4,66 +4,66 @@ Lang.langs = Lang.langs or {}
 local AUTOCMD_ID = 1
 
 function Lang._init(self, lang, opts)
-	validate {
-		filetype = { "s", lang },
-		['?opts'] = {
-			{
-				__nonexistent = false,
-				["?hooks"] = is { "f", "t" },
-				["?bo"] = "t",
-				["?kbd"] = "t",
-				["?compile"] = "s",
-				["?linters"] = is { "s", "t" },
-				["?formatters"] = "t",
-				["?server"] = is { "s", t },
-				["?repl"] = "s",
-				["?test"] = "s",
-			},
-			opts,
-		},
-	}
+  validate {
+    filetype = { "s", lang },
+    ["?opts"] = {
+      {
+        __nonexistent = false,
+        ["?hooks"] = is { "f", "t" },
+        ["?bo"] = "t",
+        ["?kbd"] = "t",
+        ["?compile"] = "s",
+        ["?linters"] = is { "s", "t" },
+        ["?formatters"] = "t",
+        ["?server"] = is { "s", t },
+        ["?repl"] = "s",
+        ["?test"] = "s",
+      },
+      opts,
+    },
+  }
 
-	if Lang.langs[lang] then
-		return Lang.langs[lang]
-	end
+  if Lang.langs[lang] then
+    return Lang.langs[lang]
+  end
 
-	self.name = lang
-	self.autocmd = false
+  self.name = lang
+  self.autocmd = false
 
-	if opts.hooks then
-		if is_a.f(opts.hooks) then
-			self:hook(opts.hooks)
-		else
-			for _, h in ipairs(opts.hooks) do
-				if is_a.t(h) then
-					utils.log_pcall(function()
-						self:hook(unpack(h))
-					end)
-				else
-					utils.log_pcall(function()
-						self:hook(h)
-					end)
-				end
-			end
-		end
-	end
+  if opts.hooks then
+    if is_a.f(opts.hooks) then
+      self:hook(opts.hooks)
+    else
+      for _, h in ipairs(opts.hooks) do
+        if is_a.t(h) then
+          utils.log_pcall(function()
+            self:hook(unpack(h))
+          end)
+        else
+          utils.log_pcall(function()
+            self:hook(h)
+          end)
+        end
+      end
+    end
+  end
 
-	if opts.bo then
-		self:setbufopts(opts.bo)
-	end
-	if opts.kbd then
-		self:map(unpack(opts.kbd))
-	end
-	if opts.linters then
-		opts.linters = table.tolist(opts.linters)
-	end
-	if opts.server and is_a.s(opts.server) then
-		opts.server = { name = opts.server }
-	end
+  if opts.bo then
+    self:setbufopts(opts.bo)
+  end
+  if opts.kbd then
+    self:map(unpack(opts.kbd))
+  end
+  if opts.linters then
+    opts.linters = table.tolist(opts.linters)
+  end
+  if opts.server and is_a.s(opts.server) then
+    opts.server = { name = opts.server }
+  end
 
-	Lang.langs[lang] = table.merge(self, opts or {})
+  Lang.langs[lang] = table.merge(self, opts or {})
 
-	return self
+  return self
 end
 
 function Lang.hook(self, callback, opts)
@@ -102,21 +102,21 @@ function Lang.map(self, opts, ...)
 
   utils.log_pcall(function()
     opts = opts or {}
-    opts.event = 'FileType'
+    opts.event = "FileType"
     opts.pattern = self.name
     K.bind(opts, unpack(args))
   end)
 end
 
 function Lang.load(lang)
-	local c = require("core.lang.ft." .. lang)
-	local u = req("user.lang.ft." .. lang)
+  local c = require("core.lang.ft." .. lang)
+  local u = req("user.lang.ft." .. lang)
 
-	if not c then
-		return
-	end
+  if not c then
+    return
+  end
 
-	return Lang(lang, table.lmerge(u or {}, c))
+  return Lang(lang, table.lmerge(u or {}, c))
 end
 
 function Lang.loadall()
