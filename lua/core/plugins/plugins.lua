@@ -3,7 +3,41 @@ return {
 
   { "nathom/filetype.nvim" },
 
-  { "Konfekt/vim-compilers", event = "BufEnter" },
+  { "tpope/vim-repeat" },
+
+  {
+    "tpope/vim-dispatch",
+    keys = {
+      {
+        "<leader>cb",
+        function()
+          local ft = vim.bo.filetype
+          if string.isblank(ft) then return end
+          local compiler = Lang.langs[ft].build
+          if not compiler then
+            utils.nvimerr("No compiler defined for " .. ft)
+          end
+          vim.cmd("Dispatch " .. compiler .. " %:p")
+        end,
+        "n",
+        { noremap = true, desc = "Build file" },
+      },
+      {
+        "<leader>cc",
+        function()
+          local ft = vim.bo.filetype
+          if string.isblank(ft) then return end
+          local compiler = Lang.langs[ft].compile
+          if not compiler then
+            utils.nvimerr("No compiler defined for " .. ft)
+          end
+          vim.cmd("Dispatch " .. compiler .. " %:p")
+        end,
+        "n",
+        { noremap = true, desc = "Compile file" },
+      },
+    },
+  },
 
   { "hylang/vim-hy", ft = { "hy" } },
 
@@ -12,50 +46,23 @@ return {
   { "rcarriga/nvim-notify" },
 
   {
-    "krady21/compiler-explorer.nvim",
-    event = "BufReadPost",
-    config = function() req "user.plugins.compiler" end,
-  },
-
-  {
     "RRethy/vim-illuminate",
     config = function() req "user.plugins.illuminate" end,
-    event = "BufReadPre",
+    event = "BufReadPost",
   },
 
   {
     "nvim-lualine/lualine.nvim",
     dependencies = {
       "rcarriga/nvim-notify",
-      {'akinsho/bufferline.nvim', tag = 'v3.5.0'}
     },
     config = function() req "core.plugins.statusline" end,
   },
 
   {
     "lewis6991/gitsigns.nvim",
-    event = "BufReadPre",
+    event = "BufReadPost",
     config = function() req "core.plugins.gitsigns" end,
-  },
-
-  {
-    "dhruvasagar/vim-buffer-history",
-    event = "BufEnter",
-    config = function()
-      K.bind({ noremap = true, leader = true }, {
-        "bN",
-        "<Plug>(buffer-history-forward)",
-        "Next buffer in history",
-      }, {
-        "bP",
-        "<Plug>(buffer-history-back)",
-        "Previous buffer in history",
-      }, {
-        "bh",
-        "<Plug>(buffer-history-list)",
-        "Show buffer history",
-      })
-    end,
   },
 
   {
@@ -74,17 +81,10 @@ return {
     "junegunn/vim-easy-align",
     event = "BufReadPost",
     config = function()
-      Keybinding.noremap(
-        "n",
-        "<leader>=",
-        ":EasyAlign ",
-        { desc = "Align lines" }
-      )
-      Keybinding.noremap(
-        "v",
-        "<leader>=",
-        ":'<,'>EasyAlign ",
-        { desc = "Align lines" }
+      K.bind(
+        { leader = true, noremap = true },
+        { "=", ":EasyAlign ", "Align" },
+        { "=", ":'<,'>EasyAlign ", { mode = "v", desc = "Align" } }
       )
     end,
   },
@@ -105,7 +105,6 @@ return {
       "rose-pine/neovim",
       "navarasu/onedark.nvim",
       "Shatur/neovim-ayu",
-      "svrana/neosolarized.nvim",
       "mcchrish/zenbones.nvim",
       "tjdevries/colorbuddy.nvim",
       "jesseleite/nvim-noirbuddy",
@@ -163,9 +162,14 @@ return {
   },
 
   {
-    "tpope/vim-surround",
+    "kylechui/nvim-surround",
     event = "InsertEnter",
-    dependencies = { "tpope/vim-repeat" },
+  },
+
+  {
+    "windwp/nvim-autopairs",
+    event = "InsertEnter",
+    config = function() require("nvim-autopairs").setup {} end,
   },
 
   { "Raimondi/delimitMate", event = "InsertEnter" },
@@ -193,7 +197,7 @@ return {
 
   {
     "cshuaimin/ssr.nvim",
-    event = "BufReadPre",
+    event = "BufReadPost",
     config = function() req "core.plugins.ssr" end,
   },
 
@@ -225,18 +229,18 @@ return {
         desc = "Select indent (inner, entire range)",
       },
     },
-    event = "BufReadPre",
+    event = "BufReadPost",
   },
 
   {
     "phaazon/hop.nvim",
-    event = "WinEnter",
+    event = "BufReadPost",
     config = function() req "core.plugins.hop" end,
   },
 
   {
     "nvim-treesitter/nvim-treesitter",
-    event = "BufReadPre",
+    event = "BufReadPost",
     dependencies = {
       "RRethy/vim-illuminate",
       "RRethy/nvim-treesitter-textsubjects",
@@ -260,7 +264,7 @@ return {
 
   {
     "wellle/context.vim",
-    event = "BufReadPre",
+    event = "BufReadPost",
     config = function() req "core.plugins.context" end,
   },
 
@@ -290,8 +294,11 @@ return {
   {
     "tpope/vim-fugitive",
     dependencies = { "tpope/vim-git" },
-    keys = "<leader>g",
-    config = function() req "core.plugins.fugitive" end,
+    keys = {
+      { "<leader>gs", ":Git stage %<CR>", "n", { desc = "Stage buffer" } },
+      { "<leader>gc", ":Git commit <CR>", "n", { desc = "Commit buffer" } },
+      { "<leader>gg", ":tab Git<CR>", "n", { desc = "Open Fugitive" } },
+    },
   },
 
   {
@@ -327,13 +334,13 @@ return {
     config = function() req "core.plugins.formatter" end,
   },
 
-  {'liuchengxu/vista.vim', keys = {'<C-t>', }},
+  { "liuchengxu/vista.vim", keys = { "<C-t>" } },
 
   {
     "neovim/nvim-lspconfig",
     dependencies = {
-      'ldelossa/litee.nvim',
-      'ldelossa/litee-symboltree.nvim',
+      "ldelossa/litee.nvim",
+      "ldelossa/litee-symboltree.nvim",
       "RRethy/vim-illuminate",
       "lukas-reineke/lsp-format.nvim",
       "williamboman/mason.nvim",
@@ -355,7 +362,7 @@ return {
 
   {
     "moll/vim-bbye",
-    event = "BufReadPre",
+    event = "BufReadPost",
     config = function()
       local function delete_and_hide(wipeout)
         local bufname = vim.fn.bufname(vim.fn.bufnr())

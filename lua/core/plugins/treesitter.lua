@@ -21,10 +21,13 @@ user.plugins.treesitter = {
         keymaps = {
           smart_rename = "grr",
         },
-      }
+      },
     },
+
     endwise = { enabled = true },
+
     matchup = { enable = true },
+
     ensure_installed = {
       "lua",
       "python",
@@ -36,7 +39,9 @@ user.plugins.treesitter = {
       "gitattributes",
       "gitignore",
     },
+
     auto_install = true,
+
     textsubjects = {
       enable = true,
       prev_selection = ",", -- (Optional) keymap to select the previous selection
@@ -46,6 +51,7 @@ user.plugins.treesitter = {
         ["i;"] = "textsubjects-container-inner",
       },
     },
+
     incremental_selection = {
       enable = true,
       keymaps = {
@@ -55,6 +61,7 @@ user.plugins.treesitter = {
         node_decremental = "grm",
       },
     },
+
     textobjects = {
       lsp_interop = {
         enable = true,
@@ -85,43 +92,33 @@ user.plugins.treesitter = {
           ["[]"] = "@class.outer",
         },
       },
+      select = {
+        enable = true,
+        lookahead = true,
+        keymaps = {
+          ["af"] = "@function.outer",
+          ["if"] = "@function.inner",
+          ["ac"] = "@class.outer",
+          ["ic"] = "@class.inner",
+          ["al"] = "@loop.outer",
+          ["il"] = "@loop.inner",
+          ["aa"] = "@parameter.outer",
+          ["ia"] = "@parameter.inner",
+          ["uc"] = "@comment.outer",
+        },
+        selection_modes = {
+          ["@parameter.outer"] = "v",
+          ["@function.outer"] = "V",
+          ["@class.outer"] = "<c-v>",
+        },
+        include_surrounding_whitespace = true,
+      },
     },
+
     highlight = {
       enable = true,
       disable = {},
       additional_vim_regex_highlighting = false,
-    },
-    select = {
-      enable = true,
-      lookahead = true,
-      keymaps = {
-        ["xi"] = "@attribute.inner",
-        ["aa"] = "@attribute.outer",
-        ["ib"] = "@block.inner",
-        ["ab"] = "@block.outer",
-        ["i."] = "@call.inner",
-        ["a."] = "@call.outer",
-        ["ic"] = "@class.inner",
-        ["ac"] = "@class.outer",
-        ["a;"] = "@comment.outer",
-        ["i?"] = "@conditional.inner",
-        ["a?"] = "@conditional.outer",
-        ["i-"] = "@frame.inner",
-        ["a-"] = "@frame.outer",
-        ["if"] = "@function.inner",
-        ["af"] = "@function.outer",
-        ["i*"] = "@loop.inner",
-        ["a*"] = "@loop.outer",
-        ["i("] = "@parameter.inner",
-        ["a("] = "@parameter.outer",
-        ["as"] = "@statement.outer",
-      },
-      selection_modes = {
-        ["@parameter.outer"] = "v",
-        ["@function.outer"] = "V",
-        ["@class.outer"] = "<c-v>",
-      },
-      include_surrounding_whitespace = true,
     },
   },
 }
@@ -129,7 +126,7 @@ user.plugins.treesitter = {
 --------------------------------------------------
 --------------------------------------------------
 -- nvim-treehopper
-req('core.plugins.hop')
+req "core.plugins.hop"
 
 K.bind({ silent = true }, {
   "m",
