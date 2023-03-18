@@ -18,7 +18,7 @@ function Lang._init(self, lang, opts)
         ["?test"] = "s",
         ["?linters"] = is { "s", "t" },
         ["?formatters"] = "t",
-        ["?server"] = is { "s", t },
+        ["?server"] = is { "s", 't' },
         ["?repl"] = "s",
       },
       opts,
@@ -121,10 +121,12 @@ end
 function Lang.loadall()
   return utils.log_pcall(function()
     local src =
-      utils.joinpath(vim.fn.stdpath "config", "lua", "core", "lang", "ft")
+    utils.joinpath(vim.fn.stdpath "config", "lua", "core", "lang", "ft")
     local dirs = dir.getdirectories(src)
     for _, ft in ipairs(dirs) do
       Lang.load(utils.basename(ft))
     end
   end)
 end
+
+Lang.load('lua')

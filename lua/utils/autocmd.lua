@@ -1,8 +1,11 @@
---- Autocommand creater for this framework
---
+---
+-- @classmod Autocommand wrapper for vim.api.nvim_create_autocmd.
 class "Autocmd"
 
+--- 
+-- @field A Alias for Autocommand
 A = Autocmd
+
 A.ids = A.ids or {}
 A.defaults = A.defaults or {}
 A.groups = A.groups or {}

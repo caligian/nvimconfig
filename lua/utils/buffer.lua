@@ -3,7 +3,7 @@
 if not buffer then class "Buffer" end
 
 Buffer.ids = Buffer.ids or {}
-Buffer.scratch = Buffer.scratch or 1
+SCRATCH_ID = SCRATCH_ID or 1
 
 local function percent_width(current, width, min)
   current = current or vim.fn.winwidth(0)
@@ -15,7 +15,7 @@ local function percent_width(current, width, min)
   if width < 1 then
     required = math.floor(current * width)
   else
-    required = math.floor(current)
+    return width
   end
 
   if min < 1 then
@@ -39,7 +39,7 @@ local function percent_height(current, height, min)
   if height < 1 then
     required = math.floor(current * height)
   else
-    required = math.floor(current)
+    return height
   end
 
   if min < 1 then
@@ -54,7 +54,6 @@ local function percent_height(current, height, min)
 end
 
 function Buffer.vimsize()
-  local fullwidth, fullheight
   local scratch = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_call(scratch, function()
     vim.cmd "tabnew"
@@ -72,7 +71,7 @@ function Buffer.float(self, opts)
     win_options = {
       {
         __nonexistent = true,
-        ["?center"] = "n",
+        ["?center"] = "t",
         ["?panel"] = "n",
         ["?dock"] = "n",
         ["?reverse"] = "b",
@@ -89,6 +88,7 @@ function Buffer.float(self, opts)
   local focus = opts.focus
   opts.dock = nil
   opts.panel = nil
+  opts.center = nil
   opts.style = opts.style or "minimal"
   opts.border = opts.border or "single"
   local editor_size = Buffer.vimsize()
@@ -101,12 +101,27 @@ function Buffer.float(self, opts)
   local reverse = opts.reverse
   opts.reverse = nil
 
+  local function from_percent(x, y)
+    if y < 0 then
+      return x * y
+    else
+      return y
+    end
+  end
+
   if center then
+    opts.relative = "editor"
     current_width = editor_size[1]
     current_height = editor_size[2]
-    opts.relative = "editor"
-    opts.col = math.floor((current_width - (current_width - 5)) * 0.5)
-    opts.row = math.floor((current_height - (current_height - 5)) * 0.5)
+    local width, height = unpack(center)
+    width = from_percent(current_width, width)
+    height = from_percent(current_height, height)
+    local col = (current_width - width) / 2
+    local row = (current_height - height) / 2
+    opts.width = width
+    opts.height = height
+    opts.col = math.floor(col)
+    opts.row = math.floor(row)
   elseif panel then
     current_width = editor_size[1]
     current_height = editor_size[2]
@@ -123,7 +138,8 @@ function Buffer.float(self, opts)
     opts.col = 0
     opts.row = opts.height - dock
     opts.height = percent_height(current_height, dock, 20)
-    if reverse then opts.row = current_height - opts.height end
+    opts.width = current_width
+    if reverse then opts.row = opts.height end
   end
 
   return vim.api.nvim_open_win(bufnr, focus, opts)
@@ -133,8 +149,6 @@ function Buffer.exists(self) return vim.fn.bufexists(self.bufnr) ~= 0 end
 
 function Buffer.update(self)
   table.update(Buffer.ids, { self.bufnr }, self)
-
-  if self.scratch then Buffer.scratch = Buffer.scratch + 1 end
 end
 
 function Buffer.getwidth(self)
@@ -213,9 +227,11 @@ function Buffer.setwinvars(self, vars)
   return vars
 end
 
-function Buffer.setopt(self, k, v) vim.api.nvim_buf_set_option(self.bufnr, k, v) end
+function Buffer:setopt(k, v) 
+  vim.api.nvim_buf_set_option(self.bufnr, k, v) 
+end
 
-function Buffer.setopts(self, opts)
+function Buffer:setopts(opts)
   for key, val in pairs(opts) do
     self:setopt(key, val)
   end
@@ -691,11 +707,9 @@ end
 function Buffer._init(self, name, scratch)
   local bufnr
 
-  if not name then scratch = true end
-
-  if scratch then
-    name = "_scratch_buffer_" .. Buffer.scratch
-    Buffer.scratch = Buffer.scratch + 1
+  if not name then
+    scratch = true
+    name = "_scratch_buffer_" .. SCRATCH_ID + 1
   end
 
   if is_a.n(name) then
@@ -705,12 +719,6 @@ function Buffer._init(self, name, scratch)
     )
     bufnr = name
     name = vim.fn.bufname(bufnr)
-  end
-
-  validate { ["?buffer_name"] = { is { "s", "n" }, name } }
-
-  if scratch then
-    bufnr = vim.fn.bufadd(name)
   else
     bufnr = vim.fn.bufadd(name)
   end
@@ -718,21 +726,21 @@ function Buffer._init(self, name, scratch)
   if Buffer.ids[bufnr] then return Buffer.ids[bufnr] end
 
   self.bufnr = bufnr
-  if scratch then
-    self:setopts {
-      buflisted = false,
-      modified = false,
-      buftype = "nofile",
-    }
-  end
-
+  self.name = name
   self.fullname = vim.fn.bufname(bufnr)
   self.scratch = scratch
-  self.name = name
   self.wo = {}
   self.o = {}
   self.var = {}
   self.wvar = {}
+
+  if scratch then
+    SCRATCH_ID =  SCRATCH_ID + 1
+    self:setopts {
+      modified = false,
+      buflisted = false,
+    }
+  end
 
   setmetatable(self.var, {
     __index = function(_, k) return self:getvar(k) end,

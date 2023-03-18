@@ -2,16 +2,15 @@
 -- Keybinding wrapper for vim.keymap.set which integrates with nvim autocommands API. Aliased as 'K'
 class "Keybinding"
 
+--- Alias for Keybinding
 K = Keybinding
 
 ---
--- An object id is a unique integer 
--- @field ids object container
+-- Contains maps indexed by id
 K.ids = {}
 
 ---
--- Since it is impossible to keep track of keybindings made, pass 'name' parameter in opts to actually keep track of keybindings. These will be overwritten for duplicate names
--- @field defaults objects indexed by (unique) name
+-- Contains maps indexed by name
 K.defaults = {}
 
 local id = 1
@@ -37,7 +36,7 @@ local function parse_opts(opts)
 end
 
 ---
--- Save object in K.ids and K.defaults (if name is passed)
+-- Save object in K.ids and if name is passed, in K.defaults 
 -- @returns self
 function K:update()
   table.update(Keybinding.ids, self.id, self)
@@ -55,9 +54,14 @@ end
 -- @tparam string|table mode If string is passed, it will be split, so that instead of passing a table, you can also pass 'nvo' for {'n', 'v', 'o'}. Any non-documented option is anything compatible with vim.keymap.set
 -- @tparam string lhs Keys to map to
 -- @tparam string|function cb Callback/RHS
--- @tparam table rest (optional) Rest of the optional arguments
--- @tparam rest.noremap Set as a non-recursive map (default: false)
--- @tparam rest.remap Set as a recursive map (default: true)
+-- @param rest (Optional) If string then opts.desc will be automatically set. If table then rest of the options
+-- @param rest.noremap Set as a non-recursive map (default: false)
+-- @param rest.remap Set as a recursive map (default: true)
+-- @param rest.leader Set as a leader map
+-- @param rest.localeader Set as a localeader map
+-- @tparam string rest.prefix Prefix lhs. Cannot be used with rest.localleader or rest.leader
+-- @tparam string|table rest.event rest.pattern cannot be nil if this is used. Autocommand event(s) to bind to
+-- @tparam string|table rest.pattern rest.event cannot be nil if this is used. Autocommand pattern(s) to bind to
 -- @see autocmd
 -- @return object
 function K:_init(mode, lhs, cb, rest)
@@ -146,7 +150,7 @@ function K:_init(mode, lhs, cb, rest)
 end
 
 --- Disable keybinding
-function K.disable(self)
+function K:disable()
   if not self.enabled then
     return
   end
@@ -171,7 +175,7 @@ function K.disable(self)
 end
 
 --- Delete keybinding
-function K.delete(self)
+function K:delete()
   if not self.enabled then
     return
   end
@@ -233,11 +237,12 @@ function K.bind(opts, ...)
 end
 
 --- Simple classmethod that does the same thing as Keybinding()
+-- @see K:_init
 function K.map(mode, lhs, cb, opts)
   return K(mode, lhs, cb, opts)
 end
 
---- Same as table.map but sets noremap to true
+--- Same as K.map but sets noremap to true
 function K.noremap(mode, lhs, cb, opts)
   opts = opts or {}
   if is_a.s(opts) then

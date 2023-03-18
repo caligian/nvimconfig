@@ -23,7 +23,7 @@ local mod = setmetatable({}, {
 
 function mod.bwipeout(sel)
   print("Wiping out buffer " .. sel.bufnr)
-  vim.cmd("bwipeout " .. sel.bufnr)
+  vim.cmd("bwipeout! " .. sel.bufnr)
 end
 
 function mod.nomodified(sel)
