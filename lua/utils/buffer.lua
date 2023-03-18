@@ -5,7 +5,7 @@ if not buffer then class "Buffer" end
 Buffer.ids = Buffer.ids or {}
 SCRATCH_ID = SCRATCH_ID or 1
 
-local function percent_width(current, width, min)
+local function from_percent(current, width, min)
   current = current or vim.fn.winwidth(0)
   width = width or 0.5
 
@@ -16,30 +16,6 @@ local function percent_width(current, width, min)
     required = math.floor(current * width)
   else
     return width
-  end
-
-  if min < 1 then
-    min = math.floor(current * min)
-  else
-    min = math.floor(min)
-  end
-
-  if required < min then required = min end
-
-  return required
-end
-
-local function percent_height(current, height, min)
-  current = current or vim.fn.winheight(0)
-  height = height or 0.5
-
-  assert(height ~= 0, "height cannot be 0")
-  assert(height > 0, "height cannot be < 0")
-
-  if height < 1 then
-    required = math.floor(current * height)
-  else
-    return height
   end
 
   if min < 1 then
@@ -66,7 +42,7 @@ function Buffer.vimsize()
   return { width, height }
 end
 
-function Buffer.float(self, opts)
+function Buffer:float(opts)
   validate {
     win_options = {
       {
@@ -74,7 +50,6 @@ function Buffer.float(self, opts)
         ["?center"] = "t",
         ["?panel"] = "n",
         ["?dock"] = "n",
-        ["?reverse"] = "b",
       },
       opts or {},
     },
@@ -101,21 +76,14 @@ function Buffer.float(self, opts)
   local reverse = opts.reverse
   opts.reverse = nil
 
-  local function from_percent(x, y)
-    if y < 0 then
-      return x * y
-    else
-      return y
-    end
-  end
-
   if center then
-    opts.relative = "editor"
-    current_width = editor_size[1]
-    current_height = editor_size[2]
+    if opts.relative == 'editor' then
+      current_width = editor_size[1]
+      current_height = editor_size[2]
+    end
     local width, height = unpack(center)
-    width = from_percent(current_width, width)
-    height = from_percent(current_height, height)
+    width = math.floor(from_percent(current_width, width, 40))
+    height = math.floor(from_percent(current_height, height, 20))
     local col = (current_width - width) / 2
     local row = (current_height - height) / 2
     opts.width = width
@@ -123,21 +91,26 @@ function Buffer.float(self, opts)
     opts.col = math.floor(col)
     opts.row = math.floor(row)
   elseif panel then
-    current_width = editor_size[1]
-    current_height = editor_size[2]
-    opts.relative = "editor"
+    if opts.relative == 'editor' then
+      current_width = editor_size[1]
+      current_height = editor_size[2]
+    end
+
     opts.row = 0
     opts.col = 1
-    opts.width = percent_width(current_width, panel, 30)
+    opts.width = from_percent(current_width, panel, 20)
     opts.height = current_height
     if reverse then opts.col = current_width - opts.width end
   elseif dock then
-    current_width = editor_size[1]
-    current_height = editor_size[2]
-    opts.relative = "editor"
+    if opts.relative == 'editor' then
+      current_width = editor_size[1]
+      current_height = editor_size[2]
+    end
+
+    pp(current_height, current_width)
     opts.col = 0
     opts.row = opts.height - dock
-    opts.height = percent_height(current_height, dock, 20)
+    opts.height = from_percent(current_height, dock, 20)
     opts.width = current_width
     if reverse then opts.row = opts.height end
   end
@@ -166,7 +139,7 @@ end
 --- Get buffer option
 -- @tparam string opt Name of the option
 -- @return any
-function Buffer.getopt(self, opt)
+function Buffer:getopt(opt)
   local _, out = pcall(vim.api.nvim_buf_get_option, self.bufnr, opt)
 
   if out ~= nil then return out end
@@ -175,17 +148,17 @@ end
 --- Get buffer option
 -- @tparam string var Name of the variable
 -- @return any
-function Buffer.getvar(self, var)
+function Buffer:getvar(var)
   local _, out = pcall(vim.api.nvim_buf_get_var, self.bufnr, var)
 
   if out ~= nil then return out end
 end
 
-function Buffer.setvar(self, k, v) vim.api.nvim_buf_set_var(self.bufnr, k, v) end
+function Buffer:setvar(k, v) vim.api.nvim_buf_set_var(self.bufnr, k, v) end
 
 --- Set buffer variables
 -- @tparam table vars Dictionary of var name and value
-function Buffer.setvars(self, vars)
+function Buffer:setvars(vars)
   table.teach(vars, function(k, v) self:setvar(k, v) end)
 
   return vars
@@ -194,7 +167,7 @@ end
 --- Get buffer window option
 -- @tparam string opt Name of the option
 -- @return any
-function Buffer.getwinopt(self, opt)
+function Buffer:getwinopt(opt)
   if not self:is_visible() then return end
 
   local _, out = pcall(vim.api.nvim_win_get_option, self:winid(), opt)
@@ -205,7 +178,7 @@ end
 --- Get buffer window option
 -- @tparam string var Name of the variable
 -- @return any
-function Buffer.getwinvar(self, var)
+function Buffer:getwinvar(var)
   if not self:is_visible() then return end
 
   local _, out = pcall(vim.api.nvim_win_get_var, self:winid(), var)
@@ -213,13 +186,13 @@ function Buffer.getwinvar(self, var)
   if out then return out end
 end
 
-function Buffer.setwinvar(self, k, v)
+function Buffer:setwinvar(k, v)
   if not self:is_visible() then return end
 
   vim.api.nvim_win_set_var(self:winid(), k, v)
 end
 
-function Buffer.setwinvars(self, vars)
+function Buffer:setwinvars(vars)
   if not self:is_visible() then return end
 
   table.teach(vars, function(k, v) self:setwinvar(k, v) end)
@@ -257,7 +230,7 @@ function Buffer.focus(self)
   end
 end
 
-function Buffer.setwinopt(self, k, v)
+function Buffer:setwinopt(k, v)
   if not self:is_visible() then return end
 
   vim.api.nvim_win_set_option(self:winid(), k, v)
@@ -265,7 +238,7 @@ function Buffer.setwinopt(self, k, v)
   return v
 end
 
-function Buffer.setwinopts(self, opts)
+function Buffer:setwinopts(opts)
   if not self:is_visible() then return end
 
   table.teach(opts, function(k, v) self:setwinopt(k, v) end)
@@ -283,7 +256,7 @@ end
 -- @tparam function|string callback Callback to be bound to table.keys
 -- @tparam[opt] table opts Additional vim.keymap.set options. You cannot set opts.pattern as it will be automatically set by this function
 -- @return object Keybinding object
-function Buffer.map(self, mode, lhs, callback, opts)
+function Buffer:map(mode, lhs, callback, opts)
   assert_exists(self)
 
   opts = opts or {}
@@ -293,7 +266,7 @@ end
 
 --- Create a nonrecursive mapping
 -- @see table.map
-function Buffer.noremap(self, mode, lhs, callback, opts)
+function Buffer:noremap(mode, lhs, callback, opts)
   assert_exists(self)
 
   opts = opts or {}
@@ -305,7 +278,7 @@ end
 
 --- Split current window and focus this buffer
 -- @param[opt='s'] split Direction to split in: 's' or 'v'
-function Buffer.split(self, split, opts)
+function Buffer:split(split, opts)
   assert_exists(self)
 
   opts = opts or {}
@@ -315,11 +288,12 @@ function Buffer.split(self, split, opts)
   local reverse = opts.reverse
   local width = opts.resize or 0.5
   local height = opts.resize or 0.5
-  local min = opts.min or 0.01
+  local min = 0.01
 
   -- Use decimal table.values to use percentage changes
   if split == "s" then
-    required = percent_height(current, height or 0.5, min)
+    local current = vim.fn.winheight(0)
+    required = from_percent(current, height, min)
     if not reverse then
       vim.cmd("split | b " .. self.bufnr)
     else
@@ -327,7 +301,8 @@ function Buffer.split(self, split, opts)
     end
     vim.cmd("resize " .. required)
   elseif split == "v" then
-    required = percent_width(current, width or 0.5, min)
+    local current = vim.fn.winwidth(0)
+    required = from_percent(current, width or 0.5, min)
     if not reverse then
       vim.cmd("vsplit | b " .. self.bufnr)
     else
@@ -367,7 +342,7 @@ end
 
 --- Create a buffer local autocommand. The  pattern will be automatically set to '<buffer=%d>'
 -- @see autocmd._init
-function Buffer.hook(self, event, callback, opts)
+function Buffer:hook(event, callback, opts)
   assert_exists(self)
 
   opts = opts or {}
@@ -399,7 +374,7 @@ function Buffer.is_visible(self) return vim.fn.bufwinid(self.bufnr) ~= -1 end
 -- @param startrow Starting row
 -- @param tillrow Ending row
 -- @return table
-function Buffer.lines(self, startrow, tillrow)
+function Buffer:lines(startrow, tillrow)
   startrow = startrow or 0
   tillrow = tillrow or -1
 
@@ -416,7 +391,7 @@ end
 -- @tparam table till Should be table containing end row and col
 -- @param repl Replacement text
 -- @return
-function Buffer.text(self, start, till, repl)
+function Buffer:text(start, till, repl)
   validate {
     start_cood = { "t", start },
     till_cood = { "t", till },
@@ -434,7 +409,7 @@ function Buffer.text(self, start, till, repl)
   return vim.api.nvim_buf_get_text(self.bufnr, a, m, b, n, repl)
 end
 
-function Buffer.bind(self, opts, ...)
+function Buffer:bind(opts, ...)
   assert_exists(self)
 
   opts.buffer = self.bufnr
@@ -446,7 +421,7 @@ end
 -- @param startrow Starting row
 -- @param endrow Ending row
 -- @param repl Replacement line[s]
-function Buffer.setlines(self, startrow, endrow, repl)
+function Buffer:setlines(startrow, endrow, repl)
   assert(startrow)
   assert(endrow)
 
@@ -459,7 +434,7 @@ end
 -- @tparam table start Should be table containing start row and col
 -- @tparam table till Should be table containing end row and col
 -- @tparam string|table repl Replacement text
-function Buffer.set(self, start, till, repl)
+function Buffer:set(start, till, repl)
   assert(is_a(start, "table"))
   assert(is_a(till, "table"))
 
@@ -504,11 +479,11 @@ end
 --- Call callback on buffer and return result
 -- @param cb Function to call in this buffer
 -- @return self
-function Buffer.call(self, cb) return vim.api.nvim_buf_call(self.bufnr, cb) end
+function Buffer:call(cb) return vim.api.nvim_buf_call(self.bufnr, cb) end
 
 --- Get buffer-local keymap.
 -- @see buffer_has_keymap
-function Buffer.getmap(self, mode, lhs)
+function Buffer:getmap(mode, lhs)
   return buffer_has_keymap(self.bufnr, mode, lhs)
 end
 
@@ -546,7 +521,7 @@ function Buffer.string(self) return table.concat(self:lines(0, -1), "\n") end
 
 function Buffer.getbuffer(self) return self:lines(0, -1) end
 
-function Buffer.setbuffer(self, lines) return self:setlines(0, -1, lines) end
+function Buffer:setbuffer(lines) return self:setlines(0, -1, lines) end
 
 function Buffer.current_line(self)
   return self:call(function() return vim.fn.getline "." end)
@@ -561,26 +536,26 @@ end
 
 function Buffer.__tostring(self) return self:string() end
 
-function Buffer.append(self, lines) return self:setlines(-1, -1, lines) end
+function Buffer:append(lines) return self:setlines(-1, -1, lines) end
 
-function Buffer.prepend(self, lines) return self:setlines(0, 0, lines) end
+function Buffer:prepend(lines) return self:setlines(0, 0, lines) end
 
-function Buffer.maplines(self, f) return table.map(self:lines(0, -1), f) end
+function Buffer:maplines(f) return table.map(self:lines(0, -1), f) end
 
-function Buffer.filter(self, f) return table.filter(self:lines(0, -1), f) end
+function Buffer:filter(f) return table.filter(self:lines(0, -1), f) end
 
-function Buffer.match(self, pat)
+function Buffer:match(pat)
   return table.filter(self:lines(0, -1), function(s) return s:match(pat) end)
 end
 
-function Buffer.readfile(self, fname)
+function Buffer:readfile(fname)
   assert(path.exists(fname), "invalid path provided: " .. fname)
 
   local s = file.read(fname)
   self:setlines(0, -1, s)
 end
 
-function Buffer.insertfile(self, fname)
+function Buffer:insertfile(fname)
   assert(path.exists(fname), "invalid path provided: " .. fname)
 
   local s = file.read(fname)
@@ -591,13 +566,13 @@ function Buffer.save(self)
   self:call(function() vim.cmd "w! %:p" end)
 end
 
-function Buffer.shell(self, command)
+function Buffer:shell(command)
   self:call(function() vim.cmd(":%! " .. command) end)
 
   return self:lines()
 end
 
-function Buffer.__add(self, s)
+function Buffer:__add(s)
   self:append(s)
 
   return self
@@ -704,7 +679,7 @@ end
 -- @param name Name of the buffer
 -- @param[opt] scratch Is a scratch buffer?
 -- @return self
-function Buffer._init(self, name, scratch)
+function Buffer:_init(name, scratch)
   local bufnr
 
   if not name then
