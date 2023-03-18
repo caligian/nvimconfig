@@ -1,8 +1,11 @@
-class "REPL"
+if not REPL then
+  class "REPL"
+end
 
 REPL.ids = REPL.ids or {}
+REPL._scratch_id = REPL._scratch_id or 1
 
-function REPL._init(self, ft, force)
+function REPL._init(self, ft)
   ft = ft or vim.bo.filetype
 
   validate {
@@ -10,7 +13,7 @@ function REPL._init(self, ft, force)
   }
 
   local r = REPL.ids[ft]
-  if r and not force and r.running then
+  if r and r.running then
     return r
   end
 
@@ -84,31 +87,30 @@ function REPL.stopall()
 end
 
 function REPL.start(self, force)
-  if self.running then
+  if self.running and not force then
     return self
   end
 
-  local scratch = vim.api.nvim_create_buf(false, true)
+  local name = '_scratch_buffer_' .. REPL._scratch_id
+  REPL._scratch_id = REPL._scratch_id + 1
+  local scratch = vim.fn.bufadd(name)
   local cmd = self.command
-
-  vim.api.nvim_buf_call(scratch, function()
-    vim.cmd "term"
-    id = vim.b.terminal_job_id
-    vim.api.nvim_chan_send(id, cmd .. "\r")
-    vim.wo.number = false
-    vim.wo.relativenumber = false
-    vim.api.nvim_buf_set_var(scratch, "_repl_filetype", self.filetype)
-  end)
 
   if force then
     self:stop()
   end
 
-  self.id = id
-  self.running = true
-  self.buffer = Buffer(scratch)
+  vim.api.nvim_buf_call(scratch, function()
+    vim.cmd('term ' .. cmd)
+    vim.wo.number = false
+    vim.wo.relativenumber = false
+    self.id = vim.b.terminal_job_id
+    self.buffer = Buffer(vim.fn.bufname(), true)
+    vim.api.nvim_buf_set_var(scratch, "_repl_filetype", self.filetype)
+  end)
 
-  REPL.ids[id] = self
+  self.running = true
+  REPL.ids[self.id] = self
   REPL.ids[self.filetype] = self
 
   return self
@@ -135,14 +137,12 @@ function REPL.split(self, direction, opts)
 end
 
 function REPL.float(self, opts)
-  return utils.log_pcall(function()
-    self:ensure()
-    if self:is_visible() then
-      return self
-    else
-      self.buffer:float(opts)
-    end
-  end)
+  self:ensure()
+  if self:is_visible() then
+    return self
+  else
+    self.buffer:float(opts)
+  end
 end
 
 function REPL.center_float(self, opts)

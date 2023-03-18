@@ -80,8 +80,15 @@ local function _validate(a, b)
 
     table.each(common:values(), function(key)
       display = key:gsub("^%?", "")
+      local tp, param
+      if optional[display] then
+        tp = a['?' .. display]
+      else
+        tp = a[display]
+      end
+      
+      param = b[display]
 
-      local tp, param = a[display], b[display]
       if optional[display] and param == nil then return end
 
       if is_callable(tp) then
@@ -103,7 +110,7 @@ local function _validate(a, b)
         end
       elseif is_a.s(tp) then
         if not is_a(param, tp) then
-          tp = TYPES[tp]
+          tp = TYPES[tp] or tp
           error(display .. ": expected " .. tp .. ", got " .. typeof(param))
         end
       else

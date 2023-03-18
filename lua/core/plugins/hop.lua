@@ -3,7 +3,7 @@ local hop = require "hop"
 local directions = require("hop.hint").HintDirection
 hop.setup()
 
-K.bind({ mode = "nvx", noremap = false, remap = true }, {
+K.bind({ mode = "nvx" }, {
   "g/",
   function()
     hop.hint_patterns {}
