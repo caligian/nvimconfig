@@ -1,8 +1,19 @@
+--- 
+-- Keybinding wrapper for vim.keymap.set which integrates with nvim autocommands API. Aliased as 'K'
 class "Keybinding"
 
 K = Keybinding
+
+---
+-- An object id is a unique integer 
+-- @field ids object container
 K.ids = {}
+
+---
+-- Since it is impossible to keep track of keybindings made, pass 'name' parameter in opts to actually keep track of keybindings. These will be overwritten for duplicate names
+-- @field defaults objects indexed by (unique) name
 K.defaults = {}
+
 local id = 1
 
 local function parse_opts(opts)
@@ -25,12 +36,11 @@ local function parse_opts(opts)
   return parsed
 end
 
-function K.update(self)
+---
+-- Save object in K.ids and K.defaults (if name is passed)
+-- @returns self
+function K:update()
   table.update(Keybinding.ids, self.id, self)
-
-  if self.buffer then
-    table.update(Keybinding.buffer, { self.buffer, self.id }, self)
-  end
 
   if self.name then
     Keybinding.defaults[self.name] = self
@@ -39,36 +49,18 @@ function K.update(self)
   return self
 end
 
+
 ---
 -- Create a keybinding
--- @tparam string|table mode Mode
--- @tparam string lhs LHS
+-- @tparam string|table mode If string is passed, it will be split, so that instead of passing a table, you can also pass 'nvo' for {'n', 'v', 'o'}. Any non-documented option is anything compatible with vim.keymap.set
+-- @tparam string lhs Keys to map to
 -- @tparam string|function cb Callback/RHS
--- @tparam table rest Rest of the optional arguments
--- @usage K(mode, lhs, cb, {
---   -- Any Autocmd-compatible params other than event
---   -- event and pattern when specified marks a local keybinding
---   event = string|table
-
---   -- Buffer local mapping. Pass a bufnr
---   buffer = number
-
---   -- Other keyboard args
---   mode = string|table = 'n'
-
---   -- Leader, localleader and prefix which will automatically modify LHS
---   localleader = boolean
---   leader = boolean
---
---   -- If provided then this object will be hashed in Keybinding.defaults
---   -- This WILL table.get overwritten and is NOT a preferred way to manipulate keybindings already set
---   name = string
---
---   -- Any other optional args required by vim.keymap.set
--- })
+-- @tparam table rest (optional) Rest of the optional arguments
+-- @tparam rest.noremap Set as a non-recursive map (default: false)
+-- @tparam rest.remap Set as a recursive map (default: true)
 -- @see autocmd
 -- @return object
-function K._init(self, mode, lhs, cb, rest)
+function K:_init(mode, lhs, cb, rest)
   validate {
     mode = { is { "s", "t" }, mode },
     lhs = { "s", lhs },
@@ -98,6 +90,8 @@ function K._init(self, mode, lhs, cb, rest)
   local pattern = au.pattern
   local name = misc.name
   local cond = misc.cond
+  kbd.noremap = kbd.remap and false or false
+  kbd.remap = kbd.noremap and false or true
   local _cb = cb
 
   if leader then
@@ -195,16 +189,6 @@ end
 ---
 -- Helper function for Keybinding() to set keybindings with default options
 -- @tparam table opts Default options
--- @usage Keybinding.bind(
---   -- Valid default options:
---   -- leader, localleader, noremap, event, pattern, buffer, prefix, mode
---   opts,
-
---   -- If opts is present here then take precedence over defaults
---   -- Most generally, you will need this to other specifics as it will be merged with defaults
---   {lhs, cb, desc/opts},
---   ...
--- )
 -- @return ?self Return object if only form was passed
 function K.bind(opts, ...)
   local args = { ... }
