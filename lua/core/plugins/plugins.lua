@@ -11,48 +11,10 @@ return {
 
   {
     "tpope/vim-dispatch",
-    keys = {
-      {
-        "<leader>cb",
-        function()
-          local ft = vim.bo.filetype
-          if string.isblank(ft) then
-            return
-          end
-          local compiler = Lang.langs[ft].build
-          if not compiler then
-            utils.nvimerr("No compiler defined for " .. ft)
-            return
-          end
-          vim.cmd("Dispatch " .. compiler .. " %:p")
-        end,
-        "n",
-        { noremap = true, desc = "Build file" },
-      },
-      {
-        "<leader>cq",
-        ":Copen<CR>",
-        "n",
-        { desc = "Open qflist", noremap = true },
-      },
-      {
-        "<leader>cc",
-        function()
-          local ft = vim.bo.filetype
-          if string.isblank(ft) then
-            return
-          end
-          local compiler = Lang.langs[ft].compile
-          if not compiler then
-            utils.nvimerr("No compiler defined for " .. ft)
-            return
-          end
-          vim.cmd("Dispatch " .. compiler .. " %:p")
-        end,
-        "n",
-        { noremap = true, desc = "Compile file" },
-      },
-    },
+    event = 'BufReadPost',
+    config = function ()
+     req 'core.plugins.dispatch' 
+    end,
   },
 
   { "hylang/vim-hy", ft = { "hy" } },
