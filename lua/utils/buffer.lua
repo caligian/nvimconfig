@@ -211,7 +211,7 @@ function Buffer.getwinopt(self, opt)
     return
   end
 
-  local _, out = pcall(vim.api.nvim_win_get_option, self:winnr(), opt)
+  local _, out = pcall(vim.api.nvim_win_get_option, self:winid(), opt)
 
   if out ~= nil then
     return out
@@ -226,7 +226,7 @@ function Buffer.getwinvar(self, var)
     return
   end
 
-  local _, out = pcall(vim.api.nvim_win_get_var, self:winnr(), var)
+  local _, out = pcall(vim.api.nvim_win_get_var, self:winid(), var)
 
   if out then
     return out
@@ -238,7 +238,7 @@ function Buffer.setwinvar(self, k, v)
     return
   end
 
-  vim.api.nvim_win_set_var(self:winnr(), k, v)
+  vim.api.nvim_win_set_var(self:winid(), k, v)
 end
 
 function Buffer.setwinvars(self, vars)
