@@ -1,19 +1,23 @@
 function is(type_spec)
-  type_spec = table.map(table.tolist(type_spec), function(i)
-    return TYPES[i]
-  end)
+  type_spec = table.map(
+    table.tolist(type_spec),
+    function(i) return TYPES[i] end
+  )
 
   return setmetatable({}, {
     __call = function(_, e)
       local invalid = {}
       for _, t in ipairs(type_spec) do
-        if not is_a(e, t) then
-          invalid[#invalid + 1] = t
-        end
+        if not is_a(e, t) then invalid[#invalid + 1] = t end
       end
 
       if #invalid == #type_spec then
-        return false, string.format("expected %s, got %s", table.concat(invalid, "|"), tostring(e))
+        return false,
+          string.format(
+            "expected %s, got %s",
+            table.concat(invalid, "|"),
+            tostring(typeof(e))
+          )
       end
 
       return true
@@ -24,7 +28,6 @@ end
 
 local function _validate(a, b)
   opts = opts or {}
-  local depth = 1
 
   local function _compare(a, b)
     local nonexistent = a.__nonexistent == nil and true or a.__nonexistent
@@ -39,12 +42,8 @@ local function _validate(a, b)
       k = tostring(k)
       local opt = k:match "^%?"
       local _k = k:gsub("^%?", "")
-      if opt then
-        optional[_k] = true
-      end
-      if _k:match "^[0-9]+$" then
-        _k = tonumber(_k)
-      end
+      if opt then optional[_k] = true end
+      if _k:match "^[0-9]+$" then _k = tonumber(_k) end
       ks_a[idx] = _k
     end)
 
@@ -58,49 +57,58 @@ local function _validate(a, b)
       if optional[k] then
         return
       else
-        error(string.format("%s: missing key: %s", level_name, dump(missing:values())))
+        error(
+          string.format(
+            "%s: missing key: %s",
+            level_name,
+            dump(missing:values())
+          )
+        )
       end
     end)
 
     if not nonexistent then
       assert(
         foreign:len() == 0,
-        string.format("%s: unrequired table.keys: %s", level_name, dump(foreign:values()))
+        string.format(
+          "%s: unrequired table.keys: %s",
+          level_name,
+          dump(foreign:values())
+        )
       )
     end
 
-    table.each(common, function(key)
-      local x, y
+    table.each(common:values(), function(key)
+      display = key:gsub("^%?", "")
 
-      -- Depth 1 is always the param to be checked
-      if depth > 1 then
-        level_name = level_name .. "." .. key
-      end
+      local tp, param = a[display], b[display]
+      if optional[display] and param == nil then return end
 
-      if optional[key] then
-        x = a["?" .. key]
-      else
-        x = a[key]
-      end
-      y = b[key]
-
-      local x_tp, y_tp = typeof(x), typeof(y)
-      x_tp = tostring(x_tp)
-      y_tp = tostring(y_tp)
-      if is_a.t(x_tp) and is_a.t(y_tp) then
-        assert(x_tp == y_tp, string.format("%s: expected %s, got %s", level_name, x_tp, y))
-      elseif is_a.t(x) and is_a.t(y) then
-        x.__table = key
-        depth = depth + 1
-        _compare(x, y)
-      elseif is_a.f(x) then
-        local ok, msg = x(y)
+      if is_callable(tp) then
+        local ok, msg = tp(param)
         if not ok then
-          error(level_name .. ":" .. " " .. msg)
+          error(display .. ": " .. msg or "callable failed " .. tostring(param))
+        end
+      elseif type(tp) == "table" then
+        if not is_a.t(param) then
+          error(display .. ": expected table, got " .. typeof(param))
+        end
+        if is_class(tp) then
+          if not is_a(param, tp) then
+            error(sprintf("%s: expected %s, got ", display, tp, typeof(param)))
+          end
+        else
+          tp.__table = display
+          _compare(tp, param)
+        end
+      elseif is_a.s(tp) then
+        if not is_a(param, tp) then
+          tp = TYPES[tp]
+          error(display .. ": expected " .. tp .. ", got " .. typeof(param))
         end
       else
-        x = TYPES[x] or x
-        assert(is_a(y, x), string.format("%s: expected %s, got %s", level_name, x, y))
+        local m, n = typeof(tp), typeof(param)
+        assert(m == n, sprintf("%s: expected %s, got %s", display, m, n))
       end
     end)
   end
@@ -111,9 +119,35 @@ end
 function validate(type_spec)
   table.teach(type_spec, function(display, spec)
     local tp, param = unpack(spec)
-    if display:match "^%?" and param == nil then
-      return
+    if display:match "^%?" and param == nil then return end
+    display = display:gsub("^%?", "")
+
+    if is_callable(tp) then
+      local ok, msg = tp(param)
+      if not ok then
+        error(display .. ": " .. msg or "callable failed " .. param)
+      end
+    elseif type(tp) == "table" then
+      if not is_a.t(param) then
+        error(display .. ": expected table, got " .. param)
+      end
+      if is_class(tp) then
+        assert(
+          is_a(param, tp),
+          sprintf("%s: expected %s, got ", display, tp, param)
+        )
+      else
+        tp.__table = display
+        _validate(tp, param)
+      end
+    elseif is_a.s(tp) then
+      assert(
+        is_a(param, tp),
+        display .. ": expected " .. tp .. ", got " .. typeof(param)
+      )
+    else
+      local a, b = typeof(tp), typeof(param)
+      assert(a == b, sprintf("%s: expected %s, got %s", display, a, b))
     end
-    _validate({ __table = display, tp }, { param })
   end)
 end
