@@ -1,8 +1,6 @@
 --- Buffer object creater. This does not YET cover all the neovim buffer API functions
 
-if not buffer then
-  class "Buffer"
-end
+if not buffer then class "Buffer" end
 
 Buffer.ids = Buffer.ids or {}
 Buffer.scratch = Buffer.scratch or 1
@@ -26,9 +24,7 @@ local function percent_width(current, width, min)
     min = math.floor(min)
   end
 
-  if required < min then
-    required = min
-  end
+  if required < min then required = min end
 
   return required
 end
@@ -52,9 +48,7 @@ local function percent_height(current, height, min)
     min = math.floor(min)
   end
 
-  if required < min then
-    required = min
-  end
+  if required < min then required = min end
 
   return required
 end
@@ -121,9 +115,7 @@ function Buffer.float(self, opts)
     opts.col = 1
     opts.width = percent_width(current_width, panel, 30)
     opts.height = current_height
-    if reverse then
-      opts.col = current_width - opts.width
-    end
+    if reverse then opts.col = current_width - opts.width end
   elseif dock then
     current_width = editor_size[1]
     current_height = editor_size[2]
@@ -131,38 +123,28 @@ function Buffer.float(self, opts)
     opts.col = 0
     opts.row = opts.height - dock
     opts.height = percent_height(current_height, dock, 20)
-    if reverse then
-      opts.row = current_height - opts.height
-    end
+    if reverse then opts.row = current_height - opts.height end
   end
 
   return vim.api.nvim_open_win(bufnr, focus, opts)
 end
 
-function Buffer.exists(self)
-  return vim.fn.bufexists(self.bufnr) ~= 0
-end
+function Buffer.exists(self) return vim.fn.bufexists(self.bufnr) ~= 0 end
 
 function Buffer.update(self)
   table.update(Buffer.ids, { self.bufnr }, self)
 
-  if self.scratch then
-    Buffer.scratch = Buffer.scratch + 1
-  end
+  if self.scratch then Buffer.scratch = Buffer.scratch + 1 end
 end
 
 function Buffer.getwidth(self)
-  if not self:is_visible() then
-    return
-  end
+  if not self:is_visible() then return end
 
   return vim.fn.winwidth(self:winnr())
 end
 
 function Buffer.getheight(self)
-  if not self:is_visible() then
-    return
-  end
+  if not self:is_visible() then return end
 
   return vim.fn.winheight(self:winnr())
 end
@@ -173,9 +155,7 @@ end
 function Buffer.getopt(self, opt)
   local _, out = pcall(vim.api.nvim_buf_get_option, self.bufnr, opt)
 
-  if out ~= nil then
-    return out
-  end
+  if out ~= nil then return out end
 end
 
 --- Get buffer option
@@ -184,21 +164,15 @@ end
 function Buffer.getvar(self, var)
   local _, out = pcall(vim.api.nvim_buf_get_var, self.bufnr, var)
 
-  if out ~= nil then
-    return out
-  end
+  if out ~= nil then return out end
 end
 
-function Buffer.setvar(self, k, v)
-  vim.api.nvim_buf_set_var(self.bufnr, k, v)
-end
+function Buffer.setvar(self, k, v) vim.api.nvim_buf_set_var(self.bufnr, k, v) end
 
 --- Set buffer variables
 -- @tparam table vars Dictionary of var name and value
 function Buffer.setvars(self, vars)
-  table.teach(vars, function(k, v)
-    self:setvar(k, v)
-  end)
+  table.teach(vars, function(k, v) self:setvar(k, v) end)
 
   return vars
 end
@@ -207,55 +181,39 @@ end
 -- @tparam string opt Name of the option
 -- @return any
 function Buffer.getwinopt(self, opt)
-  if not self:is_visible() then
-    return
-  end
+  if not self:is_visible() then return end
 
   local _, out = pcall(vim.api.nvim_win_get_option, self:winid(), opt)
 
-  if out ~= nil then
-    return out
-  end
+  if out ~= nil then return out end
 end
 
 --- Get buffer window option
 -- @tparam string var Name of the variable
 -- @return any
 function Buffer.getwinvar(self, var)
-  if not self:is_visible() then
-    return
-  end
+  if not self:is_visible() then return end
 
   local _, out = pcall(vim.api.nvim_win_get_var, self:winid(), var)
 
-  if out then
-    return out
-  end
+  if out then return out end
 end
 
 function Buffer.setwinvar(self, k, v)
-  if not self:is_visible() then
-    return
-  end
+  if not self:is_visible() then return end
 
   vim.api.nvim_win_set_var(self:winid(), k, v)
 end
 
 function Buffer.setwinvars(self, vars)
-  if not self:is_visible() then
-    return
-  end
+  if not self:is_visible() then return end
 
-  table.teach(vars, function(k, v)
-    self:setwinvar(k, v)
-  end)
+  table.teach(vars, function(k, v) self:setwinvar(k, v) end)
 
   return vars
 end
 
-function Buffer.setopt(self, k, v)
-  vim.api.nvim_buf_set_option(self.bufnr, k, v)
-end
+function Buffer.setopt(self, k, v) vim.api.nvim_buf_set_option(self.bufnr, k, v) end
 
 function Buffer.setopts(self, opts)
   for key, val in pairs(opts) do
@@ -265,17 +223,13 @@ end
 
 function Buffer.winnr(self)
   local winnr = vim.fn.bufwinnr(self.bufnr)
-  if winnr == -1 then
-    return
-  end
+  if winnr == -1 then return end
   return winnr
 end
 
 function Buffer.winid(self)
   local winid = vim.fn.bufwinid(self.bufnr)
-  if winid == -1 then
-    return
-  end
+  if winid == -1 then return end
   return winid
 end
 
@@ -288,9 +242,7 @@ function Buffer.focus(self)
 end
 
 function Buffer.setwinopt(self, k, v)
-  if not self:is_visible() then
-    return
-  end
+  if not self:is_visible() then return end
 
   vim.api.nvim_win_set_option(self:winid(), k, v)
 
@@ -298,13 +250,9 @@ function Buffer.setwinopt(self, k, v)
 end
 
 function Buffer.setwinopts(self, opts)
-  if not self:is_visible() then
-    return
-  end
+  if not self:is_visible() then return end
 
-  table.teach(opts, function(k, v)
-    self:setwinopt(k, v)
-  end)
+  table.teach(opts, function(k, v) self:setwinopt(k, v) end)
 
   return opts
 end
@@ -333,9 +281,7 @@ function Buffer.noremap(self, mode, lhs, callback, opts)
   assert_exists(self)
 
   opts = opts or {}
-  if is_a.s(opts) then
-    opts = { desc = opts }
-  end
+  if is_a.s(opts) then opts = { desc = opts } end
   opts.buffer = self.bufnr
   opts.noremap = true
   self:map(mode, lhs, callback, opts)
@@ -425,17 +371,13 @@ function Buffer.hide(self)
   if winid ~= -1 then
     local current_tab = vim.api.nvim_get_current_tabpage()
     local n_wins = #(vim.api.nvim_tabpage_list_wins(current_tab))
-    if n_wins > 1 then
-      vim.api.nvim_win_hide(winid)
-    end
+    if n_wins > 1 then vim.api.nvim_win_hide(winid) end
   end
 end
 
 ---  Is buffer visible?
 --  @return boolean
-function Buffer.is_visible(self)
-  return vim.fn.bufwinid(self.bufnr) ~= -1
-end
+function Buffer.is_visible(self) return vim.fn.bufwinid(self.bufnr) ~= -1 end
 
 --- Get buffer lines
 -- @param startrow Starting row
@@ -468,9 +410,7 @@ function Buffer.text(self, start, till, repl)
 
   assert_exists(self)
 
-  if is_a(repl) == "string" then
-    repl = vim.split(repl, "[\n\r]")
-  end
+  if is_a(repl) == "string" then repl = vim.split(repl, "[\n\r]") end
 
   local a, b = unpack(start)
   local m, n = unpack(till)
@@ -494,9 +434,7 @@ function Buffer.setlines(self, startrow, endrow, repl)
   assert(startrow)
   assert(endrow)
 
-  if is_a(repl, "string") then
-    repl = vim.split(repl, "[\n\r]")
-  end
+  if is_a(repl, "string") then repl = vim.split(repl, "[\n\r]") end
 
   vim.api.nvim_buf_set_lines(self.bufnr, startrow, endrow, false, repl)
 end
@@ -509,7 +447,14 @@ function Buffer.set(self, start, till, repl)
   assert(is_a(start, "table"))
   assert(is_a(till, "table"))
 
-  vim.api.nvim_buf_set_text(self.bufnr, start[1], till[1], start[2], till[2], repl)
+  vim.api.nvim_buf_set_text(
+    self.bufnr,
+    start[1],
+    till[1],
+    start[2],
+    till[2],
+    repl
+  )
 end
 
 --- Switch to this buffer
@@ -543,9 +488,7 @@ end
 --- Call callback on buffer and return result
 -- @param cb Function to call in this buffer
 -- @return self
-function Buffer.call(self, cb)
-  return vim.api.nvim_buf_call(self.bufnr, cb)
-end
+function Buffer.call(self, cb) return vim.api.nvim_buf_call(self.bufnr, cb) end
 
 --- Get buffer-local keymap.
 -- @see buffer_has_keymap
@@ -555,13 +498,9 @@ end
 
 --- Return visually highlighted table.range in this buffer
 -- @see visualrange
-function Buffer.range(self)
-  return visualrange(self.bufnr)
-end
+function Buffer.range(self) return visualrange(self.bufnr) end
 
-function Buffer.linecount(self)
-  return vim.api.nvim_buf_line_count(self.bufnr)
-end
+function Buffer.linecount(self) return vim.api.nvim_buf_line_count(self.bufnr) end
 
 function Buffer.delete(self)
   local bufnr = self.bufnr
@@ -575,42 +514,26 @@ end
 --- Return current linenumber
 -- @return number
 function Buffer.linenum(self)
-  return self:call(function()
-    return vim.fn.getpos(".")[2]
-  end)
+  return self:call(function() return vim.fn.getpos(".")[2] end)
 end
 
-function Buffer.is_listed(self)
-  return vim.fn.buflisted(self.bufnr) ~= 0
-end
+function Buffer.is_listed(self) return vim.fn.buflisted(self.bufnr) ~= 0 end
 
-function Buffer.info(self)
-  return vim.fn.getbufinfo(self.bufnr)
-end
+function Buffer.info(self) return vim.fn.getbufinfo(self.bufnr) end
 
 function Buffer.wininfo(self)
-  if not self:is_visible() then
-    return
-  end
+  if not self:is_visible() then return end
   return vim.fn.getwininfo(self:winid())
 end
 
-function Buffer.string(self)
-  return table.concat(self:lines(0, -1), "\n")
-end
+function Buffer.string(self) return table.concat(self:lines(0, -1), "\n") end
 
-function Buffer.getbuffer(self)
-  return self:lines(0, -1)
-end
+function Buffer.getbuffer(self) return self:lines(0, -1) end
 
-function Buffer.setbuffer(self, lines)
-  return self:setlines(0, -1, lines)
-end
+function Buffer.setbuffer(self, lines) return self:setlines(0, -1, lines) end
 
 function Buffer.current_line(self)
-  return self:call(function()
-    return vim.fn.getline "."
-  end)
+  return self:call(function() return vim.fn.getline "." end)
 end
 
 function Buffer.lines_till_point(self)
@@ -620,30 +543,18 @@ function Buffer.lines_till_point(self)
   end)
 end
 
-function Buffer.__tostring(self)
-  return self:string()
-end
+function Buffer.__tostring(self) return self:string() end
 
-function Buffer.append(self, lines)
-  return self:setlines(-1, -1, lines)
-end
+function Buffer.append(self, lines) return self:setlines(-1, -1, lines) end
 
-function Buffer.prepend(self, lines)
-  return self:setlines(0, 0, lines)
-end
+function Buffer.prepend(self, lines) return self:setlines(0, 0, lines) end
 
-function Buffer.maplines(self, f)
-  return table.map(self:lines(0, -1), f)
-end
+function Buffer.maplines(self, f) return table.map(self:lines(0, -1), f) end
 
-function Buffer.filter(self, f)
-  return table.filter(self:lines(0, -1), f)
-end
+function Buffer.filter(self, f) return table.filter(self:lines(0, -1), f) end
 
 function Buffer.match(self, pat)
-  return table.filter(self:lines(0, -1), function(s)
-    return s:match(pat)
-  end)
+  return table.filter(self:lines(0, -1), function(s) return s:match(pat) end)
 end
 
 function Buffer.readfile(self, fname)
@@ -661,15 +572,11 @@ function Buffer.insertfile(self, fname)
 end
 
 function Buffer.save(self)
-  self:call(function()
-    vim.cmd "w! %:p"
-  end)
+  self:call(function() vim.cmd "w! %:p" end)
 end
 
 function Buffer.shell(self, command)
-  self:call(function()
-    vim.cmd(":%! " .. command)
-  end)
+  self:call(function() vim.cmd(":%! " .. command) end)
 
   return self:lines()
 end
@@ -688,29 +595,21 @@ function Buffer.menu(desc, items, formatter, callback)
     ["?formatter"] = { "f", formatter },
   }
 
-  if is_a.s(table.items) then
-    table.items = vim.split(items, "\n")
-  end
+  if is_a.s(table.items) then table.items = vim.split(items, "\n") end
 
-  if is_a.s(desc) then
-    desc = vim.split(desc, "\n")
-  end
+  if is_a.s(desc) then desc = vim.split(desc, "\n") end
 
   local b = Buffer()
   local desc_n = #desc
   local s = table.extend(desc, items)
   local lines = table.copy(s)
 
-  if formatter then
-    s = table.map(s, formatter)
-  end
+  if formatter then s = table.map(s, formatter) end
 
   local _callback = callback
   callback = function()
     local idx = vim.fn.line "."
-    if idx <= desc_n then
-      return
-    end
+    if idx <= desc_n then return end
 
     _callback(lines[idx])
   end
@@ -719,15 +618,11 @@ function Buffer.menu(desc, items, formatter, callback)
 
   b.o.modifiable = false
 
-  b:hook("WinLeave", function()
-    b:delete()
-  end)
+  b:hook("WinLeave", function() b:delete() end)
 
   b:bind({ noremap = true, event = "BufEnter" }, {
     "q",
-    function()
-      b:delete()
-    end,
+    function() b:delete() end,
   }, { "<CR>", callback, "Run callback" })
 
   return b
@@ -762,16 +657,14 @@ function Buffer.input(text, cb, opts)
   local trigger_table = opts.keys or "gx"
   local comment = opts.comment or "#"
 
-  if is_a(text, "string") then
-    text = vim.split(text, "\n")
-  end
+  if is_a(text, "string") then text = vim.split(text, "\n") end
 
   local buf = Buffer()
   buf:setlines(0, -1, text)
 
   buf:split(split, { reverse = opts.reverse, resize = opts.resize })
 
-  buf:noremap("n", "gQ", ":hide<CR>", "Close buffer")
+  buf:noremap("n", "gQ", function() b:delete() end, "Close buffer")
 
   buf:noremap("n", trigger_keys, function()
     local lines = buf:lines(0, -1)
@@ -788,9 +681,7 @@ function Buffer.input(text, cb, opts)
     cb(sanitized)
   end, "Execute callback")
 
-  buf:hook("WinLeave", function()
-    buf:delete()
-  end)
+  buf:hook("WinLeave", function() buf:delete() end)
 end
 
 --- Constructor function returning a buffer object
@@ -800,9 +691,7 @@ end
 function Buffer._init(self, name, scratch)
   local bufnr
 
-  if not name then
-    scratch = true
-  end
+  if not name then scratch = true end
 
   if scratch then
     name = "_scratch_buffer_" .. Buffer.scratch
@@ -810,7 +699,10 @@ function Buffer._init(self, name, scratch)
   end
 
   if is_a.n(name) then
-    assert(vim.fn.bufexists(name) ~= 0, "invalid bufnr given: " .. tostring(name))
+    assert(
+      vim.fn.bufexists(name) ~= 0,
+      "invalid bufnr given: " .. tostring(name)
+    )
     bufnr = name
     name = vim.fn.bufname(bufnr)
   end
@@ -823,9 +715,7 @@ function Buffer._init(self, name, scratch)
     bufnr = vim.fn.bufadd(name)
   end
 
-  if Buffer.ids[bufnr] then
-    return Buffer.ids[bufnr]
-  end
+  if Buffer.ids[bufnr] then return Buffer.ids[bufnr] end
 
   self.bufnr = bufnr
   if scratch then
@@ -845,37 +735,25 @@ function Buffer._init(self, name, scratch)
   self.wvar = {}
 
   setmetatable(self.var, {
-    __index = function(_, k)
-      return self:getvar(k)
-    end,
-    __newindex = function(_, k, v)
-      return self:setvar(k, v)
-    end,
+    __index = function(_, k) return self:getvar(k) end,
+    __newindex = function(_, k, v) return self:setvar(k, v) end,
   })
 
   setmetatable(self.o, {
-    __index = function(_, k)
-      return self:getopt(k)
-    end,
+    __index = function(_, k) return self:getopt(k) end,
 
-    __newindex = function(_, k, v)
-      return self:setopt(k, v)
-    end,
+    __newindex = function(_, k, v) return self:setopt(k, v) end,
   })
 
   setmetatable(self.wvar, {
     __index = function(_, k)
-      if not self:is_visible() then
-        return
-      end
+      if not self:is_visible() then return end
 
       return self:getwinvar(k)
     end,
 
     __newindex = function(_, k, v)
-      if not self:is_visible() then
-        return
-      end
+      if not self:is_visible() then return end
 
       return self:setwinvar(k, v)
     end,
@@ -883,17 +761,13 @@ function Buffer._init(self, name, scratch)
 
   setmetatable(self.wo, {
     __index = function(_, k)
-      if not self:is_visible() then
-        return
-      end
+      if not self:is_visible() then return end
 
       return self:getwinopt(k)
     end,
 
     __newindex = function(_, k, v)
-      if not self:is_visible() then
-        return
-      end
+      if not self:is_visible() then return end
 
       return self:setwinopt(k, v)
     end,

@@ -74,16 +74,17 @@ req "user.plugins.which-key_nvim"
 wk.setup(user.plugins["which-key.nvim"].config)
 
 wk.register({
-  f = { name = "File management" },
-  g = { name = "Git operations" },
+  f = { name = "File" },
+  g = { name = "Git" },
   h = { name = "Help", t = { name = "Colorscheme" } },
-  r = { name = "REPL operations" },
-  l = { name = "LSP management", w = { name = "Workspaces" } },
-  t = { name = "Tab management" },
-  o = { name = "Toggle options" },
-  b = { name = "Buffer management" },
-  x = { name = "Shell operations" },
-  c = { name = "Compile buffer" },
-  q = { name = "Quit nvim" },
-  m = { name = "Filetype operations" },
+  r = { name = "REPL" },
+  l = { name = "LSP", w = { name = "Workspaces" } },
+  t = { name = "Tab" },
+  o = { name = "Options" },
+  b = { name = "Buffer" },
+  x = { name = "Shell" },
+  c = { name = "Compile/Build/Test" },
+  q = { name = "Quit" },
+  e = { name = "Lua eval" },
+  m = { name = "Filetype" },
 }, { prefix = "<leader>" })
