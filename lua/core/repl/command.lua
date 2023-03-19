@@ -3,12 +3,10 @@ local command = utils.command
 local function get_repl(is_shell)
   local ft
   if is_shell then
-    ft = 'sh'
+    ft = "sh"
   else
     ft = vim.bo.filetype
-    if #ft == 0 then
-      return
-    end
+    if #ft == 0 then return end
   end
 
   if not table.contains(Lang.langs, ft, "repl") then return end
@@ -17,60 +15,63 @@ local function get_repl(is_shell)
   if exists then return exists end
 
   local r = REPL(is_shell)
-  return  r
+  return r
 end
 
-local function wrap(f, ft)
+local function wrap(f, is_shell, start)
   return function()
-    local r = get_repl(ft)
-    if r then f(r) end
+    local r = get_repl(is_shell)
+    if r then
+      if start then r:start() end
+      f(r)
+    end
   end
 end
 
 command(
   "REPLStart",
-  wrap(function(r) r:split("s", { resize = 0.3, min = 0.1 }) end),
+  wrap(function(r) r:split("s", { resize = 0.3, min = 0.1 }) end, false, true),
   {}
 )
 
-command("REPLTerminateInput", wrap(function(r) r:terminate_input() end), {})
+command("REPLTerminateInput", wrap(function(r) r:terminate_input() end, false, true), {})
 
-command("REPLStop", wrap(function(r) r:stop() end), {})
+command("REPLStop", wrap(function(r) r:stop() end, false), {})
 
 command(
   "REPLSplit",
-  wrap(function(r) r:split("s", { resize = 0.3, min = 0.1 }) end),
+  wrap(function(r) r:split("s", { resize = 0.3, min = 0.1 }, false, true) end),
   {}
 )
 
 command(
   "REPLVsplit",
-  wrap(function(r) r:split("v", { resize = 0.3, min = 0.1 }) end),
+  wrap(function(r) r:split("v", { resize = 0.3, min = 0.1 }, false, true) end),
   {}
 )
 
-command("REPLDock", wrap(function(r) r:dock {relative='win'} end), {})
+command("REPLDock", wrap(function(r) r:dock { relative = "win" } end, false, true), {})
 
-command("REPLHide", wrap(function(r) r:hide() end), {})
+command("REPLHide", wrap(function(r) r:hide() end, false, true), {})
 
-command(
-  "REPLSend",
-  wrap(function(r) r:send(vim.fn.input "To REPL > ") end),
-  {}
-)
+command("REPLSend", wrap(function(r) r:send(vim.fn.input "To REPL > ") end, false, true), {})
 
-command("REPLSendLine", wrap(function(r) r:send_current_line() end), {})
+command("REPLSendLine", wrap(function(r) r:send_current_line() end, false, true), {})
 
-command("REPLSendBuffer", wrap(function(r) r:send_buffer() end), {})
+command("REPLSendBuffer", wrap(function(r) r:send_buffer() end, false, true), {})
 
-command("REPLSendTillPoint", wrap(function(r) r:send_till_point() end), {})
+command("REPLSendTillPoint", wrap(function(r) r:send_till_point() end, false, true), {})
 
-command("REPLSendRange", wrap(function(r) r:send_visual_range() end), {})
+command("REPLSendRange", wrap(function(r) r:send_visual_range() end, false, true), {})
 
 -- Shell
 command(
   "ShellStart",
-  wrap(function(r) r:split("s", { resize = 0.3, min = 10, full = true }) end, true),
+  wrap(
+    function(r) r:split("s", { resize = 0.3, min = 10, full = true }) end,
+    true,
+    true
+  ),
   {}
 )
 
@@ -84,46 +85,41 @@ command("ShellStop", wrap(function(r) r:stop() end, true), {})
 
 command(
   "ShellSplit",
-  wrap(function(r) r:split("s", { resize = 0.3, min = 0.1, full = true }) end, true),
+  wrap(
+    function(r) r:split("s", { resize = 0.3, min = 0.1, full = true }) end,
+    true,
+    true
+  ),
   {}
 )
 
 command(
   "ShellVsplit",
-  wrap(function(r) r:split("v", { resize = 0.3, min = 0.1, full = true }) end, true),
+  wrap(
+    function(r) r:split("v", { resize = 0.3, min = 0.1, full = true }) end,
+    true, true
+  ),
   {}
 )
 
-command("ShellDock", wrap(function(r) r:dock { full = true } end, true), {})
+command("ShellDock", wrap(function(r) r:dock {} end, true, true), {})
 
-command("ShellHide", wrap(function(r) r:hide() end, true), {})
+command("ShellHide", wrap(function(r) r:hide() end, true, true), {})
 
 command(
   "ShellSend",
-  wrap(function(r) r:send(vim.fn.input "To shell > ") end, true),
+  wrap(function(r) r:send(vim.fn.input "To shell > ") end, true, true),
   {}
 )
 
-command(
-  "ShellSendLine",
-  wrap(function(r) r:send_current_line() end, true),
-  {}
-)
+command("ShellSendLine", wrap(function(r) r:send_current_line() end, true, true), {})
 
-command(
-  "ShellSendBuffer",
-  wrap(function(r) r:send_buffer() end, true),
-  {}
-)
+command("ShellSendBuffer", wrap(function(r) r:send_buffer() end, true, true), {})
 
 command(
   "ShellSendTillPoint",
-  wrap(function(r) r:send_till_point() end, true),
+  wrap(function(r) r:send_till_point() end, true, true),
   {}
 )
 
-command(
-  "ShellSendRange",
-  wrap(function(r) r:send_visual_range() end, true),
-  {}
-)
+command("ShellSendRange", wrap(function(r) r:send_visual_range() end, true, true), {})

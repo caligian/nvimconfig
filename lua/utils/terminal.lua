@@ -58,7 +58,7 @@ local function get_status(id, cmd)
     end
   end
 
-  return { success = true, cmd=cmd, job_id=id }
+  return { success = true, cmd = cmd, job_id = id }
 end
 
 local function start_term(cmd, opts)
@@ -77,19 +77,15 @@ local function start_term(cmd, opts)
 end
 
 function Term:wait(timeout)
-  if not self.id then
-    return false
-  end
+  if not self.id then return false end
 
-  local status = vim.fn.jobwait({self.id}, timeout or Term.timeout)
+  local status = vim.fn.jobwait({ self.id }, timeout or Term.timeout)
   return status[1]
 end
 
-function Term:get_status() 
-  if not self.id then
-    return false
-  end
-  return get_status(self.id, self.command) 
+function Term:get_status()
+  if not self.id then return false end
+  return get_status(self.id, self.command)
 end
 
 function Term:is_running()
@@ -113,7 +109,9 @@ function Term:start()
   return self
 end
 
-function Term:is_visible() return self.buffer:is_visible() end
+function Term:is_visible() 
+  return self.buffer:is_visible() 
+end
 
 function Term:stop()
   if not self:is_running() then return end
@@ -127,7 +125,13 @@ function Term:stop()
   return self
 end
 
-function Term.stopall() table.each(Term.ids, vim.fn.chanclose) end
+function Term.stopall()
+  table.teach(Term.ids, function (id, _)
+    if is_a.n(id) then
+      vim.fn.chanclose(id)
+    end
+  end)
+end
 
 function Term:hide()
   if self:is_running() then self.buffer:hide() end
