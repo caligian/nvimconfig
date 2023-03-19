@@ -148,6 +148,7 @@ function validate(type_spec)
         _validate(tp, param)
       end
     elseif is_a.s(tp) then
+      tp = TYPES[tp] or tp
       assert(
         is_a(param, tp),
         display .. ": expected " .. tp .. ", got " .. typeof(param)
