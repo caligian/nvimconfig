@@ -3,7 +3,7 @@
 if not buffer then class "Buffer" end
 
 Buffer.ids = Buffer.ids or {}
-SCRATCH_ID = SCRATCH_ID or 1
+Buffer._scratch_id = Buffer._scratch_id or 1
 
 local function from_percent(current, width, min)
   current = current or vim.fn.winwidth(0)
@@ -480,7 +480,7 @@ end
 function Buffer.open_scratch(name, split)
   name = name or "scratch_buffer"
   local buf = Buffer(name, true)
-  -- buf:split(split or "s")
+  buf:split(split or "s")
 
   return buf
 end
@@ -693,7 +693,7 @@ function Buffer:_init(name, scratch)
 
   if not name then
     scratch = true
-    name = "_scratch_buffer_" .. SCRATCH_ID + 1
+    name = "_scratch_buffer_" .. Buffer._scratch_id + 1
   end
 
   if is_a.n(name) then
@@ -719,13 +719,16 @@ function Buffer:_init(name, scratch)
   self.wvar = {}
 
   if scratch then
-    SCRATCH_ID = SCRATCH_ID + 1
+    Buffer._scratch_id = Buffer._scratch_id + 1
     self:setopts {
       modified = false,
       buflisted = false,
     }
     if self:getopt('buftype') ~= 'terminal' then
       self:setopt('buftype', 'nofile')
+    else
+      self.terminal = true
+      self.scratch = nil
     end
   end
 
