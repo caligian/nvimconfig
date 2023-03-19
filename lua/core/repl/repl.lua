@@ -31,6 +31,13 @@ local function is_running(id, bufnr)
   return true
 end
 
+function REPL:is_running()
+  if not self.id then
+    return false
+  end
+  return is_running(self.id, self.buffer.bufnr)
+end
+
 local function get_obj(current, ft)
   ft = ft or vim.bo.filetype
   if ft ~= "sh" then
