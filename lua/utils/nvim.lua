@@ -98,3 +98,7 @@ function utils.log_pcall_wrap(f)
     return utils.log_pcall(f, ...)
   end
 end
+
+function throw_error(desc)
+  error(dump(desc))
+end
