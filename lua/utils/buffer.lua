@@ -69,21 +69,19 @@ function Buffer:float(opts)
   local editor_size = Buffer.vimsize()
   local current_width = vim.fn.winwidth(0)
   local current_height = vim.fn.winheight(0)
-  opts.width = current_width
-  opts.height = current_height
+  opts.width = opts.width or current_width
+  opts.height = opts.height or current_height
   opts.relative = opts.relative or "editor"
   focus = focus == nil and true or focus
-  local reverse = opts.reverse
-  opts.reverse = nil
 
   if center then
-    if opts.relative == 'editor' then
+    if opts.relative == "editor" then
       current_width = editor_size[1]
       current_height = editor_size[2]
     end
     local width, height = unpack(center)
-    width = math.floor(from_percent(current_width, width, 40))
-    height = math.floor(from_percent(current_height, height, 20))
+    width = math.floor(from_percent(current_width, width, 10))
+    height = math.floor(from_percent(current_height, height, 5))
     local col = (current_width - width) / 2
     local row = (current_height - height) / 2
     opts.width = width
@@ -91,27 +89,26 @@ function Buffer:float(opts)
     opts.col = math.floor(col)
     opts.row = math.floor(row)
   elseif panel then
-    if opts.relative == 'editor' then
+    if opts.relative == "editor" then
       current_width = editor_size[1]
       current_height = editor_size[2]
     end
 
     opts.row = 0
     opts.col = 1
-    opts.width = from_percent(current_width, panel, 20)
+    opts.width = from_percent(current_width, panel, 5)
     opts.height = current_height
     if reverse then opts.col = current_width - opts.width end
   elseif dock then
-    if opts.relative == 'editor' then
+    if opts.relative == "editor" then
       current_width = editor_size[1]
       current_height = editor_size[2]
     end
 
-    pp(current_height, current_width)
     opts.col = 0
     opts.row = opts.height - dock
-    opts.height = from_percent(current_height, dock, 20)
-    opts.width = current_width
+    opts.height = from_percent(current_height, dock, 5)
+    opts.width = current_width > 5 and current_width - 2 or current_width
     if reverse then opts.row = opts.height end
   end
 
@@ -120,9 +117,7 @@ end
 
 function Buffer.exists(self) return vim.fn.bufexists(self.bufnr) ~= 0 end
 
-function Buffer.update(self)
-  table.update(Buffer.ids, { self.bufnr }, self)
-end
+function Buffer.update(self) table.update(Buffer.ids, { self.bufnr }, self) end
 
 function Buffer.getwidth(self)
   if not self:is_visible() then return end
@@ -200,9 +195,7 @@ function Buffer:setwinvars(vars)
   return vars
 end
 
-function Buffer:setopt(k, v) 
-  vim.api.nvim_buf_set_option(self.bufnr, k, v) 
-end
+function Buffer:setopt(k, v) vim.api.nvim_buf_set_option(self.bufnr, k, v) end
 
 function Buffer:setopts(opts)
   for key, val in pairs(opts) do
@@ -286,27 +279,43 @@ function Buffer:split(split, opts)
 
   local required
   local reverse = opts.reverse
-  local width = opts.resize or 0.5
-  local height = opts.resize or 0.5
-  local min = 0.01
+  local width = opts.resize or 0.3
+  local height = opts.resize or 0.3
+  local min = 0.1
 
   -- Use decimal table.values to use percentage changes
   if split == "s" then
     local current = vim.fn.winheight(0)
     required = from_percent(current, height, min)
     if not reverse then
-      vim.cmd("split | b " .. self.bufnr)
+      if opts.full then
+        vim.cmd("botright split | b " .. self.bufnr)
+      else
+        vim.cmd("split | b " .. self.bufnr)
+      end
     else
-      vim.cmd(sprintf("split | wincmd j | b %d", self.bufnr))
+      if opts.full then
+        vim.cmd(sprintf("botright split | wincmd j | b %d", self.bufnr))
+      else
+        vim.cmd(sprintf("split | wincmd j | b %d", self.bufnr))
+      end
     end
     vim.cmd("resize " .. required)
   elseif split == "v" then
     local current = vim.fn.winwidth(0)
-    required = from_percent(current, width or 0.5, min)
+    required = from_percent(current, height or 0.5, min)
     if not reverse then
-      vim.cmd("vsplit | b " .. self.bufnr)
+      if opts.full then
+        vim.cmd("vert topleft split | b " .. self.bufnr)
+      else
+        vim.cmd("vsplit | b " .. self.bufnr)
+      end
     else
-      vim.cmd(sprintf("vsplit | wincmd l | b %d", self.bufnr))
+      if opts.full then
+        vim.cmd(sprintf("vert botright split | b %d", self.bufnr))
+      else
+        vim.cmd(sprintf("vsplit | wincmd l | b %d", self.bufnr))
+      end
     end
     vim.cmd("vert resize " .. required)
   elseif split == "f" then
@@ -471,7 +480,7 @@ end
 function Buffer.open_scratch(name, split)
   name = name or "scratch_buffer"
   local buf = Buffer(name, true)
-  buf:split(split or "s")
+  -- buf:split(split or "s")
 
   return buf
 end
@@ -710,11 +719,14 @@ function Buffer:_init(name, scratch)
   self.wvar = {}
 
   if scratch then
-    SCRATCH_ID =  SCRATCH_ID + 1
+    SCRATCH_ID = SCRATCH_ID + 1
     self:setopts {
       modified = false,
       buflisted = false,
     }
+    if self:getopt('buftype') ~= 'terminal' then
+      self:setopt('buftype', 'nofile')
+    end
   end
 
   setmetatable(self.var, {

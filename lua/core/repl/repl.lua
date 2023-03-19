@@ -12,7 +12,7 @@ local function is_invalid_command_or_exit(bufnr)
   end
 
   local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-  if lines[1]:match "command not found" then
+  if lines[1] and lines[1]:match "command not found" then
     return "invalid_command"
   else
     for i = 1, #lines do

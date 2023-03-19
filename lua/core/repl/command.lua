@@ -1,136 +1,129 @@
 local command = utils.command
 
-local function check_filetype(ft)
-  if not Lang.langs[ft] then
-    return false
-  end
-  return ft
-end
-
-local function get_filetype(args)
-  local ft = args.args
-  if #ft == 0 then
+local function get_repl(is_shell)
+  local ft
+  if is_shell then
+    ft = 'sh'
+  else
     ft = vim.bo.filetype
     if #ft == 0 then
-      local _, out = pcall(vim.api.nvim_buf_get_var, vim.fn.bufnr(), "_repl_filetype")
-      ft = out or ""
+      return
     end
   end
 
-  if not ft then
-    return false
-  else
-    return ft
-  end
+  if not table.contains(Lang.langs, ft, "repl") then return end
+  local current = vim.fn.bufnr()
+  local exists = table.contains(REPL.ids, ft, current)
+  if exists then return exists end
+
+  local r = REPL(is_shell)
+  return  r
 end
 
-local function wrap(f)
-  return function(args)
-    local ft = check_filetype(get_filetype(args))
-    if ft then
-      local r = REPL(ft)
-      r:start()
-      if f then
-        return f(r)
-      end
-    end
-  end
-end
-
-local function stop(args)
-  local ft = check_filetype(get_filetype(args))
-  if ft then
-    local r = REPL(ft)
-    r:stop()
+local function wrap(f, ft)
+  return function()
+    local r = get_repl(ft)
+    if r then f(r) end
   end
 end
 
 command(
-  "StartREPL",
-  wrap(function(r)
-    r:split("s", { resize = 0.2, min = 10 })
-  end),
-  { nargs = "?" }
+  "REPLStart",
+  wrap(function(r) r:split("s", { resize = 0.3, min = 0.1 }) end),
+  {}
+)
+
+command("REPLTerminateInput", wrap(function(r) r:terminate_input() end), {})
+
+command("REPLStop", wrap(function(r) r:stop() end), {})
+
+command(
+  "REPLSplit",
+  wrap(function(r) r:split("s", { resize = 0.3, min = 0.1 }) end),
+  {}
 )
 
 command(
-  "TerminateInputREPL",
-  wrap(function(r)
-    r:terminate_input()
-  end),
-  { nargs = "?" }
+  "REPLVsplit",
+  wrap(function(r) r:split("v", { resize = 0.3, min = 0.1 }) end),
+  {}
 )
 
-command("StopREPL", stop, { nargs = "?" })
+command("REPLDock", wrap(function(r) r:dock() end), {})
+
+command("REPLHide", wrap(function(r) r:hide() end), {})
 
 command(
-  "SplitREPL",
-  wrap(function(r)
-    r:split("s", { resize = 0.5, min = 20 })
-  end),
-  { nargs = "?" }
+  "REPLSend",
+  wrap(function(r) r:send(vim.fn.input "To REPL > ") end),
+  {}
 )
 
-command(
-  "VsplitREPL",
-  wrap(function(r)
-    r:split("v", { resize = 0.3, min = 20 })
-  end),
-  { nargs = "?" }
-)
+command("REPLSendLine", wrap(function(r) r:send_current_line() end), {})
 
+command("REPLSendBuffer", wrap(function(r) r:send_buffer() end), {})
+
+command("REPLSendTillPoint", wrap(function(r) r:send_till_point() end), {})
+
+command("REPLSendRange", wrap(function(r) r:send_visual_range() end), {})
+
+-- Shell
 command(
-  "DockREPL",
-  wrap(function(r)
-    r:dock()
-  end),
-  { nargs = "?" }
+  "ShellStart",
+  wrap(function(r) r:split("s", { resize = 0.3, min = 10, full = true }) end, true),
+  {}
 )
 
 command(
-  "HideREPL",
-  wrap(function(r)
-    r:hide()
-  end),
-  { nargs = "?" }
+  "ShellTerminateInput",
+  wrap(function(r) r:terminate_input() end, true),
+  {}
+)
+
+command("ShellStop", wrap(function(r) r:stop() end, true), {})
+
+command(
+  "ShellSplit",
+  wrap(function(r) r:split("Shells", { resize = 0.3, min = 0.1, full = true }) end, true),
+  {}
 )
 
 command(
-  "SendREPL",
-  wrap(function(r)
-    r:send(vim.fn.input "Send string > ")
-  end),
-  { nargs = "?" }
+  "ShellVsplit",
+  wrap(function(r) r:split("Shellv", { resize = 0.3, min = 0.1, full = true }) end, true),
+  {}
+)
+
+command("ShellDock", wrap(function(r) r:dock { full = true } end, true), {})
+
+command("ShellHide", wrap(function(r) r:hide() end, true), {})
+
+command(
+  "ShellSend",
+  wrap(function(r) r:send(vim.fn.input "To shell > ") end, true),
+  {}
 )
 
 command(
-  "SendLineREPL",
-  wrap(function(r)
-    r:send_current_line()
-  end),
-  { nargs = "?" }
+  "ShellSendLine",
+  wrap(function(r) r:send_current_line() end, true),
+  {}
 )
 
 command(
-  "SendBufferREPL",
-  wrap(function(r)
-    r:send_buffer()
-  end),
-  { nargs = "?" }
+  "ShellSendBuffer",
+  wrap(function(r) r:send_buffer() end, true),
+  {}
 )
 
 command(
-  "SendTillPointREPL",
-  wrap(function(r)
-    r:send_till_point()
-  end),
-  { nargs = "?" }
+  "ShellSendTillPoint",
+  wrap(function(r) r:send_till_point() end, true),
+  {}
 )
 
 command(
-  "SendRangeREPL",
-  wrap(function(r)
-    r:send_visual_range()
-  end),
-  { nargs = "?" }
+  "ShellSendRange",
+  wrap(function(r) r:send_visual_range() end, true),
+  {}
 )
