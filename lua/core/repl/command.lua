@@ -49,7 +49,7 @@ command(
   {}
 )
 
-command("REPLDock", wrap(function(r) r:dock() end), {})
+command("REPLDock", wrap(function(r) r:dock {relative='win'} end), {})
 
 command("REPLHide", wrap(function(r) r:hide() end), {})
 
@@ -84,13 +84,13 @@ command("ShellStop", wrap(function(r) r:stop() end, true), {})
 
 command(
   "ShellSplit",
-  wrap(function(r) r:split("Shells", { resize = 0.3, min = 0.1, full = true }) end, true),
+  wrap(function(r) r:split("s", { resize = 0.3, min = 0.1, full = true }) end, true),
   {}
 )
 
 command(
   "ShellVsplit",
-  wrap(function(r) r:split("Shellv", { resize = 0.3, min = 0.1, full = true }) end, true),
+  wrap(function(r) r:split("v", { resize = 0.3, min = 0.1, full = true }) end, true),
   {}
 )
 
