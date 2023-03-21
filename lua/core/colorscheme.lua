@@ -1,9 +1,11 @@
-class "Colorscheme"
+if not Colorscheme then
+  class "Colorscheme"
+  Colorscheme.colorscheme = {}
+end
 
-Colorscheme.colorscheme = {}
 local color = user.colorscheme
 
-function Colorscheme._init(self, name, config)
+function Colorscheme:_init(name, config)
   config = config or {}
 
   validate {
@@ -17,14 +19,13 @@ function Colorscheme._init(self, name, config)
   return self
 end
 
-function Colorscheme.apply(self, override)
-  local config = self.config
-
+function Colorscheme:apply(override)
+  local config = self.config or {}
   table.merge(config, override)
-
   local cb = config.callback
+
   config.callback = nil
-  if not table.isblank(config) then
+  if cb then
     cb(config)
   else
     vim.cmd("color " .. self.name)
