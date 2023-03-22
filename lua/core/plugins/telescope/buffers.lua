@@ -1,25 +1,6 @@
 local action_state = require "telescope.actions.state"
 local actions = require "telescope.actions"
-
-local mod = setmetatable({}, {
-  __newindex = function(self, name, f)
-    rawset(self, name, function(bufnr)
-      local picker = action_state.get_current_picker(bufnr)
-      local nargs = picker:get_multi_selection()
-      if #nargs > 0 then
-        for _, value in ipairs(nargs) do
-          f(value)
-        end
-      else
-        local entry = picker:get_selected_entry()
-        if entry then
-          f(entry)
-        end
-      end
-      actions.close(bufnr)
-    end)
-  end,
-})
+local mod = require('core.plugins.telescope.utils').create_actions()
 
 function mod.bwipeout(sel)
   print("Wiping out buffer " .. sel.bufnr)
@@ -44,6 +25,12 @@ function mod.readonly(sel)
   vim.api.nvim_buf_call(sel.bufnr, function()
     vim.cmd "set nomodifiable"
   end)
+end
+
+function mod.bookmark(sel)
+  sel = path.abspath(sel.filename)
+  print('Bookmarking buffer: ' .. sel)
+  Bookmarks.add(sel)
 end
 
 return mod

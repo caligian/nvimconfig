@@ -19,6 +19,7 @@ T.pickers = {
         ["!"] = buffer_actions.nomodified,
         w = buffer_actions.save,
         r = buffer_actions.readonly,
+        b = buffer_actions.bookmark
       },
     },
   },
@@ -145,10 +146,11 @@ local opts = Keybinding.bind(
   },
   { "g?", picker "git_status", { desc = "Git status", name = "ts_git_status" } },
   {
-    "h:",
+    "h;",
     picker "command_history",
     { desc = "Command history", name = "ts_git_status" },
   }
 )
 
 req "core.plugins.telescope.colorscheme"
+req 'core.plugins.telescope.bookmarks'

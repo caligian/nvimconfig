@@ -1,4 +1,5 @@
 user.plugins.statusline = {
+  evil = true,
   config = {
     options = {
       icons_enabled = true,
@@ -41,5 +42,11 @@ user.plugins.statusline = {
   },
 }
 
+local config = user.plugins.statusline
 req "user.plugins.statusline"
-require("lualine").setup(user.plugins.statusline.config)
+
+if config.evil then
+  require('core.plugins.evilline')
+else
+  require("lualine").setup(config.config)
+end
