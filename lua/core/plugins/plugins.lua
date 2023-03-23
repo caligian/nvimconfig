@@ -1,4 +1,4 @@
-return {
+local plugins = {
   { "nvim-lua/plenary.nvim", priority = 500 },
 
   { "nathom/filetype.nvim", priority = 300 },
@@ -347,3 +347,11 @@ return {
     end),
   },
 }
+
+local names = {}
+table.each(plugins, function (spec)
+  local x = path.basename(spec[1])
+  names[x] = spec
+end)
+
+return names
