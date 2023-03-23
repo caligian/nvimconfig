@@ -23,13 +23,13 @@ get_lazy()
 
 local function add_paths()
   -- Enable support for nvim-local luarocks
-  local config_dir = vim.fn.stdpath "config"
+  local data_dir = vim.fn.stdpath "config"
   local home_dir = os.getenv "HOME" .. "/.nvim"
-  package.cpath = package.path .. ";" .. config_dir .. "/luarocks/share/lua/5.1/?.so"
-  package.cpath = package.path .. ";" .. config_dir .. "/luarocks/lib/lua/5.1/?.so"
-  package.path = package.path .. ";" .. config_dir .. "/luarocks/share/lua/5.1/?.lua"
-  package.path = package.path .. ";" .. config_dir .. "/luarocks/share/lua/5.1/?/?.lua"
-  package.path = package.path .. ";" .. config_dir .. "/luarocks/share/lua/5.1/?/init.lua"
+  package.cpath = package.path .. ";" .. data_dir .. "/luarocks/share/lua/5.1/?.so"
+  package.cpath = package.path .. ";" .. data_dir .. "/luarocks/lib/lua/5.1/?.so"
+  package.path = package.path .. ";" .. data_dir .. "/luarocks/share/lua/5.1/?.lua"
+  package.path = package.path .. ";" .. data_dir .. "/luarocks/share/lua/5.1/?/?.lua"
+  package.path = package.path .. ";" .. data_dir .. "/luarocks/share/lua/5.1/?/init.lua"
 
   -- Enable support for user config in ~/.nvim
   package.path = package.path .. ";" .. home_dir .. "/lua/?.lua"
