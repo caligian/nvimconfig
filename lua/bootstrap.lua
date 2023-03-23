@@ -3,7 +3,6 @@ local function get_lazy()
   local lazypath = vim.fn.stdpath "data" .. "/lazy/lazy.nvim"
   local exists = vim.loop.fs_stat(lazypath)
   if not exists then
-    print('Installing lazy.nvim')
     vim.fn.system {
       "git",
       "clone",
