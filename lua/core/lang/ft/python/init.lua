@@ -1,4 +1,4 @@
-return {
+Lang('python', {
   compile = "python",
   test = "pytest",
   repl = "python -q",
@@ -6,4 +6,4 @@ return {
   linters = "pylint",
   formatters = { { exe = "black", args = { "-q", "-" }, stdin = true } },
   bo = { shiftwidth = 4, tabstop = 4 },
-}
+})

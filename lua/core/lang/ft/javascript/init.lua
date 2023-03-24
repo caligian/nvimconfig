@@ -1,4 +1,4 @@
-return {
+Lang('javascript', {
   compile = "node",
   repl = "node",
   server = { name = "tsserver" },
@@ -8,4 +8,4 @@ return {
     tabstop = 2,
     expandtab = true,
   },
-}
+})

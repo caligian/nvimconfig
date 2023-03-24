@@ -1,4 +1,4 @@
-return {
+Lang('tex', {
   server = "texlab",
   bo = {
     textwidth = 80,
@@ -8,4 +8,4 @@ return {
   formatters = {
     { exe = "latexindent.pl", args = { "-m", "-" }, stdin = true },
   },
-}
+})

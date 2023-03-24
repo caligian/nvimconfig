@@ -3,3 +3,6 @@ luarocks/
 plugin/
 nvim.log
 spell/*
+bookmarks.lua
+lua/doc/*
+lua/core/doc/*

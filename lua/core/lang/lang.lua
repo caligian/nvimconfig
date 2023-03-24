@@ -19,7 +19,7 @@ function Lang._init(self, lang, opts)
         ["?linters"] = is { "s", "t" },
         ["?formatters"] = "t",
         ["?server"] = is { "s", 't' },
-        ["?repl"] = "s",
+        ["?repl"] = is {"s", 't'},
       },
       opts,
     },
@@ -109,13 +109,25 @@ function Lang.map(self, opts, ...)
   end)
 end
 
-function Lang.load(lang)
-  local c = require("core.lang.ft." .. lang)
-  local u = req("user.lang.ft." .. lang)
+function Lang.load(lang, opts)
+  if not opts then
+    local c = require("core.lang.ft." .. lang)
+    local u = req("user.lang.ft." .. lang)
+    local a, b = is_a.t(c), is_a.t(u)
 
-  if not c then return end
-
-  return Lang(lang, table.lmerge(u or {}, c))
+    if a and b then
+      table.merge(c, u)
+      Lang(lang, c)
+    elseif a then
+      Lang(lang, c)
+    elseif b then
+      Lang(lang, u)
+    else 
+      assert(c or u, lang .. ': no config supplied')
+    end
+  else
+    Lang(lang, opts)
+  end
 end
 
 function Lang.loadall()

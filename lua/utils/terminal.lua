@@ -110,7 +110,10 @@ function Term:start()
 end
 
 function Term:is_visible() 
-  return self.buffer:is_visible() 
+  if self.buffer then
+    return self.buffer:is_visible() 
+  end
+  return false
 end
 
 function Term:stop()
@@ -126,10 +129,8 @@ function Term:stop()
 end
 
 function Term.stopall()
-  table.teach(Term.ids, function (id, _)
-    if is_a.n(id) then
-      vim.fn.chanclose(id)
-    end
+  table.teach(Term.ids, function(id, _)
+    if is_a.n(id) then vim.fn.chanclose(id) end
   end)
 end
 
@@ -138,17 +139,13 @@ function Term:hide()
 end
 
 function Term:split(direction, opts)
-  if self:is_visible() then
-    return self
-  elseif self.buffer then
+  if not self:is_visible() then
     self.buffer:split(direction, opts)
   end
 end
 
 function Term:float(opts)
-  if self:is_visible() then
-    return self
-  elseif self.buffer then
+  if not self:is_visible() then
     self.buffer:float(opts)
   end
 end
@@ -161,9 +158,10 @@ function Term:dock(opts) self:float(table.merge({ dock = 0.3 }, opts or {})) end
 
 function Term:send(s)
   local id = self.id
-  if is_a(s, "table") then s = table.concat(s, "\n") end
-  s = s .. "\r"
-  vim.api.nvim_chan_send(id, s)
+  if is_a.s(s) then s = string.split(s, "[\n\r]") end
+  if self.on_input then s = self.on_input(s) end
+  s[#s + 1] = "\n"
+  vim.api.nvim_chan_send(id, table.concat(s, "\n"))
 end
 
 function Term:send_current_line(src_bufnr)
@@ -195,12 +193,17 @@ end
 
 function Term:_init(cmd, opts)
   validate {
-    command = { "s", cmd },
-    ["?opts"] = { "t", opts },
+    command = { is {"s", 't'}, cmd },
+    ["?opts"] = {
+      { __nonexistent = true, ["?on_input"] = "f" },
+      opts,
+    },
   }
 
+  opts = opts or {}
   self.command = cmd
   self.opts = opts
+  self.on_input = opts.on_input
 
   return self
 end

@@ -14,7 +14,7 @@ local _actions = {
     local picker = action_state.get_current_picker(prompt_bufnr)
     local sel = picker:get_multi_selection()
     if #sel > 0 then
-      table.each(Bookmarks.remove, sel)
+      table.each(sel, Bookmarks.remove)
     else
       Bookmarks.remove(action_state.get_selected_entry()[1])
     end

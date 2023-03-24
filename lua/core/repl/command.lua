@@ -1,26 +1,24 @@
 local command = utils.command
 
-local function get_repl(is_shell)
-  local ft
-  if is_shell then
-    ft = "sh"
-  else
-    ft = vim.bo.filetype
-    if #ft == 0 then return end
-  end
-
+local function get_repl(ft)
   if not table.contains(Lang.langs, ft, "repl") then return end
   local current = vim.fn.bufnr()
   local exists = table.contains(REPL.ids, ft, current)
   if exists then return exists end
 
-  local r = REPL(is_shell)
+  local r = REPL(ft)
   return r
 end
 
 local function wrap(f, is_shell, start)
-  return function()
-    local r = get_repl(is_shell)
+  return function(args)
+    local ft = args.args
+    if is_shell then
+      ft = 'sh'
+    elseif #ft == 0 then
+      ft = vim.bo.filetype
+    end
+    local r = get_repl(ft)
     if r then
       if start then r:start() end
       f(r)
@@ -28,10 +26,12 @@ local function wrap(f, is_shell, start)
   end
 end
 
+
+
 command(
   "REPLStart",
   wrap(function(r) r:split("s", { resize = 0.3, min = 0.1 }) end, false, true),
-  {}
+  {nargs=1}
 )
 
 command("REPLTerminateInput", wrap(function(r) r:terminate_input() end, false, true), {})

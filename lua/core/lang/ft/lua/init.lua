@@ -1,4 +1,4 @@
-return {
+Lang('lua', {
   compile = "lua5.1",
   repl = "lua5.1",
   linters = "luacheck",
@@ -29,4 +29,4 @@ return {
     shiftwidth = 2,
     tabstop = 2,
   },
-}
+})
