@@ -1,7 +1,6 @@
 Lang('lua', {
   compile = "lua5.1",
   repl = "lua5.1",
-  linters = "luacheck",
 
   server = {
     name = "lua_ls",

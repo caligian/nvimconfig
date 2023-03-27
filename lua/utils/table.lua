@@ -326,7 +326,7 @@ function table.compare(a, b, callback)
       elseif callback then
         compared[key] = callback(x, y)
       else
-        compared[key] = typeof(x) == typeof(y) and x == y
+        compared[key] = x == y
       end
     end)
   end

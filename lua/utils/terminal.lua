@@ -159,7 +159,9 @@ function Term:dock(opts) self:float(table.merge({ dock = 0.3 }, opts or {})) end
 function Term:send(s)
   local id = self.id
   if is_a.s(s) then s = string.split(s, "[\n\r]") end
-  if self.on_input then s = self.on_input(s) end
+  if self.on_input then 
+    s = self.on_input(s) 
+  end
   s[#s + 1] = "\n"
   vim.api.nvim_chan_send(id, table.concat(s, "\n"))
 end

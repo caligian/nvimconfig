@@ -1,12 +1,14 @@
 Lang('ocaml', {
   repl = {
-    'ocaml',
+    'utop',
     on_input = function (s)
-      return table.append(s, ";;")
+      if not s[#s]:match(';;$') then
+        return table.append(s, ";;")
+      end
+      return s
     end
   },
   server = 'ocamllsp',
-  linters = '',
   formatters = {
     {exe = 'ocamlformat', args = {'-'}}
   }, 

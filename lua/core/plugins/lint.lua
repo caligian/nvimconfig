@@ -5,6 +5,7 @@ user.plugins["nvim-lint"] = {
     linters_by_ft = {},
   },
 }
+
 local config = user.plugins["nvim-lint"].config
 
 for lang, conf in pairs(Lang.langs) do
@@ -13,6 +14,13 @@ for lang, conf in pairs(Lang.langs) do
   end
 end
 
+-- require user config
+req "user.plugins.nvim-lint"
+
+-- Setup nvim-lint
+nvimlint.linters_by_ft = config.linters_by_ft
+
+-- autocommand
 local callback = function()
   if nvimlint.linters_by_ft[vim.bo.filetype] then
     require("lint").try_lint()
@@ -29,20 +37,3 @@ Keybinding.noremap("n", "<leader>ll", function()
   print "Linting buffer..."
   callback()
 end, { desc = "Try linting buffer", name = "lint_buffer" })
-
-req "user.plugins.nvim-lint"
-
--- Setup nvim-lint
-nvimlint.linters_by_ft = config.linters_by_ft
-
--- Ignore globals
-nvimlint.linters.luacheck.args = {
-  "--cache",
-  "--no-max-code-line-length",
-  "--std lua51c",
-  "-g",
-  "-a",
-  "--ranges",
-  "--formatter plain",
-  "-",
-}
