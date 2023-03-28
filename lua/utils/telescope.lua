@@ -24,17 +24,7 @@ local load_telescope = function()
   }
 end
 
-utils.telescope = setmetatable({}, {
-  __index = function(self, k)
-    local _ = load_telescope()
-    if _.exists then 
-      return rawget(self, k) 
-    else
-      error('telescope.nvim has not been loaded yet')
-    end
-  end,
-})
-
+utils.telescope = {}
 local M = utils.telescope
 
 function M.new(items, mappings, opts)
@@ -48,6 +38,7 @@ function M.new(items, mappings, opts)
   opts.sorter = opts.sorter or _.sorters.get_fzy_sorter()
 
   if mappings then
+    mappings = table.tolist(mappings)
     local attach_mappings = opts.attach_mappings
     opts.attach_mappings = function(prompt_bufnr, map)
       if mappings then
@@ -58,13 +49,7 @@ function M.new(items, mappings, opts)
           default(sel)
         end)
 
-        mappings = table.rest(mappings)
-        table.each(mappings, function(x)
-          local sel = _.action_state.get_selected_entry()
-          local callback = x[3]
-          x[3] = function(_prompt_bufnr) callback(sel, _prompt_bufnr) end
-          map(unpack(x))
-        end)
+        table.each(table.rest(mappings), function(x) map(unpack(x)) end)
       end
       if attach_mappings then attach_mappings(prompt_bufnr, map) end
       return true
