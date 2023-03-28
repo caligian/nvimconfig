@@ -102,3 +102,13 @@ end
 function throw_error(desc)
   error(dump(desc))
 end
+
+function utils.try_require(s, success, failure)
+  local M = require(s)
+  if M and success then
+    return success(M)
+  elseif not M and failure then
+    return failure(M)
+  end
+  return M
+end

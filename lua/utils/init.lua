@@ -11,3 +11,4 @@ require "utils.kbd"
 require "utils.buffer"
 require "utils.process"
 require "utils.color"
+require 'utils.telescope'

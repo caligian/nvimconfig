@@ -13,7 +13,7 @@ local function is_valid_buffer(bufnr)
   local bufname = vim.fn.bufname(bufnr)
   local buftype = vim.api.nvim_buf_get_option(bufnr, "buftype")
 
-  if not buftype:match_any("prompt", "nofile") then
+  if buftype:match_any("prompt", "nofile") then
     return false,
       sprintf("buftype=%s not allowed while bookmarking %s", buftype, bufname)
   end
@@ -35,20 +35,25 @@ end
 
 local function get_buffer_or_path(bufnr_or_path)
   local ok, msg = is_valid_buffer(bufnr_or_path)
-  if not ok and file.exists(bufnr_or_path) then
+  if not ok and path.exists(bufnr_or_path) then
     return path.abspath(bufnr_or_path), "path"
   elseif ok then
-    return ok.bufname
+    return vim.api.nvim_buf_call(get_bufnr(bufnr_or_path), function ()
+      return vim.fn.expand("%:p")
+    end)
   end
   return ok, msg
 end
 
-local function remove_path(buf_or_path, line)
+local function remove_path(buf_or_path, ...)
   local path = get_buffer_or_path(buf_or_path)
   local exists = Marks.marks[path]
+  local lines = {...}
   if exists then
-    if line then
-      exists[line] = nil
+    if #lines > 0 then
+      table.each(lines, function (x)
+        exists[x] = nil
+      end)
     else
       Marks.marks[path] = nil
     end
@@ -66,22 +71,31 @@ end
 local function get_context(bufnr, line)
   local lc = vim.api.nvim_buf_line_count(bufnr)
   if line > lc then return false end
+  line = line - 1
   return vim.api.nvim_buf_get_lines(bufnr, line, line + 1, false)[1]
 end
 
 local function update_path(path, line)
   local buf, p = get_buffer_or_path(path)
-  if not buf then return end
-  local context
-
-  if p == "path" then
-    context = get_line_from_file(path, line)
-  else
-    local bufnr = vim.fn.bufnr(path)
-    context = get_context(bufnr, line)
+  if not buf then 
+    if Marks.marks[buf] then
+      Marks.marks[buf] = nil
+    end
+    return 
   end
 
-  return table.update(Marks.marks, { path, line }, context)
+  if p == "path" then
+    local context = get_line_from_file(buf, line)
+    return table.update(Marks.marks, { buf, line }, context)
+  else
+    local bufnr = vim.fn.bufnr(buf)
+    local context = get_context(bufnr, line)
+    if context then
+      return table.update(Marks.marks, { buf, line }, context)
+    else
+      remove_path(buf, line)
+    end
+  end
 end
 
 local function update_all_marks()
@@ -98,25 +112,22 @@ function Marks.load()
   return Marks.marks
 end
 
-function Marks.save() utils.dump_to_file(Marks.dest, Marks.marks) end
+function Marks.save() 
+  utils.dump_to_file(Marks.dest, Marks.marks) 
+end
 
 function Marks.add(bufnr, line)
   bufnr = bufnr or vim.fn.bufnr()
-  line = line or vim.api.nvim_buf_call(bufnr, partial(vim.fn.line, "."))
-  return update_mark(bufnr, line)
+  line = line or vim.api.nvim_buf_call(bufnr, function ()
+    return vim.fn.line('.')
+  end)
+  return update_path(bufnr, line)
 end
 
-function Marks.remove(bufnr, line)
-  if vim.fn.bufexists(bufnr) == 0 then return false end
-  local bufname = vim.fn.bufname(bufnr)
-
-  if not line then
-    Marks.marks[bufname] = nil
-  else
-    local marked = Marks.marks[bufname][line]
-    Marks.marks[bufname][line] = nil
-    return marked
+function Marks.list(path)
+  local bufname = get_buffer_or_path(path or vim.fn.bufnr())
+  if Marks.marks[bufname] then
+    return table.items(Marks.marks[bufname])
   end
+  return false
 end
-
-Marks.cleanup = update_all_marks
