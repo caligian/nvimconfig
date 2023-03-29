@@ -27,6 +27,23 @@ end
 utils.telescope = {}
 local M = utils.telescope
 
+function M.load()
+  local _ = load_telescope()
+  for name,val in pairs(_) do
+    M[name] = val
+  end
+end
+
+function M.get_selected(bufnr)
+  local _ = load_telescope()
+  local picker = _.action_state.get_current_picker(bufnr)
+  local nargs = picker:get_multi_selection()
+  if #nargs > 0 then return nargs end
+  _.actions.close(bufnr)
+
+  return {_.action_state.get_selected_entry()}
+end
+
 function M.new(items, mappings, opts)
   local _ = load_telescope()
 
@@ -43,12 +60,13 @@ function M.new(items, mappings, opts)
     opts.attach_mappings = function(prompt_bufnr, map)
       if mappings then
         local default = mappings[1]
-        _.actions.select_default:replace(function()
-          _.actions.close(prompt_bufnr)
-          local sel = _.action_state.get_selected_entry()
-          default(sel)
-        end)
-
+        if default then
+          _.actions.select_default:replace(function()
+            _.actions.close(prompt_bufnr)
+            local sel = _.action_state.get_selected_entry()
+            default(sel)
+          end)
+        end
         table.each(table.rest(mappings), function(x) map(unpack(x)) end)
       end
       if attach_mappings then attach_mappings(prompt_bufnr, map) end
@@ -63,17 +81,7 @@ function M.create_actions_mod()
     __newindex = function(self, name, f)
       local _ = load_telescope()
       rawset(self, name, function(bufnr)
-        local picker = _.action_state.get_current_picker(bufnr)
-        local nargs = picker:get_multi_selection()
-        if #nargs > 0 then
-          for _, value in ipairs(nargs) do
-            f(value)
-          end
-        else
-          local entry = _.action_state.get_selected_entry()
-          if entry then f(entry) end
-        end
-        _.actions.close(bufnr)
+        table.each(M.get_selected(bufnr), f)
       end)
     end,
   })

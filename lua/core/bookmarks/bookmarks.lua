@@ -78,7 +78,7 @@ local function update_path(path, line)
     local bufnr = vim.fn.bufnr(buf)
     local context = get_context(bufnr, line)
     if context then
-      return table.update(Bookmarks.bookmarks, { buf, line }, context)
+      table.update(Bookmarks.bookmarks, { buf, line }, context)
     else
       remove_path(buf, line)
     end
@@ -117,11 +117,18 @@ function Bookmarks.add(bufnr, line)
 end
 
 function Bookmarks.list(path)
-  if not path then return table.keys(Bookmarks.bookmarks) end
+  if not path then 
+    local b = table.keys(Bookmarks.bookmarks) 
+    if #b > 0 then
+      return b
+    end
+    return table.keys(Bookmarks.bookmarks) 
+  end
 
   local bufname = get_buffer_or_path(path or vim.fn.bufnr())
-  if Bookmarks.bookmarks[bufname] then
-    return table.items(Bookmarks.bookmarks[bufname])
+  local exists = Bookmarks.bookmarks[bufname]
+  if exists and #table.keys(exists) > 0 then
+    return table.items(exists)
   end
   return false
 end

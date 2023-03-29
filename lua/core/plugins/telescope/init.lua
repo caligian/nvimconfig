@@ -1,6 +1,6 @@
 local ivy = require("telescope.themes").get_ivy()
-local buffer_actions = require "core.plugins.telescope.buffers"
-local git_status_actions = require "core.plugins.telescope.git_status"
+local buffer_actions = require "core.plugins.telescope.buffer-actions"
+local git_status_actions = require "core.plugins.telescope.git-status-actions"
 user.plugins.telescope = { config = ivy }
 local T = user.plugins.telescope.config
 
@@ -19,7 +19,8 @@ T.pickers = {
         ["!"] = buffer_actions.nomodified,
         w = buffer_actions.save,
         r = buffer_actions.readonly,
-        b = buffer_actions.bookmark
+        b = buffer_actions.add_bookmark,
+        B = buffer_actions.remove_bookmark
       },
     },
   },
