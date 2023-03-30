@@ -1,4 +1,5 @@
 if not Bookmarks then Bookmarks = {} end
+local B = Bookmarks
 Bookmarks.dest = vim.fn.stdpath "data" .. "/bookmarks.lua"
 Bookmarks.bookmarks = Bookmarks.bookmarks or {}
 
@@ -6,92 +7,126 @@ if not path.exists(Bookmarks.dest) then
   file.write(Bookmarks.dest, "return {}")
 end
 
-local function is_valid_buffer(bufnr)
-  if vim.fn.bufexists(bufnr) == 0 then return false end
-  if is_a.s(bufnr) then bufnr = vim.fn.bufnr(bufnr) end
-
-  local bufname = vim.fn.bufname(bufnr)
-  local buftype = vim.api.nvim_buf_get_option(bufnr, "buftype")
-
-  if buftype:match_any("prompt", "nofile") then
-    return false,
-      sprintf("buftype=%s not allowed while bookmarking %s", buftype, bufname)
-  end
-
-  return { bufnr = bufnr, bufname = bufname }
-end
-
-local function get_bufnr(buf)
-  local ok, msg = is_valid_buffer(buf)
-  if ok then return ok.bufnr end
-  return false, msg
-end
-
-local function get_buffer_or_path(bufnr_or_path)
-  local ok, msg = is_valid_buffer(bufnr_or_path)
-  if not ok and path.exists(bufnr_or_path) then
-    return path.abspath(bufnr_or_path), "path"
-  elseif ok then
-    return vim.api.nvim_buf_call(
-      get_bufnr(bufnr_or_path),
-      function() return vim.fn.expand "%:p" end
-    )
-  end
-  return ok, msg
-end
-
-local function remove_path(buf_or_path, ...)
-  local path = get_buffer_or_path(buf_or_path)
-  local exists = Bookmarks.bookmarks[path]
-  local lines = { ... }
-  if exists then
-    if #lines > 0 then
-      table.each(lines, function(x) exists[x] = nil end)
-    else
-      Bookmarks.bookmarks[path] = nil
+function B.is_valid_path(p)
+  if is_a.n(p) then
+    p = vim.fn.bufnr(p)
+    if p == -1 then return false, p .. " is an invalid buffer" end
+    local buftype = vim.api.nvim_buf_get_option(p, "buftype")
+    p = vim.api.nvim_buf_get_name(p)
+    if buftype == "nofile" then
+      return false, p .. "has buftype=nofile", "buffer"
+    elseif not path.exists(p) then
+      return false, p .. " is nonexistent. Save the buffer", "file"
     end
+    return true, p, "buffer"
+  elseif is_a.s(p) then
+    if p == '/' then return p end
+    p = path.abspath(p)
+    if not path.exists(p) then return false end
+    if path.isdir(p) then return true, p, "dir" end
+    return true, p, "file"
   end
+  return false
 end
 
-local function get_line_from_file(path, line)
-  return vim.fn.system {
-    "sed",
-    line .. "q",
-    path,
-  }
+function B.path2bufnr(bufpath)
+  local is_valid, p, what = B.is_valid_path(bufpath)
+  if not is_valid then return false end
+  if what == "buffer" then return vim.fn.bufnr(p) end
+  return false
 end
 
-local function get_context(bufnr, line)
-  local lc = vim.api.nvim_buf_line_count(bufnr)
-  if line > lc then return false end
-  line = line - 1
-  return vim.api.nvim_buf_get_lines(bufnr, line, line + 1, false)[1]
+function B.exists(p, line)
+  local is_valid
+  is_valid, p, what = B.is_valid_path(p)
+  if not is_valid then return false end
+  local exists = B.bookmarks[p]
+  if line then
+    if not exists[line] then return false end
+    return exists[line], "linenum"
+  end
+  return what
 end
 
-local function update_path(path, line)
-  local buf, p = get_buffer_or_path(path)
+function B.update(p, line)
+  local is_valid, p, what = B.is_valid_path(p)
+  if not is_valid then return false end
 
-  if p == "path" then
-    local context = get_line_from_file(buf, line)
-    return table.update(Bookmarks.bookmarks, { buf, line }, context)
+  if what == "buffer" then
+    if not is_a.t(B.bookmarks[p]) then B.bookmarks[p] = {} end
+    local b = B.bookmarks[p]
+    local bufnr = B.path2bufnr(p)
+    local lc = vim.api.nvim_buf_line_count(bufnr)
+
+    if is_a.n(line) then
+      if line < 1 then return end
+      if lc < line then return false end
+      local context = vim.api.nvim_buf_get_lines(bufnr, line - 1, line, false)[1]
+      b[line] = context
+    elseif line == "." then
+      vim.api.nvim_buf_call(
+        B.path2bufnr(p),
+        function ()
+          b[vim.fn.line('.')] = vim.fn.getline('.')
+        end
+      )
+    else
+      B.bookmarks[p] = {}
+    end
+
+    table.each(table.keys(b), function (linenum)
+      if linenum > lc then
+        b[linenum] = nil
+      end
+    end)
+  elseif what == "file" then
+    local s = vim.split(file.read(p), "\n")
+    local lc = #s
+
+    if line then
+      if not is_a.t(B.bookmarks[p]) then B.bookmarks[p] = {} end
+      if line > lc or lc < 1 then return false end
+      B.bookmarks[p][line] = s[line]
+    else
+      if not is_a.t(B.bookmarks[p]) then
+        B.bookmarks[p] = 'file'
+      end
+    end
+
+    table.each(table.keys(B.bookmarks[p]), function (linenum)
+      if linenum > lc then
+        b[linenum] = nil
+      end
+    end)
   else
-    local bufnr = vim.fn.bufnr(buf)
-    local context = get_context(bufnr, line)
-    if context then
-      table.update(Bookmarks.bookmarks, { buf, line }, context)
-    else
-      remove_path(buf, line)
-    end
+    B.bookmarks[p] = 'dir'
   end
+
+  return B.bookmarks
 end
 
-function Bookmarks.update()
-  table.teach(
-    Bookmarks.bookmarks,
-    function(path, lines)
-      table.each(table.keys(lines), partial(update_path, path))
+function B.remove(p, line)
+  local is_valid, waht
+  is_valid, p, what = B.is_valid_path(p)
+  if not is_valid then return false end
+  local b = B.bookmarks[p]
+
+  if what == 'file' then
+    if line and b[line]  then
+      local context = b[line]
+      b[line] = nil
+    else
+      B.bookmarks[p] = nil
     end
-  )
+  elseif what == 'dir' then
+    B.bookmarks[p] = nil
+  elseif line then
+    b[line] = nil
+  else
+    B.bookmarks[p] = nil
+  end
+
+  return B.bookmarks
 end
 
 function Bookmarks.load()
@@ -103,39 +138,32 @@ function Bookmarks.save()
   file.write(Bookmarks.dest, "return " .. dump(Bookmarks.bookmarks))
 end
 
-function Bookmarks.add(bufnr, line)
-  local path, is_path = get_buffer_or_path(bufnr or vim.fn.bufnr())
-  if not is_path then
-    bufnr = vim.fn.bufnr(path)
-    line = line
-      or vim.api.nvim_buf_call(bufnr, function() return vim.fn.line "." end)
+function Bookmarks.add(p, line)
+  B.update(p, line)
+end
+
+function Bookmarks.list(path, what)
+  if not path then
+    local b = table.keys(Bookmarks.bookmarks)
+    if #b > 0 then return b end
+    return table.keys(Bookmarks.bookmarks)
+  end
+
+  if what == 'dir' then
+    return table.grep(table.values(B.bookmarks), function (x)
+      if x == 'dir' then
+        return true 
+      end
+      return false
+    end)
   else
-    line = get_line_from_file(path, line)
+    return table.map(table.values(B.bookmarks), function (x)
+      if is_a.t(x) then
+        return table.items(x)
+      end
+      return {}
+    end)
   end
-
-  return update_path(path, line)
-end
-
-function Bookmarks.list(path)
-  if not path then 
-    local b = table.keys(Bookmarks.bookmarks) 
-    if #b > 0 then
-      return b
-    end
-    return table.keys(Bookmarks.bookmarks) 
-  end
-
-  local bufname = get_buffer_or_path(path or vim.fn.bufnr())
-  local exists = Bookmarks.bookmarks[bufname]
-  if exists and #table.keys(exists) > 0 then
-    return table.items(exists)
-  end
-  return false
-end
-
-function Bookmarks.remove(path, ...)
-  path = path or vim.api.nvim_buf_get_name(vim.fn.bufnr())
-  remove_path(path, ...)
 end
 
 function Bookmarks.jump(path, line)
