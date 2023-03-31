@@ -26,7 +26,7 @@ function is(type_spec)
   })
 end
 
-local function _validate(a, b)
+local function _validate2(a, b)
   opts = opts or {}
 
   local function _compare(a, b)
@@ -123,7 +123,7 @@ local function _validate(a, b)
   _compare(a, b)
 end
 
-function validate(type_spec)
+local function _validate(type_spec)
   table.teach(type_spec, function(display, spec)
     local tp, param = unpack(spec)
     if display:match "^%?" and param == nil then return end
@@ -145,7 +145,7 @@ function validate(type_spec)
         )
       else
         tp.__table = display
-        _validate(tp, param)
+        _validate2(tp, param)
       end
     elseif is_a.s(tp) then
       tp = TYPES[tp] or tp
@@ -159,3 +159,18 @@ function validate(type_spec)
     end
   end)
 end
+
+utils.validate = setmetatable({}, {
+  __call = function (_, spec)
+    _validate(spec)
+  end,
+
+  __index = function (_, name)
+    return function (tp, param)
+      assert(tp ~= nil, 'tp: expected nonnil')
+      _validate({[name] = {tp, param}})
+    end
+  end
+})
+
+validate = utils.validate

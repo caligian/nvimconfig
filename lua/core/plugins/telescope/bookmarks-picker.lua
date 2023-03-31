@@ -54,7 +54,11 @@ return {
     local has = Bookmarks.list()
     if not has then return end
 
-    return T.new(has, false, {
+    return T.new(has, function (sel)
+      local path = has[1]
+      if #has > 0 then
+      end
+    end, {
       prompt_title = 'Bookmarked files',
       attach_mappings = function (prompt_bufnr, map)
         map('n', 'x', M.remove_bookmark)

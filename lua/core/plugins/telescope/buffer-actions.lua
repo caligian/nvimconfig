@@ -35,7 +35,7 @@ function mod.add_bookmark(sel)
   B.add(bufnr)
 end
 
-function mod.remove_bookmark(args)
+function mod.remove_bookmark(sel)
   local bufnr = sel.bufnr
   local bufname = vim.api.nvim_buf_get_name(bufnr)
   local exists = B.bookmarks[bufname]

@@ -115,9 +115,3 @@ local function get_picker()
     {prompt_title = 'All bookmarks'}
   )
 end
-
-local picker = get_picker()
-if picker then
-  return picker:find()
-end
-

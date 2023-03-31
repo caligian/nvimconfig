@@ -14,26 +14,30 @@ end
 
 local function list_bookmarks() return table.keys(Bookmarks.bookmarks) end
 
-utils.command("BookmarkRemove", function(args)
+utils.command("BookmarksRemove", function(args)
   for i = 2, #args.fargs do
     args.fargs[i] = tonumber(args.fargs[i])
   end
   Bookmarks.remove(unpack(args.fargs))
 end, { nargs = "+", complete = list_bookmarks })
 
-utils.command(
-  "BookmarkAdd",
-  function(args) Bookmarks.add(unpack(args.fargs)) end,
-  { nargs = "+", complete = list_buffers }
-)
+utils.command("BookmarksAdd", function(args)
+  local fname = args.fargs[1]
+  if fname == "%" then fname = vim.fn.expand "%:p" end
+  local s_args = table.map(table.rest(args.fargs), function(x)
+    if x == "." then return x end
+    return tonumber(x)
+  end)
+  Bookmarks.add(fname, unpack(s_args))
+end, { nargs = "+", complete = list_buffers })
 
 utils.command(
-  "BookmarkOpen",
+  "BookmarksOpen",
   function(args) Bookmarks.jump(unpack(args.fargs)) end,
   { nargs = 1, complete = list_bookmarks }
 )
 
-utils.command("BookmarkShow", function(args)
+utils.command("BookmarksShow", function(args)
   local path = args.fargs[1]
   if path then
     table.each(Bookmarks.list(path), function(x)
@@ -45,6 +49,6 @@ utils.command("BookmarkShow", function(args)
   end
 end, { nargs = "?", complete = list_bookmarks })
 
-utils.command("BookmarkDelete", Bookmarks.delete, {})
-utils.command("BookmarkSave", Bookmarks.save, {})
-utils.command("BookmarkLoad", Bookmarks.load, {})
+utils.command("BookmarksDelete", Bookmarks.delete_all, {})
+utils.command("BookmarksSave", Bookmarks.save, {})
+utils.command("BookmarksLoad", Bookmarks.load, {})

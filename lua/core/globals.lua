@@ -8,7 +8,7 @@ table.merge(user, {
   plugins_dir = path.join(data_dir, "lazy"),
   plugins = user.plugins or {},
   shell = "/usr/bin/zsh",
-  font = "Liberation Mono:h13",
+  font = "Consolas Ligaturized:h14",
   colorscheme = {
     dark = "github_dark",
     light = "github_light",

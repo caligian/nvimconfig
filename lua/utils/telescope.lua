@@ -29,7 +29,7 @@ local M = utils.telescope
 
 function M.load()
   local _ = load_telescope()
-  for name,val in pairs(_) do
+  for name, val in pairs(_) do
     M[name] = val
   end
 end
@@ -37,11 +37,11 @@ end
 function M.get_selected(bufnr)
   local _ = load_telescope()
   local picker = _.action_state.get_current_picker(bufnr)
+  _.actions.close(bufnr)
   local nargs = picker:get_multi_selection()
   if #nargs > 0 then return nargs end
-  _.actions.close(bufnr)
 
-  return {_.action_state.get_selected_entry()}
+  return { _.action_state.get_selected_entry() }
 end
 
 function M.new(items, mappings, opts)
@@ -61,13 +61,11 @@ function M.new(items, mappings, opts)
       if mappings then
         local default = mappings[1]
         if default then
-          _.actions.select_default:replace(function()
-            _.actions.close(prompt_bufnr)
-            local sel = _.action_state.get_selected_entry()
-            default(sel)
-          end)
+          _.actions.select_default:replace(function() default(prompt_bufnr) end)
         end
-        table.each(table.rest(mappings), function(x) map(unpack(x)) end)
+        table.each(table.rest(mappings), function(x) 
+          map(unpack(x)) 
+        end)
       end
       if attach_mappings then attach_mappings(prompt_bufnr, map) end
       return true
@@ -80,9 +78,13 @@ function M.create_actions_mod()
   return setmetatable({}, {
     __newindex = function(self, name, f)
       local _ = load_telescope()
-      rawset(self, name, function(bufnr)
-        table.each(M.get_selected(bufnr), f)
-      end)
+      rawset(
+        self,
+        name,
+        function(bufnr) 
+          table.each(M.get_selected(bufnr), f) 
+        end
+      )
     end,
   })
 end
