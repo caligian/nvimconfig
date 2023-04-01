@@ -216,7 +216,7 @@ function B.remove(p, line)
     end
   end
 
-  B.clean()
+  B.clean(p)
 end
 
 function B.load()

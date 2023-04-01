@@ -7,6 +7,16 @@ cmp_zsh.setup { zshrc = true, filetypes = { "zsh" } }
 user.plugins["nvim-cmp"] = {
   config = {
     mapping = {
+      ["<Tab>"] = cmp.mapping(function (fallback)
+        if cmp.visible() then
+          cmp.select_next_item()
+        else
+          fallback()
+        end 
+      end,
+      { c = cmp.config.disable, 'i' }
+      ),
+      ['<Esc>'] = cmp.mapping.close(),
       ["<C-b>"] = cmp.mapping.scroll_docs(-4),
       ["<C-f>"] = cmp.mapping.scroll_docs(4),
       ["<C-n>"] = cmp.mapping.select_next_item(),
@@ -25,9 +35,7 @@ user.plugins["nvim-cmp"] = {
       end, { "i", "s" }),
     },
     snippet = {
-      expand = function(args)
-        vim.fn["UltiSnips#Anon"](args.body)
-      end,
+      expand = function(args) vim.fn["UltiSnips#Anon"](args.body) end,
     },
     sources = {
       { name = "path" },
@@ -42,9 +50,7 @@ user.plugins["nvim-cmp"] = {
         name = "spell",
         option = {
           keep_all_entries = false,
-          enable_in_context = function()
-            return true
-          end,
+          enable_in_context = function() return true end,
         },
       },
     },
