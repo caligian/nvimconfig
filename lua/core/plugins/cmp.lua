@@ -13,10 +13,7 @@ user.plugins["nvim-cmp"] = {
         else
           fallback()
         end 
-      end,
-      { c = cmp.config.disable, 'i' }
-      ),
-      ['<Esc>'] = cmp.mapping.close(),
+      end),
       ["<C-b>"] = cmp.mapping.scroll_docs(-4),
       ["<C-f>"] = cmp.mapping.scroll_docs(4),
       ["<C-n>"] = cmp.mapping.select_next_item(),
@@ -61,8 +58,8 @@ req "user.plugins.nvim-cmp"
 
 cmp.setup(user.plugins["nvim-cmp"].config)
 
-cmp.setup.cmdline("/", {
-  sources = cmp.config.sources {
-    { name = "nvim_lsp_document_symbol" },
-  },
-})
+-- cmp.setup.cmdline("/", {
+--   sources = cmp.config.sources {
+--     { name = "nvim_lsp_document_symbol" },
+--   },
+-- })

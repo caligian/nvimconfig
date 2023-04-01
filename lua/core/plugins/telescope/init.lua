@@ -1,6 +1,8 @@
 local ivy = require("telescope.themes").get_ivy()
 local buffer_actions = require "core.plugins.telescope.buffer-actions"
 local git_status_actions = require "core.plugins.telescope.git-status-actions"
+local git_files_actions = require 'core.plugins.telescope.git-files-actions'
+local find_files_actions = require 'core.plugins.telescope.find-files-actions'
 user.plugins.telescope = { config = ivy }
 local T = user.plugins.telescope.config
 
@@ -24,6 +26,14 @@ T.pickers = {
       },
     },
   },
+  find_files = {
+    mappings = {
+      n = {
+        b = find_files_actions.add_bookmark,
+        B = find_files_actions.remove_bookmark,
+      }
+    }
+  },
   git_status = {
     mappings = {
       n = {
@@ -31,6 +41,14 @@ T.pickers = {
       },
     },
   },
+  git_files = {
+    mappings = {
+      n = {
+        b = git_files_actions.add_bookmark,
+        B = git_files_actions.remove_bookmark,
+      }
+    }
+  }
 }
 
 --------------------------------------------------------------------------------

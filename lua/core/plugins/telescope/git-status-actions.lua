@@ -21,8 +21,4 @@ function mod.unstage(sel)
   gitcmd("unstage", sel.path)
 end
 
--- TODO
-function mod.bookmark(args)
-end
-
 return mod

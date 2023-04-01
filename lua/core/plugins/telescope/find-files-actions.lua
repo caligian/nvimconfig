@@ -7,11 +7,14 @@ local function get_fname(sel)
 end
 
 function M.add_bookmark(sel)
-  B.add(get_fname(sel))
+  local fname = get_fname(sel)
+  print('Adding bookmark ' .. fname)
+  B.add(fname)
 end
 
 function M.remove_bookmark(sel)
   local fname = get_fname(sel)
+  print('Removing bookmark ' .. fname)
   if not B.bookmarks[fname] then return end
   Bpicker.run_marks_remover_picker(fname)
 end

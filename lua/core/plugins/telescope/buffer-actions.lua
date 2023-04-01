@@ -2,7 +2,7 @@ local action_state = require "telescope.actions.state"
 local actions = require "telescope.actions"
 local mod = utils.telescope.create_actions_mod()
 local B = Bookmarks
-local Bpicker = require 'core.plugins.telescope.bookmarks-picker'
+local Bpicker = require 'core.bookmarks.telescope.picker'
 
 function mod.bwipeout(sel)
   print("Wiping out buffer " .. sel.bufnr)
@@ -40,7 +40,7 @@ function mod.remove_bookmark(sel)
   local bufname = vim.api.nvim_buf_get_name(bufnr)
   local exists = B.bookmarks[bufname]
   if not exists then return end
-  Bpicker.get_linenum_remover()
+  Bpicker.run_marks_remover_picker(bufname) 
 end
 
 return mod

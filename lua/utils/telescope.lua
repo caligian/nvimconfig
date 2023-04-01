@@ -82,7 +82,9 @@ function M.create_actions_mod()
         self,
         name,
         function(bufnr) 
-          table.each(M.get_selected(bufnr), f) 
+          table.each(M.get_selected(bufnr), function (arg, args)
+            return f(arg, args)
+          end) 
         end
       )
     end,

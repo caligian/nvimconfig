@@ -3,8 +3,10 @@ require "core.bookmarks.bookmarks"
 local B = Bookmarks
 local T = utils.telescope
 local _ = T.load()
+B.telescope = {}
+local M = B.telescope
 
-local function list_buffers()
+function M.list_buffers()
   return table.grep(
     table.map(vim.fn.getbufinfo(), function(x)
       local bufnr = x.bufnr
@@ -20,7 +22,7 @@ local function list_buffers()
   )
 end
 
-local function get_finder_table(p)
+function M.get_finder_table(p)
   local items = B.list(p)
   if not items or #table.keys(items) == 0 then return false end
   return {
@@ -37,12 +39,12 @@ local function get_finder_table(p)
   }
 end
 
-local function get_marks_picker(p)
-  local t = get_finder_table(p)
+function M.get_marks_picker(p, split)
+  local t = M.get_finder_table(p)
   if not t then return end
   local mod = T.create_actions_mod()
-  mod.jump = function (sel) B.jump(sel.path, sel.line) end
-  mod.remove = function(sel) B.remove(sel.path, sel.line) end
+  mod.jump = function (sel) B.jump(sel.path, sel.line, split) end
+  mod.remove = function (sel) B.remove(sel.path, sel.line) end
   mod.split = function (sel) B.jump(sel.path, sel.line, 's') end
   mod.vsplit = function (sel) B.jump(sel.path, sel.line, 'v') end
   mod.tabnew = function (sel) B.jump(sel.path, sel.line, 't') end
@@ -62,8 +64,8 @@ local function get_marks_picker(p)
   )
 end
 
-local function get_marks_remover_picker(p)
-  local t = get_finder_table(p)
+function M.get_marks_remover_picker(p)
+  local t = M.get_finder_table(p)
   if not t then return end
   local mod = T.create_actions_mod()
   mod.remove = function (sel) B.remove(sel.path, sel.line) end
@@ -74,12 +76,14 @@ local function get_marks_remover_picker(p)
   )
 end
 
-local function get_picker()
+function M.get_picker(p, remove)
+  if p and remove then return M.get_marks_remover_picker(p) end
+  if p then return M.get_marks_picker(p) end
   local items = B.list()
   if not items then return false end
   local mod = T.create_actions_mod()
   local remove = function (p)
-    local picker = get_marks_remover_picker(p)
+    local picker = M.get_marks_remover_picker(p)
     if picker then 
       picker:find()
     else
@@ -87,11 +91,11 @@ local function get_picker()
     end
   end
   local jump = function (p, split)
-    local picker = get_marks_picker(p)
+    local picker = M.get_marks_picker(p, split)
     if picker then 
       picker:find()
     else
-      B.jump(p)
+      B.jump(p, split)
     end
   end
   local split = function (p) jump(p, 's') end 
@@ -115,3 +119,20 @@ local function get_picker()
     {prompt_title = 'All bookmarks'}
   )
 end
+
+function M.run_marks_picker(p)
+  local m = M.get_marks_picker(p)
+  if m then m:find() end
+end
+
+function M.run_marks_remover_picker(p)
+  local m = M.get_marks_remover_picker(p)
+  if m then m:find() end
+end
+
+function M.run_picker(p, remover)
+  local m = M.get_picker(p, remover)
+  if m then m:find() end
+end
+
+return M
