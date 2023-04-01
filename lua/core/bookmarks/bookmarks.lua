@@ -38,11 +38,8 @@ function B.get_path(p)
     end
     local buftype = vim.api.nvim_buf_get_option(p, "buftype")
     fullpath = get_name(p)
-    local loaded = vim.fn.bufloaded(fullpath) == 1
     if buftype == "nofile" and not path.exists(fullpath) then
       error("buftype=nofile is set for " .. fullpath)
-    elseif not loaded then
-      error(fullpath .. " is not loaded. You need to save it")
     end
 
     local isdir = path.isdir(fullpath)
@@ -131,7 +128,7 @@ function B.clean(p)
   if not is_a.t(exists) then return end
   local lc = B.get_path_len(p.path)
 
-  table.teach(exists, function(line, context)
+  table.teach(exists, function(line, _)
     if lc < line then B.bookmarks[p.path][line] = nil end
     B.bookmarks[p.path][line] = B.get_context(p.path, line)
   end)
@@ -164,16 +161,14 @@ function B.update(p, line)
       B.bookmarks[p.path] = "dir"
     else
       local b = B.exists(p.path)
-      if not b then 
-        B.bookmarks[p.path] = {} 
+      if not b then
+        B.bookmarks[p.path] = {}
         b = B.bookmarks[p.path]
       end
-      local bufnr = p.bufnr
       if is_a.n(line) then
         b[line] = B.get_context(p, line)
       elseif line == "." then
         vim.api.nvim_buf_call(p.bufnr, function()
-          local pos = vim.fn.line "."
           b[vim.fn.line "."] = vim.fn.getline "."
         end)
       end
@@ -216,7 +211,7 @@ function B.remove(p, line)
     end
   end
 
-  B.clean(p)
+  B.clean(p.path)
 end
 
 function B.load()
@@ -255,6 +250,7 @@ function B.jump(p, line, split)
   if not p then return end
 
   if not p.buffer then
+    p = p.path
     if split == "s" then
       vim.cmd(":split " .. p)
     elseif split == "v" then
@@ -265,6 +261,7 @@ function B.jump(p, line, split)
       vim.cmd(":e " .. p)
     end
   else
+    p = p.bufnr
     if split == "s" then
       vim.cmd(":split | b " .. p)
     elseif split == "v" then

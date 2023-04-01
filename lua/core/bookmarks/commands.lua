@@ -14,6 +14,29 @@ end
 
 local function list_bookmarks() return table.keys(Bookmarks.bookmarks) end
 
+utils.command("BookmarksAddCurrent", function(args)
+  local line = args.args[1]
+  line = line or "."
+  if line ~= "." then line = tonumber(line) end
+  Bookmarks.add(vim.api.nvim_buf_get_name(vim.fn.bufnr()), line)
+end, { nargs = "?" })
+
+utils.command("BookmarksRemoveCurrent", function(args)
+  local line = args.args[1]
+  line = line or "."
+  if line ~= "." then line = tonumber(line) end
+  Bookmarks.remove(vim.api.nvim_buf_get_name(vim.fn.bufnr()), line)
+end, {
+  nargs = "?",
+  complete = function()
+    local name = vim.api.nvim_buf_get_name(vim.fn.bufnr())
+    if not Bookmarks.exists(name) then
+      return {}
+    end
+    return table.keys(Bookmarks.exists(name))
+  end,
+})
+
 utils.command("BookmarksRemove", function(args)
   for i = 2, #args.fargs do
     args.fargs[i] = tonumber(args.fargs[i])
@@ -38,14 +61,19 @@ utils.command(
 )
 
 utils.command("BookmarksShow", function(args)
-  local path = args.fargs[1]
-  if path then
-    table.each(Bookmarks.list(path), function(x)
-      local linenum, context = unpack(x)
-      print(sprintf("%-5d | %s", linenum, context))
-    end)
+  local p = args.fargs[1] or vim.api.nvim_buf_get_name(vim.fn.bufnr())
+  if p then
+    local ls = Bookmarks.list(p)
+    if ls then
+      table.teach(Bookmarks.list(p), function(k, x)
+        print(sprintf("%-5d | %s", k, x))
+      end)
+    end
   else
-    table.each(Bookmarks.list(), print)
+    local ls = Bookmarks.list(p)
+    if ls then
+      table.each(ls, print)
+    end
   end
 end, { nargs = "?", complete = list_bookmarks })
 
