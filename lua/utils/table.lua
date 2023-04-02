@@ -166,7 +166,7 @@ function table.tmap(t, f)
   for k, v in pairs(t) do
     v = f(k, v)
     assert(v ~= nil, "non-nil expected, got " .. v)
-    out[idx] = v
+    out[k] = v
   end
 
   return out
@@ -239,6 +239,9 @@ function table.mtget(t, k)
 
   return rawget(mt, k)
 end
+
+table.get_mt = table.mtget
+table.set_mt = table.mtset
 
 function table.mtset(t, k, v)
   assert(type(t) == "table", "expected table, got " .. tostring(t))

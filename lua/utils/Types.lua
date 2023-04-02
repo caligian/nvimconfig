@@ -16,6 +16,7 @@ Types = Types
       userdata = "userdata",
       boolean = "boolean",
       type = "type",
+      pure_table = 'pure_table',
     },
   }
 
@@ -35,18 +36,6 @@ function Types.is_function(x) return type(x) == "function" end
 
 function Types.is_nil(x) return x == nil end
 
-function Types.is_type(x)
-  if not Types.is_table(x) then return false end
-  local mt = getmetatable(x) or {}
-  return mt.type == 'type'
-end
-
-function Types.is_module(x)
-  if not Types.is_table(x) then return false end
-  local mt = getmetatable(x) or {}
-  return mt.type == "module"
-end
-
 function Types.is_callable(x)
   if Types.is_function(x) then return true end
   if not Types.is_table(x) then return false end
@@ -61,39 +50,56 @@ function Types.is_pure_table(x)
   return true
 end
 
-function Types.type_of(x)
-  if Types.is_module(x) then
-    return "module"
-  elseif Types.is_callable(x) then
-    return "callable"
-  elseif Types.is_nil(x) then
-    return "nil"
+function Types.get_type(x)
+  if Types.is_table(x) then
+    local mt = getmetatable(x)
+    if not mt then
+      return 'table'
+    elseif mt.type then
+      return mt.type
+    elseif mt.__call then
+      return 'callable'
+    end
   elseif Types.is_pure_table(x) then
-    return "pure_table"
-  elseif Types.is_type(x) then
-    return 'type'
-  elseif Types.is_table(x) then
-    local mt = getmetatable(x) or {}
-    return mt.type or "table"
+    return 'pure_table'
+  else
+    return Types.types[type(x)]
   end
-  return Types.types[type(x)] or false
 end
 
-function Types.name_of(x)
-  if not Types.is_type(x) then return end
-  return getmetatable(x).name
+function Types.get_name(x)
+  if not Types.is_table(x) then return end
+  local mt = getmetatable(x)
+  if not mt then return end
+
+  return mt.name
 end
 
 function Types.is_a(x, y)
-  if x == nil then return y == nil end
-  if x == y then return true end
-  if Types.type_of(x) == y then return true end
+  if x == nil then
+    return y == nil
+  elseif x == y then
+    return true
+  elseif Types.is_string(y) then
+    return Types.get_type(x) == y
+  else
+    local t1, t2 = Types.is_table(x), Types.is_table(y)
+    if t1 == 'table' and t1 == t2 then
+      if t1.is_a then
+        return t1:is_a(t2)
+      else
+        local name1 = Types.get_name(x)
+        local name2 = Types.get_name(y)
+        if name1 and name2 then
+          return name1 == name2
+        end
+      end
+    else
+      return Types.get_type(x) == Types.get_type(y)
+    end
 
-  local t1, t2 = Types.type_of(x), Types.type_of(y)
-  if t1 ~= t2 then return false end
-  if t1 ~= "table" and t2 ~= "table" then return true end
-
-  return Types.type_of(x) == Types.type_of(y)
+    return false
+  end
 end
 
 function Types.assert_is_a(x, y)
@@ -104,7 +110,7 @@ end
 function Types.assert_same_type(x, y)
   assert(
     Types.same_type(x, y),
-    Types.type_of(x) .. " expected, got " .. Types.type_of(y)
+    Types.get_type(x) .. " expected, got " .. Types.get_type(y)
   )
   return x, y
 end
@@ -114,13 +120,16 @@ function Types.assert_has_mt(t)
   return t
 end
 
-function Types.add(x)
+function Types.add(x, test)
   Types.assert_is_a(x, 'table')
   Types.assert_has_mt(x)
 
   local mt = getmetatable(x)
-  assert(mt.type, 'type missing in ' .. tostring(x))
-  Types.types[mt.type] = mt.type
+  local tp = mt.type
+  assert(tp, 'type missing in ' .. tostring(x))
+  Types.types[tp] = tp
+  Types['is_' .. tp] = test
+
   return x
 end
 
@@ -139,7 +148,7 @@ function Types.is(type_spec)
           string.format(
             "expected %s, got %s",
             table.concat(invalid, "|"),
-            tostring(Types.type_of(e))
+            tostring(Types.get_type(e))
           )
       end
 
@@ -234,7 +243,7 @@ local function _validate2(a, b)
           _throw_error(display, 'expected %s, got %s', tp, tostring(param))
         end
       else
-        local m, n = Types.type_of(tp), Types.type_of(param)
+        local m, n = Types.get_type(tp), Types.get_type(param)
         assert(m == n, sprintf("%s: expected %s, got %s", display, m, n))
       end
     end)
@@ -265,7 +274,7 @@ local function _validate(type_spec)
         _throw_error(display,  "expected %s, got %s", tp, tostring(param))
       end
     else
-      local a, b = Types.type_of(tp), Types.type_of(param)
+      local a, b = Types.get_type(tp), Types.get_type(param)
       assert(a == b, sprintf("%s: expected %s, got %s", display, a, b))
     end
   end)
@@ -274,7 +283,7 @@ Types.validate = _validate
 
 local function create_test(test)
   return function (x)
-    if Types.type_of(test) == 'callable' then
+    if Types.get_type(test) == 'callable' then
       return test(x)
     end
 

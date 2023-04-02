@@ -1,186 +1,81 @@
 Module = Module or {}
-setmetatable(
-  Module,
-  { type = "Module", is_a = { [Module] = true, Module = true, table = true } }
-)
 
-function Module.is_module(x)
-  if type(x) ~= "table" then return false end
-  local mt = getmetatable(x)
-  if not mt then return false end
-  return mt.is_a.Module
+local function getmt(obj)
+  if not type(obj) == "table" then return end
+  return getmetatable(obj)
 end
 
-function Module.inherit(mod1, mod2)
-  assert(Module.is_module(mod1), "Module expected, got " .. tostring(mod1))
-  assert(Module.is_module(mod2), "Module expected, got " .. tostring(mod2))
-
-  for name, val in pairs(mod2) do
-    mod1[name] = val
-  end
-
-  return mod1
-end
-
-function Module.inherit_table(mod1, mod2)
-  assert(Module.is_module(mod1), "Module expected, got " .. tostring(mod1))
-  assert(type(mod2) == "table", "table expected, got " .. tostring(mod1))
-
-  for name, val in pairs(mod2) do
-    mod1[name] = val
-  end
-
-  return mod1
-end
-
-function Module.get_mt(m) return getmetatable(m) end
-
-function Module.get_methods(m)
-  assert(Module.is_module(m), "Module expected, got " .. tostring(m))
-  return m:_get_mt().methods
-end
-
-function Module.get_vars(m)
-  assert(Module.is_module(m), "Module expected, got " .. tostring(m))
-  return m:_get_mt().vars
-end
-
-function Module.freeze(m)
-  assert(Module.is_module(m), "Module expected, got " .. tostring(m))
-
-  local mt = m:get_mt()
-  if mt.frozen then return m end
-  mt.frozen = true
-  mt.temp = mt.temp or {}
-  mt.temp.__newindex = mt.__newindex
-  mt.__newindex = function(self, k, v)
-    error(
-      sprintf(
-        "%s: Attempting to edit a readonly Module with %s and %s",
-        tostring(self),
-        tostring(k),
-        tostring(v)
-      )
-    )
-  end
-
-  return m
-end
-
-function Module.repr(m)
-  assert(Module.is_module(m), "Module expected, got " .. tostring(m))
-  return dump(m)
-end
-
-function Module.get_name(m)
-  assert(Module.is_module(m), "Module expected, got " .. tostring(m))
-  local mt = m:get_mt()
-  return mt.name
-end
-
-function Module.get_type(m)
-  assert(Module.is_module(m), "Module expected, got " .. tostring(m))
-  local mt = m:get_mt()
-  return mt.type
-end
-
-function Module.is_a(m, spec)
-  assert(Module.is_module(m), "Module expected, got " .. tostring(m))
-  local mt = m:get_mt()
-  return mt.is_a[spec]
-end
-
-function Module.unfreeze(m)
-  assert(Module.is_module(m), "Module expected, got " .. tostring(m))
-  local mt = m:get_mt()
-  if not mt.frozen then return m end
-  mt.frozen = false
-  mt.__newindex = mt.temp.__newindex
-  mt.temp = nil
-
-  return m
+function Module.get_name(obj)
+  local mt = getmt(obj)
+  if mt then return mt.name end
 end
 
 local function is_callable(x)
-  if type(x) == "function" then return true end
-  if type(x) ~= "table" then return false end
-  local mt = getmetatable(x) or {}
-
-  return mt.__call == nil and false or true
+  if type(x) == "table" then
+    local mt = getmetatable(x)
+    if mt.__call then return true end
+  elseif type(x) == "function" then
+    return true
+  end
+  return false
 end
 
-function Module.new(name, base)
-  assert(type(name) == "string", "name: string expected, got " .. type(name))
-  assert(
-    name:match "^[A-Za-z0-9_]+$",
-    "name: Should only contain alphanumeric characters"
-  )
-  assert(
-    string.sub(name, 1, 1):match "[A-Z]",
-    "name: Should start with a capital letter"
-  )
-
-  if base then
-    assert(Module.is_module(base), "module expected, got " .. tostring(base))
-  end
-
-  local self = {}
-  local id = vim.split(tostring(self), ":")[2]
-  local mt = {
-    instance = true,
-    type = "Module",
-    name = name,
-    methods = {},
-    vars = {},
-    is_a = {
-      [Module] = true,
-      [self] = true,
-      [name] = true,
-      Module = true,
-      table = true,
-    },
-  }
-
-  mt.__index = function(self, k)
-    if mt.methods[k] then return self.methods[k] end
-    if mt.vars[k] then return self.vars[k] end
-
-    return rawget(self, k)
-  end
-
-  mt.__newindex = function(self, k, v)
-    rawset(self, k, v)
-
-    if is_callable(v) then
-      mt.methods[k] = v
-    else
-      mt.vars[k] = v
+function Module.get_methods(obj)
+  local f = {}
+  for key, value in pairs(obj) do
+    if is_callable(value) then
+      f[key] = value
     end
   end
 
-  mt.__tostring = function(self) return mt.name .. ":" .. id end
-
-  mt.__call = function (self, ...)
-    if self.constructor then
-      self.constructor(self, ...)
-      return self
-    end
-    return self, ...
-  end
-
-  setmetatable(self, mt)
-
-  for name, val in pairs(Module) do
-    if name ~= "module" and name ~= "new" then self[name] = val end
-  end
-
-  return self
+  return f
 end
 
-function module(name, base, force)
-  if _G[name] and not force then return _G[name] end
-  local m = Module.new(name, base)
-  _G[name] = m
+function Module.get_method(obj, m)
+  local f = Module.get_methods(obj)
+  if not f then return end
 
-  return m
+  return f[m]
+end
+
+function Module.include(obj, t)
+  for key, value in pairs(t) do
+    obj[key] = value
+  end
+
+  return obj
+end
+
+function Module.is_module(obj)
+  if type(obj) ~= 'table' then return false end
+  local mt = getmetatable(obj)
+  if not mt then return false end
+
+  return mt.type == 'module'
+end
+
+function Module.new(name, include)
+  local cls = {}
+  local mt = {}
+  mt.type = "module"
+  mt.name = name
+  mt.__index = cls
+  mt.__name = name
+
+  for key, value in pairs(Module) do
+    if key ~= "new" then cls[key] = value end
+  end
+
+  if include then
+    Module.inherit(cls, include)
+  end
+
+  return setmetatable(cls, mt)
+end
+
+function module(name, include)
+  local mod = Module.new(name, parent)
+  _G[name] = mod
+
+  return mod
 end
