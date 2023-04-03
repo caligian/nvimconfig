@@ -109,10 +109,8 @@ function Term:start()
   return self
 end
 
-function Term:is_visible() 
-  if self.buffer then
-    return self.buffer:is_visible() 
-  end
+function Term:is_visible()
+  if self.buffer then return self.buffer:is_visible() end
   return false
 end
 
@@ -139,15 +137,11 @@ function Term:hide()
 end
 
 function Term:split(direction, opts)
-  if not self:is_visible() then
-    self.buffer:split(direction, opts)
-  end
+  if not self:is_visible() then self.buffer:split(direction, opts) end
 end
 
 function Term:float(opts)
-  if not self:is_visible() then
-    self.buffer:float(opts)
-  end
+  if not self:is_visible() then self.buffer:float(opts) end
 end
 
 function Term:center_float(opts)
@@ -159,9 +153,7 @@ function Term:dock(opts) self:float(table.merge({ dock = 0.3 }, opts or {})) end
 function Term:send(s)
   local id = self.id
   if is_a.s(s) then s = string.split(s, "[\n\r]") end
-  if self.on_input then 
-    s = self.on_input(s) 
-  end
+  if self.on_input then s = self.on_input(s) end
   s[#s + 1] = "\n"
   vim.api.nvim_chan_send(id, table.concat(s, "\n"))
 end
@@ -195,7 +187,7 @@ end
 
 function Term:init(cmd, opts)
   validate {
-    command = { is {"s", 't'}, cmd },
+    command = { is { "s", "t" }, cmd },
     ["?opts"] = {
       { __nonexistent = true, ["?on_input"] = "f" },
       opts,

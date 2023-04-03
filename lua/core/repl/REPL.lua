@@ -2,6 +2,22 @@ if not REPL then class("REPL", Term) end
 
 REPL.ids = REPL.ids or {}
 
+function REPL.get(ft, bufnr)
+  if ft == 'sh' then
+    local exists = REPL.ids.sh
+    if exists and exists:is_running() then
+      return exists
+    end
+  end
+
+  ft = ft or vim.bo.filetype
+  bufnr = bufnr or vim.fn.bufnr()
+  local exists = table.get(REPL.ids, {ft, bufnr})
+  if exists and exists:is_running() then
+    return exists
+  end
+end
+
 function REPL:init(ft)
   ft = ft or vim.bo.filetype
   local is_shell = ft == "sh"
@@ -20,14 +36,6 @@ function REPL:init(ft)
   local exists
   local bufnr = vim.fn.bufnr()
 
-  if not is_shell then
-    exists = table.contains(REPL.ids, ft, bufnr)
-  else
-    exists = REPL.ids.sh
-  end
-
-  if exists and exists:is_running() then return exists end
-
   REPL:super()(self, cmd, opts)
 
   if is_shell then
@@ -38,12 +46,13 @@ function REPL:init(ft)
   end
 
   self.filetype = self
+
   return self
 end
 
-table.each({'send', 'split', 'float', 'center_float', 'dock'}, function (f)
+table.each({ "send", "split", "float", "center_float", "dock" }, function(f)
   local cb = REPL[f]
-  REPL[f] = function (self, ...)
+  REPL[f] = function(self, ...)
     self:start()
     return cb(self, ...)
   end
