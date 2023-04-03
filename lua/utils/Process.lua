@@ -53,7 +53,7 @@ function Process._on_stdout(self, cb)
   end)
 end
 
-function Process._init(self, command, opts)
+function Process.init(self, command, opts)
   validate {
     command = { "string", command },
     ['?opts'] = { "table", opts },

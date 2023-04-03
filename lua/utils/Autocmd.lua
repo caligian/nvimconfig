@@ -10,7 +10,7 @@ A.ids = A.ids or {}
 A.defaults = A.defaults or {}
 A.groups = A.groups or {}
 
-function Autocmd._init(self, event, opts)
+function Autocmd:init(event, opts)
   validate {
     event = { is { "s", "t" }, event },
     options = {

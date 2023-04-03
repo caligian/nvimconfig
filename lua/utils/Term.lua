@@ -193,7 +193,7 @@ function Term:terminate_input()
   return self:send(vim.api.nvim_replace_termcodes("<C-c>", true, false, true))
 end
 
-function Term:_init(cmd, opts)
+function Term:init(cmd, opts)
   validate {
     command = { is {"s", 't'}, cmd },
     ["?opts"] = {

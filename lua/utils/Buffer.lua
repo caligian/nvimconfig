@@ -1,9 +1,11 @@
 --- Buffer object creater. This does not YET cover all the neovim buffer API functions
 
-if not buffer then class "Buffer" end
+class "Buffer"
 
 Buffer.ids = Buffer.ids or {}
 Buffer._scratch_id = Buffer._scratch_id or 1
+utils.buffer = {}
+local M = utils.buffer
 
 local function from_percent(current, width, min)
   current = current or vim.fn.winwidth(0)
@@ -29,7 +31,7 @@ local function from_percent(current, width, min)
   return required
 end
 
-function Buffer.vimsize()
+function M.vimsize()
   local scratch = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_call(scratch, function()
     vim.cmd "tabnew"
@@ -42,7 +44,7 @@ function Buffer.vimsize()
   return { width, height }
 end
 
-function Buffer:float(opts)
+function M.float(bufnr, opts)
   validate {
     win_options = {
       {
@@ -55,7 +57,6 @@ function Buffer:float(opts)
     },
   }
 
-  bufnr = self.bufnr
   opts = opts or {}
   local dock = opts.dock
   local panel = opts.panel
@@ -66,7 +67,7 @@ function Buffer:float(opts)
   opts.center = nil
   opts.style = opts.style or "minimal"
   opts.border = opts.border or "single"
-  local editor_size = Buffer.vimsize()
+  local editor_size = M.vimsize()
   local current_width = vim.fn.winwidth(0)
   local current_height = vim.fn.winheight(0)
   opts.width = opts.width or current_width
@@ -93,7 +94,6 @@ function Buffer:float(opts)
       current_width = editor_size[1]
       current_height = editor_size[2]
     end
-
     opts.row = 0
     opts.col = 1
     opts.width = from_percent(current_width, panel, 5)
@@ -104,7 +104,6 @@ function Buffer:float(opts)
       current_width = editor_size[1]
       current_height = editor_size[2]
     end
-
     opts.col = 0
     opts.row = opts.height - dock
     opts.height = from_percent(current_height, dock, 5)
@@ -115,132 +114,105 @@ function Buffer:float(opts)
   return vim.api.nvim_open_win(bufnr, focus, opts)
 end
 
-function Buffer.exists(self) return vim.fn.bufexists(self.bufnr) ~= 0 end
-
-function Buffer.update(self) table.update(Buffer.ids, { self.bufnr }, self) end
-
-function Buffer.getwidth(self)
-  if not self:is_visible() then return end
-
-  return vim.fn.winwidth(self:winnr())
-end
-
-function Buffer.getheight(self)
-  if not self:is_visible() then return end
-
-  return vim.fn.winheight(self:winnr())
-end
-
---- Get buffer option
--- @tparam string opt Name of the option
--- @return any
-function Buffer:getopt(opt)
-  local _, out = pcall(vim.api.nvim_buf_get_option, self.bufnr, opt)
-
-  if out ~= nil then return out end
-end
-
---- Get buffer option
--- @tparam string var Name of the variable
--- @return any
-function Buffer:getvar(var)
-  local _, out = pcall(vim.api.nvim_buf_get_var, self.bufnr, var)
-
-  if out ~= nil then return out end
-end
-
-function Buffer:setvar(k, v) vim.api.nvim_buf_set_var(self.bufnr, k, v) end
-
---- Set buffer variables
--- @tparam table vars Dictionary of var name and value
-function Buffer:setvars(vars)
-  table.teach(vars, function(k, v) self:setvar(k, v) end)
-
-  return vars
-end
-
---- Get buffer window option
--- @tparam string opt Name of the option
--- @return any
-function Buffer:getwinopt(opt)
-  if not self:is_visible() then return end
-
-  local _, out = pcall(vim.api.nvim_win_get_option, self:winid(), opt)
-
-  if out ~= nil then return out end
-end
-
---- Get buffer window option
--- @tparam string var Name of the variable
--- @return any
-function Buffer:getwinvar(var)
-  if not self:is_visible() then return end
-
-  local _, out = pcall(vim.api.nvim_win_get_var, self:winid(), var)
-
-  if out then return out end
-end
-
-function Buffer:setwinvar(k, v)
-  if not self:is_visible() then return end
-
-  vim.api.nvim_win_set_var(self:winid(), k, v)
-end
-
-function Buffer:setwinvars(vars)
-  if not self:is_visible() then return end
-
-  table.teach(vars, function(k, v) self:setwinvar(k, v) end)
-
-  return vars
-end
-
-function Buffer:setopt(k, v) vim.api.nvim_buf_set_option(self.bufnr, k, v) end
-
-function Buffer:setopts(opts)
-  for key, val in pairs(opts) do
-    self:setopt(key, val)
-  end
-end
-
-function Buffer.winnr(self)
-  local winnr = vim.fn.bufwinnr(self.bufnr)
-  if winnr == -1 then return end
+function M.winnr(bufnr)
+  local winnr = vim.fn.bufwinnr()
+  if winnr == -1 then return false end
   return winnr
 end
 
-function Buffer.winid(self)
-  local winid = vim.fn.bufwinid(self.bufnr)
-  if winid == -1 then return end
+function M.winid(bufnr)
+  local winid = vim.fn.bufwinnr()
+  if winid == -1 then return false end
   return winid
 end
 
-function Buffer.focus(self)
-  local winid = self:winid()
+function M.exists(bufnr) return vim.fn.bufexists(bufnr) ~= 0 end
+
+
+function M.getwidth(bufnr) return vim.fn.winwidth(M.winnr(bufnr)) end
+
+function M.getheight(bufnr) return vim.fn.winheight(M.winnr(bufnr)) end
+
+--- Get buffer option
+-- @tparam string opt Name of the option
+-- @return any
+function M.getopt(bufnr, opt)
+  local _, out = pcall(vim.api.nvim_buf_get_option, bufnr, opt)
+  if out ~= nil then return out end
+end
+
+--- Get buffer option
+-- @tparam string var Name of the variable
+-- @return any
+function M.getvar(bufnr, var)
+  local _, out = pcall(vim.api.nvim_buf_get_var, bufnr, var)
+  if out ~= nil then return out end
+end
+
+function M.setvar(bufnr, k, v)
+  vim.api.nvim_buf_set_var(bufnr, k, v) 
+end
+
+--- Set buffer variables
+-- @tparam table vars Dictionary of var name and value
+function M.setvars(bufnr, vars)
+  Dict.each(vars, function(k, v) M.setvar(bufnr, k, v) end)
+  return vars
+end
+
+--- Get buffer window option
+-- @tparam string opt Name of the option
+-- @return any
+function M.getwinopt(bufnr, opt)
+  local _, out = pcall(vim.api.nvim_win_get_option, M.winid(bufnr), opt)
+  if out ~= nil then return out end
+end
+
+--- Get buffer window option
+-- @tparam string var Name of the variable
+-- @return any
+function M.getwinvar(bufnr, var)
+  local _, out = pcall(vim.api.nvim_win_get_var, M.winid(bufnr), var)
+  if out then return out end
+end
+
+function M.setwinvar(bufnr, k, v)
+  vim.api.nvim_win_set_var(M.winid(bufnr), k, v)
+end
+
+function M.setwinvars(bufnr, vars)
+  Dict.each(vars, function(k, v) M.setwinvar(k, v) end)
+  return vars
+end
+
+function M.setopt(bufnr, k, v) vim.api.nvim_buf_set_option(bufnr, k, v) end
+
+function M.setopts(bufnr, opts)
+  for key, val in pairs(opts) do
+    M.setopt(bufnr, key, val)
+  end
+end
+
+function M.focus(bufnr)
+  local winid = M.winid(bufnr)
   if winid then
     vim.fn.win_gotoid(winid)
     return true
   end
 end
 
-function Buffer:setwinopt(k, v)
-  if not self:is_visible() then return end
-
-  vim.api.nvim_win_set_option(self:winid(), k, v)
-
+function M.setwinopt(bufnr, k, v)
+  vim.api.nvim_win_set_option(M.winid(bufnr), k, v)
   return v
 end
 
-function Buffer:setwinopts(opts)
-  if not self:is_visible() then return end
-
-  table.teach(opts, function(k, v) self:setwinopt(k, v) end)
-
+function M.setwinopts(bufnr, opts)
+  Dict.each(opts, function(k, v) M.setwinopt(bufnr, k, v) end)
   return opts
 end
 
-local function assert_exists(self)
-  assert(self:exists(), "buffer does not exist: " .. self.bufnr)
+local function assert_exists(bufnr)
+  assert(M.exists(bufnr), "buffer does not exist: " .. bufnr)
 end
 
 --- Make a new buffer local mapping.
@@ -249,30 +221,28 @@ end
 -- @tparam function|string callback Callback to be bound to table.keys
 -- @tparam[opt] table opts Additional vim.keymap.set options. You cannot set opts.pattern as it will be automatically set by this function
 -- @return object Keybinding object
-function Buffer:map(mode, lhs, callback, opts)
-  assert_exists(self)
-
+function M.map(bufnr, mode, lhs, callback, opts)
+  assert_exists(bufnr)
   opts = opts or {}
-  opts.buffer = self.bufnr
+  opts.buffer = bufnr
   return Keybinding.map(mode, lhs, callback, opts)
 end
 
 --- Create a nonrecursive mapping
 -- @see table.map
-function Buffer:noremap(mode, lhs, callback, opts)
-  assert_exists(self)
-
+function M.noremap(bufnr, mode, lhs, callback, opts)
+  assert_exists(bufnr)
   opts = opts or {}
   if is_a.s(opts) then opts = { desc = opts } end
-  opts.buffer = self.bufnr
+  opts.buffer = bufnr
   opts.noremap = true
-  self:map(mode, lhs, callback, opts)
+  M.map(mode, lhs, callback, opts)
 end
 
 --- Split current window and focus this buffer
 -- @param[opt='s'] split Direction to split in: 's' or 'v'
-function Buffer:split(split, opts)
-  assert_exists(self)
+function M.split(bufnr, split, opts)
+  assert_exists(bufnr)
 
   opts = opts or {}
   split = split or "s"
@@ -289,15 +259,15 @@ function Buffer:split(split, opts)
     required = from_percent(current, height, min)
     if not reverse then
       if opts.full then
-        vim.cmd("botright split | b " .. self.bufnr)
+        vim.cmd("botright split | b " .. bufnr)
       else
-        vim.cmd("split | b " .. self.bufnr)
+        vim.cmd("split | b " .. bufnr)
       end
     else
       if opts.full then
-        vim.cmd(sprintf("botright split | wincmd j | b %d", self.bufnr))
+        vim.cmd(sprintf("botright split | wincmd j | b %d", bufnr))
       else
-        vim.cmd(sprintf("split | wincmd j | b %d", self.bufnr))
+        vim.cmd(sprintf("split | wincmd j | b %d", bufnr))
       end
     end
     vim.cmd("resize " .. required)
@@ -306,68 +276,68 @@ function Buffer:split(split, opts)
     required = from_percent(current, height or 0.5, min)
     if not reverse then
       if opts.full then
-        vim.cmd("vert topleft split | b " .. self.bufnr)
+        vim.cmd("vert topleft split | b " .. bufnr)
       else
-        vim.cmd("vsplit | b " .. self.bufnr)
+        vim.cmd("vsplit | b " .. bufnr)
       end
     else
       if opts.full then
-        vim.cmd(sprintf("vert botright split | b %d", self.bufnr))
+        vim.cmd(sprintf("vert botright split | b %d", bufnr))
       else
-        vim.cmd(sprintf("vsplit | wincmd l | b %d", self.bufnr))
+        vim.cmd(sprintf("vsplit | wincmd l | b %d", bufnr))
       end
     end
     vim.cmd("vert resize " .. required)
   elseif split == "f" then
-    self:float(opts)
+    M.float(bufnr, opts)
   elseif split == "t" then
-    vim.cmd(sprintf("tabnew | b %d", self.bufnr))
+    vim.cmd(sprintf("tabnew | b %d", bufnr))
   end
 end
 
-function Buffer:splitright(opts)
+function M.splitright(bufnr, opts)
   opts = opts or {}
   opts.reverse = nil
-  return self:split("s", opts)
+  return M.split(bufnr, "s", opts)
 end
 
-function Buffer:splitabove(opts)
+function M.splitabove(bufnr, opts)
   opts = opts or {}
   opts.reverse = true
-  return self:split("s", opts)
+  return M.split(bufnr, "s", opts)
 end
 
-function Buffer:splitbelow(opts)
+function M.splitbelow(bufnr, opts)
   opts = opts or {}
   opts.reverse = nil
-  return self:split("s", opts)
+  return M.split(bufnr, "s", opts)
 end
 
-function Buffer:splitleft(opts)
+function M.splitleft(bufnr, opts)
   opts = opts or {}
   opts.reverse = true
-  return self:split("v", opts)
+  return M.split(bufnr, "v", opts)
 end
 
 --- Create a buffer local autocommand. The  pattern will be automatically set to '<buffer=%d>'
 -- @see autocmd._init
-function Buffer:hook(event, callback, opts)
-  assert_exists(self)
+function M.hook(bufnr, event, callback, opts)
+  assert_exists(bufnr)
 
   opts = opts or {}
 
   return Autocmd(
     event,
     table.merge(opts, {
-      pattern = sprintf("<buffer=%d>", self.bufnr),
+      pattern = sprintf("<buffer=%d>", bufnr),
       callback = callback,
     })
   )
 end
 
 --- Hide current buffer if visible
-function Buffer.hide(self)
-  local winid = vim.fn.bufwinid(self.bufnr)
+function M.hide(bufnr)
+  local winid = vim.fn.bufwinid(bufnr)
   if winid ~= -1 then
     local current_tab = vim.api.nvim_get_current_tabpage()
     local n_wins = #(vim.api.nvim_tabpage_list_wins(current_tab))
@@ -377,13 +347,13 @@ end
 
 ---  Is buffer visible?
 --  @return boolean
-function Buffer.is_visible(self) return vim.fn.bufwinid(self.bufnr) ~= -1 end
+function M.is_visible(bufnr) return vim.fn.bufwinid(bufnr) ~= -1 end
 
 --- Get buffer lines
 -- @param startrow Starting row
 -- @param tillrow Ending row
 -- @return table
-function Buffer:lines(startrow, tillrow)
+function M.lines(bufnr, startrow, tillrow)
   startrow = startrow or 0
   tillrow = tillrow or -1
 
@@ -392,7 +362,7 @@ function Buffer:lines(startrow, tillrow)
     end_row = { "n", tillrow },
   }
 
-  return vim.api.nvim_buf_get_lines(self.bufnr, startrow, tillrow, false)
+  return vim.api.nvim_buf_get_lines(bufnr, startrow, tillrow, false)
 end
 
 --- Get buffer text
@@ -400,7 +370,7 @@ end
 -- @tparam table till Should be table containing end row and col
 -- @param repl Replacement text
 -- @return
-function Buffer:text(start, till, repl)
+function M.text(bufnr, start, till, repl)
   validate {
     start_cood = { "t", start },
     till_cood = { "t", till },
@@ -415,14 +385,11 @@ function Buffer:text(start, till, repl)
   local a, b = unpack(start)
   local m, n = unpack(till)
 
-  return vim.api.nvim_buf_get_text(self.bufnr, a, m, b, n, repl)
+  return vim.api.nvim_buf_get_text(bufnr, a, m, b, n, repl)
 end
 
-function Buffer:bind(opts, ...)
-  assert_exists(self)
-
-  opts.buffer = self.bufnr
-
+function M.bind(bufnr, opts, ...)
+  opts.buffer = bufnr
   return Keybinding.bind(opts, ...)
 end
 
@@ -430,20 +397,20 @@ end
 -- @param startrow Starting row
 -- @param endrow Ending row
 -- @param repl Replacement line[s]
-function Buffer:setlines(startrow, endrow, repl)
+function M.setlines(bufnr, startrow, endrow, repl)
   assert(startrow)
   assert(endrow)
 
   if is_a(repl, "string") then repl = vim.split(repl, "[\n\r]") end
 
-  vim.api.nvim_buf_set_lines(self.bufnr, startrow, endrow, false, repl)
+  vim.api.nvim_buf_set_lines(bufnr, startrow, endrow, false, repl)
 end
 
 --- Set buffer text
 -- @tparam table start Should be table containing start row and col
 -- @tparam table till Should be table containing end row and col
 -- @tparam string|table repl Replacement text
-function Buffer:set(start, till, repl)
+function M.set(bufnr, start, till, repl)
   assert(is_a(start, "table"))
   assert(is_a(till, "table"))
 
@@ -458,237 +425,101 @@ function Buffer:set(start, till, repl)
 end
 
 --- Switch to this buffer
-function Buffer.switch(self)
-  assert_exists(self)
-
-  vim.cmd("b " .. self.bufnr)
+function M.switch(bufnr)
+  assert_exists(bufnr)
+  vim.cmd("b " .. bufnr)
 end
 
 --- Load buffer
-function Buffer.load(self)
-  if vim.fn.bufloaded(self.bufnr) == 1 then
+function M.load(bufnr)
+  if vim.fn.bufloaded(bufnr) == 1 then
     return true
   else
-    vim.fn.bufload(self.bufnr)
+    vim.fn.bufload(bufnr)
   end
-end
-
---- Open scratch buffer in split
--- @param[opt='scratch_buffer'] name Name of the scratch buffer
--- @param split 's' (vertically) or 'v' (horizontally)
--- @return self
-function Buffer.open_scratch(name, split)
-  name = name or "scratch_buffer"
-  local buf = Buffer(name, true)
-  buf:split(split or "s")
-
-  return buf
 end
 
 --- Call callback on buffer and return result
 -- @param cb Function to call in this buffer
 -- @return self
-function Buffer:call(cb) return vim.api.nvim_buf_call(self.bufnr, cb) end
+function M.call(bufnr, cb) return vim.api.nvim_buf_call(bufnr, cb) end
 
 --- Get buffer-local keymap.
 -- @see buffer_has_keymap
-function Buffer:getmap(mode, lhs)
-  return buffer_has_keymap(self.bufnr, mode, lhs)
-end
+function M.getmap(bufnr, mode, lhs) return buffer_has_keymap(bufnr, mode, lhs) end
 
 --- Return visually highlighted table.range in this buffer
 -- @see visualrange
-function Buffer.range(self) return visualrange(self.bufnr) end
+function M.range(bufnr) return utils.visualrange(bufnr) end
 
-function Buffer.linecount(self) return vim.api.nvim_buf_line_count(self.bufnr) end
-
-function Buffer.delete(self)
-  local bufnr = self.bufnr
-
-  if vim.api.nvim_buf_is_valid(bufnr) and vim.api.nvim_buf_is_loaded(bufnr) then
-    vim.api.nvim_buf_delete(bufnr, { force = true })
-    self.ids[self.bufnr] = nil
-  end
-end
+function M.linecount(bufnr) return vim.api.nvim_buf_line_count(bufnr) end
 
 --- Return current linenumber
 -- @return number
-function Buffer.linenum(self)
-  return self:call(function() return vim.fn.getpos(".")[2] end)
+function M.linenum(bufnr)
+  return M.call(bufnr, function() return vim.fn.getpos(".")[2] end)
 end
 
-function Buffer.is_listed(self) return vim.fn.buflisted(self.bufnr) ~= 0 end
+function M.is_listed(bufnr) return vim.fn.buflisted(bufnr) ~= 0 end
 
-function Buffer.info(self) return vim.fn.getbufinfo(self.bufnr) end
+function M.info(bufnr) return vim.fn.getbufinfo(bufnr)[1] end
 
-function Buffer.wininfo(self)
-  if not self:is_visible() then return end
-  return vim.fn.getwininfo(self:winid())
+function M.wininfo(bufnr)
+  if not M.is_visible(bufnr) then return end
+  return vim.fn.getwininfo(M.winid(bufnr))
 end
 
-function Buffer.string(self) return table.concat(self:lines(0, -1), "\n") end
+function M.string(bufnr) return table.concat(M.lines(bufnr, 0, -1), "\n") end
 
-function Buffer.getbuffer(self) return self:lines(0, -1) end
+function M.getbuffer(bufnr) return M.lines(bufnr, 0, -1) end
 
-function Buffer:setbuffer(lines) return self:setlines(0, -1, lines) end
+function M.setbuffer(bufnr, lines) return M.setlines(bufnr, 0, -1, lines) end
 
-function Buffer.current_line(self)
-  return self:call(function() return vim.fn.getline "." end)
+function M.current_line(bufnr)
+  return M.call(bufnr, function() return vim.fn.getline "." end)
 end
 
-function Buffer.lines_till_point(self)
-  return self:call(function()
+function M.lines_till_point(bufnr)
+  return M.call(bufnr, function()
     local line = vim.fn.line "."
-    return self:lines(0, line)
+    return M.lines(bufnr, 0, line)
   end)
 end
 
-function Buffer.__tostring(self) return self:string() end
+function M.append(bufnr, lines) return M.setlines(bufnr, -1, -1, lines) end
 
-function Buffer:append(lines) return self:setlines(-1, -1, lines) end
+function M.prepend(bufnr, lines) return M.setlines(bufnr, 0, 0, lines) end
 
-function Buffer:prepend(lines) return self:setlines(0, 0, lines) end
+function M.maplines(bufnr, f) return table.map(M.lines(bufnr, 0, -1), f) end
 
-function Buffer:maplines(f) return table.map(self:lines(0, -1), f) end
+function M.filter(bufnr, f) return table.filter(M.lines(bufnr, 0, -1), f) end
 
-function Buffer:filter(f) return table.filter(self:lines(0, -1), f) end
-
-function Buffer:match(pat)
-  return table.filter(self:lines(0, -1), function(s) return s:match(pat) end)
+function M.match(bufnr, pat)
+  return table.filter(M.lines(bufnr, 0, -1), function(s) return s:match(pat) end)
 end
 
-function Buffer:readfile(fname)
-  assert(path.exists(fname), "invalid path provided: " .. fname)
-
+function M.readfile(bufnr, fname)
   local s = file.read(fname)
-  self:setlines(0, -1, s)
+  M.setlines(bufnr, -1, s)
 end
 
-function Buffer:insertfile(fname)
-  assert(path.exists(fname), "invalid path provided: " .. fname)
-
+function M.insertfile(bufnr, fname)
   local s = file.read(fname)
-  self:append(s)
+  M.append(bufnr, s)
 end
 
-function Buffer.save(self)
-  self:call(function() vim.cmd "w! %:p" end)
+function M.save(bufnr)
+  M.call(bufnr, function() vim.cmd "w! %:p" end)
 end
 
-function Buffer:shell(command)
-  self:call(function() vim.cmd(":%! " .. command) end)
-
-  return self:lines()
+function M.shell(bufnr, command)
+  M.call(bufnr, function() vim.cmd(":%! " .. command) end)
+  return M.lines(bufnr)
 end
 
-function Buffer:__add(s)
-  self:append(s)
+Buffer:include(M, 'bufnr')
 
-  return self
-end
-
-function Buffer.menu(desc, items, formatter, callback)
-  validate {
-    description = { is { "s", "t" }, desc },
-    items = { is { "s", "t" }, items },
-    callback = { "f", callback },
-    ["?formatter"] = { "f", formatter },
-  }
-
-  if is_a.s(table.items) then table.items = vim.split(items, "\n") end
-
-  if is_a.s(desc) then desc = vim.split(desc, "\n") end
-
-  local b = Buffer()
-  local desc_n = #desc
-  local s = table.extend(desc, items)
-  local lines = table.copy(s)
-
-  if formatter then s = table.map(s, formatter) end
-
-  local _callback = callback
-  callback = function()
-    local idx = vim.fn.line "."
-    if idx <= desc_n then return end
-
-    _callback(lines[idx])
-  end
-
-  b:setbuffer(s)
-
-  b.o.modifiable = false
-
-  b:hook("WinLeave", function() b:delete() end)
-
-  b:bind({ noremap = true, event = "BufEnter" }, {
-    "q",
-    function() b:delete() end,
-  }, { "<CR>", callback, "Run callback" })
-
-  return b
-end
-
---- Open buffer and run callback when table.keys are pressed
--- @param[opt=false] name Name of the scratch buffer. If skipped then create a unique id
--- @param text Text to display in the input buffer
--- @param cb Callback to run at keypress
--- @param opts Contains other options
--- @usage Buffer.input(name, text, cb, {
---   -- Split vertically or horizontally?
---   split = 's' or 'v'
---
---   -- Comments start with ? (default: #)
---   comment = '#' or string
---
---   -- When to run callback?
---   table.keys = 'gx' or string
--- })
--- @return Buffer
-function Buffer.input(text, cb, opts)
-  validate {
-    text = { is { "t", "s" }, text },
-    cb = { "f", cb },
-    ["?opts"] = { "t", opts },
-  }
-
-  opts = opts or {}
-
-  local split = opts.split or "s"
-  local trigger_table = opts.keys or "gx"
-  local comment = opts.comment or "#"
-
-  if is_a(text, "string") then text = vim.split(text, "\n") end
-
-  local buf = Buffer()
-  buf:setlines(0, -1, text)
-
-  buf:split(split, { reverse = opts.reverse, resize = opts.resize })
-
-  buf:noremap("n", "gQ", function() b:delete() end, "Close buffer")
-
-  buf:noremap("n", trigger_keys, function()
-    local lines = buf:lines(0, -1)
-    local sanitized = {}
-    local idx = 1
-
-    table.each(lines, function(s)
-      if not s:match("^" .. comment) then
-        sanitized[idx] = s
-        idx = idx + 1
-      end
-    end)
-
-    cb(sanitized)
-  end, "Execute callback")
-
-  buf:hook("WinLeave", function() buf:delete() end)
-end
-
---- Constructor function returning a buffer object
--- @param name Name of the buffer
--- @param[opt] scratch Is a scratch buffer?
--- @return self
-function Buffer:_init(name, scratch)
+function Buffer:init(name, scratch)
   local bufnr
 
   if not name then
@@ -724,8 +555,8 @@ function Buffer:_init(name, scratch)
       modified = false,
       buflisted = false,
     }
-    if self:getopt('buftype') ~= 'terminal' then
-      self:setopt('buftype', 'nofile')
+    if self:getopt "buftype" ~= "terminal" then
+      self:setopt("buftype", "nofile")
     else
       self.terminal = true
       self.scratch = nil
@@ -775,3 +606,103 @@ function Buffer:_init(name, scratch)
 
   return self
 end
+
+function Buffer:delete()
+  local bufnr = self.bufnr
+
+  if vim.api.nvim_buf_is_valid(bufnr) and vim.api.nvim_buf_is_loaded(bufnr) then
+    vim.api.nvim_buf_delete(bufnr, { force = true })
+    self.ids[self.bufnr] = nil
+  end
+end
+
+function Buffer:open_scratch(name, split)
+  name = name or "scratch_buffer"
+  local buf = Buffer(name, true)
+  buf:split(split or "s")
+
+  return buf
+end
+
+function Buffer.menu(desc, items, formatter, callback)
+  validate {
+    description = { is { "s", "t" }, desc },
+    items = { is { "s", "t" }, items },
+    callback = { "f", callback },
+    ["?formatter"] = { "f", formatter },
+  }
+
+  if is_a.s(table.items) then table.items = vim.split(items, "\n") end
+
+  if is_a.s(desc) then desc = vim.split(desc, "\n") end
+
+  local b = Buffer()
+  local desc_n = #desc
+  local s = table.extend(desc, items)
+  local lines = table.copy(s)
+
+  if formatter then s = table.map(s, formatter) end
+
+  local _callback = callback
+  callback = function()
+    local idx = vim.fn.line "."
+    if idx <= desc_n then return end
+
+    _callback(lines[idx])
+  end
+
+  b:setbuffer(s)
+
+  b.o.modifiable = false
+
+  b:hook("WinLeave", function() b:delete() end)
+
+  b:bind({ noremap = true, event = "BufEnter" }, {
+    "q",
+    function() b:delete() end,
+  }, { "<CR>", callback, "Run callback" })
+
+  return b
+end
+
+function Buffer.input(text, cb, opts)
+  validate {
+    text = { is { "t", "s" }, text },
+    cb = { "f", cb },
+    ["?opts"] = { "t", opts },
+  }
+
+  opts = opts or {}
+
+  local split = opts.split or "s"
+  local trigger_table = opts.keys or "gx"
+  local comment = opts.comment or "#"
+
+  if is_a(text, "string") then text = vim.split(text, "\n") end
+
+  local buf = Buffer()
+  buf:setlines(0, -1, text)
+
+  buf:split(split, { reverse = opts.reverse, resize = opts.resize })
+
+  buf:noremap("n", "gQ", function() b:delete() end, "Close buffer")
+
+  buf:noremap("n", trigger_keys, function()
+    local lines = buf:lines(0, -1)
+    local sanitized = {}
+    local idx = 1
+
+    table.each(lines, function(s)
+      if not s:match("^" .. comment) then
+        sanitized[idx] = s
+        idx = idx + 1
+      end
+    end)
+
+    cb(sanitized)
+  end, "Execute callback")
+
+  buf:hook("WinLeave", function() buf:delete() end)
+end
+
+function Buffer:update() table.update(Buffer.ids, { bufnr }, self) end

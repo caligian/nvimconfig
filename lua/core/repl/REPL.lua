@@ -1,10 +1,8 @@
-require "utils.terminal"
-
 if not REPL then class("REPL", Term) end
 
 REPL.ids = REPL.ids or {}
 
-function REPL:_init(ft)
+function REPL:init(ft)
   ft = ft or vim.bo.filetype
   local is_shell = ft == "sh"
   local cmd = table.contains(Lang.langs, ft, "repl")
@@ -30,7 +28,7 @@ function REPL:_init(ft)
 
   if exists and exists:is_running() then return exists end
 
-  Term._init(self, cmd, opts)
+  REPL:super()(self, cmd, opts)
 
   if is_shell then
     self.shell = true

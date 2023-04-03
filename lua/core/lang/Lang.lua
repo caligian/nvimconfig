@@ -3,7 +3,7 @@ class "Lang"
 Lang.langs = Lang.langs or {}
 local AUTOCMD_ID = 1
 
-function Lang._init(self, lang, opts)
+function Lang.init(self, lang, opts)
   validate {
     filetype = { "s", lang },
     ["?opts"] = {

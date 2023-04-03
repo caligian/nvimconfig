@@ -64,7 +64,7 @@ end
 -- @tparam string|table rest.pattern rest.event cannot be nil if this is used. Autocommand pattern(s) to bind to
 -- @see autocmd
 -- @return object
-function K:_init(mode, lhs, cb, rest)
+function K:init(mode, lhs, cb, rest)
   validate {
     mode = { is { "s", "t" }, mode },
     lhs = { "s", lhs },
@@ -199,20 +199,24 @@ function K.bind(opts, ...)
   opts = opts or {}
   local bind = function(kbd)
     validate {
-      kbd_spec = { "table", kbd },
+      kbd_spec = { "t", kbd },
     }
+     
     assert(#kbd >= 2)
 
     local lhs, cb, o = unpack(kbd)
+
     validate {
       lhs = { "s", lhs },
       cb = { is { "s", "f" }, cb },
     }
 
+
     o = o or {}
     if is_a.s(o) then
       o = { desc = o }
     end
+
     validate {
       kbd_opts = { "table", o },
     }
@@ -239,7 +243,7 @@ end
 --- Simple classmethod that does the same thing as Keybinding()
 -- @see K:_init
 function K.map(mode, lhs, cb, opts)
-  return K(mode, lhs, cb, opts)
+  return K.new(mode, lhs, cb, opts)
 end
 
 --- Same as K.map but sets noremap to true
@@ -251,7 +255,7 @@ function K.noremap(mode, lhs, cb, opts)
   opts.noremap = true
   opts.remap = false
 
-  return K(mode, lhs, cb, opts)
+  return K.new(mode, lhs, cb, opts)
 end
 
 --- Replace current callback with a new one
@@ -260,6 +264,6 @@ function K.replace(self, cb)
   return utils.log_pcall(function()
     assert(cb)
     self:delete()
-    return K(self.mode, self.lhs, cb, lmerge(opts or {}, self.opts))
+    return K.new(self.mode, self.lhs, cb, lmerge(opts or {}, self.opts))
   end)
 end

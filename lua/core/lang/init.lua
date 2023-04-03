@@ -1,4 +1,4 @@
-require "core.lang.lang"
-require 'core.lang.ft.command'
+require "core.lang.Lang"
+require 'core.lang.command'
 
 Lang.loadall()

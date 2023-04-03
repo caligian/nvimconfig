@@ -6,9 +6,10 @@ global = global or {}
 
 --
 require "utils.utils"
-require "utils.autocmd"
-require "utils.kbd"
-require "utils.buffer"
-require "utils.process"
+require "utils.Autocmd"
+require "utils.Keybinding"
+require "utils.Buffer"
+require "utils.Term"
+require "utils.Process"
 require "utils.color"
 require 'utils.telescope'

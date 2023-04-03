@@ -5,7 +5,7 @@ end
 
 local color = user.colorscheme
 
-function Colorscheme:_init(name, config)
+function Colorscheme:init(name, config)
   config = config or {}
 
   validate {
