@@ -1,4 +1,4 @@
-Lang('javascript', {
+Lang("javascript", {
   compile = "node",
   repl = "node",
   server = { name = "tsserver" },

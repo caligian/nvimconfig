@@ -2,12 +2,10 @@ require "utils.funcs"
 require "utils.debug"
 require "utils.aliased"
 require "utils.Class"
-require "utils.Table"
 require "utils.Array"
-require 'utils.Dict'
+require "utils.Dict"
 require "utils.Set"
-require 'utils.types'
-require 'utils.struct'
+require "utils.types"
 require "utils.string"
 require "utils.misc"
 require "utils.nvim"

@@ -1,15 +1,17 @@
-require 'utils.Dict'
-require 'utils.Array'
+require "utils.Dict"
+require "utils.Array"
 
-class('Set', Dict)
+class "Set"
 
 function Set:init(t)
-  Set:super()(self, t)
+  assert(type(t) == "table", "table expected, got " .. type(t))
 
-  if t.is_a then
-    if t:is_a(Set) then
-      return t
-    elseif t:is_a(Table) then
+  if is_class(t) then
+    local name = t.class:get_name()
+    if name ~= "Set" then
+      error("Set|table expected, got " .. name)
+      return self
+    else
       t = t.value
     end
   end
@@ -31,7 +33,7 @@ function Set:add(x)
 end
 
 function Set:items(cmp)
-  local X = table.keys(self.value)
+  local X = table.values(self.value)
 
   if cmp then
     if cmp == true then
@@ -41,23 +43,23 @@ function Set:items(cmp)
     end
   end
 
-  return Array.new(X)
+  return X
 end
 
 function Set:each(f)
-  self:items():each(f)
+  Array.each(self:items(), f)
 end
 
 function Set:map(f)
-  return self:items():map(f)
+  return Array.map(self:items(), f)
 end
 
 function Set:grep(f)
-  return self:items():grep(f)
+  return Array.grep(self:items(), f)
 end
 
 function Set:filter(f)
-  return self:items():filter(f)
+  return Array.filter(self:items(), f)
 end
 
 function Set:len()
@@ -65,18 +67,18 @@ function Set:len()
 end
 
 function Set:intersection(...)
-  local out = Set.new {}
+  local out = Set {}
 
   for _, Y in ipairs { ... } do
-    Y = Set.new(Y)
+    Y = Set(Y)
 
-    self:each(function (x)
+    self:each(function(x)
       if Y:has(x) then
         out:add(x)
       end
     end)
 
-    Y:each(function (y)
+    Y:each(function(y)
       if self:has(y) then
         out:add(y)
       end
@@ -94,7 +96,7 @@ function Set:complement(...)
   local out = Set.new {}
   local Z = self:intersection(...)
 
-  self:each(function (x)
+  self:each(function(x)
     if not Z:has(x) then
       out:add(x)
     end
@@ -109,11 +111,11 @@ function Set:union(...)
   for _, Y in ipairs { ... } do
     Y = Set.new(Y)
 
-    self:each(function (x)
+    self:each(function(x)
       out:add(x)
     end)
 
-    Y:each(function (y)
+    Y:each(function(y)
       out:add(y)
     end)
   end
@@ -126,7 +128,7 @@ function Set:difference(...)
 
   for _, Y in ipairs { ... } do
     Y = Set.new(Y)
-    self:each(function (x)
+    self:each(function(x)
       if not Y:has(x) then
         out:add(x)
       end

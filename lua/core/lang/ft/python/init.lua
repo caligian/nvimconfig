@@ -1,4 +1,4 @@
-Lang('python', {
+Lang("python", {
   compile = "python",
   test = "pytest",
   repl = "python -q",

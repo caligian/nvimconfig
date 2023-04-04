@@ -37,7 +37,9 @@ function lsp.on_attach(client, bufnr)
     },
     {
       "<leader>lwl",
-      function() print(vim.inspect(vim.lsp.buf.list_workspace_folders())) end,
+      function()
+        print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
+      end,
       { desc = "List workspace folders" },
     },
     {
@@ -52,12 +54,9 @@ function lsp.on_attach(client, bufnr)
 
   utils.log_pcall(function()
     require("lsp_lines").setup()
-    K.noremap(
-      "n",
-      "<localleader><localleader>",
-      function() require("lsp_lines").toggle() end,
-      { buffer = bufnr, desc = "Show diagnostics" }
-    )
+    K.noremap("n", "<localleader><localleader>", function()
+      require("lsp_lines").toggle()
+    end, { buffer = bufnr, desc = "Show diagnostics" })
   end)
 end
 
@@ -66,8 +65,7 @@ function lsp.setup_server(server, opts)
   local capabilities = opts.capabilities or lsp.capabilties
   local on_attach = opts.on_attach or lsp.on_attach
   local flags = opts.flags or lsp.flags
-  local default_conf =
-    { capabilities = capabilities, on_attach = on_attach, flags = flags }
+  local default_conf = { capabilities = capabilities, on_attach = on_attach, flags = flags }
 
   default_conf = table.merge(default_conf, opts)
 

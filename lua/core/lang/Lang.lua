@@ -18,14 +18,16 @@ function Lang.init(self, lang, opts)
         ["?test"] = "s",
         ["?linters"] = is { "s", "t" },
         ["?formatters"] = "t",
-        ["?server"] = is { "s", 't' },
-        ["?repl"] = is {"s", 't'},
+        ["?server"] = is { "s", "t" },
+        ["?repl"] = is { "s", "t" },
       },
       opts,
     },
   }
 
-  if Lang.langs[lang] then return Lang.langs[lang] end
+  if Lang.langs[lang] then
+    return Lang.langs[lang]
+  end
 
   self.name = lang
   self.autocmd = false
@@ -36,17 +38,27 @@ function Lang.init(self, lang, opts)
     else
       for _, h in ipairs(opts.hooks) do
         if is_a.t(h) then
-          utils.log_pcall(function() self:hook(unpack(h)) end)
+          utils.log_pcall(function()
+            self:hook(unpack(h))
+          end)
         else
-          utils.log_pcall(function() self:hook(h) end)
+          utils.log_pcall(function()
+            self:hook(h)
+          end)
         end
       end
     end
   end
 
-  if opts.bo then self:setbufopts(opts.bo) end
-  if opts.kbd then self:map(unpack(opts.kbd)) end
-  if opts.linters then opts.linters = table.tolist(opts.linters) end
+  if opts.bo then
+    self:setbufopts(opts.bo)
+  end
+  if opts.kbd then
+    self:map(unpack(opts.kbd))
+  end
+  if opts.linters then
+    opts.linters = table.tolist(opts.linters)
+  end
   if opts.server and is_a.s(opts.server) then
     opts.server = { name = opts.server }
   end
@@ -71,7 +83,9 @@ function Lang.hook(self, callback, opts)
 end
 
 function Lang.unhook(self, id)
-  if self.autocmd[id] then self.autocmd[id]:delete() end
+  if self.autocmd[id] then
+    self.autocmd[id]:delete()
+  end
 end
 
 function Lang.setbufopts(self, bo)
@@ -89,7 +103,9 @@ function Lang.setwinopts(self, wo)
   utils.log_pcall(function()
     self:hook(function()
       local winid = vim.fn.bufwinid(0)
-      if winid == -1 then return end
+      if winid == -1 then
+        return
+      end
 
       for name, val in pairs(wo) do
         vim.api.nvim_win_set_option(winid, name, val)
@@ -122,8 +138,8 @@ function Lang.load(lang, opts)
       Lang(lang, c)
     elseif b then
       Lang(lang, u)
-    else 
-      assert(c or u, lang .. ': no config supplied')
+    else
+      assert(c or u, lang .. ": no config supplied")
     end
   else
     Lang(lang, opts)
@@ -132,8 +148,7 @@ end
 
 function Lang.loadall()
   return utils.log_pcall(function()
-    local src =
-    utils.joinpath(vim.fn.stdpath "config", "lua", "core", "lang", "ft")
+    local src = utils.joinpath(vim.fn.stdpath "config", "lua", "core", "lang", "ft")
     local dirs = dir.getdirectories(src)
     for _, ft in ipairs(dirs) do
       Lang.load(utils.basename(ft))
@@ -141,4 +156,4 @@ function Lang.loadall()
   end)
 end
 
-Lang.load('lua')
+Lang.load "lua"

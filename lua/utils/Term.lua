@@ -1,4 +1,6 @@
-if not Term then class "Term" end
+if not Term then
+  class "Term"
+end
 
 Term.ids = Term.ids or {}
 Term.timeout = 30
@@ -70,35 +72,47 @@ local function start_term(cmd, opts)
     id = vim.fn.termopen(cmd)
     term = vim.fn.bufnr()
     local status = get_status(id, cmd)
-    if not status.success then throw_error(status) end
+    if not status.success then
+      throw_error(status)
+    end
   end)
 
   return id, term
 end
 
 function Term:wait(timeout)
-  if not self.id then return false end
+  if not self.id then
+    return false
+  end
 
   local status = vim.fn.jobwait({ self.id }, timeout or Term.timeout)
   return status[1]
 end
 
 function Term:get_status()
-  if not self.id then return false end
+  if not self.id then
+    return false
+  end
   return get_status(self.id, self.command)
 end
 
 function Term:is_running()
-  if not self.id then return false end
+  if not self.id then
+    return false
+  end
 
   local status = get_status(self.id, self.command)
-  if not status.success then return false, status end
+  if not status.success then
+    return false, status
+  end
 
   return true
 end
 
 function Term:start()
-  if self:is_running() then return self end
+  if self:is_running() then
+    return self
+  end
 
   local id, term_buffer = start_term(self.command, self.opts)
   self.id = id
@@ -110,12 +124,16 @@ function Term:start()
 end
 
 function Term:is_visible()
-  if self.buffer then return self.buffer:is_visible() end
+  if self.buffer then
+    return self.buffer:is_visible()
+  end
   return false
 end
 
 function Term:stop()
-  if not self:is_running() then return end
+  if not self:is_running() then
+    return
+  end
 
   vim.fn.chanclose(self.id)
 
@@ -128,39 +146,55 @@ end
 
 function Term.stopall()
   table.teach(Term.ids, function(id, _)
-    if is_a.n(id) then vim.fn.chanclose(id) end
+    if is_a.n(id) then
+      vim.fn.chanclose(id)
+    end
   end)
 end
 
 function Term:hide()
-  if self:is_running() then self.buffer:hide() end
+  if self:is_running() then
+    self.buffer:hide()
+  end
 end
 
 function Term:split(direction, opts)
-  if not self:is_visible() then self.buffer:split(direction, opts) end
+  if not self:is_visible() then
+    self.buffer:split(direction, opts)
+  end
 end
 
 function Term:float(opts)
-  if not self:is_visible() then self.buffer:float(opts) end
+  if not self:is_visible() then
+    self.buffer:float(opts)
+  end
 end
 
 function Term:center_float(opts)
   self:float(table.merge({ center = { 0.8, 0.8 } }, opts or {}))
 end
 
-function Term:dock(opts) self:float(table.merge({ dock = 0.3 }, opts or {})) end
+function Term:dock(opts)
+  self:float(table.merge({ dock = 0.3 }, opts or {}))
+end
 
 function Term:send(s)
   local id = self.id
-  if is_a.s(s) then s = string.split(s, "[\n\r]") end
-  if self.on_input then s = self.on_input(s) end
+  if is_a.s(s) then
+    s = string.split(s, "[\n\r]")
+  end
+  if self.on_input then
+    s = self.on_input(s)
+  end
   s[#s + 1] = "\n"
   vim.api.nvim_chan_send(id, table.concat(s, "\n"))
 end
 
 function Term:send_current_line(src_bufnr)
   src_bufnr = src_bufnr or vim.fn.bufnr()
-  vim.api.nvim_buf_call(src_bufnr, function() self:send(vim.fn.getline ".") end)
+  vim.api.nvim_buf_call(src_bufnr, function()
+    self:send(vim.fn.getline ".")
+  end)
 end
 
 function Term:send_buffer(src_bufnr)

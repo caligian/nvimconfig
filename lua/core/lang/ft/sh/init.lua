@@ -1,4 +1,4 @@
-Lang('sh', {
+Lang("sh", {
   repl = user.shell,
   compile = user.shell,
   server = "bashls",

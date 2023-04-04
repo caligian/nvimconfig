@@ -1,9 +1,11 @@
-if not REPL then class("REPL", Term) end
+if not REPL then
+  class("REPL", Term)
+end
 
 REPL.ids = REPL.ids or {}
 
 function REPL.get(ft, bufnr)
-  if ft == 'sh' then
+  if ft == "sh" then
     local exists = REPL.ids.sh
     if exists and exists:is_running() then
       return exists
@@ -12,7 +14,7 @@ function REPL.get(ft, bufnr)
 
   ft = ft or vim.bo.filetype
   bufnr = bufnr or vim.fn.bufnr()
-  local exists = table.get(REPL.ids, {ft, bufnr})
+  local exists = table.get(REPL.ids, { ft, bufnr })
   if exists and exists:is_running() then
     return exists
   end

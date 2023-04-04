@@ -2,7 +2,9 @@ K.bind({ noremap = true, leader = true }, {
   "cb",
   function()
     local ft = vim.bo.filetype
-    if string.isblank(ft) then return end
+    if string.isblank(ft) then
+      return
+    end
     local compiler = Lang.langs[ft].build
     if not compiler then
       utils.nvimerr("No compiler defined for " .. ft)
@@ -21,7 +23,9 @@ K.bind({ noremap = true, leader = true }, {
   "ct",
   function()
     local ft = vim.bo.filetype
-    if string.isblank(ft) then return end
+    if string.isblank(ft) then
+      return
+    end
     local compiler = Lang.langs[ft].test
     if not compiler then
       utils.nvimerr("No compiler defined for " .. ft)
@@ -35,7 +39,9 @@ K.bind({ noremap = true, leader = true }, {
   "cc",
   function()
     local ft = vim.bo.filetype
-    if string.isblank(ft) then return end
+    if string.isblank(ft) then
+      return
+    end
     local compiler = Lang.langs[ft].compile
     if not compiler then
       utils.nvimerr("No compiler defined for " .. ft)

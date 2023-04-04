@@ -12,4 +12,4 @@ require "utils.Buffer"
 require "utils.Term"
 require "utils.Process"
 require "utils.color"
-require 'utils.telescope'
+require "utils.telescope"

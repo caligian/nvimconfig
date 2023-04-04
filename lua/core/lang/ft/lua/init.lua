@@ -1,4 +1,4 @@
-Lang('lua', {
+Lang("lua", {
   compile = "lua5.1",
   repl = "lua5.1",
 

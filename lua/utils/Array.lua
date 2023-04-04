@@ -1,6 +1,6 @@
-require "utils.Table"
+require "utils.table"
 
-class('Array', Table)
+class "Array"
 
 local array_methods = {
   append = table.append,
@@ -34,17 +34,21 @@ local array_methods = {
   flatten = table.flatten,
 }
 
+Array:include(array_methods)
 
 function Array:init(t)
-  Array:super()(self, t)
+  assert(type(t) == "table", "table expected, got " .. type(t))
 
-  if t.get_name and t:get_name() == 'Array' then
-    return t
-  elseif t.is_a and t:is_a(Table) then
-    self.value = t
+  if is_class(t) then
+    local name = t.class:get_name()
+    if name ~= "Array" then
+      error("Array|table expected, got " .. name)
+    else
+      return t
+    end
   else
-    self.value = t 
+    self.value = t
   end
 
-  self.iterator = ipairs
+  return self
 end

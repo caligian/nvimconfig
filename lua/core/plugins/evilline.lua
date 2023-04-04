@@ -33,8 +33,12 @@ local function setup()
   set_colors()
 
   local conditions = {
-    buffer_not_empty = function() return vim.fn.empty(vim.fn.expand "%:t") ~= 1 end,
-    hide_in_width = function() return vim.fn.winwidth(0) > 80 end,
+    buffer_not_empty = function()
+      return vim.fn.empty(vim.fn.expand "%:t") ~= 1
+    end,
+    hide_in_width = function()
+      return vim.fn.winwidth(0) > 80
+    end,
     check_git_workspace = function()
       local filepath = vim.fn.expand "%:p:h"
       local gitdir = vim.fn.finddir(".git", filepath .. ";")
@@ -88,14 +92,18 @@ local function setup()
   end
 
   ins_left {
-    function() return "▊" end,
+    function()
+      return "▊"
+    end,
     color = { fg = colors.red }, -- Sets highlighting of component
     padding = { left = 0, right = 1 }, -- We don't need space before this
   }
 
   ins_left {
     -- mode component
-    function() return "" end,
+    function()
+      return ""
+    end,
     color = function()
       -- auto change color according to neovims mode
       local mode_color = {
@@ -155,7 +163,9 @@ local function setup()
   -- Insert mid section. You can make any number of sections in neovim :)
   -- for lualine it's any number greater then 2
   ins_left {
-    function() return "%=" end,
+    function()
+      return "%="
+    end,
   }
 
   ins_left {
@@ -164,7 +174,9 @@ local function setup()
       local msg = "No Active Lsp"
       local buf_ft = vim.api.nvim_buf_get_option(0, "filetype")
       local clients = vim.lsp.get_active_clients()
-      if next(clients) == nil then return msg end
+      if next(clients) == nil then
+        return msg
+      end
       for _, client in ipairs(clients) do
         local filetypes = client.config.filetypes
         if filetypes and vim.fn.index(filetypes, buf_ft) ~= -1 then
@@ -211,7 +223,9 @@ local function setup()
   }
 
   ins_right {
-    function() return "▊" end,
+    function()
+      return "▊"
+    end,
     color = { fg = colors.red },
     padding = { left = 1 },
   }
@@ -220,5 +234,5 @@ local function setup()
   lualine.setup(config)
 end
 
-Autocmd('Colorscheme', {pattern='*', callback=setup})
+Autocmd("Colorscheme", { pattern = "*", callback = setup })
 setup()

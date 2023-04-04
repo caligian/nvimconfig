@@ -1,4 +1,4 @@
---- 
+---
 -- Keybinding wrapper for vim.keymap.set which integrates with nvim autocommands API. Aliased as 'K'
 class "Keybinding"
 
@@ -36,7 +36,7 @@ local function parse_opts(opts)
 end
 
 ---
--- Save object in K.ids and if name is passed, in K.defaults 
+-- Save object in K.ids and if name is passed, in K.defaults
 -- @returns self
 function K:update()
   table.update(Keybinding.ids, self.id, self)
@@ -47,7 +47,6 @@ function K:update()
 
   return self
 end
-
 
 ---
 -- Create a keybinding
@@ -201,7 +200,7 @@ function K.bind(opts, ...)
     validate {
       kbd_spec = { "t", kbd },
     }
-     
+
     assert(#kbd >= 2)
 
     local lhs, cb, o = unpack(kbd)
@@ -210,7 +209,6 @@ function K.bind(opts, ...)
       lhs = { "s", lhs },
       cb = { is { "s", "f" }, cb },
     }
-
 
     o = o or {}
     if is_a.s(o) then

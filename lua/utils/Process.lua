@@ -56,7 +56,7 @@ end
 function Process.init(self, command, opts)
   validate {
     command = { "string", command },
-    ['?opts'] = { "table", opts },
+    ["?opts"] = { "table", opts },
   }
 
   opts = opts or {}

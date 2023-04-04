@@ -11,10 +11,10 @@ local function parse(args)
   return false
 end
 
-utils.command('LangLoad', function (args)
+utils.command("LangLoad", function(args)
   args = parse(args)
   if not args then
     return
   end
   table.each(args, Lang.load)
-end, {nargs='+', complete=get_langs })
+end, { nargs = "+", complete = get_langs })

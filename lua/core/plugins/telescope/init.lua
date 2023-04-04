@@ -1,8 +1,8 @@
 local ivy = require("telescope.themes").get_ivy()
 local buffer_actions = require "core.plugins.telescope.buffer-actions"
 local git_status_actions = require "core.plugins.telescope.git-status-actions"
-local git_files_actions = require 'core.plugins.telescope.git-files-actions'
-local find_files_actions = require 'core.plugins.telescope.find-files-actions'
+local git_files_actions = require "core.plugins.telescope.git-files-actions"
+local find_files_actions = require "core.plugins.telescope.find-files-actions"
 user.plugins.telescope = { config = ivy }
 local T = user.plugins.telescope.config
 
@@ -22,7 +22,7 @@ T.pickers = {
         w = buffer_actions.save,
         r = buffer_actions.readonly,
         b = buffer_actions.add_bookmark,
-        B = buffer_actions.remove_bookmark
+        B = buffer_actions.remove_bookmark,
       },
     },
   },
@@ -31,8 +31,9 @@ T.pickers = {
       n = {
         b = find_files_actions.add_bookmark,
         B = find_files_actions.remove_bookmark,
-      }
-    }
+        x = find_files_actions.delete,
+      },
+    },
   },
   git_status = {
     mappings = {
@@ -46,9 +47,9 @@ T.pickers = {
       n = {
         b = git_files_actions.add_bookmark,
         B = git_files_actions.remove_bookmark,
-      }
-    }
-  }
+      },
+    },
+  },
 }
 
 --------------------------------------------------------------------------------
@@ -172,4 +173,4 @@ local opts = Keybinding.bind(
 )
 
 req "core.plugins.telescope.colorscheme"
-req 'core.plugins.telescope.bookmarks'
+req "core.plugins.telescope.bookmarks"

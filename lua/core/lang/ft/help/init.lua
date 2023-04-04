@@ -66,7 +66,7 @@ local function put_ref(jump)
   vim.api.nvim_buf_set_lines(bufnr, linenum - 1, linenum, false, new)
 end
 
-Lang('help', {
+Lang("help", {
   bo = {
     formatoptions = "tqn",
     textwidth = 80,

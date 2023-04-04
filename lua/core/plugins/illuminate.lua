@@ -15,9 +15,9 @@ require("illuminate").configure {
   -- filetypes_denylist: filetypes to not illuminate, this overrides filetypes_allowlist
   filetypes_denylist = {
     "dirvish",
-    'TelescopePrompt',
-    'netrw',
-    'i3config',
+    "TelescopePrompt",
+    "netrw",
+    "i3config",
     "fugitive",
     "help",
     "txt",

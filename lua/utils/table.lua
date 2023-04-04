@@ -36,13 +36,17 @@ function table.unshift(t, ...)
 end
 
 function table.tolist(x, force)
-  if force or type(x) ~= "table" then return { x } end
+  if force or type(x) ~= "table" then
+    return { x }
+  end
 
   return x
 end
 
 function table.todict(x)
-  if type(x) ~= "table" then return { [x] = x } end
+  if type(x) ~= "table" then
+    return { [x] = x }
+  end
 
   local out = {}
   for _, v in pairs(x) do
@@ -56,7 +60,9 @@ function table.shift(t, times)
   local l = #t
   times = times or 1
   for i = 1, times do
-    if i > l then return t end
+    if i > l then
+      return t
+    end
     table.remove(t, 1)
   end
 
@@ -66,7 +72,9 @@ end
 function table.index(t, item, test)
   for key, v in pairs(t) do
     if test then
-      if test(v, item) then return key end
+      if test(v, item) then
+        return key
+      end
     elseif item == v then
       return key
     end
@@ -99,7 +107,9 @@ function table.tgrep(t, f)
 
   for k, v in pairs(t) do
     local o = f(k, v)
-    if o then out[k] = v end
+    if o then
+      out[k] = v
+    end
   end
 
   return out
@@ -208,7 +218,9 @@ end
 function table.setro(t)
   assert(type(t) == "table", tostring(t) .. " is not a table")
 
-  local function __newindex() error "Attempting to edit a readonly table" end
+  local function __newindex()
+    error "Attempting to edit a readonly table"
+  end
 
   local mt = getmetatable(t)
   if not mt then
@@ -226,7 +238,9 @@ function table.mtget(t, k)
   assert(k, "No attribute provided to query")
 
   local mt = getmetatable(t)
-  if not mt then return nil end
+  if not mt then
+    return nil
+  end
 
   local out = {}
   if type(k) == "table" then
@@ -303,7 +317,9 @@ function table.compare(a, b, callback)
     local common = ks_a:intersection(ks_b)
     local missing = ks_a - ks_b
 
-    missing:each(function(key) compared[key] = false end)
+    missing:each(function(key)
+      compared[key] = false
+    end)
 
     common:each(function(key)
       local x, y = a[key], b[key]
@@ -399,7 +415,9 @@ function table.update(tbl, keys, value)
 end
 
 function table.get(tbl, ks, create_path)
-  if type(ks) ~= "table" then ks = { ks } end
+  if type(ks) ~= "table" then
+    ks = { ks }
+  end
 
   local len_ks = #ks
   local t = tbl
@@ -426,10 +444,16 @@ end
 
 function table.slice(t, from, till)
   local l = #t
-  if from < 0 then from = l + from end
-  if till < 0 then till = l + till end
+  if from < 0 then
+    from = l + from
+  end
+  if till < 0 then
+    till = l + till
+  end
 
-  if from > till and from > 0 then return {} end
+  if from > till and from > 0 then
+    return {}
+  end
 
   local out = {}
   local idx = 1
@@ -441,9 +465,13 @@ function table.slice(t, from, till)
   return out
 end
 
-function table.contains(tbl, ...) return (table.get(tbl, { ... })) end
+function table.contains(tbl, ...)
+  return (table.get(tbl, { ... }))
+end
 
-function table.makepath(t, ...) return table.get(t, { ... }, true) end
+function table.makepath(t, ...)
+  return table.get(t, { ... }, true)
+end
 
 function table.lmerge(...)
   local function _merge(t1, t2)
@@ -459,7 +487,9 @@ function table.lmerge(...)
       end
     end)
 
-    table.each(later, function(next) _merge(unpack(next)) end)
+    table.each(later, function(next)
+      _merge(unpack(next))
+    end)
   end
 
   local args = { ... }
@@ -489,7 +519,9 @@ function table.merge(...)
       end
     end)
 
-    table.each(later, function(next) _merge(unpack(next)) end)
+    table.each(later, function(next)
+      _merge(unpack(next))
+    end)
   end
 
   local args = { ... }
@@ -523,19 +555,21 @@ function table.zip2(a, b)
   local len_a, len_b = #a, #b
   local n = len_a > len_b and len_b or len_a < len_b and len_a or len_a
   local out = {}
-  for i=1,n do out[i] = {a[i], b[i]} end
+  for i = 1, n do
+    out[i] = { a[i], b[i] }
+  end
 
   return out
 end
 
 function table.zip(...)
-  local args = {...}
+  local args = { ... }
   local len_args = #args
   local n = {}
 
-  for i=1, len_args do
-    if type(args[i]) ~= 'table'  then
-      error(i .. ': table expected, got ' .. tostring(args[i]))
+  for i = 1, len_args do
+    if type(args[i]) ~= "table" then
+      error(i .. ": table expected, got " .. tostring(args[i]))
     end
     n[i] = #args[i]
   end
@@ -545,9 +579,9 @@ function table.zip(...)
   local idx = 1
   local out = {}
 
-  for i=1, n do
+  for i = 1, n do
     out[i] = {}
-    for j=1, len_args do
+    for j = 1, len_args do
       out[i][j] = args[j][i]
     end
   end

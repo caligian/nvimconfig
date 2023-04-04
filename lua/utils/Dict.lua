@@ -1,4 +1,6 @@
-require 'utils.Table'
+require "utils.table"
+
+class "Dict"
 
 local dict_methods = {
   each = table.teach,
@@ -19,20 +21,21 @@ local dict_methods = {
   items = table.items,
 }
 
-class('Dict', Table)
-
-Dict:include(dict_methods, 'value')
+Dict:include(dict_methods, "value")
 
 function Dict:init(t)
-  Dict:super()(self, t)
+  assert(type(t) == "table", "table expected, got " .. type(t))
 
-  if t.get_name and t:get_name() == 'Dict' then
-    return t
-  elseif t.is_a and t:is_a(Table) then
-    self.value = t.value
+  if is_class(t) then
+    local name = t.class:get_name()
+    if name ~= "Dict" then
+      error("Dict|table expected, got " .. name)
+    else
+      return t
+    end
   else
-    self.value = t 
+    self.value = t
   end
 
-  self.iterator = ipairs
+  return self
 end

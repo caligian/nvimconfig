@@ -1,4 +1,6 @@
-Autocmd(
-  "QuitPre",
-  { callback = function() Bookmarks.save() end, pattern = "*" }
-)
+Autocmd("QuitPre", {
+  callback = function()
+    Bookmarks.save()
+  end,
+  pattern = "*",
+})

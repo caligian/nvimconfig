@@ -2,7 +2,7 @@
 -- @classmod Autocommand wrapper for vim.api.nvim_create_autocmd.
 class "Autocmd"
 
---- 
+---
 -- @field A Alias for Autocommand
 A = Autocmd
 

@@ -1,4 +1,6 @@
-if not Bookmarks then Bookmarks = {} end
+if not Bookmarks then
+  Bookmarks = {}
+end
 local B = Bookmarks
 Bookmarks.dest = vim.fn.stdpath "data" .. "/bookmarks.lua"
 Bookmarks.bookmarks = Bookmarks.bookmarks or {}
@@ -11,7 +13,9 @@ end
 local function clean_cache()
   table.each(table.keys(_cached), function(x)
     local v = _cached[x]
-    if not path.exists(v.path) then _cached[x] = nil end
+    if not path.exists(v.path) then
+      _cached[x] = nil
+    end
   end)
 end
 
@@ -91,45 +95,67 @@ function B.get_path(p)
   end
 end
 
-function B.is_valid_path(p) return B.get_path(p) or false end
+function B.is_valid_path(p)
+  return B.get_path(p) or false
+end
 
 function B.exists(p)
   p = B.get_path(p)
-  if not p then return false end
+  if not p then
+    return false
+  end
   return B.bookmarks[p.path] or false
 end
 
 function B.path2bufnr(p)
   p = B.get_path(p)
-  if not p or not p.buffer then return false end
+  if not p or not p.buffer then
+    return false
+  end
   return p.bufnr
 end
 
 function B.get_path_len(p)
   p = B.get_path(p)
-  if not p or p.dir then return false end
-  if p.buffer then return vim.api.nvim_buf_line_count(p.bufnr) end
+  if not p or p.dir then
+    return false
+  end
+  if p.buffer then
+    return vim.api.nvim_buf_line_count(p.bufnr)
+  end
 
   return #vim.split(file.read(p.path), "\n")
 end
 
 function B.clean(p)
   table.each(B.bookmarks, function(check)
-    if not B.is_valid_path(check) then B.bookmarks[p] = nil end
+    if not B.is_valid_path(check) then
+      B.bookmarks[p] = nil
+    end
   end)
 
-  if #table.keys(B.bookmarks) == 0 then return end
-  if not p then return end
+  if #table.keys(B.bookmarks) == 0 then
+    return
+  end
+  if not p then
+    return
+  end
   p = B.get_path(p)
 
-  if not B.bookmarks[p] then return end
+  if not B.bookmarks[p] then
+    return
+  end
 
   local exists = B.exists(p.path)
-  if not is_a.t(exists) then return end
+  if not is_a.t(exists) then
+    return
+  end
   local lc = B.get_path_len(p.path)
 
   table.teach(exists, function(line, _)
-    if lc < line then B.bookmarks[p.path][line] = nil end
+    if lc < line then
+      B.bookmarks[p.path][line] = nil
+    end
     B.bookmarks[p.path][line] = B.get_context(p.path, line)
   end)
 
@@ -139,7 +165,9 @@ end
 function B.get_context(p, line)
   p = B.get_path(p)
 
-  if not p or p.dir or p.type == "dir" then return false end
+  if not p or p.dir or p.type == "dir" then
+    return false
+  end
 
   if p.type == "file" then
     local s = vim.split(file.read(p.path), "\n")
@@ -150,11 +178,15 @@ function B.get_context(p, line)
 end
 
 function B.update(p, line)
-  validate["?line"](function(x) return x == "." or is_a.n(x) end, line)
+  validate["?line"](function(x)
+    return x == "." or is_a.n(x)
+  end, line)
 
   p = B.get_path(p)
 
-  if not p then return end
+  if not p then
+    return
+  end
 
   if p.buffer then
     if p.dir then
@@ -178,7 +210,9 @@ function B.update(p, line)
 
     if line then
       local s = B.get_context(p.path, line)
-      if s then b[line] = s end
+      if s then
+        b[line] = s
+      end
     else
       B.bookmarks[p.path] = B.bookmarks[p.path] or {}
     end
@@ -193,9 +227,13 @@ end
 
 function B.remove(p, line)
   p = B.get_path(p)
-  if not p then return end
+  if not p then
+    return
+  end
   local b = B.exists(p.path)
-  if not b then return end
+  if not b then
+    return
+  end
 
   if p.dir then
     B.bookmarks[p.path] = nil
@@ -235,19 +273,25 @@ function B.list(p)
 
   if not p then
     local b = table.keys(Bookmarks.bookmarks)
-    if #b > 0 then return b end
+    if #b > 0 then
+      return b
+    end
     return
   end
 
   local b = B.exists(p)
-  if is_a.t(b) then return b end
+  if is_a.t(b) then
+    return b
+  end
 end
 
 function B.jump(p, line, split)
   B.clean()
 
   p = B.get_path(p)
-  if not p then return end
+  if not p then
+    return
+  end
 
   if not p.buffer then
     p = p.path
@@ -272,10 +316,14 @@ function B.jump(p, line, split)
       vim.cmd(":b " .. p)
     end
   end
-  if line then vim.cmd("normal! " .. line .. "G") end
+  if line then
+    vim.cmd("normal! " .. line .. "G")
+  end
 end
 
 function B.delete_all()
-  if not path.exists(Bookmarks.dest) then return end
+  if not path.exists(Bookmarks.dest) then
+    return
+  end
   vim.fn.system { "rm", Bookmarks.dest }
 end

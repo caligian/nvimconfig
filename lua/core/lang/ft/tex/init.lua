@@ -1,4 +1,4 @@
-Lang('tex', {
+Lang("tex", {
   server = "texlab",
   bo = {
     textwidth = 80,
