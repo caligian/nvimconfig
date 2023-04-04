@@ -32,3 +32,18 @@ Autocmd("BufEnter", {
 -- 	  end
 --   end
 -- })
+
+Autocmd('BufAdd', {
+  pattern = '*',
+  callback = function ()
+    Array.each(Dict.values(user.temp_buffer_patterns), function (pat)
+      if is_callable(pat) then
+        if pat(vim.fn.bufnr()) then
+          vim.keymap.set({'n', 'i'}, 'q', ':hide<CR>')
+        end
+      elseif is_string(pat) and vim.fn.bufname():match(pat) then
+          vim.keymap.set({'n', 'i'}, 'q', ':hide<CR>')
+      end
+    end)
+  end
+})
