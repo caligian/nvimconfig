@@ -16,6 +16,7 @@ local function wrap(f, is_shell, start)
       if start then
         r:start()
       end
+      f(r)
     else
       f(r)
     end
@@ -59,7 +60,7 @@ command(
   "REPLSplit",
   wrap(function(r)
     r:split("s", { resize = 0.3, min = 0.1 }, false, true)
-  end),
+  end, false, true),
   { complete = get_builtin, nargs = "?" }
 )
 
@@ -67,7 +68,7 @@ command(
   "REPLVsplit",
   wrap(function(r)
     r:split("v", { resize = 0.3, min = 0.1 }, false, true)
-  end),
+  end, false, true),
   { complete = get_builtin, nargs = "?" }
 )
 
