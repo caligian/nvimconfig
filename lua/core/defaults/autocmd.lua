@@ -42,7 +42,7 @@ Autocmd('BufAdd', {
           vim.keymap.set({'n', 'i'}, 'q', ':hide<CR>')
         end
       elseif is_string(pat) and vim.fn.bufname():match(pat) then
-          vim.keymap.set({'n', 'i'}, 'q', ':hide<CR>')
+          vim.keymap.set({'n', 'i'}, 'q', ':hide<CR>', {buffer=vim.fn.bufnr()})
       end
     end)
   end
