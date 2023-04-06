@@ -1,4 +1,4 @@
-require "utils.Set"
+-- require "utils.Set"
 require "utils.Array"
 require "utils.Dict"
 
@@ -11,6 +11,7 @@ valid_types = {
 
   ["function"] = "callable",
   f = "callable",
+  callable = 'callable',
 
   table = "table",
   t = "table",
@@ -26,9 +27,6 @@ valid_types = {
 
   thread = "thread",
   th = "thread",
-
-  struct = 'struct',
-  st = 'struct',
 
   pure_table = 'pure_table',
   pt = 'pure_table',
@@ -58,6 +56,14 @@ end
 function is_nil(x)
   return x == nil
 end
+function is_type(x)
+  if not is_table(x) then
+    return false
+  end
+  local mt = getmetatable(x)
+  if not mt then return false end
+  return mt.type == 'type' and mt.__call
+end
 
 function is_class(obj)
   if not is_table(obj) then
@@ -80,16 +86,10 @@ function is_callable(x)
   return is_function(mt.__call)
 end
 
-function is_struct(x)
-  local mt = getmetatable(x) or {}
-  if not mt then
-    return false
-  end
-  return mt.type == "struct"
-end
-
 function is_pure_table(x)
-  if type(x) == "table" and not is_class(x) then
+  if type(x) == "table" 
+		and not is_class(x) 
+		and not is_type(x) then
     return true
   end
   return false
@@ -124,6 +124,8 @@ end
 function typeof(obj)
   if is_class(obj) then
     return "class"
+	elseif is_type(obj) then
+		return 'type'
   elseif is_callable(obj) then
     return "callable"
   elseif is_table(obj) then
@@ -134,145 +136,126 @@ function typeof(obj)
 end
 
 local function _is_a(x, y)
-  if x == nil or y == nil then
-    return false
-  elseif x == y then
-    return true
-  elseif is_function(y) then
-    local ok, msg = y(x)
-    if not ok then
-      return false, msg or 'callabled failed ' .. tostring(x)
-    end
-    return true
-  elseif is_string(y) then
-    local ok, msg
-    y = valid_types[y] or y
-    if y == 'pure_table' then
-      ok = is_pure_table(x)
-      if not ok then
-        if is_class(x) then
-          x = x:get_name()
-        else
-          x = typeof(x)
-        end
-        return false, 'expected pure_table, got ' .. typeof(x)
-      end
-      return true
-    elseif y == 'struct' then
-      ok = is_struct(x)
-      if not ok then
-        if is_class(x) then
-          x = x:get_name()
-        else
-          x = typeof(x)
-        end
-        return false, 'expected struct, got ' .. x
-      end
-      return true
-    else
-      if is_class(x) then
-        local tp = x:get_name()
-        if tp ~= y then
-          return false, 'expected ' .. y  .. ', got ' .. tp
-        end
-        return true
-      end
+  local get_name = function(x)
+    if is_class(x) or is_type(x) then
+      return {name=x:get_name(), type='class'}
+    elseif is_table(x) then
+      local mt = getmetatable(x)
+      if not mt then return {type='table'} end
+			if mt.type and mt.name then
+				return {name = mt.name, type = mt.type}
+			elseif mt.type then
+				return {type=mt.type}
+			else
+				return {type='table'}
+			end
+		else
+			return {type=typeof(x)} 
+		end
+	end
 
-      local tp = typeof(x)
-      if tp ~= y then
-        return false, 'expected ' .. y  .. ', got ' .. tp
-      end
-      return true
-    end
-  elseif is_class(x) then
-    local ok = x:is_a(y)
-    if not ok then
-      return false, 'expected ' .. y .. ', got ' .. x:get_name()
-    end
-    return true
-  elseif is_class(y) then
-    if is_class(x) then
-      local ok, msg
-      local y_name = y:get_name()
-      local x_name = x:get_name()
-      ok = x_name == y_name
-      if not ok then
-        return false, 'expected ' .. y_name .. ', got ' .. x_name
-      end
-    else
-      local y_name = y:get_name()
-      local x_name = typeof(x)
-      local ok, msg
-      ok = y_name == x_name
-      if not ok then
-        return false, 'expected ' .. y_name .. ', got ' .. x_name
-      else
-        return true
-      end
-    end
-  else
-    local ok = typeof(x) == typeof(y)
-    if not ok then
-      return false, 'expected ' .. y .. ', got ' .. x
-    end
-    return true
+	local spec, param = y, x
+	local ok, msg
+	local _spec, _param = get_name(spec), get_name(param)
+	local msg_spec, msg_param
+
+	if _spec.name and _spec.type then
+		msg_spec = _spec.type .. ':' .. _spec.name
+	elseif _spec.type then
+		msg_spec = _spec.type
+	end
+
+	if _param.name and _param.type then
+		msg_param = _param.type .. ':' .. _param.name
+	elseif _param.type then
+		msg_param = _param.type
+	end
+
+  if _spec.type == 'function' or _spec.type == 'callable' then
+		ok, msg = spec(param)
+		msg = msg or 'callable failed ' .. tostring(param)
+	elseif _spec.type == 'string' then
+		if spec == 'pure_table' then
+			ok = is_pure_table(param)
+			msg = 'expected pure_table, got ' .. msg_param
+    elseif spec == 'callable' then
+      ok = is_callable(param)
+			msg = 'expected callable, got ' .. msg_param
+		else
+			ok = spec == _param.type
+		end
+		msg_spec = spec
+	elseif _spec.type == 'class' or _spec.type == 'type' then
+		if _spec.type == 'class' then
+			ok = _param.type == 'class'
+		else
+			ok = _param.type == 'type'
+		end
+	else
+		ok = _param.type == _spec.type
   end
+
+	if not msg then
+		msg = 'expected ' .. msg_spec .. ', got ' .. msg_param
+	end
+
+	if not ok then return false, msg end
+	return true
 end
 
 is_a = setmetatable({}, {
   __index = function(self, spec)
     return function(obj)
-      return _is_a(obj, valid_types[spec] or spec)
+      local ok, msg = _is_a(obj, valid_types[spec] or spec)
+      return ok, msg
     end
   end,
   __call = function(_, obj, spec)
-    return _is_a(obj, spec)
+    local ok, msg = _is_a(obj, valid_types[spec] or spec)
+    return ok, msg
   end,
 })
 
-local function get_name(x)
-  if not is_table(x) then
-    return typeof(x)
-  end
-
-  local tp = mtget(x, "type")
-  local name = mtget(x, "name")
-  if tp and name then
-    return sprintf("[%s] %s", tp, name)
-  elseif tp then
-    return tp
-  elseif is_callable(x) then
-    return "callable"
-  else
-    return "table"
-  end
-end
-
 function is(type_spec)
+  local function get_name(x)
+    if not is_table(x) then
+      return typeof(x)
+    end
+
+    local tp = mtget(x, "type")
+    local name = mtget(x, "name")
+    if tp and name then
+      return sprintf("%s:%s", tp, name)
+    else
+      return tp
+    end
+  end
+
   if not is_pure_table(type_spec) then
     type_spec = { type_spec }
   end
 
-  local display_spec = Array.map(type_spec, function(x)
+  type_spec = Array.map(type_spec, function(x)
     if valid_types[x] then
       return valid_types[x]
     end
-    return get_name(x)
+    return x
   end)
 
   return function(e)
-    local invalid = {}
-    local i = 1
+    local _, msg
+    local n = #type_spec
+    local failed = 0
 
-    Array.each(type_spec, function(spec)
-      if not is_a(e, spec) then
-        invalid[i] = display_spec[i]
-        i = i + 1
+    for i=1, n do
+      _, msg = is_a(e, type_spec[i])
+      if not _ then
+        failed = failed + 1
       end
-    end)
+    end
 
-    if #invalid == #type_spec then
-      return false, string.format("expected %s, got %s", table.concat(invalid, "|"), get_name(e))
+    if failed == n then
+      return false, msg
     end
 
     return true
@@ -369,19 +352,23 @@ local function _validate2(a, b)
   return _compare(a, b)
 end
 
+
 local function _validate(type_spec)
   Dict.each(type_spec, function(display, spec)
     local tp, param = unpack(spec)
     if display:match "^%?" and param == nil then return end
     display = display:gsub("^%?", "")
 
+    if is_a(tp, 'string') then
+      tp = valid_types[tp] or tp
+    end
+
     if is_pure_table(tp) then 
       tp.__table = display 
       _validate2(tp, param)
     else
       local ok, msg = is_a(param, tp)
-      if not ok then
-      end
+      assert(ok, msg)
     end
   end)
 end
@@ -400,25 +387,42 @@ validate = setmetatable({}, {
 isa = function(spec, param)
   if not param then
     return function(param)
-      validate.param(spec, param)
+      validate.param(is(spec), param)
       return param
     end
   end
 
-  validate.param(spec, param)
+  validate.param(is(spec), param)
 
   return param
 end
 
 struct = function(spec)
   validate.spec("table", spec)
+
   spec.__nonexistent = false
-  return setmetatable({}, {
-    type = 'struct',
-    __call = function (self, t)
-      validate.param('pure_table', t)
-    end
-  })
+	local mt = {type='struct'}
+	local st = setmetatable({ mandatory = {}, optional = {}, spec = spec }, mt)
+
+	for key, tp in pairs(spec) do
+		if not key:match('__nonexistent') or key:match('__table') then
+			local is_opt = key:match('^%?') or key:match('^opt_')
+			key = key:gsub('^%?', '')
+			key = key:gsub('^opt_', '')
+			if is_opt then
+				st.optional[key] = tp
+			else
+				st.mandatory[key] = tp
+			end
+		end
+	end
+
+	mt.__call = function(self, t)
+		validate.param(self.spec, t)
+		return t
+	end
+
+	return st
 end
 
 t_string = isa "string"

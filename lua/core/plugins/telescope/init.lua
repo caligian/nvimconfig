@@ -108,13 +108,13 @@ local opts = Keybinding.bind(
     { desc = "Show vim options", name = "ts_options" },
   },
   {
-    ".",
+    "ff",
     function()
       picker("find_files", { cwd = vim.fn.expand "%:p:h" })()
     end,
     { desc = "Find files in workspace", name = "ts_ff" },
   },
-  { "ff", picker "git_files", { desc = "Do git ls-files", name = "ts_git_ls" } },
+  { "gf", picker "git_files", { desc = "Do git ls-files", name = "ts_git_ls" } },
   { "bb", picker "buffers", { desc = "Show buffers", name = "ts_buffers" } },
   {
     "fr",

@@ -21,7 +21,7 @@ local dict_methods = {
   items = table.items,
 }
 
-Dict:include(dict_methods, "value")
+Dict:include(dict_methods)
 
 function Dict:init(t)
   assert(type(t) == "table", "table expected, got " .. type(t))
@@ -31,11 +31,13 @@ function Dict:init(t)
     if name ~= "Dict" then
       error("Dict|table expected, got " .. name)
     else
-      return t
+      self.value = t.value
     end
   else
     self.value = t
   end
+
+  self:include(dict_methods, "value")
 
   return self
 end

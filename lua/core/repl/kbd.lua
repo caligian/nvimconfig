@@ -1,5 +1,7 @@
 Keybinding.bind(
   { leader = true, noremap = true },
+
+  { "xe", "<esc>:ShellSendRange<CR>", { mode = "v", name = "shell_send_range" } },
   { "xc", "<cmd>ShellTerminateInput<CR>", { name = "shell_terminate_input" } },
   { "xd", "<cmd>ShellDock<CR>", { name = "shell_dock" } },
   { "xx", "<cmd>ShellStart<CR>", { name = "shell_start" } },
@@ -10,6 +12,9 @@ Keybinding.bind(
   { "xe", "<cmd>ShellSendLine<CR>", { name = "shell_send_line" } },
   { "xb", "<cmd>ShellSendBuffer<CR>", { name = "shell_send_buffer" } },
   { "x.", "<cmd>ShellSendTillPoint<CR>", { name = "shell_send_till_point" } },
+  { "xf", "<cmd>ShellFloat<CR>", { name = "shell_float" } },
+  { "xF", "<cmd>ShellFloatEditor<CR>", { name = "shell_float_editor" } },
+
   { "rd", "<cmd>REPLDock<CR>", { name = "repl_dock" } },
   { "rr", "<cmd>REPLStart<CR>", { name = "repl_start" } },
   { "rs", "<cmd>REPLSplit<CR>", { name = "repl_split" } },
@@ -20,7 +25,8 @@ Keybinding.bind(
   { "re", "<cmd>REPLSendLine<CR>", { name = "repl_send_line" } },
   { "rb", "<cmd>REPLSendBuffer<CR>", { name = "repl_send_buffer" } },
   { "r.", "<cmd>REPLSendTillPoint<CR>", { name = "repl_send_till_point" } },
+  { "rc", "<cmd>REPLTerminateInput<CR>", { name = "repl_terminate_input" } },
   { "re", "<esc>:REPLSendRange<CR>", { name = "repl_send_range", mode = "v" } },
-  { "xe", "<esc>:ShellSendRange<CR>", { mode = "v", name = "shell_send_range" } },
-  { "rc", "<cmd>TerminateInput<CR>", { name = "repl_terminate_input" } }
+  { "rf", "<cmd>REPLFloat<CR>", { name = "shell_float" } },
+  { "rF", "<cmd>REPLFloatEditor<CR>", { name = "shell_float_editor" } }
 )

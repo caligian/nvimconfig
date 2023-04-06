@@ -56,6 +56,14 @@ command(
   { complete = get_builtin, nargs = "?" }
 )
 
+command('REPLFloatEditor', wrap(function (r)
+  r:center_float({relative='editor'})
+end, false, true), {complete=get_builtin, nargs='?'})
+
+command('REPLFloat', wrap(function (r)
+  r:center_float({relative='win'})
+end, false, true), {complete=get_builtin, nargs='?'})
+
 command(
   "REPLSplit",
   wrap(function(r)
@@ -213,6 +221,23 @@ command(
   "ShellSendTillPoint",
   wrap(function(r)
     r:send_till_point()
+  end, true, true),
+  {}
+)
+
+command(
+  "ShellFloatEditor",
+  wrap(function(r)
+    r:center_float({relative='editor'})
+  end, true, true),
+  {}
+)
+
+
+command(
+  "ShellFloat",
+  wrap(function(r)
+    r:center_float {relative='win'}
   end, true, true),
   {}
 )

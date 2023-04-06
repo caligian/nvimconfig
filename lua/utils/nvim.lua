@@ -67,6 +67,7 @@ function utils.get_font()
 end
 
 function utils.set_font(font, height)
+	pp(font, height)
   validate {
     ["?font"] = { "s", font },
     ["?height"] = { "n", height },

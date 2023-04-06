@@ -36,7 +36,7 @@ function Autocmd:init(event, opts)
   end
 
   local callback = opts.callback
-  opts.callback = function()
+  opts.callback = function(...)
     if opts.once then
       if is_a.s(callback) then
         vim.cmd(callback)
@@ -47,7 +47,7 @@ function Autocmd:init(event, opts)
       if is_a.s(callback) then
         vim.cmd(callback)
       else
-        callback()
+        callback(...)
       end
     end
   end

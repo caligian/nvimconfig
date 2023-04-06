@@ -44,11 +44,13 @@ function Array:init(t)
     if name ~= "Array" then
       error("Array|table expected, got " .. name)
     else
-      return t
+      self.value = t.value 
     end
   else
     self.value = t
   end
+
+  self:include(array_methods, 'value')
 
   return self
 end

@@ -208,6 +208,7 @@ function K.bind(opts, ...)
     validate {
       lhs = { "s", lhs },
       cb = { is { "s", "f" }, cb },
+      ['?o'] = {is({'table', 'string'}), o},
     }
 
     o = o or {}

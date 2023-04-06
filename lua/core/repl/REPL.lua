@@ -35,9 +35,7 @@ function REPL:init(ft)
     end
   end
 
-  local exists
   local bufnr = vim.fn.bufnr()
-
   REPL:super()(self, cmd, opts)
 
   if is_shell then
