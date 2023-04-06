@@ -589,8 +589,6 @@ function M.shell(bufnr, command)
   return M.lines(bufnr)
 end
 
-Buffer:include(M, "bufnr")
-
 function Buffer:init(name, scratch)
   local bufnr
 
@@ -607,9 +605,13 @@ function Buffer:init(name, scratch)
     bufnr = vim.fn.bufadd(name)
   end
 
-  if Buffer.ids[bufnr] then
-    return Buffer.ids[bufnr]
-  end
+	for key, value in pairs(M) do
+		if is_callable(value) then
+			self[key] = function(_self, ...)
+				return value(_self.bufnr, ...)
+			end
+		end
+	end
 
   self.bufnr = bufnr
   self.name = name
@@ -690,8 +692,6 @@ function Buffer:init(name, scratch)
   })
 
   self:update()
-
-  return self
 end
 
 function Buffer:delete()

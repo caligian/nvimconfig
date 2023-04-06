@@ -65,16 +65,6 @@ function is_type(x)
   return mt.type == 'type' and mt.__call
 end
 
-function is_class(obj)
-  if not is_table(obj) then
-    return false
-  end
-  local mt = getmetatable(obj)
-  if mt then
-    return mt.type == "class"
-  end
-end
-
 function is_callable(x)
   if is_function(x) then
     return true
@@ -437,3 +427,4 @@ t_fun = isa "function"
 t_callable = isa "callable"
 t_Array = isa(Array)
 t_Dict = isa(Dict)
+

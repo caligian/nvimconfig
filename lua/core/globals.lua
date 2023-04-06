@@ -15,7 +15,7 @@ table.merge(user, {
   plugins_dir = path.join(data_dir, "lazy"),
   plugins = user.plugins or {},
   shell = "/usr/bin/zsh",
-  font = {family = "Consolas Ligaturized", height=14},
+  font = {family = "Noto Mono", height=12},
   colorscheme = {
     dark = "oceanic",
     light = "OceanicNextLight",

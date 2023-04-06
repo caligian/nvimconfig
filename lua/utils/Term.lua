@@ -115,6 +115,7 @@ function Term:start()
   end
 
   local id, term_buffer = start_term(self.command, self.opts)
+	print(id, term_buffer)
   self.id = id
   self.buffer = Buffer(term_buffer, true)
 
