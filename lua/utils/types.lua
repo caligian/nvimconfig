@@ -56,15 +56,6 @@ end
 function is_nil(x)
   return x == nil
 end
-function is_type(x)
-  if not is_table(x) then
-    return false
-  end
-  local mt = getmetatable(x)
-  if not mt then return false end
-  return mt.type == 'type' and mt.__call
-end
-
 function is_callable(x)
   if is_function(x) then
     return true
@@ -77,9 +68,7 @@ function is_callable(x)
 end
 
 function is_pure_table(x)
-  if type(x) == "table" 
-		and not is_class(x) 
-		and not is_type(x) then
+  if type(x) == "table" and not is_class(x)  then
     return true
   end
   return false
@@ -114,8 +103,6 @@ end
 function typeof(obj)
   if is_class(obj) then
     return "class"
-	elseif is_type(obj) then
-		return 'type'
   elseif is_callable(obj) then
     return "callable"
   elseif is_table(obj) then
@@ -127,7 +114,7 @@ end
 
 local function _is_a(x, y)
   local get_name = function(x)
-    if is_class(x) or is_type(x) then
+    if is_class(x) then
       return {name=x:get_name(), type='class'}
     elseif is_table(x) then
       local mt = getmetatable(x)

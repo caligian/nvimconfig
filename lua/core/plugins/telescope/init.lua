@@ -174,3 +174,4 @@ local opts = Keybinding.bind(
 
 req "core.plugins.telescope.colorscheme"
 req "core.plugins.telescope.bookmarks"
+req 'core.bufgroups.telescope'

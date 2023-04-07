@@ -8,7 +8,7 @@ end
 
 require "utils.Timer"
 
-function BufGroup:get(name, create, pattern)
+function BufGroup.get(name, create, pattern)
   local exists = BufGroup.groups[name]
   if exists then
     return exists
@@ -30,12 +30,14 @@ end
 
 ---
 -- Creates an autocmd to match buffers.
-function BufGroup:create_autocmd(force)
+function BufGroup:create_autocmd(force, pool)
   if not force and self.autocmd then return self end
 
-  self.autocmd = Autocmd("BufEnter", {
+  self.autocmd = Autocmd("BufRead", {
     pattern = "*",
-    callback = function() self:add(vim.fn.bufnr()) end,
+    callback = function() 
+      self:add(vim.fn.bufnr(), pool) 
+    end,
   })
 
   return self.autocmd
@@ -54,12 +56,18 @@ end
 -- Add current buffer to the group if it matches the pcre pattern
 -- @param buf bufnr or bufname
 -- @return self
-function BufGroup:add(buf)
+function BufGroup:add(buf, pool)
   local bufnr, bufname = get_buffer(buf)
   assert(bufnr, "invalid buffer provided " .. bufname)
 
   if regex.match(bufname, self.pattern) then
-    self.buffers[bufnr] = { bufnr = bufnr, bufname = bufname }
+    self.buffers[bufnr] = { bufnr = bufnr, bufname = bufname, pool = pool }
+    vim.api.nvim_buf_set_var(bufnr, '_bufgroup', self.name)
+
+    if pool then
+      vim.api.nvim_buf_set_var(bufnr, '_bufgrouppool', isa('string', pool))
+    end
+
     return bufname
   end
 
@@ -113,13 +121,17 @@ end
 
 function BufGroupPool:add(name, ...)
   self.groups[name] = BufGroup(name, ...)
-  self.groups[name]:create_autocmd()
+  self.groups[name]:create_autocmd(false, self.name)
 end
 
 function BufGroupPool:list()
   local out = {}
   for name, group in pairs(self.groups) do
     out[name] = group:list()
+  end
+
+  if Dict.isblank(out) then
+    return
   end
 
   return out
