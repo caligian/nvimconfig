@@ -2,7 +2,7 @@ require "utils.table"
 
 class "Array"
 
-local array_methods = {
+array = {
   append = table.append,
   iappend = table.iappend,
   unshift = table.unshift,
@@ -34,7 +34,7 @@ local array_methods = {
   flatten = table.flatten,
 }
 
-Array:include(array_methods)
+table.merge(Array, array)
 
 function Array:init(t)
   assert(type(t) == "table", "table expected, got " .. type(t))

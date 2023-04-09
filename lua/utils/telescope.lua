@@ -28,12 +28,14 @@ function M.load()
   for name, val in pairs(_) do
     M[name] = val
   end
+  return M
 end
 
-function M.get_selected(bufnr)
+function M.get_selected(bufnr, close)
+  close = close == nil and true or close
   local _ = load_telescope()
   local picker = _.action_state.get_current_picker(bufnr)
-  _.actions.close(bufnr)
+  if close then _.actions.close(bufnr) end
   local nargs = picker:get_multi_selection()
   if #nargs > 0 then
     return nargs
@@ -78,13 +80,15 @@ function M.new(items, mappings, opts)
   return _.pickers.new(_.ivy, opts)
 end
 
-function M.create_actions_mod()
+M.new_picker = M.new
+
+function M.create_actions_mod(no_close)
   return setmetatable({}, {
     __newindex = function(self, name, f)
       local _ = load_telescope()
       rawset(self, name, function(bufnr)
-        table.each(M.get_selected(bufnr), function(sel)
-          return f(sel)
+        table.each(M.get_selected(bufnr, no_close), function(sel)
+          return f(sel, bufnr)
         end)
       end)
     end,

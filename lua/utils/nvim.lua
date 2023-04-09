@@ -113,3 +113,18 @@ function utils.try_require(s, success, failure)
   end
   return M
 end
+
+function copy(obj, deep)
+  if type(obj) ~= 'table' then
+    return obj
+  elseif deep then
+    return vim.deepcopy(obj)
+  end
+
+  local out = {}
+  for key, value in pairs(obj) do
+    out[key] = value
+  end
+
+  return out
+end

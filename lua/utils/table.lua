@@ -174,7 +174,9 @@ end
 function table.tmap(t, f)
   local out = {}
   for k, v in pairs(t) do
-    out[k] = f(v)
+    local o = f(v)
+    assert(o ~= nil, "non-nil expected, got " .. tostring(v))
+    out[k] = o
   end
 
   return out
@@ -195,7 +197,7 @@ function table.imap(t, f)
   local out = {}
   for idx, v in ipairs(t) do
     v = f(idx, v)
-    assert(v ~= nil, "non-nil expected, got " .. v)
+    assert(v ~= nil, "non-nil expected, got " .. tostring(v))
     out[idx] = v
   end
 

@@ -217,6 +217,7 @@ function create_instance(cls, ...)
   mt.type = "class"
   mt.class = cls
   mt.instance = true
+  mt.name = mtget(cls, 'name')
   local parent = get_parent(cls)
   mt.parent = parent
 

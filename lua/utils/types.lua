@@ -415,3 +415,7 @@ t_callable = isa "callable"
 t_Array = isa(Array)
 t_Dict = isa(Dict)
 
+function create_state_module(spec)
+  local self = {}
+  local shape = struct(spec)
+end

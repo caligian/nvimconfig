@@ -2,7 +2,7 @@ require "utils.table"
 
 class "Dict"
 
-local dict_methods = {
+dict = {
   each = table.teach,
   map = table.tmap,
   filter = table.tfilter,
@@ -21,7 +21,7 @@ local dict_methods = {
   items = table.items,
 }
 
-Dict:include(dict_methods)
+table.merge(Dict, dict)
 
 function Dict:init(t)
   assert(type(t) == "table", "table expected, got " .. type(t))
@@ -37,7 +37,7 @@ function Dict:init(t)
     self.value = t
   end
 
-  self:include(dict_methods, "value")
+  self:include(dict, "value")
 
   return self
 end
