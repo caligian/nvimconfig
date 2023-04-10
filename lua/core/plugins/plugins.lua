@@ -160,7 +160,11 @@ local plugins = {
     end),
   },
 
-  { "Raimondi/delimitMate", event = "InsertEnter" },
+  { 
+    "windwp/nvim-autopairs", 
+    event = "InsertEnter", 
+    config = partial(req, 'core.plugins.autopairs') 
+  },
 
   {
     "mfussenegger/nvim-lint",

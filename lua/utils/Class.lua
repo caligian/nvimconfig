@@ -245,7 +245,7 @@ function create_instance(cls, ...)
   return obj
 end
 
-function create_class(name, parent)
+function create_class(name, parent, minimal)
   if parent then
     assert(is_class(parent), "class expected, got " .. type(parent))
   end
@@ -259,7 +259,9 @@ function create_class(name, parent)
   mt.name = name
   mt.parent = parent
 
-  if parent then include(cls, parent) end
+  if parent then 
+    include(cls, parent) 
+  end
 
   function mt.__newindex(self, k, v)
     if valid_mt_ks[k] then mt[k] = v end

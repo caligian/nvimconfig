@@ -2,8 +2,8 @@ if not Bookmarks then Bookmarks = {} end
 local B = Bookmarks
 Bookmarks.dest = vim.fn.stdpath "data" .. "/bookmarks.lua"
 Bookmarks.bookmarks = Bookmarks.bookmarks or {}
--- Bookmarks._cache = Bookmarks._cache or {}
-Bookmarks._cache = {}
+Bookmarks._cache = Bookmarks._cache or {}
+-- Bookmarks._cache = {}
 local _cache = Bookmarks._cache
 
 function B.get_path(p)
@@ -14,51 +14,48 @@ function B.get_path(p)
   local is_file = is_a.string(p) and path.exists(p)
   if not is_buffer and not is_file then return end
 
-  if _cache[p] then return _cache[p] end
+  if B.bookmarks[p] then
+    return B.bookmarks[p]
+  elseif _cache[p] then
+    return _cache[p]
+  end
 
   if is_buffer then
     local bufnr = vim.fn.bufnr()
     local bufname = vim.api.nvim_buf_get_name(bufnr)
     if #bufname == 0 then return end
-    local isdir = path.isdir(bufname)
-    local loaded = vim.fn.bufloaded(bufnr) == 1
-    if not loaded then return end
-    local listed = vim.api.nvim_buf_get_option(bufnr, "buflisted")
-    if not listed then return end
-    if isdir then
-      _cache[p] = {
-        bufnr = bufnr,
-        path = bufname,
-        dir = true,
-        file = false,
-      }
-    else
-      _cache[p] = {
-        bufnr = bufnr,
-        path = bufname,
-        dir = false,
-        file = true,
-        lines = {},
-      }
-    end
-  else
-    p = path.abspath(p)
-    local isdir = path.isdir(path)
 
-    if isdir then
+    if path.isdir(bufname) then
       _cache[p] = {
-        dir = isdir,
-        file = false,
-        path = p,
+        dir = true,
+        path = bufname,
       }
     else
+      local loaded = vim.fn.bufloaded(bufnr) == 1
+      if not loaded then return end
+      local listed = vim.api.nvim_buf_get_option(bufnr, "buflisted")
+      if not listed then return end
       _cache[p] = {
+        bufnr = bufnr,
+        path = bufname,
         dir = false,
         file = true,
-        path = p,
         lines = {},
       }
     end
+  elseif path.isdir(p) then
+    _cache[p] = {
+      dir = true,
+      file = false,
+      path = path.abspath(p),
+    }
+  else
+    _cache[p] = {
+      dir = false,
+      file = true,
+      path = p,
+      lines = {},
+    }
   end
 
   return _cache[p]
@@ -72,17 +69,7 @@ function B.exists(p, line)
   if not line then
     return obj
   else
-    return obj[line]
-  end
-end
-
-local function get_line_count(p)
-  p = B.get_path(p)
-  if not p then return end
-  if p.bufnr then
-    return vim.api.nvim_buf_line_count(p.bufnr)
-  else
-    return #(vim.split(file.read(p), "\n"))
+    return obj.lines[line]
   end
 end
 
@@ -105,9 +92,9 @@ function B.clean()
       local bufnr = k
       if vim.fn.bufexists(bufnr) ~= 0 then
         _clean(bufnr, v)
-      else
-        B.bookmarks[bufnr] = nil
-        _cache[bufnr] = nil
+      elseif not path.exists(v.path) then
+        B.bookmarks[v.path] = nil
+        _cache[v.path] = nil
       end
     else
       if not path.exists(k) then
@@ -193,7 +180,7 @@ function B.remove(p, line)
     B.bookmarks[p.bufnr] = nil
   end
 
-  p = B.exists(p, line)
+  p = B.exists(p)
   if not p then return end
   B.bookmarks[p.path].lines[line] = nil
   if B.bookmarks[p.bufnr] then B.bookmarks[p.bufnr][line] = nil end
@@ -222,7 +209,6 @@ function B.list(p, telescope)
             value = entry,
             display = entry,
             path = entry,
-            obj = B.bookmarks[entry],
           }
         end,
       }
@@ -245,9 +231,10 @@ function B.list(p, telescope)
       results = dict.items(p.lines),
       entry_maker = function(entry)
         return {
+          ordinal = entry[1],
           line = entry[1],
           context = entry[2],
-          display = sprintf('%d: %s', entry[1], entry[2]),
+          display = sprintf("%d: %s", entry[1], entry[2]),
           path = p.path,
           bufnr = p.bufnr,
           dir = p.dir,
@@ -260,12 +247,12 @@ function B.list(p, telescope)
 end
 
 function B.jump(p, line, split)
-  B.clean()
-
   p = B.get_path(p)
   if not p then return end
 
-  if not p.bufnr then
+  if p.dir then
+    vim.cmd(sprintf(":Lexplore %s | vert size 40", sel.path))
+  elseif not p.bufnr then
     p = p.path
     if split == "s" then
       vim.cmd(":split " .. p)
@@ -276,29 +263,91 @@ function B.jump(p, line, split)
     else
       vim.cmd(":e " .. p)
     end
-    if p.lines and p.lines[line] then
-      if p.line then vim.cmd(":normal! " .. line .. "G") end
-    end
+    if p.lines and p.lines[line] then vim.cmd(":normal! " .. line .. "G") end
   elseif p.bufnr then
-    p = p.bufnr
+    local bufnr = p.bufnr
     if split == "s" then
-      vim.cmd(":split | b " .. p)
+      vim.cmd(":split | b " .. bufnr)
     elseif split == "v" then
-      vim.cmd(":vsplit | b " .. p)
+      vim.cmd(":vsplit | b " .. bufnr)
     elseif split == "t" then
-      vim.cmd(":tabnew | b " .. p)
+      vim.cmd(":tabnew | b " .. bufnr)
     else
-      vim.cmd(":b " .. p)
+      vim.cmd(":b " .. bufnr)
     end
-    if p.lines and p.lines[line] then
-      if p.line then vim.cmd(":normal! " .. line .. "G") end
-    end
+    if p.lines and p.lines[line] then vim.cmd(":normal! " .. line .. "G") end
   elseif p.dir then
-    vim.cmd(sprintf("Lexplore %s | vert resize 40", p.path))
+    vim.cmd(sprintf(":Lexplore %s | vert resize 40", p.path))
   end
 end
 
 function B.delete_all()
   if not path.exists(Bookmarks.dest) then return end
   vim.fn.system { "rm", Bookmarks.dest }
+end
+
+function B.create_picker(p, remover)
+  p = B.get_path(p)
+  if not p then return end
+  local _ = utils.telescope.load()
+  local mod = _.create_actions_mod()
+  local ls = B.list(p.path, true)
+  if not ls then return end
+  local default_action
+
+  if remover then
+    default_action = function(prompt_bufnr)
+      local sel = _.get_selected(prompt_bufnr)[1]
+      B.remove(sel.path, sel.line)
+    end
+  else
+    default_action = function(prompt_bufnr)
+      local sel = _.get_selected(prompt_bufnr)[1]
+      B.jump(sel.path, sel.line, "v")
+    end
+  end
+
+  function mod.remove(sel) B.remove(sel.path, sel.line) end
+
+  function mod.split(sel) B.jump(sel.path, sel.line, "s") end
+
+  function mod.tabnew(sel) B.jump(sel.path, sel.line, "t") end
+
+  function mod.vsplit(sel) B.jump(sel.path, sel.line, "s") end
+
+  return _.new(ls, {
+    default_action,
+    { "n", "x", mod.remove },
+    { "n", "s", mod.split },
+    { "n", "v", mod.vsplit },
+    { "n", "t", mod.tabnew },
+  }, {
+    prompt_title = "Bookmark: " .. p.path,
+  })
+end
+
+function B.create_main_picker()
+  local ls = B.list(false, true)
+  if not ls then return end
+  local _ = utils.telescope.load()
+  local mod = _.create_actions_mod()
+
+  local function default_action(prompt_bufnr)
+    local sel = _.get_selected(prompt_bufnr)[1]
+    if sel.dir then
+      vim.cmd(sprintf(":Lexplore %s | vert resize 40", sel.path))
+    else
+      local picker = B.create_picker(sel.path)
+      if picker then
+        picker:find()
+      end
+    end
+  end
+
+  function mod.remove(sel) B.create_picker(sel.path, true):find() end
+
+  return _.new(ls, {
+    default_action,
+    { "n", "x", mod.remove },
+  })
 end

@@ -24,7 +24,7 @@ user.plugins.treesitter = {
       },
     },
 
-    endwise = { enabled = true },
+    endwise = { enable = true },
 
     matchup = { enable = true },
 
