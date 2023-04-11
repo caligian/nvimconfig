@@ -174,7 +174,7 @@ end
 function table.tmap(t, f)
   local out = {}
   for k, v in pairs(t) do
-    local o = f(v)
+    local o = f(k, v)
     assert(o ~= nil, "non-nil expected, got " .. tostring(v))
     out[k] = o
   end

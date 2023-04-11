@@ -1,3 +1,3 @@
-require "core.bookmarks.bookmarks"
-require "core.bookmarks.commands"
-require "core.bookmarks.kbd"
+-- require "core.bookmarks.bookmarks"
+-- require "core.bookmarks.commands"
+-- require "core.bookmarks.kbd"
