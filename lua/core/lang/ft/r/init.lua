@@ -1,4 +1,4 @@
 Lang("r", {
-  repl = "R",
-  server = { name = "r_language_server" },
+	repl = "R",
+	server = { name = "r_language_server" },
 })

@@ -1,6 +1,6 @@
 ---
 -- Keybinding wrapper for vim.keymap.set which integrates with nvim autocommands API. Aliased as 'K'
-class "Keybinding"
+class("Keybinding")
 
 --- Alias for Keybinding
 K = Keybinding
@@ -16,36 +16,34 @@ K.defaults = {}
 local id = 1
 
 local function parse_opts(opts)
-  opts = opts or {}
-  local parsed = { au = {}, kbd = {}, misc = {} }
+	opts = opts or {}
+	local parsed = { au = {}, kbd = {}, misc = {} }
 
-  table.teach(opts, function(k, v)
-    -- For autocommands
-    if string.match_any(k, "pattern", "once", "nested", "group") then
-      parsed.au[k] = v
-    elseif
-      string.match_any(k, "event", "name", "mode", "prefix", "leader", "localleader", "cond")
-    then
-      parsed.misc[k] = v
-    else
-      parsed.kbd[k] = v
-    end
-  end)
+	table.teach(opts, function(k, v)
+		-- For autocommands
+		if string.match_any(k, "pattern", "once", "nested", "group") then
+			parsed.au[k] = v
+		elseif string.match_any(k, "event", "name", "mode", "prefix", "leader", "localleader", "cond") then
+			parsed.misc[k] = v
+		else
+			parsed.kbd[k] = v
+		end
+	end)
 
-  return parsed
+	return parsed
 end
 
 ---
 -- Save object in K.ids and if name is passed, in K.defaults
 -- @returns self
 function K:update()
-  table.update(Keybinding.ids, self.id, self)
+	table.update(Keybinding.ids, self.id, self)
 
-  if self.name then
-    Keybinding.defaults[self.name] = self
-  end
+	if self.name then
+		Keybinding.defaults[self.name] = self
+	end
 
-  return self
+	return self
 end
 
 ---
@@ -64,129 +62,129 @@ end
 -- @see autocmd
 -- @return object
 function K:init(mode, lhs, cb, rest)
-  validate {
-    mode = { is { "s", "t" }, mode },
-    lhs = { "s", lhs },
-    cb = { is { "s", "f" }, cb },
-    ["?rest"] = { "t", rest },
-  }
+	validate({
+		mode = { is({ "s", "t" }), mode },
+		lhs = { "s", lhs },
+		cb = { is({ "s", "f" }), cb },
+		["?rest"] = { "t", rest },
+	})
 
-  rest = rest or {}
-  mode = mode or rest.mode or "n"
+	rest = rest or {}
+	mode = mode or rest.mode or "n"
 
-  if is_a.s(mode) then
-    mode = vim.split(mode, "")
-  end
+	if is_a.s(mode) then
+		mode = vim.split(mode, "")
+	end
 
-  if is_a.s(rest) then
-    rest = { desc = rest }
-  end
+	if is_a.s(rest) then
+		rest = { desc = rest }
+	end
 
-  rest = rest or {}
-  rest = parse_opts(rest)
-  local au, kbd, misc = rest.au, rest.kbd, rest.misc
-  local leader = misc.leader
-  local localleader = misc.localleader
-  local prefix = misc.prefix
-  local buffer = kbd.buffer == true and vim.fn.buffer() or kbd.buffer
-  local event = misc.event
-  local pattern = au.pattern
-  local name = misc.name
-  local cond = misc.cond
-  kbd.noremap = kbd.remap and false or false
-  kbd.remap = kbd.noremap and false or true
-  local _cb = cb
+	rest = rest or {}
+	rest = parse_opts(rest)
+	local au, kbd, misc = rest.au, rest.kbd, rest.misc
+	local leader = misc.leader
+	local localleader = misc.localleader
+	local prefix = misc.prefix
+	local buffer = kbd.buffer == true and vim.fn.buffer() or kbd.buffer
+	local event = misc.event
+	local pattern = au.pattern
+	local name = misc.name
+	local cond = misc.cond
+	kbd.noremap = kbd.remap and false or false
+	kbd.remap = kbd.noremap and false or true
+	local _cb = cb
 
-  if leader then
-    lhs = "<leader>" .. lhs
-  elseif localleader then
-    lhs = "<localleader>" .. lhs
-  elseif prefix then
-    lhs = prefix .. lhs
-  end
+	if leader then
+		lhs = "<leader>" .. lhs
+	elseif localleader then
+		lhs = "<localleader>" .. lhs
+	elseif prefix then
+		lhs = prefix .. lhs
+	end
 
-  self.id = id
-  id = id + 1
+	self.id = id
+	id = id + 1
 
-  if event and pattern then
-    local callback = function()
-      kbd.buffer = vim.fn.bufnr()
-      vim.keymap.set(mode, lhs, cb, kbd)
-      self.enabled = true
-      self:update()
-    end
-    au.callback = callback
-    self.autocmd = Autocmd(event, au)
-  elseif buffer then
-    vim.keymap.set(mode, lhs, cb, kbd)
-    au.pattern = "<buffer=" .. buffer .. ">"
-    local callback = function()
-      self.enabled = true
-      self:update()
-    end
-    au.callback = callback
-    self.autocmd = Autocmd("BufEnter", au)
-  else
-    vim.keymap.set(mode, lhs, cb, kbd)
-    self.enabled = true
-    self:update()
-  end
+	if event and pattern then
+		local callback = function()
+			kbd.buffer = vim.fn.bufnr()
+			vim.keymap.set(mode, lhs, cb, kbd)
+			self.enabled = true
+			self:update()
+		end
+		au.callback = callback
+		self.autocmd = Autocmd(event, au)
+	elseif buffer then
+		vim.keymap.set(mode, lhs, cb, kbd)
+		au.pattern = "<buffer=" .. buffer .. ">"
+		local callback = function()
+			self.enabled = true
+			self:update()
+		end
+		au.callback = callback
+		self.autocmd = Autocmd("BufEnter", au)
+	else
+		vim.keymap.set(mode, lhs, cb, kbd)
+		self.enabled = true
+		self:update()
+	end
 
-  self.desc = kbd.desc
-  self.mode = mode
-  self.lhs = lhs
-  self.callback = cb
-  self.name = name
-  local o = {}
+	self.desc = kbd.desc
+	self.mode = mode
+	self.lhs = lhs
+	self.callback = cb
+	self.name = name
+	local o = {}
 
-  table.merge(o, au)
-  table.merge(o, misc)
-  table.merge(o, kbd)
+	table.merge(o, au)
+	table.merge(o, misc)
+	table.merge(o, kbd)
 
-  self.opts = o
+	self.opts = o
 
-  return self
+	return self
 end
 
 --- Disable keybinding
 function K:disable()
-  if not self.enabled then
-    return
-  end
+	if not self.enabled then
+		return
+	end
 
-  if self.autocmd then
-    self.autocmd:delete()
-    self.autocmd = nil
-    if self.opts.buffer then
-      for _, mode in ipairs(self.mode) do
-        vim.api.nvim_buf_del_keymap(self.opts.buffer, mode, self.lhs)
-      end
-    end
-    self.enabled = false
-  else
-    for _, mode in ipairs(self.mode) do
-      vim.api.nvim_del_keymap(mode, self.lhs)
-    end
-    self.enabled = false
-  end
+	if self.autocmd then
+		self.autocmd:delete()
+		self.autocmd = nil
+		if self.opts.buffer then
+			for _, mode in ipairs(self.mode) do
+				vim.api.nvim_buf_del_keymap(self.opts.buffer, mode, self.lhs)
+			end
+		end
+		self.enabled = false
+	else
+		for _, mode in ipairs(self.mode) do
+			vim.api.nvim_del_keymap(mode, self.lhs)
+		end
+		self.enabled = false
+	end
 
-  return self
+	return self
 end
 
 --- Delete keybinding
 function K:delete()
-  if not self.enabled then
-    return
-  end
+	if not self.enabled then
+		return
+	end
 
-  self:disable()
-  Keybinding.ids[self.id] = nil
+	self:disable()
+	Keybinding.ids[self.id] = nil
 
-  if self.name then
-    Keybinding.defaults[self.name] = nil
-  end
+	if self.name then
+		Keybinding.defaults[self.name] = nil
+	end
 
-  return self
+	return self
 end
 
 ---
@@ -194,75 +192,69 @@ end
 -- @tparam table opts Default options
 -- @return ?self Return object if only form was passed
 function K.bind(opts, ...)
-  local args = { ... }
-  opts = opts or {}
-  local bind = function(kbd)
-    validate {
-      kbd_spec = { "t", kbd },
-    }
+	local args = { ... }
+	opts = opts or {}
+	local bind = function(kbd)
+		validate({ kbd_spec = { "t", kbd } })
+		assert(#kbd >= 2)
 
-    assert(#kbd >= 2)
+		local lhs, cb, o = unpack(kbd)
 
-    local lhs, cb, o = unpack(kbd)
+		validate({
+			lhs = { "s", lhs },
+			cb = { is({ "s", "f" }), cb },
+			["?o"] = { is({ "table", "string" }), o },
+		})
 
-    validate {
-      lhs = { "s", lhs },
-      cb = { is { "s", "f" }, cb },
-      ['?o'] = {is({'table', 'string'}), o},
-    }
+		o = o or {}
+		if is_a.s(o) then
+			o = { desc = o }
+		end
+		validate({ kbd_opts = { "table", o } })
 
-    o = o or {}
-    if is_a.s(o) then
-      o = { desc = o }
-    end
+		for key, value in pairs(opts) do
+			if not o[key] then
+				o[key] = value
+			end
+		end
 
-    validate {
-      kbd_opts = { "table", o },
-    }
+		local mode = o.mode or "n"
+		kbd[3] = o
 
-    for key, value in pairs(opts) do
-      if not o[key] then
-        o[key] = value
-      end
-    end
+		return K(mode, unpack(kbd))
+	end
 
-    local mode = o.mode or "n"
-    kbd[3] = o
-
-    return K(mode, unpack(kbd))
-  end
-
-  if #args == 1 then
-    return bind(args[1])
-  else
-    table.each(args, bind)
-  end
+	if #args == 1 then
+		return bind(args[1])
+	else
+		table.each(args, bind)
+	end
 end
 
 --- Simple classmethod that does the same thing as Keybinding()
 -- @see K:_init
 function K.map(mode, lhs, cb, opts)
-  return K.new(mode, lhs, cb, opts)
+	return K.new(mode, lhs, cb, opts)
 end
 
 --- Same as K.map but sets noremap to true
 function K.noremap(mode, lhs, cb, opts)
-  opts = opts or {}
-  if is_a.s(opts) then
-    opts = { desc = opts }
-  end
-  opts.noremap = true
-  opts.remap = false
+	opts = opts or {}
+	if is_a.s(opts) then
+		opts = { desc = opts }
+	end
+	opts.noremap = true
+	opts.remap = false
 
-  return K.new(mode, lhs, cb, opts)
+	return K.new(mode, lhs, cb, opts)
 end
 
 --- Replace current callback with a new one
 -- @param cb Callback to replace with
 function K.replace(self, cb)
-  return utils.log_pcall(function()
-    assert(cb)
-    self:delete()
-    return K.new(self.mode, self.lhs, cb, lmerge(opts or {}, self.opts))
-  end)
+	return utils.log_pcall(function()
+		assert(cb)
+		self:delete()
+		return K.new(self.mode, self.lhs, cb, lmerge(opts or {}, self.opts))
+	end)
 end
