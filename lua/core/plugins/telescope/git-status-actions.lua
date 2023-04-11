@@ -1,24 +1,24 @@
-local action_state = require("telescope.actions.state")
-local actions = require("telescope.actions")
+local action_state = require "telescope.actions.state"
+local actions = require "telescope.actions"
 local mod = utils.telescope.create_actions_mod()
 
 local function gitcmd(op, fname)
-	vim.fn.system(sprintf("git %s %s", op, fname))
+  vim.fn.system(sprintf("git %s %s", op, fname))
 end
 
 function mod.stage(sel)
-	print("git stage " .. sel.path)
-	gitcmd("stage", sel.path)
+  print("git stage " .. sel.path)
+  gitcmd("stage", sel.path)
 end
 
 function mod.add(sel)
-	print("git add " .. sel.path)
-	gitcmd("add", sel.path)
+  print("git add " .. sel.path)
+  gitcmd("add", sel.path)
 end
 
 function mod.unstage(sel)
-	print("git unstage " .. sel.path)
-	gitcmd("unstage", sel.path)
+  print("git unstage " .. sel.path)
+  gitcmd("unstage", sel.path)
 end
 
 return mod

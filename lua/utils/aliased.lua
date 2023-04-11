@@ -1,4 +1,4 @@
-Date = Date or require("pl.Date")
+Date = Date or require "pl.Date"
 user = user or {}
 utils = utils or {}
 utils.stdpath = vim.fn.stdpath

@@ -1,3 +1,3 @@
 -- Nothing for now....
 --
-req("user.plugins.vimtex")
+req "user.plugins.vimtex"
