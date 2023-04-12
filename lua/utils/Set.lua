@@ -4,7 +4,7 @@ function Set:init(t)
   assert(type(t) == "table", "table expected, got " .. type(t))
 
   if is_class(t) then
-    local name = t.class:get_name()
+    local name = t:get_name()
     if name ~= "Set" then
       error("Set|table expected, got " .. name)
       return self

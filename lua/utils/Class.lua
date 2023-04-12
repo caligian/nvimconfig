@@ -85,23 +85,15 @@ comparators = {
 comparators.not_equal = function(self, other)
   return comparators.equal(self, other)
 end
+
 comparators.not_eq = function(self, other) return comparators.eq(self, other) end
+
 comparators.not_name = function(self, other)
   return comparators.name(self, other)
 end
 
-function is_instance(inst) return is_class(inst) and inst.__instance end
-
 function is_instance_of(inst, cls)
   return is_instance(inst) and get_class(inst) == get_class(cls) or false
-end
-
-function get_parent(cls)
-  if not is_class(cls) then
-    return false
-  end
-
-  return cls.__parent or false
 end
 
 function get_ancestors(cls)
@@ -142,18 +134,15 @@ function is_ancestor_of(x, y)
   return false
 end
 
-function is_callable(f) return type(f) == "function" or mtget(f, "__call") end
-
 function get_methods(obj)
-  return dict.grep(obj, function(_, value)
-    return is_callable(value)
-  end)
+  return dict.grep(obj, function(_, value) return is_callable(value) end)
 end
 
 function get_vars(obj)
-  return dict.grep(obj, function(_, value)
-    return is_callable(value) ~= true
-  end)
+  return dict.grep(
+    obj,
+    function(_, value) return is_callable(value) ~= true end
+  )
 end
 
 function get_method(obj, k)
@@ -188,8 +177,8 @@ function include(obj, t, opts)
       obj[key] = value
     elseif opts.attrib then
       obj[key] = function(self, ...)
-        if is_class(self) then
-          return value(self[opts.attrib] or self, ...)
+        if is_instance(self) then
+          return value(self[opts.attrib], ...)
         else
           return value(self, ...)
         end
@@ -204,10 +193,6 @@ end
 
 function is_child_of(child, parent)
   return get_parent(child) == get_class(parent)
-end
-
-function get_name(obj) 
-	return is_class(obj) and obj.__name
 end
 
 local function super(obj)
@@ -246,20 +231,15 @@ Class.get_ancestors = get_ancestors
 
 function create_class(name, parent, opts)
   if parent then
-    assert(is_class(parent), "class expected, got " .. type(parent))
+    assert(
+      is_class(parent) and not is_instance(parent),
+      "non-instantiated class expected, got " .. type(parent)
+    )
   end
 
   opts = opts or {}
-  local cls = copy(Class)
-  cls.new = nil
-  cls.class = cls
-  cls.__name = name
-  local mt = {}
-
-  if parent then
-    include(cls, parent)
-    cls.__parent = parent
-  end
+  local mt = { name = name, parent = parent, type = "class" }
+  local cls = setmetatable(copy(Class), mt)
 
   local __eq = opts.__eq
   if __eq then
@@ -276,45 +256,47 @@ function create_class(name, parent, opts)
   end
 
   local include = opts.include
-  local struct = opts.struct
   local attrib = opts.attrib
 
-  if include and attrib and struct then
-    include(cls, include, { ignore_methods = true, attrib = attrib })
-  elseif include and attrib then
+  if include and attrib then
     include(cls, include, { attrib = attrib })
-  elseif include and struct then
-    include(cls, include, { ignore_methods = true })
   elseif include then
     include(cls, include)
   end
 
-  function cls.__newindex(obj, k, v)
-    if obj == cls then
-      if valid_mt_ks[k] then
+  function cls.__newindex(self, k, v)
+    if valid_mt_ks[k] then
+      if is_instance(self) then
+        error "cannot set metamethod on an instance"
+      else
         mt[k] = v
       end
+    else
+      rawset(self, k, v)
     end
-    rawset(obj, k, v)
   end
 
-  function cls.__index(obj, k)
-    if obj ~= cls then
-      return cls[k]
-    elseif mt[k] then
-      return mt[k]
-    elseif parent then
-      return parent[k]
+  function cls.__index(self, k)
+    if Class[k] then
+      return Class[k]
+    else
+      local _cls = get_class(self)
+      local _mt = mtget(cls)
+      local _parent = get_parent(cls)
+      if cls ~= _cls then
+        return _cls[k]
+      elseif valid_mt_ks[k] and _mt[k] then
+        return _mt[k]
+      elseif _parent then
+        return _parent[k]
+      end
     end
   end
 
   cls.new = function(...)
-    local obj = setmetatable({}, cls)
-    obj.__instance = true
-    obj.__parent = parent
-    obj.__name = name
-    obj.class = cls
-
+    local obj = setmetatable(copy(cls), cls)
+    obj.__newindex = nil
+    obj.__index = nil
     if obj.init then
       obj:init(...)
     elseif parent and parent.init then
@@ -324,12 +306,11 @@ function create_class(name, parent, opts)
     return obj
   end
 
+  mt.__newindex = cls.__newindex
+  mt.__index = cls.__index
   function mt:__call(...) return cls.new(...) end
-  mt.name = name
-  mt.parent = parent
-  mt.type = 'class'
-  
-  return setmetatable(cls, mt)
+
+  return cls
 end
 
 function Class.new(name, parent, opts) return create_class(name, parent, opts) end
@@ -341,12 +322,6 @@ function class(name, parent, opts)
   _G[name] = cls
 
   return cls
-end
-
-function struct(name, parent, opts)
-  opts = opts or {}
-  opts.struct = true
-  return Class.new(name, parent, opts)
 end
 
 function datashape(name, parent, opts)

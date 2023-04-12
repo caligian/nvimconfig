@@ -36,11 +36,12 @@ local function _is_a(x, y)
       local mt = getmetatable(x)
       if not mt then
         return { type = "table" }
-      end
-      if mt.type and mt.name then
+      elseif mt.type and mt.name then
         return { name = mt.name, type = mt.type }
       elseif mt.type then
         return { type = mt.type }
+      elseif is_function(mt.__call) then
+        return { type = 'callable' }
       else
         return { type = "table" }
       end
