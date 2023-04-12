@@ -39,10 +39,6 @@ colorscheme = config_table
 }
 --]]
 function Colorscheme.loadall()
-  if Colorscheme.loaded then
-    return
-  end
-
   local function get_name(p)
     return vim.fn.fnamemodify(p, ":t:r")
   end
@@ -77,14 +73,14 @@ function Colorscheme.loadall()
   end)
 
   table.each(exclude, function(name)
-    if string.match_any(name, "colorscheme", "init") then
+    if string.match_any(name, "Colorscheme", "init") then
       return
     end
 
-    local defaults = require("core.plugins.colorscheme." .. name) or {}
+    local defaults = req("core.plugins.colorscheme." .. name) or {}
     local user_config = req("user.colorscheme." .. name) or {}
 
-    table.teach(defaults, function(color, f)
+    dict.each(defaults, function(color, f)
       local callback
       if user_config[color] then
         validate {
@@ -163,3 +159,5 @@ function Colorscheme.setdark()
   Colorscheme.set(required, conf)
   vim.o.background = "dark"
 end
+
+Colorscheme.loadall()

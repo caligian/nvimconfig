@@ -1,3 +1,5 @@
+require 'core.plugins.colorscheme.Colorscheme'
+
 user.plugins.colorscheme = {
   colorscheme = user.colorscheme,
   config = {},
