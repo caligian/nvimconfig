@@ -5,6 +5,7 @@ local Mt = {}
 setmetatable(Class, Mt)
 
 local valid_mt_ks = {
+  __unm = true,
   __eq = true,
   __ne = true,
   __ge = true,
@@ -30,7 +31,7 @@ local function assert_is_class(cls)
   assert(is_class(cls), "expected class, got " .. tostring(cls))
 end
 
-local comparators = {
+comparators = {
   eq = function(self, other)
     assert_is_class(other)
 
@@ -52,9 +53,7 @@ local comparators = {
         ok = self[key] == value
       end
 
-      if not ok then
-        return false
-      end
+      if not ok then return false end
     end
 
     return true
@@ -74,51 +73,42 @@ local comparators = {
         ok = self[key] == value
       end
 
-      if not ok then
-        return false
-      end
+      if not ok then return false end
     end
 
     return true
   end,
 
-  name = function(self, other)
-    return get_name(self) == get_name(other)
-  end,
+  name = function(self, other) return get_name(self) == get_name(other) end,
 }
 
 comparators.not_equal = function(self, other)
   return comparators.equal(self, other)
 end
-comparators.not_eq = function(self, other)
-  return comparators.eq(self, other)
-end
+comparators.not_eq = function(self, other) return comparators.eq(self, other) end
 comparators.not_name = function(self, other)
   return comparators.name(self, other)
 end
 
-function is_instance(inst)
-  return is_class(inst) and mtget(inst, "instance")
-end
+function is_instance(inst) return is_class(inst) and inst.__instance end
 
 function is_instance_of(inst, cls)
   return is_instance(inst) and get_class(inst) == get_class(cls) or false
 end
 
 function get_parent(cls)
-  if is_instance(cls) or is_class(cls) then
-    return mtget(cls, "parent")
+  if not is_class(cls) then
+    return false
   end
-  return false
+
+  return cls.__parent or false
 end
 
 function get_ancestors(cls)
   cls = get_class(cls)
   local ancestors = {}
   local ancestor = get_parent(cls)
-  if not ancestor then
-    return
-  end
+  if not ancestor then return end
   ancestors[1] = ancestor
   local i = 2
 
@@ -138,69 +128,47 @@ function is_parent_of(cls, inst)
 end
 
 function is_ancestor_of(x, y)
-  if not is_class(x) or not is_class(y) then
-    return false
-  end
+  if not is_class(x) or not is_class(y) then return false end
 
   local parent = x
   local child_parent = get_parent(y)
-  if parent == child_parent then
-    return true
-  end
+  if parent == child_parent then return true end
 
   while parent do
     parent = get_parent(parent)
-    if parent == child_parent then
-      return true
-    end
+    if parent == child_parent then return true end
   end
 
   return false
 end
 
-function is_callable(f)
-  return type(f) == "function" or mtget(f, "__call")
+function is_callable(f) return type(f) == "function" or mtget(f, "__call") end
+
+function get_methods(obj)
+  return dict.grep(obj, function(_, value)
+    return is_callable(value)
+  end)
 end
 
 function get_vars(obj)
-  local out = {}
-  for key, value in pairs(obj) do
-    if not is_callable(value) then
-      out[key] = value
-    end
-  end
-  return out
-end
-
-function get_methods(obj)
-  local out = {}
-  for key, value in pairs(obj) do
-    if is_callable(value) then
-      out[key] = value
-    end
-  end
-  return out
+  return dict.grep(obj, function(_, value)
+    return is_callable(value) ~= true
+  end)
 end
 
 function get_method(obj, k)
   local methods = get_methods(obj)
-  if not methods then
-    return
-  end
+  if not methods then return end
   return methods[k]
 end
 
 function get_var(obj, k)
   local vars = get_vars(obj)
-  if not vars then
-    return
-  end
+  if not vars then return end
   return vars[k]
 end
 
-function get_attrib(obj, k)
-  return obj[k]
-end
+function get_attrib(obj, k) return obj[k] end
 
 function get_attribs(obj)
   local out = {}
@@ -210,24 +178,27 @@ function get_attribs(obj)
   return out
 end
 
-function include(obj, t, use_attrib, ignore_methods)
-  for key, value in pairs(t) do
-    if is_callable(value) then
-      if valid_mt_ks[key] and key ~= "__newindex" and key ~= "__index" then
-        obj[key] = value
-      elseif not ignore_methods then
-        obj[key] = function(inst, ...)
-          if inst and is_class(inst) then
-            return value(inst[use_attrib] or inst, ...)
-          else
-            return value(inst, ...)
-          end
+function include(obj, t, opts)
+  assert(is_table(t), "table expected, got " .. tostring(t))
+
+  opts = opts or {}
+
+  dict.each(t, function(key, value)
+    if not is_callable(value) then
+      obj[key] = value
+    elseif opts.attrib then
+      obj[key] = function(self, ...)
+        if is_class(self) then
+          return value(self[opts.attrib] or self, ...)
+        else
+          return value(self, ...)
         end
       end
-    else
+    elseif not opts.ignore_methods then
       obj[key] = value
     end
-  end
+  end)
+
   return obj
 end
 
@@ -235,30 +206,20 @@ function is_child_of(child, parent)
   return get_parent(child) == get_class(parent)
 end
 
-function get_name(obj)
-  return is_class(obj) and mtget(obj, "name")
+function get_name(obj) 
+	return is_class(obj) and obj.__name
 end
 
 local function super(obj)
   local parent = get_parent(obj)
-  if parent and parent.init then
-    return parent.init
-  end
-  return function(...)
-    return ...
-  end
+  if parent and parent.init then return parent.init end
+  return function(...) return ... end
 end
 
 local function is_a(x, y)
-  if x == y then
-    return true
-  end
-  if not is_class(x) then
-    return false
-  end
-  if not is_class(y) then
-    return false
-  end
+  if x == y then return true end
+  if not is_class(x) then return false end
+  if not is_class(y) then return false end
 
   return get_class(x) == get_class(y) or is_ancestor_of(y, x) or false
 end
@@ -283,142 +244,99 @@ Class.super = super
 Class.is_a = is_a
 Class.get_ancestors = get_ancestors
 
-local function create_instance(cls, opts, ...)
-  if cls then
-    assert(is_class(cls), "class expected, got " .. type(cls))
-  end
-
-  opts = opts or {}
-  local obj = { class = cls }
-  local mt = {}
-
-  if opts.include then
-    assert(is_table(opts.include), "table expected, got " .. tostring(opts.include))
-    if opts.struct then
-      include(obj, opts.include, nil, true)
-    else
-      include(obj, opts.include, opts.include_using_attrib)
-    end
-  elseif opts.struct then
-    include(obj, cls, nil, true)
-  elseif opts.include_using_attrib then
-    include(obj, cls, opts.include_using_attrib)
-  else
-    include(obj, cls)
-  end
-
-  for key, value in pairs(mtget(cls)) do
-    if valid_mt_ks[key] then
-      mt[key] = value
-    end
-  end
-
-  ---
-  -- comparison methods:
-  -- all of these will set __eq and __ne
-  -- equal  (false)  compare tables. tables will be compared using ==
-  -- eq     (false)  compare attribs. tables will be deep compared
-  -- name   (false)  compare class names
-  -- attrib {string} compare by this instance attribute. Can be used with callback
-  -- callback {callable} compare objects using this callback
-  local __eq = opts.__eq
-  if __eq then
-    if __eq.equal then
-      mt.__eq = comparators.equal
-      mt.__ne = comparators.not_equal
-    elseif __eq.eq then
-      mt.__eq = comparators.eq
-      mt.__ne = comparators.not_equal
-    elseif __eq.name then
-      mt.__eq = comparators.name
-      mt.__ne = comparators.not_name
-    end
-  end
-
-  mt.type = "class"
-  mt.class = cls
-  mt.instance = true
-  mt.name = mtget(cls, "name")
-  local parent = get_parent(cls)
-  mt.parent = parent
-
-  function mt:__newindex(k, v)
-    if valid_mt_ks[k] then
-      mt[k] = v
-    end
-    rawset(self, k, v)
-  end
-
-  function mt:__index(k)
-    if valid_mt_ks[k] and mt[k] then
-      return mt[k]
-    elseif parent then
-      return parent[k]
-    end
-  end
-
-  setmetatable(obj, mt)
-
-  if cls.init then
-    cls.init(obj, ...)
-  elseif parent and parent.init then
-    parent.init(obj, ...)
-  end
-
-  return obj
-end
-
-local function create_class(name, parent, opts)
+function create_class(name, parent, opts)
   if parent then
     assert(is_class(parent), "class expected, got " .. type(parent))
   end
 
+  opts = opts or {}
   local cls = copy(Class)
   cls.new = nil
+  cls.class = cls
+  cls.__name = name
   local mt = {}
-  setmetatable(cls, mt)
-  mt.type = "class"
-  mt.name = name
-  mt.parent = parent
+
   if parent then
     include(cls, parent)
+    cls.__parent = parent
   end
 
-  function mt:__newindex(k, v)
-    if valid_mt_ks[k] then
-      mt[k] = v
+  local __eq = opts.__eq
+  if __eq then
+    if __eq.equal then
+      cls.__eq = comparators.equal
+      cls.__ne = comparators.not_equal
+    elseif __eq.eq then
+      cls.__eq = comparators.eq
+      cls.__ne = comparators.not_equal
+    elseif __eq.name then
+      cls.__eq = comparators.name
+      cls.__ne = comparators.not_name
     end
-    rawset(self, k, v)
   end
 
-  function mt:__index(k)
-    if valid_mt_ks[k] and mt[k] then
+  local include = opts.include
+  local struct = opts.struct
+  local attrib = opts.attrib
+
+  if include and attrib and struct then
+    include(cls, include, { ignore_methods = true, attrib = attrib })
+  elseif include and attrib then
+    include(cls, include, { attrib = attrib })
+  elseif include and struct then
+    include(cls, include, { ignore_methods = true })
+  elseif include then
+    include(cls, include)
+  end
+
+  function cls.__newindex(obj, k, v)
+    if obj == cls then
+      if valid_mt_ks[k] then
+        mt[k] = v
+      end
+    end
+    rawset(obj, k, v)
+  end
+
+  function cls.__index(obj, k)
+    if obj ~= cls then
+      return cls[k]
+    elseif mt[k] then
       return mt[k]
     elseif parent then
       return parent[k]
     end
   end
 
-  function mt:__call(...)
-    return create_instance(self, opts, ...)
-  end
-
   cls.new = function(...)
-    return create_instance(cls, opts, ...)
+    local obj = setmetatable({}, cls)
+    obj.__instance = true
+    obj.__parent = parent
+    obj.__name = name
+    obj.class = cls
+
+    if obj.init then
+      obj:init(...)
+    elseif parent and parent.init then
+      parent.init(obj, ...)
+    end
+
+    return obj
   end
 
-  return cls
+  function mt:__call(...) return cls.new(...) end
+  mt.name = name
+  mt.parent = parent
+  mt.type = 'class'
+  
+  return setmetatable(cls, mt)
 end
 
-function Class.new(name, parent, opts)
-  return create_class(name, parent, opts)
-end
+function Class.new(name, parent, opts) return create_class(name, parent, opts) end
 
-function Mt.__call(_, name, parent, opts)
-  return Class.new(name, parent, opts)
-end
+function Mt.__call(_, name, parent, opts) return Class.new(name, parent, opts) end
 
-function class(name, parent)
+function class(name, parent, opts)
   local cls = Class(name, parent)
   _G[name] = cls
 

@@ -30,7 +30,26 @@ function is_thread(x) return type(x) == "thread" end
 function is_boolean(x) return type(x) == "boolean" end
 function is_function(x) return type(x) == "function" end
 function is_nil(x) return x == nil end
-function is_class(obj) return mtget(obj, "type") == "class" end
+
+function is_class(obj) 
+  if not is_table(obj) then
+    return false
+  end
+
+  if obj.class then
+		local mt = mtget(obj)
+		if not mt then return false end
+		while mt do
+			if mt.type == 'class' then
+				return true
+			else
+				mt = mtget(mt)
+			end
+		end
+  end
+
+	return false
+end
 
 function is_callable(x)
   if is_function(x) then return true end
@@ -47,6 +66,8 @@ end
 function typeof(obj)
   if is_class(obj) then
     return "class"
+  elseif mtget(obj, 'type') then
+    return mtget(obj, 'type')
   elseif is_callable(obj) then
     return "callable"
   elseif is_table(obj) then
@@ -58,7 +79,7 @@ end
 
 function get_class(cls)
   if is_instance(cls) then
-    return mtget(cls, "class")
+    return cls.class
   elseif is_class(cls) then
     return cls
   end

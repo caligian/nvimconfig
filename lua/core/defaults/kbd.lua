@@ -73,11 +73,12 @@ K.bind(
   },
 
   -- Scratch buffer stuff
-  { ",", ":OpenScratch<CR>", { desc = "Open scratch buffer", name = "open_scratch" } },
+  { ",", ":OpenScratch<CR>", { name = "open_scratch" } },
+  { "F", ":OpenScratchFloat<CR>", { name = "open_scratch_float" } },
   {
     ";",
     ":OpenScratchVertically<CR>",
-    { desc = "Open scratch buffer vertically", name = "open_scratch_vertically" },
+    { name = "open_scratch_vertically" },
   },
 
   -- Named tab switching (optional)

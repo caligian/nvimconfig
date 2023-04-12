@@ -19,7 +19,7 @@ local function parse_opts(opts)
   opts = opts or {}
   local parsed = { au = {}, kbd = {}, misc = {} }
 
-  table.teach(opts, function(k, v)
+  dict.each(opts, function(k, v)
     -- For autocommands
     if string.match_any(k, "pattern", "once", "nested", "group") then
       parsed.au[k] = v
@@ -259,4 +259,9 @@ function K.replace(self, cb)
     self:delete()
     return K.new(self.mode, self.lhs, cb, lmerge(opts or {}, self.opts))
   end)
+end
+
+--- @see vim.keymap.del
+function K.unmap(...)
+  vim.keymap.del(...)
 end
