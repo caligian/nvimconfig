@@ -1,12 +1,23 @@
-require "core.bufgroups.Bufgroup"
-local Pool = Class.new "BufgroupPool"
+-- require "core.bufgroups.Bufgroup"
+require 'core.bufgroups.Bufgroup'
+
+class "BufgroupPool"
+
+local Pool = BufgroupPool
 
 function Pool:init(name)
   self.name = name
   self.groups = {}
 end
 
+-- @param group Name of the group. The group will be prefixed by <pool-name>.group
 function Pool:add(group, event, pattern)
+  validate {
+    group_name = {'string', group},
+    event = {is {'string', 'table'}, event},
+    pattern = {is {'string', 'table'}, pattern}
+  }
+
   local bufgroup = Bufgroup(group, event, pattern, self.name)
   self.groups[group] = bufgroup
   bufgroup:enable()
@@ -14,12 +25,14 @@ function Pool:add(group, event, pattern)
   return self.groups[group]
 end
 
-function Pool:remove(group)
+function Pool:remove(group, bufnr)
   group = self.groups[isa("string", group)]
-  if group then
-    group:delete()
+
+  if group and bufnr then
+    group:delete(bufnr)
+  else
+    self.groups[group] = nil
   end
-  self.groups[group] = nil
 
   return group
 end
@@ -125,4 +138,56 @@ function Pool.get(name, assrt)
     assert(pool, "invalid pool name " .. name .. " given")
   end
   return pool
+end
+
+function Pool.create_picker_for_buffer(bufnr)
+  bufnr = isa('number', bufnr)
+  assert(buffer.exists(bufnr), 'expected valid buffer, got ' .. bufnr)
+  assert(Bufgroup.BUFFERS[bufnr], 'expected grouped buffer')
+
+  local groups = dict.keys(Bufgroup.BUFFERS[bufnr].groups)
+  if #groups == 1 then
+    local group = Bufgroup.get(nil, groups[1], true)
+    return group:create_picker()
+  end
+
+  local _ = utils.telescope.load()
+  local mod = _.create_actions_mod()
+
+  local results =  {
+    results = groups,
+    entry_maker = function (x)
+      x = Bufgroup.BUFGROUPS[x]
+      return {
+        bufnr = bufnr,
+        group = x.name,
+        value = x,
+        display = sprintf('%s @ %s', x.name, table.concat(x.pattern, " ")),
+        ordinal = -1,
+      }
+    end
+  }
+
+  local default_action = function(prompt_bufnr)
+    local sel = _.get_selected(prompt_bufnr)[1]
+    local x = sel.value
+    local picker = x:create_picker()
+    if not picker then return false end
+    picker:find()
+  end
+
+  function mod.remove(sel)
+    sel.value:remove(sel.bufnr)
+  end
+
+  return _.new_picker(
+    results, 
+    {
+      default_action,
+      {'n', 'x', mod.remove}
+    },
+    {
+      prompt_title = 'Select buffer group'
+    }
+  )
 end
