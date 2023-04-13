@@ -621,11 +621,15 @@ dict = {
   isblank = table.isblank,
   keys = table.keys,
   values = table.values,
+  todict = table.todict,
   copy = vim.deepcopy,
   items = table.items,
+  compare = table.compare,
+  makepath = table.makepath,
 }
 
 array = {
+  join = table.concat,
   append = table.append,
   iappend = table.iappend,
   unshift = table.unshift,
@@ -655,4 +659,8 @@ array = {
   zip2 = table.zip2,
   zip = table.zip,
   flatten = table.flatten,
+  compare = table.compare,
+  makepath = table.makepath,
+  tolist = table.tolist,
+  toarray = table.tolist,
 }

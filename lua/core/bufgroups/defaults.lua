@@ -1,4 +1,6 @@
-require "core.bufgroups.BufGroup"
+require "core.bufgroups.Bufgroup"
+-- local pool = require 'core.bufgroups.Pool'
+local pool = loadfile('Pool.lua')
 
 local get_path = function(ws, p)
   p = p:gsub("^/?", "")
@@ -40,16 +42,18 @@ user.bufgroups = {
   },
 }
 
+req 'user.bufgroups'
+
 local M = user.bufgroups
 local pools = M._pools
 local defaults = user.bufgroups.defaults
 
-function M.create_default_pools(overwrite)
+function M.setup(overwrite)
   overwrite = overwrite == nil and true or false
 
   dict.each(defaults.pools, function(name, groups)
     if not pools[name] or overwrite then
-      pools[name] = BufGroupPool(name)
+      pools[name] = pool(name)
       local pool = pools[name]
       dict.each(groups, function(group, pat)
         pool:add(group, pat)
@@ -58,4 +62,4 @@ function M.create_default_pools(overwrite)
   end)
 end
 
-M.create_default_pools()
+M.setup()

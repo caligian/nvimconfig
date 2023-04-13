@@ -1,12 +1,12 @@
 -- groups are matched by lua regex
 -- Bufgroup = {
 --   GROUPS = {},
---   POOLS = {},
 -- }
 
-class "Bufgroup"
-
-Bufgroup.POOLS = {}
+if not Bufgroup then class "Bufgroup" end
+Bufgroup.BUFGROUPS = Bufgroup.BUFGROUPS or {}
+Bufgroup.POOLS = Bufgroup.POOLS or {}
+Bufgroup.BUFFERS = {}
 
 function Bufgroup:init(name, event, pattern, pool)
   validate {
@@ -17,24 +17,23 @@ function Bufgroup:init(name, event, pattern, pool)
   }
 
   pool = pool or "default"
-  self.name = name
+  self.name = pool .. "." .. name
   opts = opts or {}
-  self.event = event or "BufRead"
+  self.event = table.tolist(event or "BufRead")
   self.pattern = table.tolist(pattern)
   self.augroup = false
   self.callbacks = {}
   self.buffers = {}
   self.pool = pool
 
-  dict.update(Bufgroup.POOLS, { pool, name }, self)
+  dict.update(Bufgroup.POOLS, { pool, self.name }, self)
+  dict.update(Bufgroup.BUFGROUPS, self.name, self)
 end
 
 function Bufgroup:is_eligible(bufnr)
   bufnr = bufnr or vim.fn.bufnr()
 
-  if vim.fn.bufexists(bufnr) == -1 then
-    return false
-  end
+  if vim.fn.bufexists(bufnr) == -1 then return false end
 
   local bufname = vim.api.nvim_buf_get_name(bufnr)
   local success = false
@@ -45,18 +44,14 @@ function Bufgroup:is_eligible(bufnr)
     end
   end
 
-  if not success then
-    return false
-  end
+  if not success then return false end
 
   return bufnr, bufname
 end
 
 function Bufgroup:add(bufnr)
   local bufnr, bufname = self:is_eligible(bufnr)
-  if not bufnr then
-    return false
-  end
+  if not bufnr then return false end
 
   self.buffers[bufnr] = {
     bufnr = bufnr,
@@ -66,6 +61,11 @@ function Bufgroup:add(bufnr)
     pattern = self.pattern,
     group = self.name,
   }
+
+  table.makepath(Bufgroup.BUFFERS, bufnr, 'pools')
+  table.makepath(Bufgroup.BUFFERS, bufnr, 'groups')
+  Bufgroup.BUFFERS[bufnr].pools[self.pool] = self.pool
+  Bufgroup.BUFFERS[bufnr].groups[self.name] = self.name
 
   return self
 end
@@ -93,9 +93,10 @@ function Bufgroup:list(telescope)
   end
 
   return {
-    results = array.imap(dict.values(self.buffers), function(idx, state)
-      return { state.bufnr, state.bufname, idx }
-    end),
+    results = array.imap(
+      dict.values(self.buffers),
+      function(idx, state) return { state.bufnr, state.bufname, idx } end
+    ),
     entry_maker = function(entry)
       return {
         value = entry,
@@ -111,18 +112,17 @@ function Bufgroup:list(telescope)
 end
 
 function Bufgroup:enable()
-  if self.augroup then
-    return
-  end
+  if self.augroup then return end
 
   self.augroup = Augroup("bufgroup" .. self.name)
   self.augroup:add("register", self.event, {
     pattern = "*",
     callback = function(opts)
       if self:add() then
-        array.each(dict.values(self.callbacks), function(callback)
-          callback(self, opts)
-        end)
+        array.each(
+          dict.values(self.callbacks),
+          function(callback) callback(self, opts) end
+        )
       end
     end,
   })
@@ -142,19 +142,25 @@ function Bufgroup:register(name, callback)
 end
 
 function Bufgroup.get(pool, name, ass)
-  pool = pool or "default"
-  local group = dict.get(Bufgroup.POOLS, { pool, name })
-  if ass then
-    assert(group, sprintf("group %s not found in pool %s", name, pool))
+  assert(name, 'no group name supplied')
+
+  local group
+  if not pool then
+    group = Bufgroup.BUFGROUPS[name]
+  else
+    group = dict.contains(Bufgroup.POOLS, pool, name)
   end
+
+  if ass then
+    assert(group, sprintf("group %s not found", name))
+  end
+
   return group
 end
 
 function Bufgroup:create_picker(opts)
   local ls = self:list(true)
-  if not ls then
-    return
-  end
+  if not ls then return end
   local _ = utils.telescope.load()
   local mod = _.create_actions_mod()
 
@@ -165,17 +171,14 @@ function Bufgroup:create_picker(opts)
 
   function mod.add_pattern()
     local pattern = vim.fn.input "Lua pattern % "
-    if #pattern == 0 then
-      return
-    end
+    if #pattern == 0 then return end
     self.pattern[#self.pattern + 1] = pattern
   end
 
   function mod.edit_pattern()
-    local pattern = vim.fn.input("Lua pattern % ", table.concat(self.pattern, " :: "))
-    if #pattern == 0 then
-      return
-    end
+    local pattern =
+      vim.fn.input("Lua pattern % ", table.concat(self.pattern, " :: "))
+    if #pattern == 0 then return end
     self.pattern = pattern:split "%s*::%s*"
   end
 
@@ -190,7 +193,7 @@ function Bufgroup:create_picker(opts)
     { "n", "a", mod.add_pattern },
     { "n", "e", mod.edit_pattern },
   }, {
-    prompt_title = "Buffer group: " .. self.pool .. "." .. self.name,
+    prompt_title = "Buffer group: " .. self.name,
   })
 
   return picker
