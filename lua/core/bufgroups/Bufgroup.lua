@@ -17,16 +17,16 @@ function Bufgroup:init(name, event, pattern, pool)
   }
 
   pool = pool or "default"
-  self.name = pool .. "." .. name
-  opts = opts or {}
-  self.event = table.tolist(event or "BufRead")
+  name = pool .. '.'.. name
+  self.name = name
+  self.event = table.tolist(event or "BufAdd")
   self.pattern = table.tolist(pattern)
   self.augroup = false
   self.callbacks = {}
   self.buffers = {}
   self.pool = pool
 
-  dict.update(Bufgroup.POOLS, { pool, self.name }, self)
+  dict.update(Bufgroup.POOLS, { self.pool, self.name }, self)
   dict.update(Bufgroup.BUFGROUPS, self.name, self)
 end
 
@@ -105,7 +105,7 @@ function Bufgroup:list(telescope)
         bufname = entry[2],
         bufnr = entry[1],
         pool = self.pool,
-        group = self.group,
+        group = self.name,
       }
     end,
   }
@@ -197,4 +197,24 @@ function Bufgroup:create_picker(opts)
   })
 
   return picker
+end
+
+function Bufgroup.create_main_picker()
+  local ls = table.keys(Bufgroup.BUFGROUPS)
+  table.sort(ls)
+  if array.isblank(ls) then return end
+  local _ = utils.telescope.load()
+
+  local function default_action(prompt_bufnr)
+    local sel = _.get_selected(prompt_bufnr)[1][1]
+    local group = Bufgroup.BUFGROUPS[sel]
+    local picker = group:create_picker()
+    if picker then picker:find() end
+  end
+
+  return _.new_picker(
+    ls,
+    default_action,
+    {prompt_title = 'All buffer groups'}
+  )
 end

@@ -128,3 +128,25 @@ function copy(obj, deep)
 
   return out
 end
+
+function utils.command(name, callback, opts)
+  opts = opts or {}
+  return vim.api.nvim_create_user_command(name, callback, opts or {})
+end
+
+utils.del_command = vim.api.nvim_del_user_command
+
+-- form: {var, <input-option> ...}
+function input(...)
+  local out = {}
+  for _, form in ipairs {...} do
+    assert(is_a.table(form) and #form >= 1, 'form: {var, [rest vim.fn.input args]}')
+    local name = form[1]
+    local s = vim.fn.input(form[2] or name .. ' % ', unpack(table.rest(table.rest(form))))
+    
+    if #s == 0 then pp("\nexpected string for param " .. name); return end
+    out[name] = s
+  end
+
+  return out
+end

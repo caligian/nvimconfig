@@ -20,7 +20,7 @@ function Process._on_exit(self, cb)
     j.exit_code = exit_code
 
     if cb then
-      cb(j)
+      cb(j, exit_code)
     end
   end)
 end
@@ -29,12 +29,12 @@ function Process._on_stderr(self, cb)
   self.stderr = self.stderr or {}
   local stderr = self.stderr
 
-  return vim.schedule_wrap(function(j, d)
+  return vim.schedule_wrap(function(_, d)
     if d then
-      table.extend(stderr, parse(d, self.stderr))
+      parse(d, self.stderr)
     end
     if cb then
-      cb(table.get(j))
+      cb(self, d)
     end
   end)
 end
@@ -42,13 +42,12 @@ end
 function Process._on_stdout(self, cb)
   self.stdout = self.stdout or {}
   local stdout = self.stdout
-
-  return vim.schedule_wrap(function(j, d)
+  return vim.schedule_wrap(function(_, d)
     if d then
-      table.extend(stdout, parse(d, self.stdout))
+      parse(d, self.stdout)
     end
     if cb then
-      cb(table.get(j))
+      cb(self, d)
     end
   end)
 end
@@ -71,22 +70,21 @@ function Process.init(self, command, opts)
   opts.cwd = opts.cwd or vim.fn.getcwd()
   opts.stdin = opts.stdin == nil and "pipe" or opts.stdin
 
-  if not opts.terminal then
-    if not opts.on_stderr then
-      opts.on_stderr = self:_on_stderr()
-    else
-      local current = opts.on_stderr
-      opts.on_stderr = self:_on_stderr(current)
-    end
-
-    if not opts.on_stdout then
-      opts.on_stdout = self:_on_stdout()
-    else
-      local current = opts.on_stdout
-      opts.on_stdout = self:_on_stdout(current)
-    end
+  if not opts.on_stderr then
+    opts.on_stderr = self:_on_stderr()
   else
-    -- For the terminal buffer
+    local current = opts.on_stderr
+    opts.on_stderr = self:_on_stderr(current)
+  end
+
+  if not opts.on_stdout then
+    opts.on_stdout = self:_on_stdout()
+  else
+    local current = opts.on_stdout
+    opts.on_stdout = self:_on_stdout(current)
+  end
+
+  if opts.terminal then
     self.buffer = Buffer(false, true)
   end
 
@@ -161,7 +159,7 @@ function Process.send(self, s)
   end
 
   validate {
-    s = is { "s", "t" },
+    s = {is { "s", "t" }, s},
   }
 
   if is_a.t(s) then
