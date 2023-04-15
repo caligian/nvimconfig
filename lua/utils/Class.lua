@@ -1,8 +1,11 @@
 require "utils.table"
+require 'utils.errors'
 
-Class = {}
 local Mt = {}
-setmetatable(Class, Mt)
+Class = setmetatable({}, Mt)
+Class.exception = Exception('Class')
+Class.exception.not_a_class = 'class/instance expected'
+Class.exception.not_an_instance = 'instance expected'
 
 local valid_mt_ks = {
   __unm = true,
@@ -240,8 +243,11 @@ function create_class(name, parent, opts)
   opts = opts or {}
   local mt = { name = name, parent = parent, type = "class" }
   local cls = setmetatable(copy(Class), mt)
-
   local __eq = opts.__eq
+  local include = opts.include
+  local attrib = opts.attrib
+  local defaults = opts.defaults
+
   if __eq then
     if __eq.equal then
       cls.__eq = comparators.equal
@@ -255,13 +261,14 @@ function create_class(name, parent, opts)
     end
   end
 
-  local include = opts.include
-  local attrib = opts.attrib
-
   if include and attrib then
     include(cls, include, { attrib = attrib })
   elseif include then
     include(cls, include)
+  end
+
+  if defaults then
+    dict.merge(cls, defaults)
   end
 
   function cls.__newindex(self, k, v)
@@ -293,6 +300,24 @@ function create_class(name, parent, opts)
     end
   end
 
+  function cls:__tostring()
+    local out = {}
+
+    dict.each(
+      dict.merge(get_vars(self), get_methods(self)), 
+      function (key, value)
+        if is_class(value) then
+          out[key] =  '(class) ' .. get_name(value) 
+        elseif is_table(value) then
+          out[key] = 'table'
+        else
+          out[key] = dump(value)
+        end
+      end)
+
+    return (get_name(self) or 'class') .. ' ' .. dump(out)
+  end
+
   cls.new = function(...)
     local obj = setmetatable(copy(cls), cls)
     obj.__newindex = nil
@@ -306,6 +331,7 @@ function create_class(name, parent, opts)
     return obj
   end
 
+  mt.__tostring = cls.__tostring
   mt.__newindex = cls.__newindex
   mt.__index = cls.__index
   function mt:__call(...) return cls.new(...) end
@@ -318,7 +344,7 @@ function Class.new(name, parent, opts) return create_class(name, parent, opts) e
 function Mt.__call(_, name, parent, opts) return Class.new(name, parent, opts) end
 
 function class(name, parent, opts)
-  local cls = Class(name, parent)
+  local cls = Class(name, parent, opts)
   _G[name] = cls
 
   return cls
@@ -334,4 +360,88 @@ function datashape(name, parent, opts)
   end
 
   return Class.new(name, parent, opts)
+end
+
+function classpool(name, cls, state_var)
+  local ex = Exception(name)
+  ex.invalid_object_key = 'expected valid key to get object'
+  ex.invalid_pool_key = 'expected valid key to get object pool'
+  ex.is_instance = 'class expected, got instance'
+
+  if not is_class(cls) then
+    Class.exception.not_a_class:throw(cls)
+  elseif is_instance(cls) then
+    ex.is_instance:throw(cls)
+  end
+
+  local pool = class(name)
+  pool.exception = ex
+  local var = state_var or name:upper()
+  pool[var] = {}
+  local state = pool[var]
+
+  function pool:init(pool_name)
+    self.name = pool_name
+    self.objects = {}
+    state[self.name] = self
+  end
+
+  function pool:add(obj_name, args, callback)
+    local obj = cls(unpack(args or {}))
+    obj = callback and callback(obj) or obj
+    self.objects[obj_name] = obj
+  end
+
+  function pool:create(obj_name, args, callback)
+    if not self.objects[obj_name] then
+      self:add(obj_name, args, callback)
+    end
+  end
+  
+  function pool:get_object(obj_name, assrt, create, ...)
+    local container = self.objects
+    local obj = self.objects[obj_name]
+
+    if create and not obj then
+      obj = cls(...)
+      container[obj_name] = obj
+    elseif assrt and not obj then
+      ex.invalid_object_key:throw(obj_name)
+    elseif not obj then
+      return
+    end
+
+    return obj
+  end
+
+  function pool:remove(obj_name, args, callback)
+    local obj = pool:get_object(obj_name)
+    local out
+
+    if not obj then return end
+    if obj.remove and #args > 0 then out = obj:remove(unpack(args)) end
+    if callback then callback(obj) end
+    self.groups[obj_name] = nil
+
+    return out or obj
+  end
+
+  function pool:delete()
+    state[self.name] = nil
+  end
+
+  function pool.get(pool_name, obj_name, assrt, create, ...)
+    local pool_obj = state[pool_name]
+    if create and not pool_obj then
+      pool_obj = pool(pool_name)
+    elseif assrt and not pool_obj then
+      ex.invalid_pool_key:throw(pool_name)
+    elseif not pool_obj then
+      return
+    end
+
+    return pool_obj:get_object(obj_name, assrt, create, ...) 
+  end
+
+  return pool
 end

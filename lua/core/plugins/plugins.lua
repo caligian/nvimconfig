@@ -107,7 +107,7 @@ local plugins = {
     config = function()
       req "core.plugins.colorscheme"
     end,
-    priority = 10000,
+    priority = 300,
   },
 
   {
@@ -269,14 +269,6 @@ local plugins = {
     },
     config = function()
       req "core.plugins.treesitter"
-    end,
-  },
-
-  {
-    "wellle/context.vim",
-    event = "BufReadPost",
-    config = function()
-      req "core.plugins.context"
     end,
   },
 

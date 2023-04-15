@@ -31,6 +31,14 @@ function is_boolean(x) return type(x) == "boolean" end
 function is_function(x) return type(x) == "function" end
 function is_nil(x) return x == nil end
 
+function is_error(x)
+  return mtget(x, 'type') == 'error'
+end
+
+function is_exception(x)
+  return mtget(x, 'type') == 'exception'
+end
+
 function is_class(obj)
   if not is_table(obj) then return false end
 
@@ -136,13 +144,13 @@ end
 --
 require "utils.funcs"
 require "utils.debug"
+require "utils.string"
 require "utils.aliased"
 require "utils.table"
+require 'utils.errors'
 require "utils.Class"
 require "utils.Set"
-require "utils.Class"
 require "utils.types"
-require "utils.string"
 require "utils.nvim"
 require "utils.misc"
 require "utils.telescope"

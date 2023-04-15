@@ -1,12 +1,12 @@
--- groups are matched by lua regex
--- Bufgroup = {
---   GROUPS = {},
--- }
-
-if not Bufgroup then class "Bufgroup" end
-Bufgroup.BUFGROUPS = Bufgroup.BUFGROUPS or {}
-Bufgroup.POOLS = Bufgroup.POOLS or {}
-Bufgroup.BUFFERS = {}
+if not Bufgroup then
+  class('Bufgroup', nil, {
+    defaults = {
+      BUFGROUPS = {},
+      POOLS = {},
+      BUFFERS = {},
+    },
+  })
+end
 
 function Bufgroup:init(name, event, pattern, pool)
   validate {

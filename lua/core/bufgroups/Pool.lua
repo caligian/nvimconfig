@@ -146,7 +146,6 @@ function Pool.create_picker_for_buffer(bufnr)
   assert(Bufgroup.BUFFERS[bufnr], 'expected grouped buffer')
 
   local groups = dict.keys(Bufgroup.BUFFERS[bufnr].groups)
-  pp(groups)
   if #groups == 1 then
     local group = Bufgroup.get(nil, groups[1], true)
     return group:create_picker()
