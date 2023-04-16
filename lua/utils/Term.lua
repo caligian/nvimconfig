@@ -180,7 +180,7 @@ end
 
 function Term:send_visual_range(src_bufnr)
   src_bufnr = src_bufnr or vim.fn.bufnr()
-  return self:send(utils.visualrange(src_bufnr))
+  return self:send(buffer.range(src_bufnr))
 end
 
 function Term:terminate_input()
