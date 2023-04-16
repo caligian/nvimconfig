@@ -1,12 +1,11 @@
-if not REPL then
-  class("REPL", Term, { defaults = { REPL = {} } })
-end
+if not REPL then class("REPL", Term) end
 local exception = Exception "REPLException"
 exception.no_command = "No command given for filetype"
+user.repl = user.repl or {}
 
 function REPL.get(ft, bufnr)
   if ft == "sh" then
-    local exists = REPL.REPL.sh
+    local exists = user.repl.sh
     if exists and exists:is_running() then
       return exists
     end
@@ -14,7 +13,7 @@ function REPL.get(ft, bufnr)
 
   ft = ft or vim.bo.filetype
   bufnr = bufnr or vim.fn.bufnr()
-  local exists = dict.get(REPL.REPL, { ft, bufnr })
+  local exists = dict.get(user.repl, { ft, bufnr })
   if exists and exists:is_running() then
     return exists
   end
@@ -28,7 +27,7 @@ function REPL:init(ft)
 
   exception.no_command:throw_unless(cmd, self)
 
-  if is_a.t(cmd) then
+  if is_a.table(cmd) then
     opts.on_input = cmd.on_input
     cmd = cmd[1]
   end
@@ -38,14 +37,20 @@ function REPL:init(ft)
 
   if is_shell then
     self.shell = true
-    REPL.REPL.sh = self
+    user.repl.sh = self
   else
-    dict.update(REPL.REPL, { ft, bufnr }, self)
+    dict.update(user.repl, { ft, bufnr }, self)
   end
 
   self.filetype = self
 
   return self
+end
+
+function REPL.create(ft)
+  local exists = REPL.get(ft)
+  if exists and exists:is_running() then return exists end
+  return REPL(ft)
 end
 
 array.each({ "send", "split", "float", "center_float", "dock" }, function(f)

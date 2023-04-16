@@ -39,7 +39,7 @@ end
 
 -- Setup commands
 command("NvimEvalRegion", function()
-  local lines = utils.visualrange()
+  local lines = buffer.range(vim.fn.bufnr())
   compile_and_run(lines)
 end, { range = true })
 

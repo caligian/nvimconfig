@@ -10,14 +10,9 @@ local function wrap(f, is_shell, start)
       ft = vim.bo.filetype
     end
 
-    local r = REPL.get(ft, vim.fn.bufnr())
-    if not r then
-      r = REPL.new(ft)
-      if start then
-        r:start()
-      end
-      f(r)
-    else
+    local r = REPL.create(ft, vim.fn.bufnr())
+    if r then
+      if start then r:start() end
       f(r)
     end
   end
@@ -54,6 +49,12 @@ command(
     r:stop()
   end, false),
   { complete = get_builtin, nargs = "?" }
+)
+
+command(
+  'REPLStopAll',
+  REPL.stopall,
+  {}
 )
 
 command(

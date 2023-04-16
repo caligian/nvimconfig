@@ -18,23 +18,19 @@ exception:set {
 
 local function get_status(id, cmd)
   if id == 0 then
-    return "invalid_command"
+    return false, "invalid_command"
   elseif id == -1 then
-    return "not_executable"
+    return false, "not_executable"
   end
 
   local status = vim.fn.jobwait({ id }, Term.timeout)[1]
   if status ~= -1 and status ~= 0 then
     if status >= 126 then
       return false, "invalid_command"
-    elseif status >= 1 then
-      return false, "exited_with_error"
     elseif status == -2 then
       return false, "interrupted"
     elseif status == -3 then
       return false, "invalid_id"
-    else
-      return false, "unknown"
     end
   end
 
@@ -74,13 +70,13 @@ function Term:get_status()
   return get_status(self.id, self.command)
 end
 
-function Term:is_running()
-  if not self.id then
-    return false
-  end
+function Term:is_running(assrt)
+  if not self.id then return false end
   local ok, msg = get_status(self.id, self.command)
-  if not ok then
+  if not ok and assrt then
     exception[msg]:throw(self)
+  elseif not ok then
+    return false, msg
   end
 
   return true
@@ -93,7 +89,7 @@ function Term:start()
 
   local id, term_buffer = start_term(self.command, self.opts)
   self.id = id
-  self.buffer = Buffer(term_buffer, true)
+  self.bufnr = term_buffer
 
   dict.update(user.term.ID, id, self)
 
@@ -101,9 +97,7 @@ function Term:start()
 end
 
 function Term:is_visible()
-  if self.buffer then
-    return self.buffer:is_visible()
-  end
+  if self.bufnr then return buffer.is_visible(self.bufnr) end
   return false
 end
 
@@ -112,10 +106,9 @@ function Term:stop()
     return
   end
 
+  self:hide()
   vim.fn.chanclose(self.id)
-
-  self.buffer:delete()
-  self.buffer = nil
+  self.bufnr = nil
   user.term.ID[self.id] = nil
 
   return self
@@ -123,27 +116,25 @@ end
 
 function Term.stopall()
   dict.each(user.term.ID, function(id, _)
-    if is_a.n(id) then
+    if is_a.number(id) then
       vim.fn.chanclose(id)
     end
   end)
 end
 
 function Term:hide()
-  if self:is_running() then
-    self.buffer:hide()
-  end
+  if self.bufnr then buffer.hide(self.bufnr) end
 end
 
 function Term:split(direction, opts)
   if not self:is_visible() then
-    self.buffer:split(direction, opts)
+    buffer.split(self.bufnr, direction, opts)
   end
 end
 
 function Term:float(opts)
-  if not self:is_visible() then
-    self.buffer:float(opts)
+  if not self:is_visible() and self.bufnr then
+    buffer.float(self.bufnr, opts)
   end
 end
 

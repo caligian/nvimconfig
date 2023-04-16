@@ -21,7 +21,7 @@ Keybinding.bind(
   { "rv", "<cmd>REPLVsplit<CR>", { name = "repl_vsplit" } },
   { "rk", "<cmd>REPLHide<CR>", { name = "repl_hide" } },
   { "rq", "<cmd>REPLStop<CR>", { name = "repl_stop" } },
-  { "rQ", REPL.stopall, { desc = "Stop all REPLs", name = "stop_all" } },
+  { "rQ", "<cmd>REPLStopAll<CR>", { desc = "Stop all REPLs", name = "stop_all" } },
   { "re", "<cmd>REPLSendLine<CR>", { name = "repl_send_line" } },
   { "rb", "<cmd>REPLSendBuffer<CR>", { name = "repl_send_buffer" } },
   { "r.", "<cmd>REPLSendTillPoint<CR>", { name = "repl_send_till_point" } },

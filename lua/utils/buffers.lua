@@ -146,7 +146,7 @@ function buffer.float(bufnr, opts)
 end
 
 function buffer.winnr(bufnr)
-  local winnr = vim.fn.bufwinnr()
+  local winnr = vim.fn.bufwinnr(bufnr)
   if winnr == -1 then
     return false
   end
@@ -154,7 +154,7 @@ function buffer.winnr(bufnr)
 end
 
 function buffer.winid(bufnr)
-  local winid = vim.fn.bufwinnr()
+  local winid = vim.fn.bufwinid(bufnr)
   if winid == -1 then
     return false
   end
