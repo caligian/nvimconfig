@@ -1,50 +1,15 @@
 -- require "core.bufgroups.Bufgroup"
 require 'core.bufgroups.Bufgroup'
 
-if not BufgroupPool then class "BufgroupPool" end
-BufgroupPool.POOLS = BufgroupPool.POOLS or {}
+if not BufgroupPool then BufgroupPool  = classpool(Bufgroup) end
 local Pool = BufgroupPool
 
-function Pool:init(name)
-  self.name = name
-  self.groups = {}
-  BufgroupPool.POOLS[self.name] = self
-end
-
--- @param group Name of the group. The group will be prefixed by <pool-name>.group
-function Pool:add(group, event, pattern)
-  validate {
-    group_name = {'string', group},
-    event = {is {'string', 'table'}, event},
-    pattern = {is {'string', 'table'}, pattern}
-  }
-
-  local bufgroup = Bufgroup(group, event, pattern, self.name)
-  local group = self.name .. '.' .. group 
-  self.groups[group] = bufgroup
-  bufgroup:enable()
-
-  return self.groups[group]
-end
-
-function Pool:remove(group, bufnr)
-  group = self.groups[isa("string", group)]
-
-  if group and bufnr then
-    group:delete(bufnr)
-  else
-    self.groups[group] = nil
-  end
-
-  return group
-end
-
 function Pool:list(telescope)
-  if dict.isblank(self.groups) then
+  if dict.isblank(self.objects) then
     return
   elseif not telescope then
     local out = {}
-    for group, value in pairs(self.groups) do
+    for group, value in pairs(self.objects) do
       out[group] = value:list()
     end
 
@@ -52,9 +17,9 @@ function Pool:list(telescope)
   end
 
   return {
-    results = dict.keys(self.groups),
+    results = dict.keys(self.objects),
     entry_maker = function(entry)
-      local group = self.groups[entry]
+      local group = self.objects[entry]
       return {
         value = entry,
         display = sprintf("%s @ %s", entry, table.concat(group.pattern, " :: ")),
@@ -69,13 +34,15 @@ function Pool:list(telescope)
 end
 
 function Pool:register(group, callback_id, callback)
-  Bufgroup.get(self.name, group):register(callback_id, callback)
+  return self:get_object(group):register(callback_id, callback)
 end
 
 function Pool:create_picker()
+  local ls = self:list(true)
+  if not ls then return end
+
   local _ = utils.telescope.load()
-  local T = utils.telescope
-  local mod = T.create_actions_mod()
+  local mod = _.create_actions_mod()
   local input = vim.fn.input
 
   function mod.remove(sel)
@@ -121,7 +88,7 @@ function Pool:create_picker()
   return _.new_picker(self:list(true), {
     function(bufnr)
       local sel = _.get_selected(bufnr)[1]
-      local picker = Bufgroup.get(sel.pool, sel.group):create_picker()
+      local picker = self:get_object(sel.group):create_picker()
       if picker then picker:find() end
     end,
     { "n", "/", mod.grep },
@@ -130,14 +97,6 @@ function Pool:create_picker()
   }, {
     prompt_title = "Buffer group pool: " .. self.name,
   })
-end
-
-function Pool.get(name, assrt)
-  local pool = Pool.POOLS[name]
-  if assrt then
-    assert(pool, "invalid pool name " .. name .. " given")
-  end
-  return pool
 end
 
 function Pool.create_picker_for_buffer(bufnr)
@@ -193,13 +152,13 @@ function Pool.create_picker_for_buffer(bufnr)
 end
 
 function Pool.create_main_picker(opts)
-  local ls = table.keys(BufgroupPool.POOLS)
+  local ls = table.keys(Pool.get_state())
   if array.isblank(ls) then return end
   local _ = utils.telescope.load()
 
   local function default_action(prompt_bufnr)
     local sel = _.get_selected(prompt_bufnr)[1]
-    local pool = Pool.get(sel[1])
+    local pool = Pool.get_state()[sel[1]]
     if not pool then return end
     local picker = pool:create_picker()
     if picker then picker:find() end
@@ -211,3 +170,5 @@ function Pool.create_main_picker(opts)
     {prompt_title = 'Buffer group pools'}
   )
 end
+
+Pool:init_add(function (obj) return obj:enable() end)

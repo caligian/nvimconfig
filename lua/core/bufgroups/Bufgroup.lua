@@ -70,6 +70,12 @@ function Bufgroup:add(bufnr)
   return self
 end
 
+function Bufgroup:disable()
+  if self.augroup then
+    self.augroup:disable()
+  end
+end
+
 function Bufgroup:remove(bufnr)
   bufnr = bufnr or vim.fn.bufnr()
   self.buffers[bufnr] = nil
@@ -99,7 +105,7 @@ function Bufgroup:list(telescope)
     ),
     entry_maker = function(entry)
       return {
-        value = entry,
+        value = entry[2],
         ordinal = entry[#entry],
         display = entry[2],
         bufname = entry[2],
@@ -173,13 +179,6 @@ function Bufgroup:create_picker(opts)
     local pattern = vim.fn.input "Lua pattern % "
     if #pattern == 0 then return end
     self.pattern[#self.pattern + 1] = pattern
-  end
-
-  function mod.edit_pattern()
-    local pattern =
-      vim.fn.input("Lua pattern % ", table.concat(self.pattern, " :: "))
-    if #pattern == 0 then return end
-    self.pattern = pattern:split "%s*::%s*"
   end
 
   local function default_action(bufnr)

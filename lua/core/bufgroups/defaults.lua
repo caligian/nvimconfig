@@ -52,10 +52,12 @@ function M.setup(overwrite)
   overwrite = overwrite == nil and true or false
 
   dict.each(defaults.pools, function(pool, groups)
+    local pool_name = pool
     if not pools[pool] or overwrite then
       pool = BufgroupPool(pool)
       dict.each(groups, function(group, args)
-        pool:add(group, unpack(args))
+        pool:init_add(function (obj) obj:enable() end)
+        pool:add(group, unpack(array.append(args, pool_name)))
       end)
     end
   end)

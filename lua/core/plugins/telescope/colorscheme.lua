@@ -3,7 +3,7 @@ local finders = require "telescope.finders"
 local conf = require("telescope.config").values
 local actions = require "telescope.actions"
 local action_state = require "telescope.actions.state"
-local colors = Colorscheme.colorscheme
+local colors = user.colorscheme.colorscheme
 
 local function run_picker()
   pickers
@@ -15,7 +15,7 @@ local function run_picker()
         actions.select_default:replace(function()
           actions.close(prompt_bufnr)
           local sel = action_state.get_selected_entry()[1]
-          Colorscheme.set(sel)
+          user.colorscheme.apply(sel)
         end)
         return true
       end,

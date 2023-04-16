@@ -1,26 +1,3 @@
-function utils.buffer_has_keymap(bufnr, mode, lhs)
-  bufnr = bufnr or 0
-  local keymaps = vim.api.nvim_buf_get_keymap(bufnr, mode)
-  lhs = lhs:gsub("<leader>", vim.g.mapleader)
-  lhs = lhs:gsub("<localleader>", vim.g.maplocalleader)
-
-  return table.index(keymaps, lhs, function(t, item)
-    return t.lhs == item
-  end)
-end
-
-function utils.visualrange(bufnr)
-  return vim.api.nvim_buf_call(bufnr or vim.fn.bufnr(), function()
-    local _, csrow, cscol, _ = unpack(vim.fn.getpos "'<")
-    local _, cerow, cecol, _ = unpack(vim.fn.getpos "'>")
-    if csrow < cerow or (csrow == cerow and cscol <= cecol) then
-      return vim.api.nvim_buf_get_text(0, csrow - 1, cscol - 1, cerow - 1, cecol, {})
-    else
-      return vim.api.nvim_buf_get_text(0, csrow - 1, cscol - 1, cerow - 1, cscol, {})
-    end
-  end)
-end
-
 function utils.nvimerr(...)
   for _, s in ipairs { ... } do
     vim.api.nvim_err_writeln(s)
@@ -61,26 +38,19 @@ function utils.glob(d, expr, nosuf, alllinks)
 end
 
 function utils.get_font()
-  font = vim.o.guifont:match "^([^:]+)"
-  height = vim.o.guifont:match "h([0-9]+)" or 12
+  local font, height
+  font = user and user.font.family
+  height = user and user.font.height
+  font = vim.o.guifont:match("^([^:]+)") or font
+  height = vim.o.guifont:match("h([0-9]+)") or height
+
   return font, height
 end
 
 function utils.set_font(font, height)
-  pp(font, height)
-  validate {
-    ["?font"] = { "s", font },
-    ["?height"] = { "n", height },
-  }
-
   local current_font, current_height = utils.get_font()
-  if not font then
-    font = current_font
-  end
-  if not height then
-    height = current_height
-  end
-
+  font = font or current_font
+  height = height or current_height
   font = font:gsub(" ", "\\ ")
   vim.cmd("set guifont=" .. sprintf("%s:h%d", font, height))
 end

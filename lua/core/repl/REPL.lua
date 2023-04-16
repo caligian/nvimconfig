@@ -1,12 +1,10 @@
-if not REPL then
-  class("REPL", Term)
-end
-
-REPL.ids = REPL.ids or {}
+if not REPL then class("REPL", Term, {defaults = {REPL = {}}}) end
+local exception = Exception 'REPLException'
+exception.no_command = 'No command given for filetype'
 
 function REPL.get(ft, bufnr)
   if ft == "sh" then
-    local exists = REPL.ids.sh
+    local exists = REPL.REPL.sh
     if exists and exists:is_running() then
       return exists
     end
@@ -14,7 +12,7 @@ function REPL.get(ft, bufnr)
 
   ft = ft or vim.bo.filetype
   bufnr = bufnr or vim.fn.bufnr()
-  local exists = table.get(REPL.ids, { ft, bufnr })
+  local exists = table.get(REPL.REPL, { ft, bufnr })
   if exists and exists:is_running() then
     return exists
   end
@@ -26,13 +24,11 @@ function REPL:init(ft)
   local cmd = table.contains(Lang.langs, ft, "repl")
   local opts = {}
 
-  if not cmd then
-    throw_error { success = false, reason = "no_command", ft = ft }
-  else
-    if is_a.t(cmd) then
-      opts.on_input = cmd.on_input
-      cmd = cmd[1]
-    end
+  exception.no_command:throw_unless(cmd, self)
+
+  if is_a.t(cmd) then
+    opts.on_input = cmd.on_input
+    cmd = cmd[1]
   end
 
   local bufnr = vim.fn.bufnr()
@@ -40,9 +36,9 @@ function REPL:init(ft)
 
   if is_shell then
     self.shell = true
-    REPL.ids.sh = self
+    REPL.REPL.sh = self
   else
-    table.update(REPL.ids, { ft, bufnr }, self)
+    table.update(REPL.REPL, { ft, bufnr }, self)
   end
 
   self.filetype = self

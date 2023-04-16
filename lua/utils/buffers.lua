@@ -464,7 +464,17 @@ function buffer.call(bufnr, cb) return vim.api.nvim_buf_call(bufnr, cb) end
 
 --- Return visually highlighted table.range in this buffer
 -- @see visualrange
-function buffer.range(bufnr) return utils.visualrange(bufnr) end
+function buffer.range(bufnr) 
+  return buffer.call(bufnr or vim.fn.bufnr(), function()
+    local _, csrow, cscol, _ = unpack(vim.fn.getpos "'<")
+    local _, cerow, cecol, _ = unpack(vim.fn.getpos "'>")
+    if csrow < cerow or (csrow == cerow and cscol <= cecol) then
+      return vim.api.nvim_buf_get_text(0, csrow - 1, cscol - 1, cerow - 1, cecol, {})
+    else
+      return vim.api.nvim_buf_get_text(0, csrow - 1, cscol - 1, cerow - 1, cscol, {})
+    end
+  end)
+end
 
 function buffer.linecount(bufnr) return vim.api.nvim_buf_line_count(bufnr) end
 

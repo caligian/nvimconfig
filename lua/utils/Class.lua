@@ -1,5 +1,5 @@
 require "utils.table"
-require 'utils.errors'
+require "utils.errors"
 
 local valid_mt_ks = {
   __unm = true,
@@ -75,20 +75,20 @@ comparators = {
 }
 
 comparators.not_equal = function(self, other)
-  return comparators.equal(self, other)
+  return not comparators.equal(self, other)
 end
 
-comparators.not_eq = function(self, other) return comparators.eq(self, other) end
+comparators.not_eq = function(self, other)
+  return not comparators.eq(self, other)
+end
 
 comparators.not_name = function(self, other)
-  return comparators.name(self, other)
+  return not comparators.name(self, other)
 end
 
 --------------------------------------------------
 function is_instance_of(inst, cls)
-  return is_instance(inst) 
-    and get_class(inst) == get_class(cls)
-    or false
+  return is_instance(inst) and get_class(inst) == get_class(cls) or false
 end
 
 function get_ancestors(cls)
@@ -134,7 +134,10 @@ function get_methods(obj)
 end
 
 function get_vars(obj)
-  return dict.grep(obj, function(_, value) return is_callable(value) ~= true end)
+  return dict.grep(
+    obj,
+    function(_, value) return is_callable(value) ~= true end
+  )
 end
 
 function get_method(obj, k)
@@ -239,9 +242,9 @@ local function create_class(name, parent, opts)
   local defaults = opts.defaults
 
   if __eq then
-    local eq, ne = comparators[__eq], comparators['not_' .. __eq]
-    ClassException.invalid_comparator:throw_if(eq, __eq)
-    ClassException.invalid_comparator:throw_if(ne, __eq)
+    local eq, ne = comparators[__eq], comparators["not_" .. __eq]
+    ClassException.invalid_comparator:throw_unless(eq, __eq)
+    ClassException.invalid_comparator:throw_unless(ne, __eq)
   end
 
   if include and attrib then
@@ -250,9 +253,7 @@ local function create_class(name, parent, opts)
     include(cls, include)
   end
 
-  if defaults then
-    dict.merge(cls, defaults)
-  end
+  if defaults then dict.merge(cls, defaults) end
 
   function cls.__newindex(self, k, v)
     if valid_mt_ks[k] then
@@ -287,18 +288,19 @@ local function create_class(name, parent, opts)
     local out = {}
 
     dict.each(
-      dict.merge(get_vars(self), get_methods(self)), 
-      function (key, value)
+      dict.merge(get_vars(self), get_methods(self)),
+      function(key, value)
         if is_class(value) then
-          out[key] =  '(class) ' .. get_name(value) 
+          out[key] = "(class) " .. get_name(value)
         elseif is_table(value) then
-          out[key] = 'table'
+          out[key] = "table"
         else
           out[key] = dump(value)
         end
-      end)
+      end
+    )
 
-    return (get_name(self) or 'class') .. ' ' .. dump(out)
+    return (get_name(self) or "class") .. " " .. dump(out)
   end
 
   cls.new = function(...)
@@ -335,110 +337,116 @@ end
 
 function datashape(name, parent, opts)
   opts = opts or {}
-  opts.__eq = opts.__eq or 'eq'
+  opts.__eq = opts.__eq or "eq"
 
   return Class.new(name, parent, opts)
 end
 
-function classpool(name, cls, state_var, opts)
+function classpool(cls, state_var, opts)
   local ex = Exception(name)
+
   ex:set {
-    invalid_object_key = 'expected valid key to get object',
-    invalid_pool_key = 'expected valid key to get object pool',
-    is_instance = 'class expected, got instance',
+    invalid_object_key = "expected valid key to get object",
+    invalid_pool_key = "expected valid key to get object pool",
+    is_instance = "class expected, got instance",
   }
-  
+
   if not is_class(cls) then
     TypeException.not_a_class:throw(cls)
   elseif is_instance(cls) then
     ex.is_instance:throw(cls)
   end
 
-  local pool = Class.new(name, opts)
+  local name = get_name(cls) .. "Pool"
   local var = state_var or name:upper()
-  pool[var] = {}
+  local pool = class(name, nil, { defaults = { objects = {}, [var] = {} } })
   local state = pool[var]
-
   local function get_default_callback()
-    return function (obj) return obj end
+    return function(obj) return obj end
   end
 
-  function pool:init(pool_name)
-    self.name = pool_name
-    self.objects = {}
-    state[self.name] = self
+  function pool.get_state() return state end
+
+  function pool.get(pool_name, obj_name, assrt, create, ...)
+    local pool_obj = state[pool_name]
+    if create and not pool_obj then
+      pool_obj = pool(pool_name)
+    elseif assrt and not pool_obj then
+      ex.invalid_pool_key:throw(pool_name)
+    elseif not pool_obj then
+      return
+    end
+    return pool_obj:get_object(obj_name, assrt, create, ...)
+  end
+
+  function pool.delete(self) state[self.name] = nil end
+
+  function pool.add(self, obj_name, ...)
+    self.objects[obj_name] = cls(obj_name, ...)
+    dict.update(state, { self.name }, self)
+    return self.objects[obj_name]
+  end
+
+  function pool.create(self, obj_name, ...)
+    if not self.objects[obj_name] then return self:add(obj_name, ...) end
+  end
+
+  function pool:get_object(obj_name, assrt, create, ...)
+    local container = self.objects
+    local obj = container[obj_name]
+
+    if create and not obj then
+      obj = cls(...)
+      container[obj_name] = obj
+    elseif assrt and not obj then
+      ex.invalid_object_key:throw(obj_name)
+    elseif not obj then
+      return
+    end
+
+    return obj
+  end
+
+  function pool:remove(obj_name, ...)
+    local args = { ... }
+    local obj = self:get_object(obj_name)
+
+    if not obj then return end
+    if obj.remove and #args > 0 then return obj:remove(unpack(args)) end
+
+    if callback then callback(obj) end
+    self.groups[obj_name] = nil
+
+    return obj
   end
 
   function pool:init_add(callback)
+    local add = pool.add
     callback = callback or get_default_callback()
-    function pool:add(obj_name, ...)
-      self.objects[obj_name] = cls(obj_name, ...)
-      return callback(self.objects[obj_name])
-    end
+    self.add = function(...) return callback(add(...)) end
   end
 
   function pool:init_create(callback)
+    local create = pool.create
     callback = callback or get_default_callback()
-    function pool:create(obj_name, ...)
-      if not self.objects[obj_name] then
-        return callback(self:add(obj_name, ...))
-      end
-    end
+    self.create = function(...) return callback(create(...)) end
+  end
+
+  function pool:init_remove(callback)
+    local remove = pool.remove
+    callback = callback or get_default_callback()
+    self.remove = function(...) return callback(remove(...)) end
   end
 
   function pool:init_get_object(callback)
+    local get_object = pool.get_object
     callback = callback or get_default_callback()
-
-    function pool:get_object(obj_name, assrt, create, ...)
-      local container = self.objects
-      local obj = container[obj_name]
-
-      if create and not obj then
-        obj = cls(...)
-        container[obj_name] = obj
-      elseif assrt and not obj then
-        ex.invalid_object_key:throw(obj_name)
-      elseif not obj then
-        return
-      end
-
-      return callback(obj)
-    end
-  end
-        
-  function pool:init_remove(callback)
-    callback = callback or get_default_callback()
-    function pool:remove(obj_name, ...)
-      local obj = pool:get_object(obj_name)
-
-      if not obj then return end
-      if obj.remove and #args > 0 then return obj:remove(unpack(args)) end
-
-      if callback then callback(obj) end
-      self.groups[obj_name] = nil
-
-      return obj
-    end
+    self.get_object = function(...) return callback(get_object(...)) end
   end
 
-  function pool:delete()
-    state[self.name] = nil
-  end
-
-  function pool:init_get(callback)
-    callback = callback or get_default_callback()
-    function pool.get(pool_name, obj_name, assrt, create, ...)
-      local pool_obj = state[pool_name]
-      if create and not pool_obj then
-        pool_obj = pool(pool_name)
-      elseif assrt and not pool_obj then
-        ex.invalid_pool_key:throw(pool_name)
-      elseif not pool_obj then
-        return
-      end
-
-      return callback(pool_obj:get_object(obj_name, assrt, create, ...))
-    end
+  function pool:init(name)
+    self.name = name
+    self.objects = {}
   end
 
   return pool

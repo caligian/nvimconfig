@@ -5,62 +5,39 @@ end
 Term.ids = Term.ids or {}
 Term.timeout = 30
 
+local exception = Exception 'TermException'
+exception:set {
+  invalid_command = 'expected valid command',
+  not_executable = 'shell not executable',
+  exited_with_error = 'command exited with error',
+  interrupted = 'interrupted',
+  invalid_id = 'valid id expected',
+  unknown = 'unknown error'
+}
+
 local function get_status(id, cmd)
   if id == 0 then
-    return {
-      success = false,
-      reason = "invalid_command",
-      cmd = cmd,
-    }
+    return 'invalid_command'
   elseif id == -1 then
-    return {
-      success = false,
-      reason = "shell_not_executable",
-      cmd = cmd,
-    }
+    return 'not_executable'
   end
 
   local status = vim.fn.jobwait({ id }, Term.timeout)[1]
   if status ~= -1 and status ~= 0 then
     if status >= 126 then
-      return {
-        success = false,
-        reason = "invalid_command",
-        job_id = id,
-        cmd = cmd,
-      }
+      return false, "invalid_command"
     elseif status >= 1 then
-      return {
-        success = false,
-        reason = "exited_with_error",
-        job_id = id,
-        cmd = cmd,
-      }
+      return false, 'exited_with_error'
     elseif status == -2 then
-      return {
-        success = false,
-        reason = "interrupted",
-        job_id = id,
-        cmd = cmd,
-      }
+      return false, 'interrupted'
     elseif status == -3 then
-      return {
-        success = false,
-        reason = "invalid_id",
-        job_id = id,
-        cmd = cmd,
-      }
+      return false, 'invalid_id'
     else
-      return {
-        success = false,
-        reason = "unknown",
-        job_id = id,
-        cmd = cmd,
-      }
+      return false, 'unknown'
     end
   end
 
-  return { success = true, cmd = cmd, job_id = id }
+  return true
 end
 
 local function start_term(cmd, opts)
@@ -71,10 +48,8 @@ local function start_term(cmd, opts)
     opts = opts or {}
     id = vim.fn.termopen(cmd)
     term = vim.fn.bufnr()
-    local status = get_status(id, cmd)
-    if not status.success then
-      throw_error(status)
-    end
+    local ok, msg = get_status(id, cmd)
+    if not ok then exception[msg]:throw(self) end
   end)
 
   return id, term
@@ -90,21 +65,14 @@ function Term:wait(timeout)
 end
 
 function Term:get_status()
-  if not self.id then
-    return false
-  end
+  if not self.id then return false end
   return get_status(self.id, self.command)
 end
 
 function Term:is_running()
-  if not self.id then
-    return false
-  end
-
-  local status = get_status(self.id, self.command)
-  if not status.success then
-    return false, status
-  end
+  if not self.id then return false end
+  local ok, msg = get_status(self.id, self.command)
+  if not ok then exception[msg]:throw(self) end
 
   return true
 end
@@ -115,7 +83,6 @@ function Term:start()
   end
 
   local id, term_buffer = start_term(self.command, self.opts)
-  print(id, term_buffer)
   self.id = id
   self.buffer = Buffer(term_buffer, true)
 
@@ -222,9 +189,9 @@ end
 
 function Term:init(cmd, opts)
   validate {
-    command = { is { "s", "t" }, cmd },
+    command = { is { "string", "table" }, cmd },
     ["?opts"] = {
-      { __nonexistent = true, ["?on_input"] = "f" },
+      { __nonexistent = true, ["?on_input"] = "callable" },
       opts,
     },
   }

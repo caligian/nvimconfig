@@ -1,19 +1,20 @@
-require 'core.plugins.colorscheme.Colorscheme'
+require 'core.plugins.colorscheme.manager'
 
 user.plugins.colorscheme = {
   colorscheme = user.colorscheme,
   config = {},
 }
 
-Colorscheme.loadall()
-Colorscheme.setdefault()
+local color = user.colorscheme
+color.loadall()
+color.setdefault()
 
 K.bind({ noremap = true, leader = true }, {
   "htl",
-  Colorscheme.setlight,
+  color.setlight,
   "Set light colorscheme",
 }, {
   "htd",
-  Colorscheme.setdark,
+  color.setdark,
   "Set dark colorscheme",
 })

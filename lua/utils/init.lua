@@ -113,11 +113,18 @@ function copy(obj, deep)
   return out
 end
 
+function decorate(f1, f2)
+  return function (...)
+    return f1(f2(...))
+  end
+end
+
 --------------------------------------------------
 require "utils.funcs"
 require "utils.debug"
 require "utils.string"
 require "utils.aliased"
+require 'utils.module'
 require "utils.table"
 require "utils.errors"
 require "utils.Class"

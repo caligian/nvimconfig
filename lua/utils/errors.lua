@@ -57,7 +57,7 @@ function Error:throw(obj, reason)
   error(get_repr(self, obj, reason))
 end
 
-function Error:throw_if(test, obj, reason)
+function Error:throw_unless(test, obj, reason)
   assert(test, get_repr(self, obj, reason))
 end
 
