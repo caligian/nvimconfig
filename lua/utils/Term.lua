@@ -116,7 +116,7 @@ function Term:stop()
 
   self.buffer:delete()
   self.buffer = nil
-  self.ids[self.id] = nil
+  user.term.ID[self.id] = nil
 
   return self
 end
