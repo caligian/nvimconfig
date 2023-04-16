@@ -356,7 +356,6 @@ local plugins = {
       "mfussenegger/nvim-dap",
       "simrat39/rust-tools.nvim",
       "Saecki/crates.nvim",
-      "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
     },
     config = function()
       req "core.plugins.lsp"

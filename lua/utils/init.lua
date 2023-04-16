@@ -1,9 +1,3 @@
--- @table V table containing this framework configuration and other goodies
-V = V or {}
-
--- @field global Tracks the global variables made by V
-global = global or {}
-
 function mtget(obj, k)
   if type(obj) ~= "table" then return end
   local mt = getmetatable(obj)
@@ -22,41 +16,42 @@ function mtset(obj, k, v)
   end
 end
 
+function is_type(x) return mtget(x, "type") ~= nil end
+
 function is_number(x) return type(x) == "number" end
+
 function is_string(x) return type(x) == "string" end
+
 function is_userdata(x) return type(x) == "userdata" end
+
 function is_table(x) return type(x) == "table" end
+
 function is_thread(x) return type(x) == "thread" end
+
 function is_boolean(x) return type(x) == "boolean" end
+
 function is_function(x) return type(x) == "function" end
+
 function is_nil(x) return x == nil end
 
-function is_error(x)
-  return mtget(x, 'type') == 'error'
-end
+function is_error(x) return mtget(x, "type") == "error" end
 
-function is_exception(x)
-  return mtget(x, 'type') == 'exception'
-end
+function is_exception(x) return mtget(x, "type") == "exception" end
 
-function is_class(obj)
-  if not is_table(obj) then return false end
+function is_class(x)
+  if not is_table(x) then return false end
 
-  local mt = mtget(obj)
+  local mt = mtget(x)
   if not mt then
     return false
   elseif mt.type == "class" then
-    return true
+    return x
   else
-    return mtget(mt, "type") == "class"
+    return is_class(mt)
   end
-
-  return false
 end
 
-function is_type(x) return mtget(x, "type") ~= nil end
-
-function get_type(x) return mtget(x, "type") end
+function is_instance(x) return is_class(mtget(x)) end
 
 function is_callable(x)
   if is_function(x) then return true end
@@ -66,26 +61,30 @@ function is_callable(x)
 end
 
 function is_pure_table(x)
-  if type(x) == "table" and not is_class(x) then return true end
-  return false
+  return is_table(x)
+      and not is_class(x)
+      and not is_error(x)
+      and not is_exception(x)
+    or false
 end
 
 function is_seq(x)
-  if not is_table(x) then
-    return false
-  elseif is_class(x) then
-    return false
-  end
-  return true
+  return is_table(x)
+      and not is_class(x)
+      and not is_error(x)
+      and not is_exception(x)
+    or false
 end
 
-function is_instance(x)
-  if not is_table(x) then
-    return false
-  elseif is_class(mtget(x)) then
-    return true
-  end
-  return false
+function get_class(x) return is_class(x) end
+
+function get_parent(x) return mtget(get_class(x), "parent") end
+
+function get_type(x) return mtget(x, "type") end
+
+function get_name(x)
+  local cls = get_class(x)
+  return cls and mtget(cls, "name") or mtget(x, "name")
 end
 
 function typeof(obj)
@@ -95,35 +94,8 @@ function typeof(obj)
     return get_type(obj)
   elseif is_callable(obj) then
     return "callable"
-  elseif is_table(obj) then
-    return "table"
   else
     return type(obj)
-  end
-end
-
-function get_class(x)
-  if not is_class(x) then
-    return false
-  elseif is_instance(x) then
-    return mtget(x)
-  else
-    return x
-  end
-end
-
-function get_name(x)
-  if is_class(x) then return mtget(get_class(x), "name") end
-  return mtget(x, "name")
-end
-
-function get_parent(x)
-  if not is_class(x) then return false end
-
-  if is_instance(x) then
-    return mtget(get_class(x), "parent")
-  else
-    return mtget(x, "parent")
   end
 end
 
@@ -141,13 +113,13 @@ function copy(obj, deep)
   return out
 end
 
---
+--------------------------------------------------
 require "utils.funcs"
 require "utils.debug"
 require "utils.string"
 require "utils.aliased"
 require "utils.table"
-require 'utils.errors'
+require "utils.errors"
 require "utils.Class"
 require "utils.Set"
 require "utils.types"
@@ -156,7 +128,7 @@ require "utils.misc"
 require "utils.telescope"
 require "utils.color"
 
--- classes
+--------------------------------------------------
 require "utils.Autocmd"
 require "utils.Keybinding"
 require "utils.Buffer"

@@ -57,6 +57,10 @@ function Error:throw(obj, reason)
   error(get_repr(self, obj, reason))
 end
 
+function Error:throw_if(test, obj, reason)
+  assert(test, get_repr(self, obj, reason))
+end
+
 function Error:__tostring()
   return dump(get_repr(self))
 end
@@ -66,14 +70,14 @@ function Error:is_a(x)
 end
 
 function mt:__call(name, reason)
-  local self = setmetatable({}, Error)
+  local self = setmetatable(copy(Error), Error)
   self.name = name
   self.reason = reason
 
   return self
 end
 
---- 
+--------------------------------------------------
 mt = {type='exception'}
 Exception = setmetatable({errors = {}}, mt)
 Exception.__index = Exception
@@ -88,7 +92,7 @@ function Exception:__tostring()
     out[name] = tostring(err_obj)
   end
 
-  return out
+  return (name .. ' ' .. dump(out))
 end
 
 function Exception:__newindex(err_name, reason)
@@ -128,5 +132,36 @@ function Exception:set(err_spec)
 end
 
 function mt:__call(name)
-  return setmetatable({name=name, errors={}}, Exception)
+  local obj = copy(Exception)
+  obj.name = name
+  obj.errors = {}
+
+  return setmetatable(obj, Exception)
 end
+
+--------------------------------------------------
+--- Default errors
+--
+TypeException = Exception 'TypeException'
+
+TypeException:set {
+  not_a_class = 'class expected',
+  not_a_table = 'table expected',
+  not_a_seq = 'dict/array expected',
+  not_a_userdata = 'userdata expected',
+  not_a_function = 'function expected',
+  not_a_callable = 'callable expected',
+  not_a_boolean = 'boolean expected',
+  not_an_object = 'object expected',
+  not_a_thread = 'thread expected',
+  not_a_string = 'string expected',
+  not_an_error = 'error expected',
+  not_an_exception = 'exception expected'
+}
+
+-- 
+ClassException = Exception 'ClassException'
+
+ClassException:set {
+  invalid_comparator = 'valid comparator with <cmp> and not_<cmp> expected'
+}

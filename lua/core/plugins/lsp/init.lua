@@ -51,13 +51,6 @@ function lsp.on_attach(client, bufnr)
     { "<leader>la", vim.lsp.buf.code_action, { desc = "Show code actions" } },
     { "gr", vim.lsp.buf.references, { desc = "Show buffer references" } }
   )
-
-  utils.log_pcall(function()
-    require("lsp_lines").setup()
-    K.noremap("n", "<localleader><localleader>", function()
-      require("lsp_lines").toggle()
-    end, { buffer = bufnr, desc = "Show diagnostics" })
-  end)
 end
 
 function lsp.setup_server(server, opts)
