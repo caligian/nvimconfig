@@ -1,5 +1,5 @@
 require "core.bufgroups.Bufgroup"
-require 'core.bufgroups.Pool'
+require "core.bufgroups.Pool"
 
 local get_path = function(ws, p)
   p = p:gsub("^/?", "")
@@ -13,37 +13,37 @@ user.bufgroups = {
   defaults = {
     pools = {
       scripting = {
-        ruby = {'BufRead', get_path("Scripts", "Ruby")},
-        tcl = {'BufRead', get_path("Scripts", "Tcl")},
-        python = {'BufRead', get_path("Scripts", "Python")},
-        hy = {'BufRead', get_path("Scripts", "hy")},
-        fennel = {'BufRead', get_path("Scripts", "fennel")},
-        ocaml = {'BufRead', get_path("Scripts", "ocaml")},
-        javascript = {'BufRead', get_path("Scripts", "Javascript")},
-        julia = {'BufRead', get_path("Scripts", "Julia")},
-        common_lisp = {'BufRead', get_path("Scripts", "CLisp")},
+        ruby = { "BufRead", get_path("Scripts", "Ruby") },
+        tcl = { "BufRead", get_path("Scripts", "Tcl") },
+        python = { "BufRead", get_path("Scripts", "Python") },
+        hy = { "BufRead", get_path("Scripts", "hy") },
+        fennel = { "BufRead", get_path("Scripts", "fennel") },
+        ocaml = { "BufRead", get_path("Scripts", "ocaml") },
+        javascript = { "BufRead", get_path("Scripts", "Javascript") },
+        julia = { "BufRead", get_path("Scripts", "Julia") },
+        common_lisp = { "BufRead", get_path("Scripts", "CLisp") },
       },
       docs = {
-        work = {'BufRead', get_path("Work", ".+(tex|norg|txt)}$")},
-        docs = {'BufRead', get_path("Documents", ".+(tex|norg|txt)}$")},
+        work = { "BufRead", get_path("Work", ".+(tex|norg|txt)}$") },
+        docs = { "BufRead", get_path("Documents", ".+(tex|norg|txt)}$") },
       },
       langs = {
-        python = {'BufRead', "\\.py$"},
-        ruby = {'BufRead', "\\.rb$"},
-        javascript = {'BufRead', "\\.js$"},
-        ocaml = {'BufRead', "\\.ml$"},
-        fennel = {'BufRead', "\\.fnl"},
-        common_lisp = {'BufRead', "\\.lisp"},
+        python = { "BufRead", "\\.py$" },
+        ruby = { "BufRead", "\\.rb$" },
+        javascript = { "BufRead", "\\.js$" },
+        ocaml = { "BufRead", "\\.ml$" },
+        fennel = { "BufRead", "\\.fnl" },
+        common_lisp = { "BufRead", "\\.lisp" },
       },
       nvim = {
-        user = {'BufRead', get_path(".nvim", ".+")},
-        doom = {'BufRead', get_path(".config/nvim", ".+")},
+        user = { "BufRead", get_path(".nvim", ".+") },
+        doom = { "BufRead", get_path(".config/nvim", ".+") },
       },
     },
   },
 }
 
-req 'user.bufgroups'
+req "user.bufgroups"
 local M = user.bufgroups
 local pools = Bufgroup.POOLS
 local defaults = user.bufgroups.defaults
@@ -56,7 +56,9 @@ function M.setup(overwrite)
     if not pools[pool] or overwrite then
       pool = BufgroupPool(pool)
       dict.each(groups, function(group, args)
-        pool:init_add(function (obj) obj:enable() end)
+        pool:init_add(function(obj)
+          obj:enable()
+        end)
         pool:add(group, unpack(array.append(args, pool_name)))
       end)
     end

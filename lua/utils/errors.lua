@@ -1,20 +1,16 @@
-local mt = {type='error'}
+local mt = { type = "error" }
 Error = setmetatable({}, mt)
 Error.__index = Error
 
 local function get_repr(self, obj, reason)
-  local traceback = vim.split(
-    debug.traceback('', 3), 
-    "\n"
-  )
+  local traceback = vim.split(debug.traceback("", 3), "\n")
 
-  table.shift(traceback, 2)
+  array.shift(traceback, 2)
 
   if traceback then
     for i = 1, #traceback do
       traceback[i] = "  " .. vim.trim(traceback[i])
     end
-
   end
 
   return setmetatable({
@@ -23,7 +19,7 @@ local function get_repr(self, obj, reason)
     traceback = traceback,
     name = self.name,
   }, {
-    __tostring = function (self) 
+    __tostring = function(self)
       local fmt = [[
 
 [error]
@@ -40,16 +36,16 @@ local function get_repr(self, obj, reason)
 ]]
 
       local traceback_s = table.concat(self.traceback, "\n")
-      local obj_s 
+      local obj_s
 
-      if is_table(obj) and mtget(obj, '__tostring') then
+      if is_table(obj) and mtget(obj, "__tostring") then
         obj_s = tostring(obj)
       else
         obj_s = dump(obj)
       end
 
       return sprintf(fmt, self.name, self.reason, traceback_s, obj_s)
-    end
+    end,
   })
 end
 
@@ -66,7 +62,7 @@ function Error:__tostring()
 end
 
 function Error:is_a(x)
-  return mtget(x, 'type') == 'error'
+  return mtget(x, "type") == "error"
 end
 
 function mt:__call(name, reason)
@@ -78,12 +74,12 @@ function mt:__call(name, reason)
 end
 
 --------------------------------------------------
-mt = {type='exception'}
-Exception = setmetatable({errors = {}}, mt)
+mt = { type = "exception" }
+Exception = setmetatable({ errors = {} }, mt)
 Exception.__index = Exception
 
 function Exception:is_a(x)
-  return mtget(x, 'type') == 'error'
+  return mtget(x, "type") == "error"
 end
 
 function Exception:__tostring()
@@ -92,7 +88,7 @@ function Exception:__tostring()
     out[name] = tostring(err_obj)
   end
 
-  return (name .. ' ' .. dump(out))
+  return (name .. " " .. dump(out))
 end
 
 function Exception:__newindex(err_name, reason)
@@ -142,26 +138,26 @@ end
 --------------------------------------------------
 --- Default errors
 --
-TypeException = Exception 'TypeException'
+TypeException = Exception "TypeException"
 
 TypeException:set {
-  not_a_class = 'class expected',
-  not_a_table = 'table expected',
-  not_a_seq = 'dict/array expected',
-  not_a_userdata = 'userdata expected',
-  not_a_function = 'function expected',
-  not_a_callable = 'callable expected',
-  not_a_boolean = 'boolean expected',
-  not_an_object = 'object expected',
-  not_a_thread = 'thread expected',
-  not_a_string = 'string expected',
-  not_an_error = 'error expected',
-  not_an_exception = 'exception expected'
+  not_a_class = "class expected",
+  not_a_table = "table expected",
+  not_a_seq = "dict/array expected",
+  not_a_userdata = "userdata expected",
+  not_a_function = "function expected",
+  not_a_callable = "callable expected",
+  not_a_boolean = "boolean expected",
+  not_an_object = "object expected",
+  not_a_thread = "thread expected",
+  not_a_string = "string expected",
+  not_an_error = "error expected",
+  not_an_exception = "exception expected",
 }
 
--- 
-ClassException = Exception 'ClassException'
+--
+ClassException = Exception "ClassException"
 
 ClassException:set {
-  invalid_comparator = 'valid comparator with <cmp> and not_<cmp> expected'
+  invalid_comparator = "valid comparator with <cmp> and not_<cmp> expected",
 }

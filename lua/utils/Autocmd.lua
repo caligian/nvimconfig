@@ -5,10 +5,7 @@ class "Autocmd"
 ---
 -- @field A Alias for Autocommand
 A = Autocmd
-
-A.ids = A.ids or {}
-A.defaults = A.defaults or {}
-A.groups = A.groups or {}
+user.autocmd = user.autocmd or { ID = {}, GROUP = {}, BUFFER = {} }
 
 function Autocmd:init(event, opts)
   validate {
@@ -23,7 +20,7 @@ function Autocmd:init(event, opts)
   }
 
   local augroup
-  local group = table.copy(opts.group or {})
+  local group = copy(opts.group or {})
   local name = opts.name
   opts.name = nil
   if type(group) == "string" then
@@ -65,11 +62,11 @@ function Autocmd:init(event, opts)
     self[key] = value
   end
 
-  table.update(Autocmd.ids, id, self)
-  table.update(Autocmd.groups, { augroup, id }, self)
+  dict.update(user.autocmd.ID, id, self)
+  dict.update(user.autocmd.GROUP, { augroup, id }, self)
 
   if name then
-    Autocmd.defaults[name] = self
+    user.autocmd[name] = self
   end
   self.name = name
 
@@ -90,11 +87,11 @@ function Autocmd.delete(self)
   self:disable()
 
   if self.name then
-    Autocmd.defaults[self.name] = nil
+    user.autocmd[self.name] = nil
   end
 
-  Autocmd.ids[self.id] = nil
-  Autocmd.groups[self.group][self.id] = nil
+  user.autocmd.ID[self.id] = nil
+  user.autocmd.GROUP[self.group][self.id] = nil
 
   return self
 end
@@ -115,7 +112,7 @@ Augroup.GROUPS = {}
 
 function Augroup:init(name)
   self.name = name
-  self.autocmds = {}
+  self.autocmd = {}
 end
 
 function Augroup:add(name, event, opts)
@@ -132,30 +129,30 @@ function Augroup:add(name, event, opts)
   }
 
   opts.group = self.name
-  self.autocmds[name] = Autocmd(event, opts)
+  self.autocmd[name] = Autocmd(event, opts)
 
   return self
 end
 
 function Augroup:remove(name)
-  if dict.isblank(self.autocmds) then
+  if dict.isblank(self.autocmd) then
     return
   end
 
-  self.autocmds[name]:delete()
-  self.autocmds[name] = nil
+  self.autocmd[name]:delete()
+  self.autocmd[name] = nil
 
   return self
 end
 
 function Augroup:disable()
-  if dict.isblank(self.autocmds) then
+  if dict.isblank(self.autocmd) then
     return
   end
 
-  dict.each(self.autocmds, function(au_name, obj)
+  dict.each(self.autocmd, function(au_name, obj)
     obj:delete()
-    self.autocmds[au_name] = nil
+    self.autocmd[au_name] = nil
   end)
 
   return self

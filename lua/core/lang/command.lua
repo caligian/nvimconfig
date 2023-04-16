@@ -1,10 +1,10 @@
 local function get_langs()
   Lang.loadall()
-  return table.keys(Lang.langs)
+  return dict.keys(Lang.langs)
 end
 
 local function parse(args)
-  local blank = table.isblank(args.fargs)
+  local blank = dict.isblank(args.fargs)
   if not blank then
     return args.fargs
   end
@@ -16,5 +16,5 @@ utils.command("LangLoad", function(args)
   if not args then
     return
   end
-  table.each(args, Lang.load)
+  array.each(args, Lang.load)
 end, { nargs = "+", complete = get_langs })

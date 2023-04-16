@@ -8,7 +8,7 @@ local function parse(d, out)
   elseif type(d) == "table" then
     for _, s in ipairs(d) do
       s = vim.split(s, "\n")
-      table.extend(out, s)
+      array.extend(out, s)
     end
   end
 end
@@ -98,7 +98,7 @@ function Process.init(self, command, opts)
   self.command = command
   self.opts = opts
 
-  return table.lmerge(self, opts)
+  return dict.lmerge(self, opts)
 end
 
 function Process.status(self, timeout)
@@ -148,7 +148,7 @@ function Process.run(self)
 
   self.id = id
 
-  table.update(Process.ids, { id }, self)
+  dict.update(Process.ids, { id }, self)
 
   return self
 end
@@ -159,7 +159,7 @@ function Process.send(self, s)
   end
 
   validate {
-    s = {is { "s", "t" }, s},
+    s = { is { "s", "t" }, s },
   }
 
   if is_a.t(s) then
@@ -186,7 +186,7 @@ function Process.stop(self)
 end
 
 function Process.stopall()
-  table.each(table.values(Process.ids), function(p)
+  array.each(dict.values(Process.ids), function(p)
     p:stop()
   end)
 end

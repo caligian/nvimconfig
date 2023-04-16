@@ -1,8 +1,8 @@
 user.colorscheme.colorscheme = user.colorscheme.colorscheme or {}
 local color = user.colorscheme
 local state = color.colorscheme
-local ex = Exception 'Colorscheme'
-ex.invalid_colorscheme = 'valid colorscheme expected'
+local ex = Exception "Colorscheme"
+ex.invalid_colorscheme = "valid colorscheme expected"
 
 local function get(name)
   local out = state[name]
@@ -12,15 +12,15 @@ local function get(name)
 end
 
 function color.setdefault()
-  color.apply(color[color.use] or 'default', color.config)
+  color.apply(color[color.use] or "default", color.config)
 end
 
 function color.setdark()
-  color.apply(color.dark or 'default', color.dark_config or color.config)
+  color.apply(color.dark or "default", color.dark_config or color.config)
 end
 
 function color.setlight()
-  color.apply(color.light or 'default', color.light_config or color.config)
+  color.apply(color.light or "default", color.light_config or color.config)
 end
 
 function color.add(name, config)
@@ -31,13 +31,13 @@ function color.add(name, config)
     ["?config"] = { "table", config },
   }
 
-  return dict.update(state, name, {name = name, config = config})
+  return dict.update(state, name, { name = name, config = config })
 end
 
 function color.apply(name, override)
   local theme = get(name)
   local config = theme.config or {}
-  table.merge(config, override)
+  dict.merge(config, override)
   local cb = config.callback
   config.callback = nil
 
@@ -54,35 +54,35 @@ function color.loadall()
   end
 
   local builtin =
-    table.extend(utils.glob(user.dir, "colors/*.vim"), utils.glob(user.dir, "colors/*.lua"))
+    array.extend(utils.glob(user.dir, "colors/*.vim"), utils.glob(user.dir, "colors/*.lua"))
 
-  local user_themes = table.extend(
+  local user_themes = array.extend(
     utils.glob(user.user_dir, "colors/*.vim"),
     utils.glob(user.user_dir, "colors/*.lua")
   )
 
-  local installed = table.extend(
+  local installed = array.extend(
     utils.glob(user.plugins_dir, "*/colors/*.vim"),
     utils.glob(user.plugins_dir, "*/colors/*.lua")
   )
 
   local configured_dir = path.join(user.dir, "lua", "core", "plugins", "colorscheme")
 
-  local all = table.map(table.extend(builtin, user_themes, installed), get_name)
+  local all = array.map(array.extend(builtin, user_themes, installed), get_name)
 
   local configured = {}
 
-  local exclude = table.map(dir.getfiles(configured_dir), get_name)
+  local exclude = array.map(dir.getfiles(configured_dir), get_name)
 
-  all = table.grep(all, function(c)
-    if table.index(exclude, c) then
+  all = array.grep(all, function(c)
+    if array.index(exclude, c) then
       return false
     else
       return true
     end
   end)
 
-  table.each(exclude, function(name)
+  array.each(exclude, function(name)
     if string.match_any(name, "manager", "init") then
       return
     end
@@ -97,17 +97,17 @@ function color.loadall()
           config = { "t", user_config[c] },
         }
         callback = function(_config)
-          f(table.merge(_config or {}, user_config[c]))
+          f(dict.merge(_config or {}, user_config[c]))
         end
       else
         callback = f
       end
 
-      color.add(c, {callback = callback})
+      color.add(c, { callback = callback })
     end)
   end)
 
-  table.each(all, function(name)
+  array.each(all, function(name)
     if configured[name] then
       color.add(name, configured[name])
     else
@@ -115,7 +115,6 @@ function color.loadall()
     end
   end)
 end
-
 
 -- User config format
 --[[

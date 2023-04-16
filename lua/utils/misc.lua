@@ -4,7 +4,7 @@ function utils.whereis(bin, regex)
   out = string.trim(out)
   out = string.split(out, " ")
 
-  if table.isblank(out) then
+  if dict.isblank(out) then
     return false
   end
 

@@ -1,5 +1,5 @@
 if not Bufgroup then
-  class('Bufgroup', nil, {
+  class("Bufgroup", nil, {
     defaults = {
       BUFGROUPS = {},
       POOLS = {},
@@ -17,10 +17,10 @@ function Bufgroup:init(name, event, pattern, pool)
   }
 
   pool = pool or "default"
-  name = pool .. '.'.. name
+  name = pool .. "." .. name
   self.name = name
-  self.event = table.tolist(event or "BufAdd")
-  self.pattern = table.tolist(pattern)
+  self.event = array.tolist(event or "BufAdd")
+  self.pattern = array.tolist(pattern)
   self.augroup = false
   self.callbacks = {}
   self.buffers = {}
@@ -33,7 +33,9 @@ end
 function Bufgroup:is_eligible(bufnr)
   bufnr = bufnr or vim.fn.bufnr()
 
-  if vim.fn.bufexists(bufnr) == -1 then return false end
+  if vim.fn.bufexists(bufnr) == -1 then
+    return false
+  end
 
   local bufname = vim.api.nvim_buf_get_name(bufnr)
   local success = false
@@ -44,14 +46,18 @@ function Bufgroup:is_eligible(bufnr)
     end
   end
 
-  if not success then return false end
+  if not success then
+    return false
+  end
 
   return bufnr, bufname
 end
 
 function Bufgroup:add(bufnr)
   local bufnr, bufname = self:is_eligible(bufnr)
-  if not bufnr then return false end
+  if not bufnr then
+    return false
+  end
 
   self.buffers[bufnr] = {
     bufnr = bufnr,
@@ -62,8 +68,8 @@ function Bufgroup:add(bufnr)
     group = self.name,
   }
 
-  table.makepath(Bufgroup.BUFFERS, bufnr, 'pools')
-  table.makepath(Bufgroup.BUFFERS, bufnr, 'groups')
+  dict.makepath(Bufgroup.BUFFERS, bufnr, "pools")
+  dict.makepath(Bufgroup.BUFFERS, bufnr, "groups")
   Bufgroup.BUFFERS[bufnr].pools[self.pool] = self.pool
   Bufgroup.BUFFERS[bufnr].groups[self.name] = self.name
 
@@ -99,10 +105,9 @@ function Bufgroup:list(telescope)
   end
 
   return {
-    results = array.imap(
-      dict.values(self.buffers),
-      function(idx, state) return { state.bufnr, state.bufname, idx } end
-    ),
+    results = array.imap(dict.values(self.buffers), function(idx, state)
+      return { state.bufnr, state.bufname, idx }
+    end),
     entry_maker = function(entry)
       return {
         value = entry[2],
@@ -118,17 +123,18 @@ function Bufgroup:list(telescope)
 end
 
 function Bufgroup:enable()
-  if self.augroup then return end
+  if self.augroup then
+    return
+  end
 
   self.augroup = Augroup("bufgroup" .. self.name)
   self.augroup:add("register", self.event, {
     pattern = "*",
     callback = function(opts)
       if self:add() then
-        array.each(
-          dict.values(self.callbacks),
-          function(callback) callback(self, opts) end
-        )
+        array.each(dict.values(self.callbacks), function(callback)
+          callback(self, opts)
+        end)
       end
     end,
   })
@@ -148,7 +154,7 @@ function Bufgroup:register(name, callback)
 end
 
 function Bufgroup.get(pool, name, ass)
-  assert(name, 'no group name supplied')
+  assert(name, "no group name supplied")
 
   local group
   if not pool then
@@ -166,7 +172,9 @@ end
 
 function Bufgroup:create_picker(opts)
   local ls = self:list(true)
-  if not ls then return end
+  if not ls then
+    return
+  end
   local _ = utils.telescope.load()
   local mod = _.create_actions_mod()
 
@@ -177,7 +185,9 @@ function Bufgroup:create_picker(opts)
 
   function mod.add_pattern()
     local pattern = vim.fn.input "Lua pattern % "
-    if #pattern == 0 then return end
+    if #pattern == 0 then
+      return
+    end
     self.pattern[#self.pattern + 1] = pattern
   end
 
@@ -199,21 +209,21 @@ function Bufgroup:create_picker(opts)
 end
 
 function Bufgroup.create_main_picker()
-  local ls = table.keys(Bufgroup.BUFGROUPS)
+  local ls = dict.keys(Bufgroup.BUFGROUPS)
   table.sort(ls)
-  if array.isblank(ls) then return end
+  if array.isblank(ls) then
+    return
+  end
   local _ = utils.telescope.load()
 
   local function default_action(prompt_bufnr)
     local sel = _.get_selected(prompt_bufnr)[1][1]
     local group = Bufgroup.BUFGROUPS[sel]
     local picker = group:create_picker()
-    if picker then picker:find() end
+    if picker then
+      picker:find()
+    end
   end
 
-  return _.new_picker(
-    ls,
-    default_action,
-    {prompt_title = 'All buffer groups'}
-  )
+  return _.new_picker(ls, default_action, { prompt_title = "All buffer groups" })
 end

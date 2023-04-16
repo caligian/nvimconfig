@@ -6,8 +6,7 @@ class "Keybinding"
 K = Keybinding
 
 ---
--- Contains maps indexed by id
-K.ids = {}
+user.kbd = user.kbd or { ID = {} }
 
 ---
 -- Contains maps indexed by name
@@ -39,10 +38,10 @@ end
 -- Save object in K.ids and if name is passed, in K.defaults
 -- @returns self
 function K:update()
-  table.update(Keybinding.ids, self.id, self)
+  dict.update(user.kbd.ID, self.id, self)
 
   if self.name then
-    Keybinding.defaults[self.name] = self
+    user.kbd[self.name] = self
   end
 
   return self
@@ -59,8 +58,8 @@ end
 -- @param rest.leader Set as a leader map
 -- @param rest.localeader Set as a localeader map
 -- @tparam string rest.prefix Prefix lhs. Cannot be used with rest.localleader or rest.leader
--- @tparam string|table rest.event rest.pattern cannot be nil if this is used. Autocommand event(s) to bind to
--- @tparam string|table rest.pattern rest.event cannot be nil if this is used. Autocommand pattern(s) to bind to
+-- @tparam string|array.rest.event rest.pattern cannot be nil if this is used. Autocommand event(s) to bind to
+-- @tparam string|array.rest.pattern rest.event cannot be nil if this is used. Autocommand pattern(s) to bind to
 -- @see autocmd
 -- @return object
 function K:init(mode, lhs, cb, rest)
@@ -139,9 +138,9 @@ function K:init(mode, lhs, cb, rest)
   self.name = name
   local o = {}
 
-  table.merge(o, au)
-  table.merge(o, misc)
-  table.merge(o, kbd)
+  dict.merge(o, au)
+  dict.merge(o, misc)
+  dict.merge(o, kbd)
 
   self.opts = o
 
@@ -180,10 +179,10 @@ function K:delete()
   end
 
   self:disable()
-  Keybinding.ids[self.id] = nil
+  user.kbd.ID[self.id] = nil
 
   if self.name then
-    Keybinding.defaults[self.name] = nil
+    user.kbd[self.name] = nil
   end
 
   return self
@@ -229,7 +228,7 @@ function K.bind(opts, ...)
   if #args == 1 then
     return bind(args[1])
   else
-    table.each(args, bind)
+    array.each(args, bind)
   end
 end
 

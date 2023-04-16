@@ -40,12 +40,12 @@ local function apply(variant, config)
     on_highlights = function(highlights, colors) end,
   }
 
-  table.lmerge(config, defaults)
+  dict.lmerge(config, defaults)
   require("tokyonight").setup(config)
   vim.cmd "color tokyonight"
 end
 
-table.each({
+array.each({
   "night",
   "storm",
   "day",

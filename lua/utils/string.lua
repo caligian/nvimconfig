@@ -6,7 +6,7 @@ function sprintf(fmt, ...)
   local args = { ... }
 
   for i = 1, #args do
-    if type(args[i]) == 'table' then
+    if type(args[i]) == "table" then
       args[i] = dump(args[i])
     end
   end
@@ -28,4 +28,4 @@ function string.match_any(s, ...)
 end
 
 string.sprintf = sprintf
-string.printf = printf 
+string.printf = printf

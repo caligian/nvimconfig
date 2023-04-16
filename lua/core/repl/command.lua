@@ -24,7 +24,7 @@ local function wrap(f, is_shell, start)
 end
 
 local function get_builtin()
-  return table.grep(table.keys(Lang.langs), function(ft)
+  return array.grep(dict.keys(Lang.langs), function(ft)
     if Lang.langs[ft].repl then
       return true
     end

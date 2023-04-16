@@ -6,16 +6,16 @@ function utils.highlight(hi)
 
   hi = {}
   out = vim.split(out, " +")
-  out = table.grep(out, function(c)
+  out = array.grep(out, function(c)
     if string.match_any(c, "xxx", "cleared") then
       return false
     else
       return true
     end
   end)
-  out = table.slice(out, 1, #out)
+  out = array.slice(out, 1, #out)
 
-  table.each(out, function(i)
+  array.each(out, function(i)
     local attrib, value = unpack(vim.split(i, "="))
     if value then
       hi[attrib] = value
@@ -108,7 +108,7 @@ end
 function utils.highlightset(hi, set, defaults)
   local group = hi
   hi = utils.highlight(hi)
-  if table.isblank(hi) then
+  if dict.isblank(hi) then
     if defaults then
       hi = defaults
     else
@@ -116,7 +116,7 @@ function utils.highlightset(hi, set, defaults)
     end
   end
 
-  table.teach(set, function(attrib, transformer)
+  dict.each(set, function(attrib, transformer)
     if not hi[attrib] then
       return
     end

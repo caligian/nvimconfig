@@ -1,11 +1,13 @@
 Autocmd("TextYankPost", {
+  name = "highlight_on_yank",
   pattern = "*",
   callback = function()
-    vim.highlight.on_yank { timeout = 200 }
+    vim.highlight.on_yank { timeout = 100 }
   end,
 })
 
 Autocmd("BufEnter", {
+  name = "i3config_extension",
   pattern = "*i3",
   callback = function()
     vim.cmd "set ft=i3config"
@@ -15,16 +17,13 @@ Autocmd("BufEnter", {
 })
 
 Autocmd("BufEnter", {
+  name = "txt_is_help",
   pattern = "*txt",
   callback = "set ft=help",
 })
 
-Autocmd("BufEnter", {
-  pattern = ".config/nvim/doc/*txt",
-  callback = 'let b:_tag_prefix = "doom"',
-})
-
 Autocmd("BufAdd", {
+  name = "quit_temp_buffer_with_q",
   pattern = "*",
   callback = function()
     local bufnr = vim.fn.bufnr()

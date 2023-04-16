@@ -1,15 +1,19 @@
 local Bookmark = Class.new "Bookmark"
-local exception = Exception 'BookmarkException'
-exception.invalid_path = 'expected valid buffer/path'
+local exception = Exception "BookmarkException"
+exception.invalid_path = "expected valid buffer/path"
 
 local function resolve_path(p)
-  validate {path = {is {'string', 'number'}, p}}
+  validate { path = { is { "string", "number" }, p } }
 
-  if p == 0 then p = vim.fn.bufnr() end
+  if p == 0 then
+    p = vim.fn.bufnr()
+  end
   local is_buffer = vim.fn.bufexists(p) ~= 0
   local is_file = is_a.string(p) and path.exists(p)
 
-  if not is_buffer and not is_file then return end
+  if not is_buffer and not is_file then
+    return
+  end
 
   if is_buffer then
     local bufnr = vim.fn.bufnr()
@@ -63,7 +67,7 @@ function Bookmark:init(p)
   if not p then
     error("Invalid path supplied " .. p)
   end
-  table.merge(self, p)
+  dict.merge(self, p)
 end
 
 local function file_line_count(p)

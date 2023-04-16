@@ -73,7 +73,7 @@ telescope.load_extension "fzy_native"
 -- Start keymappings
 local function picker(p, conf)
   return function()
-    require("telescope.builtin")[p](table.merge(conf or {}, ivy))
+    require("telescope.builtin")[p](dict.merge(conf or {}, ivy))
   end
 end
 

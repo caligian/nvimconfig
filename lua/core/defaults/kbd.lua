@@ -17,7 +17,7 @@ local function _toggle_option(option)
 end
 
 local function clean_before_quitting()
-  for _, buf in pairs(Buffer.ids) do
+  for _, buf in pairs(user.buffer.BUFNR) do
     buf:delete()
   end
 

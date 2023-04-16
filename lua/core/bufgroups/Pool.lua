@@ -1,7 +1,9 @@
 -- require "core.bufgroups.Bufgroup"
-require 'core.bufgroups.Bufgroup'
+require "core.bufgroups.Bufgroup"
 
-if not BufgroupPool then BufgroupPool  = classpool(Bufgroup) end
+if not BufgroupPool then
+  BufgroupPool = classpool(Bufgroup)
+end
 local Pool = BufgroupPool
 
 function Pool:list(telescope)
@@ -39,7 +41,9 @@ end
 
 function Pool:create_picker()
   local ls = self:list(true)
-  if not ls then return end
+  if not ls then
+    return
+  end
 
   local _ = utils.telescope.load()
   local mod = _.create_actions_mod()
@@ -89,7 +93,9 @@ function Pool:create_picker()
     function(bufnr)
       local sel = _.get_selected(bufnr)[1]
       local picker = self:get_object(sel.group):create_picker()
-      if picker then picker:find() end
+      if picker then
+        picker:find()
+      end
     end,
     { "n", "/", mod.grep },
     { "n", "x", mod.remove },
@@ -100,9 +106,9 @@ function Pool:create_picker()
 end
 
 function Pool.create_picker_for_buffer(bufnr)
-  bufnr = isa('number', bufnr)
-  assert(buffer.exists(bufnr), 'expected valid buffer, got ' .. bufnr)
-  assert(Bufgroup.BUFFERS[bufnr], 'expected grouped buffer')
+  bufnr = isa("number", bufnr)
+  assert(buffer.exists(bufnr), "expected valid buffer, got " .. bufnr)
+  assert(Bufgroup.BUFFERS[bufnr], "expected grouped buffer")
 
   local groups = dict.keys(Bufgroup.BUFFERS[bufnr].groups)
   if #groups == 1 then
@@ -113,25 +119,27 @@ function Pool.create_picker_for_buffer(bufnr)
   local _ = utils.telescope.load()
   local mod = _.create_actions_mod()
 
-  local results =  {
+  local results = {
     results = groups,
-    entry_maker = function (x)
+    entry_maker = function(x)
       x = Bufgroup.BUFGROUPS[x]
       return {
         bufnr = bufnr,
         group = x.name,
         value = x,
-        display = sprintf('%s @ %s', x.name, table.concat(x.pattern, " ")),
+        display = sprintf("%s @ %s", x.name, table.concat(x.pattern, " ")),
         ordinal = -1,
       }
-    end
+    end,
   }
 
   local default_action = function(prompt_bufnr)
     local sel = _.get_selected(prompt_bufnr)[1]
     local x = sel.value
     local picker = x:create_picker()
-    if not picker then return utils.nvimerr('group is empty ' .. x.name) end
+    if not picker then
+      return utils.nvimerr("group is empty " .. x.name)
+    end
     picker:find()
   end
 
@@ -139,36 +147,36 @@ function Pool.create_picker_for_buffer(bufnr)
     sel.value:remove(sel.bufnr)
   end
 
-  return _.new_picker(
-    results, 
-    {
-      default_action,
-      {'n', 'x', mod.remove}
-    },
-    {
-      prompt_title = 'Select buffer group'
-    }
-  )
+  return _.new_picker(results, {
+    default_action,
+    { "n", "x", mod.remove },
+  }, {
+    prompt_title = "Select buffer group",
+  })
 end
 
 function Pool.create_main_picker(opts)
-  local ls = table.keys(Pool.get_state())
-  if array.isblank(ls) then return end
+  local ls = dict.keys(Pool.get_state())
+  if array.isblank(ls) then
+    return
+  end
   local _ = utils.telescope.load()
 
   local function default_action(prompt_bufnr)
     local sel = _.get_selected(prompt_bufnr)[1]
     local pool = Pool.get_state()[sel[1]]
-    if not pool then return end
+    if not pool then
+      return
+    end
     local picker = pool:create_picker()
-    if picker then picker:find() end
+    if picker then
+      picker:find()
+    end
   end
 
-  return _.new_picker(
-    ls,
-    default_action,
-    {prompt_title = 'Buffer group pools'}
-  )
+  return _.new_picker(ls, default_action, { prompt_title = "Buffer group pools" })
 end
 
-Pool:init_add(function (obj) return obj:enable() end)
+Pool:init_add(function(obj)
+  return obj:enable()
+end)

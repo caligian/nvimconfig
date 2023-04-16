@@ -41,13 +41,15 @@ comparators = {
         if is_class(self_value) or not is_table(self_value) then
           ok = false
         else
-          ok = select(2, table.compare(self_value, value))
+          ok = select(2, array.compare(self_value, value))
         end
       else
         ok = self[key] == value
       end
 
-      if not ok then return false end
+      if not ok then
+        return false
+      end
     end
 
     return true
@@ -65,13 +67,17 @@ comparators = {
         ok = self[key] == value
       end
 
-      if not ok then return false end
+      if not ok then
+        return false
+      end
     end
 
     return true
   end,
 
-  name = function(self, other) return get_name(self) == get_name(other) end,
+  name = function(self, other)
+    return get_name(self) == get_name(other)
+  end,
 }
 
 comparators.not_equal = function(self, other)
@@ -95,7 +101,9 @@ function get_ancestors(cls)
   cls = get_class(cls)
   local ancestors = {}
   local ancestor = get_parent(cls)
-  if not ancestor then return end
+  if not ancestor then
+    return
+  end
   ancestors[1] = ancestor
   local i = 2
 
@@ -115,44 +123,57 @@ function is_parent_of(cls, inst)
 end
 
 function is_ancestor_of(x, y)
-  if not is_class(x) or not is_class(y) then return false end
+  if not is_class(x) or not is_class(y) then
+    return false
+  end
 
   local parent = x
   local child_parent = get_parent(y)
-  if parent == child_parent then return true end
+  if parent == child_parent then
+    return true
+  end
 
   while parent do
     parent = get_parent(parent)
-    if parent == child_parent then return true end
+    if parent == child_parent then
+      return true
+    end
   end
 
   return false
 end
 
 function get_methods(obj)
-  return dict.grep(obj, function(_, value) return is_callable(value) end)
+  return dict.grep(obj, function(_, value)
+    return is_callable(value)
+  end)
 end
 
 function get_vars(obj)
-  return dict.grep(
-    obj,
-    function(_, value) return is_callable(value) ~= true end
-  )
+  return dict.grep(obj, function(_, value)
+    return is_callable(value) ~= true
+  end)
 end
 
 function get_method(obj, k)
   local methods = get_methods(obj)
-  if not methods then return end
+  if not methods then
+    return
+  end
   return methods[k]
 end
 
 function get_var(obj, k)
   local vars = get_vars(obj)
-  if not vars then return end
+  if not vars then
+    return
+  end
   return vars[k]
 end
 
-function get_attrib(obj, k) return obj[k] end
+function get_attrib(obj, k)
+  return obj[k]
+end
 
 function get_attribs(obj)
   local out = {}
@@ -192,14 +213,24 @@ end
 
 local function super(obj)
   local parent = get_parent(obj)
-  if parent and parent.init then return parent.init end
-  return function(...) return ... end
+  if parent and parent.init then
+    return parent.init
+  end
+  return function(...)
+    return ...
+  end
 end
 
 local function is_a(x, y)
-  if x == y then return true end
-  if not is_class(x) then return false end
-  if not is_class(y) then return false end
+  if x == y then
+    return true
+  end
+  if not is_class(x) then
+    return false
+  end
+  if not is_class(y) then
+    return false
+  end
 
   return get_class(x) == get_class(y) or is_ancestor_of(y, x) or false
 end
@@ -253,7 +284,9 @@ local function create_class(name, parent, opts)
     include(cls, include)
   end
 
-  if defaults then dict.merge(cls, defaults) end
+  if defaults then
+    dict.merge(cls, defaults)
+  end
 
   function cls.__newindex(self, k, v)
     if valid_mt_ks[k] then
@@ -287,18 +320,15 @@ local function create_class(name, parent, opts)
   function cls:__tostring()
     local out = {}
 
-    dict.each(
-      dict.merge(get_vars(self), get_methods(self)),
-      function(key, value)
-        if is_class(value) then
-          out[key] = "(class) " .. get_name(value)
-        elseif is_table(value) then
-          out[key] = "table"
-        else
-          out[key] = dump(value)
-        end
+    dict.each(dict.merge(get_vars(self), get_methods(self)), function(key, value)
+      if is_class(value) then
+        out[key] = "(class) " .. get_name(value)
+      elseif is_table(value) then
+        out[key] = "table"
+      else
+        out[key] = dump(value)
       end
-    )
+    end)
 
     return (get_name(self) or "class") .. " " .. dump(out)
   end
@@ -319,14 +349,20 @@ local function create_class(name, parent, opts)
   mt.__tostring = cls.__tostring
   mt.__newindex = cls.__newindex
   mt.__index = cls.__index
-  function mt:__call(...) return cls.new(...) end
+  function mt:__call(...)
+    return cls.new(...)
+  end
 
   return cls
 end
 
-function Class.new(name, parent, opts) return create_class(name, parent, opts) end
+function Class.new(name, parent, opts)
+  return create_class(name, parent, opts)
+end
 
-function Mt.__call(_, name, parent, opts) return Class.new(name, parent, opts) end
+function Mt.__call(_, name, parent, opts)
+  return Class.new(name, parent, opts)
+end
 
 function class(name, parent, opts)
   local cls = Class(name, parent, opts)
@@ -362,10 +398,14 @@ function classpool(cls, state_var, opts)
   local pool = class(name, nil, { defaults = { objects = {}, [var] = {} } })
   local state = pool[var]
   local function get_default_callback()
-    return function(obj) return obj end
+    return function(obj)
+      return obj
+    end
   end
 
-  function pool.get_state() return state end
+  function pool.get_state()
+    return state
+  end
 
   function pool.get(pool_name, obj_name, assrt, create, ...)
     local pool_obj = state[pool_name]
@@ -379,7 +419,9 @@ function classpool(cls, state_var, opts)
     return pool_obj:get_object(obj_name, assrt, create, ...)
   end
 
-  function pool.delete(self) state[self.name] = nil end
+  function pool.delete(self)
+    state[self.name] = nil
+  end
 
   function pool.add(self, obj_name, ...)
     self.objects[obj_name] = cls(obj_name, ...)
@@ -388,7 +430,9 @@ function classpool(cls, state_var, opts)
   end
 
   function pool.create(self, obj_name, ...)
-    if not self.objects[obj_name] then return self:add(obj_name, ...) end
+    if not self.objects[obj_name] then
+      return self:add(obj_name, ...)
+    end
   end
 
   function pool:get_object(obj_name, assrt, create, ...)
@@ -411,10 +455,16 @@ function classpool(cls, state_var, opts)
     local args = { ... }
     local obj = self:get_object(obj_name)
 
-    if not obj then return end
-    if obj.remove and #args > 0 then return obj:remove(unpack(args)) end
+    if not obj then
+      return
+    end
+    if obj.remove and #args > 0 then
+      return obj:remove(unpack(args))
+    end
 
-    if callback then callback(obj) end
+    if callback then
+      callback(obj)
+    end
     self.groups[obj_name] = nil
 
     return obj
@@ -423,25 +473,33 @@ function classpool(cls, state_var, opts)
   function pool:init_add(callback)
     local add = pool.add
     callback = callback or get_default_callback()
-    self.add = function(...) return callback(add(...)) end
+    self.add = function(...)
+      return callback(add(...))
+    end
   end
 
   function pool:init_create(callback)
     local create = pool.create
     callback = callback or get_default_callback()
-    self.create = function(...) return callback(create(...)) end
+    self.create = function(...)
+      return callback(create(...))
+    end
   end
 
   function pool:init_remove(callback)
     local remove = pool.remove
     callback = callback or get_default_callback()
-    self.remove = function(...) return callback(remove(...)) end
+    self.remove = function(...)
+      return callback(remove(...))
+    end
   end
 
   function pool:init_get_object(callback)
     local get_object = pool.get_object
     callback = callback or get_default_callback()
-    self.get_object = function(...) return callback(get_object(...)) end
+    self.get_object = function(...)
+      return callback(get_object(...))
+    end
   end
 
   function pool:init(name)

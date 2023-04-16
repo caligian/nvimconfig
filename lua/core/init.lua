@@ -6,4 +6,4 @@ require "core.defaults"
 require "core.lang"
 require "core.repl"
 require "core.plugins"
-require 'core.bufgroups'
+require "core.bufgroups"

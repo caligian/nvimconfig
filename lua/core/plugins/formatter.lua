@@ -21,7 +21,7 @@ end
 -- Setup autocmd for autoformatting
 Keybinding.noremap("n", "<leader>bf", ":FormatWrite<CR>", {
   event = "FileType",
-  pattern = table.keys(formatters),
+  pattern = dict.keys(formatters),
   desc = "Format buffer",
   silent = true,
   name = "format_buffer",

@@ -41,7 +41,7 @@ local function _is_a(x, y)
       elseif mt.type then
         return { type = mt.type }
       elseif is_function(mt.__call) then
-        return { type = 'callable' }
+        return { type = "callable" }
       else
         return { type = "table" }
       end
@@ -177,8 +177,8 @@ local function _validate2(a, b)
     a.__nonexistent = nil
     a.__table = nil
     local optional = {}
-    local ks_a = table.keys(a)
-    local ks_b = table.keys(b)
+    local ks_a = dict.keys(a)
+    local ks_b = dict.keys(b)
 
     array.ieach(ks_a, function(idx, k)
       k = tostring(k)
@@ -210,7 +210,7 @@ local function _validate2(a, b)
     if not nonexistent then
       assert(
         foreign:len() == 0,
-        string.format("%s: unrequired table.keys: %s", level_name, dump(foreign:items()))
+        string.format("%s: unrequired dict.keys: %s", level_name, dump(foreign:items()))
       )
     end
 

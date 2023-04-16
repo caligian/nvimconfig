@@ -9,7 +9,7 @@ function utils.nvimexec(s, output)
   return vim.api.nvim_exec(s, output)
 end
 
--- If multiple table.keys are supplied, the table is going to be assumed to be nested
+-- If multiple dict.keys are supplied, the table is going to be assumed to be nested
 function req(require_string, do_assert)
   local ok, out = pcall(require, require_string)
   if ok then
@@ -23,8 +23,8 @@ function req(require_string, do_assert)
     out = "Could not require " .. require_string
   end
 
-  table.makepath(user, "logs")
-  table.append(user.logs, out)
+  dict.makepath(user, "logs")
+  array.append(user.logs, out)
   logger:debug(out)
 
   if do_assert then
@@ -41,8 +41,8 @@ function utils.get_font()
   local font, height
   font = user and user.font.family
   height = user and user.font.height
-  font = vim.o.guifont:match("^([^:]+)") or font
-  height = vim.o.guifont:match("h([0-9]+)") or height
+  font = vim.o.guifont:match "^([^:]+)" or font
+  height = vim.o.guifont:match "h([0-9]+)" or height
 
   return font, height
 end
@@ -109,12 +109,15 @@ utils.del_command = vim.api.nvim_del_user_command
 -- form: {var, <input-option> ...}
 function input(...)
   local out = {}
-  for _, form in ipairs {...} do
-    assert(is_a.table(form) and #form >= 1, 'form: {var, [rest vim.fn.input args]}')
+  for _, form in ipairs { ... } do
+    assert(is_a.table(form) and #form >= 1, "form: {var, [rest vim.fn.input args]}")
     local name = form[1]
-    local s = vim.fn.input(form[2] or name .. ' % ', unpack(table.rest(table.rest(form))))
-    
-    if #s == 0 then pp("\nexpected string for param " .. name); return end
+    local s = vim.fn.input(form[2] or name .. " % ", unpack(array.rest(array.rest(form))))
+
+    if #s == 0 then
+      pp("\nexpected string for param " .. name)
+      return
+    end
     out[name] = s
   end
 

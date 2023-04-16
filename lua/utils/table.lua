@@ -1,12 +1,20 @@
-table.teach = table.foreach
-table.ieach = table.foreachi
-table.keys = vim.tbl_keys
-table.values = vim.tbl_values
-table.copy = vim.deepcopy
-table.isempty = vim.tbl_is_empty
-table.flatten = vim.tbl_flatten
+array = {}
+dict = {}
+dict.keys = vim.tbl_keys
+dict.values = vim.tbl_values
+dict.copy = vim.deepcopy
+dict.isblank = vim.tbl_is_empty
+array.flatten = vim.tbl_flatten
+array.copy = dict.copy
+array.join = table.concat
+array.concat = array.join
+array.remove = table.remove
 
-function table.append(t, ...)
+function array.isblank(x)
+  return #x == 0
+end
+
+function array.append(t, ...)
   local idx = #t
   for i, value in ipairs { ... } do
     t[idx + i] = value
@@ -15,7 +23,7 @@ function table.append(t, ...)
   return t
 end
 
-function table.iappend(t, idx, ...)
+function array.iappend(t, idx, ...)
   for _, value in ipairs { ... } do
     table.insert(t, idx, value)
   end
@@ -23,7 +31,7 @@ function table.iappend(t, idx, ...)
   return t
 end
 
-function table.unshift(t, ...)
+function array.unshift(t, ...)
   for idx, value in ipairs { ... } do
     table.insert(t, idx, value)
   end
@@ -31,7 +39,7 @@ function table.unshift(t, ...)
   return t
 end
 
-function table.tolist(x, force)
+function array.tolist(x, force)
   if force or type(x) ~= "table" then
     return { x }
   end
@@ -39,7 +47,9 @@ function table.tolist(x, force)
   return x
 end
 
-function table.todict(x)
+array.toarray = array.tolist
+
+function array.todict(x)
   if type(x) ~= "table" then
     return { [x] = x }
   end
@@ -52,7 +62,7 @@ function table.todict(x)
   return out
 end
 
-function table.shift(t, times)
+function array.shift(t, times)
   local l = #t
   times = times or 1
   for i = 1, times do
@@ -65,7 +75,7 @@ function table.shift(t, times)
   return t
 end
 
-function table.index(t, item, test)
+function array.index(t, item, test)
   for key, v in pairs(t) do
     if test then
       if test(v, item) then
@@ -77,13 +87,19 @@ function table.index(t, item, test)
   end
 end
 
-function table.each(t, f)
+function array.ieach(t, f)
+  for _, v in ipairs(t) do
+    f(_, v)
+  end
+end
+
+function array.each(t, f)
   for _, v in ipairs(t) do
     f(v)
   end
 end
 
-function table.igrep(t, f)
+function array.igrep(t, f)
   local out = {}
   local i = 1
 
@@ -98,7 +114,7 @@ function table.igrep(t, f)
   return out
 end
 
-function table.tgrep(t, f)
+function dict.grep(t, f)
   local out = {}
 
   for k, v in pairs(t) do
@@ -111,7 +127,7 @@ function table.tgrep(t, f)
   return out
 end
 
-function table.grep(t, f)
+function array.grep(t, f)
   local out = {}
   local i = 1
   for _, v in ipairs(t) do
@@ -125,7 +141,7 @@ function table.grep(t, f)
   return out
 end
 
-function table.filter(t, f)
+function array.filter(t, f)
   local out = {}
   for _, v in ipairs(t) do
     local o = f(v)
@@ -139,7 +155,7 @@ function table.filter(t, f)
   return out
 end
 
-function table.tfilter(t, f)
+function dict.filter(t, f)
   local out = {}
   for idx, v in pairs(t) do
     local o = f(idx, v)
@@ -153,7 +169,7 @@ function table.tfilter(t, f)
   return out
 end
 
-function table.ifilter(t, f)
+function array.ifilter(t, f)
   local out = {}
   for idx, v in ipairs(t) do
     local o = f(idx, v)
@@ -167,7 +183,7 @@ function table.ifilter(t, f)
   return out
 end
 
-function table.tmap(t, f)
+function dict.map(t, f)
   local out = {}
   for k, v in pairs(t) do
     local o = f(k, v)
@@ -179,7 +195,7 @@ function table.tmap(t, f)
   return out
 end
 
-function table.map(t, f)
+function array.map(t, f)
   local out = {}
   for idx, v in ipairs(t) do
     v = f(v)
@@ -190,7 +206,7 @@ function table.map(t, f)
   return out
 end
 
-function table.imap(t, f)
+function array.imap(t, f)
   local out = {}
   for idx, v in ipairs(t) do
     v = f(idx, v)
@@ -201,7 +217,7 @@ function table.imap(t, f)
   return out
 end
 
-function table.items(t)
+function dict.items(t)
   local out = {}
   local i = 1
   for key, val in pairs(t) do
@@ -212,7 +228,7 @@ function table.items(t)
   return out
 end
 
-function table.setro(t)
+function dict.setro(t)
   assert(type(t) == "table", tostring(t) .. " is not a table")
 
   local function __newindex()
@@ -230,49 +246,7 @@ function table.setro(t)
   return t
 end
 
-function table.mtget(t, k)
-  assert(type(t) == "table", "expected table, got " .. tostring(t))
-  assert(k, "No attribute provided to query")
-
-  local mt = getmetatable(t)
-  if not mt then
-    return nil
-  end
-
-  local out = {}
-  if type(k) == "table" then
-    for _, v in ipairs(k) do
-      out[v] = rawget(mt, v)
-    end
-
-    return out
-  end
-
-  return rawget(mt, k)
-end
-
-table.get_mt = table.mtget
-table.set_mt = table.mtset
-
-function table.mtset(t, k, v)
-  assert(type(t) == "table", "expected table, got " .. tostring(t))
-  assert(k, "No attribute provided to query")
-
-  local mt = getmetatable(t) or {}
-  if type(k) == "table" then
-    for idx, v in pairs(k) do
-      rawset(mt, idx, v)
-    end
-    return setmetatable(t, mt)
-  end
-
-  rawset(mt, k, v)
-  setmetatable(t, mt)
-
-  return mt
-end
-
-function table.len(t)
+function dict.len(t)
   local i = 0
   for _, _ in pairs(t) do
     i = i + 1
@@ -281,15 +255,21 @@ function table.len(t)
   return i
 end
 
-function table.isblank(s)
+function array.len(x)
+  return #x == 0
+end
+
+function dict.isblank(s)
   if type(s) == "string" then
     return #s == 0
   elseif type(s) == "table" then
-    return table.len(s) == 0
+    return dict.len(s) == 0
   end
 end
 
-function table.extend(tbl, ...)
+array.isblank = dict.isblank
+
+function array.extend(tbl, ...)
   local l = #tbl
   for i, t in ipairs { ... } do
     if type(t) == "table" then
@@ -304,7 +284,7 @@ function table.extend(tbl, ...)
   return tbl
 end
 
-function table.compare(a, b, callback, no_state)
+function array.compare(a, b, callback, no_state)
   if not is_table(a) or not is_table(b) then
     return false
   end
@@ -356,7 +336,7 @@ function table.compare(a, b, callback, no_state)
   return compared, all_equal
 end
 
-function table.butlast(t)
+function array.last(t)
   local new = {}
 
   for i = 1, #t - 1 do
@@ -366,7 +346,7 @@ function table.butlast(t)
   return new
 end
 
-function table.last(t, n)
+function array.butlast(t, n)
   if n then
     local len = #t
     local new = {}
@@ -382,7 +362,7 @@ function table.last(t, n)
   end
 end
 
-function table.rest(t)
+function array.rest(t)
   local new = {}
   local len = #t
   local idx = 1
@@ -395,7 +375,7 @@ function table.rest(t)
   return new
 end
 
-function table.first(t, n)
+function array.first(t, n)
   if n then
     local new = {}
     for i = 1, n do
@@ -408,8 +388,8 @@ function table.first(t, n)
   end
 end
 
-function table.update(tbl, keys, value)
-  keys = table.tolist(keys)
+function dict.update(tbl, keys, value)
+  keys = array.tolist(keys)
   local len_ks = #keys
   local t = tbl
 
@@ -430,7 +410,9 @@ function table.update(tbl, keys, value)
   end
 end
 
-function table.get(tbl, ks, create_path)
+array.update = dict.update
+
+function dict.get(tbl, ks, create_path)
   if type(ks) ~= "table" then
     ks = { ks }
   end
@@ -458,7 +440,9 @@ function table.get(tbl, ks, create_path)
   return v, t, tbl
 end
 
-function table.slice(t, from, till)
+array.get = dict.get
+
+function array.slice(t, from, till)
   local l = #t
   if from < 0 then
     from = l + from
@@ -481,29 +465,39 @@ function table.slice(t, from, till)
   return out
 end
 
-function table.contains(tbl, ...)
-  return (table.get(tbl, { ... }))
+function dict.contains(tbl, ...)
+  return (dict.get(tbl, { ... }))
 end
 
-function table.makepath(t, ...)
-  return table.get(t, { ... }, true)
+array.contains = dict.contains
+
+function dict.makepath(t, ...)
+  return dict.get(t, { ... }, true)
 end
 
-function table.lmerge(...)
+array.makepath = dict.makepath
+
+function dict.each(t, f)
+  for key, value in pairs(t) do
+    f(key, value)
+  end
+end
+
+function dict.lmerge(...)
   local function _merge(t1, t2)
     local later = {}
 
-    table.teach(t2, function(k, v)
+    dict.each(t2, function(k, v)
       local a, b = t1[k], t2[k]
 
       if a == nil then
         t1[k] = v
       elseif is_a.t(a) and is_a.t(b) then
-        table.append(later, { a, b })
+        array.append(later, { a, b })
       end
     end)
 
-    table.each(later, function(next)
+    array.each(later, function(next)
       _merge(unpack(next))
     end)
   end
@@ -519,23 +513,23 @@ function table.lmerge(...)
   return start
 end
 
-function table.merge(...)
+function dict.merge(...)
   local function _merge(t1, t2)
     local later = {}
 
-    table.teach(t2, function(k, v)
+    dict.each(t2, function(k, v)
       local a, b = t1[k], t2[k]
 
       if a == nil then
         t1[k] = v
       elseif is_a.t(a) and is_a.t(b) then
-        table.append(later, { a, b })
+        array.append(later, { a, b })
       else
         t1[k] = v
       end
     end)
 
-    table.each(later, function(next)
+    array.each(later, function(next)
       _merge(unpack(next))
     end)
   end
@@ -551,7 +545,7 @@ function table.merge(...)
   return start
 end
 
-function table.range(from, till, step)
+function array.range(from, till, step)
   step = step or 1
   local out = {}
   local idx = 1
@@ -564,7 +558,7 @@ function table.range(from, till, step)
   return out
 end
 
-function table.zip2(a, b)
+function array.zip2(a, b)
   assert(type(a) == "table", "expected table, got " .. tostring(a))
   assert(type(b) == "table", "expected table, got " .. tostring(a))
 
@@ -578,7 +572,7 @@ function table.zip2(a, b)
   return out
 end
 
-function table.zip(...)
+function array.zip(...)
   local args = { ... }
   local len_args = #args
   local n = {}
@@ -605,63 +599,36 @@ function table.zip(...)
   return out
 end
 
-string.isblank = table.isblank
+function dict.delete(x, ks)
+  local t = x
+  local found
+  local i = 1
+  ks = array.tolist(ks)
+  local n = #ks
 
-dict = {
-  each = table.teach,
-  map = table.tmap,
-  filter = table.tfilter,
-  grep = table.tgrep,
-  get = table.get,
-  contains = table.contains,
-  merge = table.merge,
-  lmerge = table.lmerge,
-  update = table.update,
-  compare = table.compare,
-  index = table.index,
-  isblank = table.isblank,
-  keys = table.keys,
-  values = table.values,
-  todict = table.todict,
-  copy = vim.deepcopy,
-  items = table.items,
-  compare = table.compare,
-  makepath = table.makepath,
-}
+  while not found do
+    local k = ks[i]
+    local v = t[k]
+    if not v then
+      return
+    end
 
-array = {
-  join = table.concat,
-  append = table.append,
-  iappend = table.iappend,
-  unshift = table.unshift,
-  shift = table.shift,
-  index = table.index,
-  each = table.each,
-  grep = table.grep,
-  map = table.map,
-  ieach = table.ieach,
-  igrep = table.igrep,
-  imap = table.imap,
-  filter = table.filter,
-  ifilter = table.ifilter,
-  len = table.len,
-  isblank = table.isblank,
-  extend = table.extend,
-  compare = table.compare,
-  butlast = table.butlast,
-  last = table.last,
-  first = table.first,
-  rest = table.rest,
-  update = table.update,
-  get = table.get,
-  slice = table.slice,
-  contains = table.contains,
-  makepath = table.makepath,
-  zip2 = table.zip2,
-  zip = table.zip,
-  flatten = table.flatten,
-  compare = table.compare,
-  makepath = table.makepath,
-  tolist = table.tolist,
-  toarray = table.tolist,
-}
+    if i == n then
+      found = k
+    elseif is_seq(v) then
+      t = v
+    else
+      found = k
+    end
+
+    i = i + 1
+  end
+
+  if found then
+    t[found] = nil
+  end
+
+  return found
+end
+
+array.delete = dict.delete

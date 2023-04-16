@@ -12,15 +12,15 @@ end, {})
 
 -- Open scratch buffer
 command("OpenScratch", function()
-  buffer.open_scratch(false, 's')
+  buffer.open_scratch(false, "s")
 end, {})
 
 command("OpenScratchVertically", function()
   buffer.open_scratch(false, "v")
 end, {})
 
-command('OpenScratchFloat', function ()
-  buffer.open_scratch(false, 'f', {center={0.8, 0.8}})
+command("OpenScratchFloat", function()
+  buffer.open_scratch(false, "f", { center = { 0.8, 0.8 } })
 end, {})
 
 -- Compile neovim lua

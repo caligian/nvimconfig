@@ -4,7 +4,7 @@ if not lazy then
   return
 end
 
-table.makepath(user, "plugins", "plugins")
+dict.makepath(user, "plugins", "plugins")
 user.plugins.plugins = require "core.plugins.plugins"
 req "user.plugins.plugins"
-lazy.setup(table.values(user.plugins.plugins), { lazy = true })
+lazy.setup(dict.values(user.plugins.plugins), { lazy = true })

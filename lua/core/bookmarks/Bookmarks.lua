@@ -99,7 +99,7 @@ function Bookmarks.list(p, telescope)
   if not p then
     if not telescope then
       return array.map(
-        array.grep(table.keys(Bookmarks.BOOKMARKS), function(x)
+        array.grep(dict.keys(Bookmarks.BOOKMARKS), function(x)
           return is_a.number(x) ~= true
         end),
         function(x)

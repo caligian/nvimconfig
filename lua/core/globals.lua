@@ -1,6 +1,6 @@
 local data_dir = vim.fn.stdpath "data"
 
-table.merge(user, {
+dict.merge(user, {
   lsp = user.lsp or {},
   dir = vim.fn.stdpath "config",
   user_dir = path.join(os.getenv "HOME", ".nvim"),
@@ -20,8 +20,8 @@ table.merge(user, {
   },
 
   colorscheme = {
-    dark = "oceanic",
-    light = "kanagawa-lotus",
+    dark = "rosebones",
+    light = "vimbones",
     use = "light",
   },
 

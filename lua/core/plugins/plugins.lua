@@ -390,7 +390,7 @@ local plugins = {
 }
 
 local names = {}
-table.each(plugins, function(spec)
+array.each(plugins, function(spec)
   local x = path.basename(spec[1])
   names[x] = spec
 end)

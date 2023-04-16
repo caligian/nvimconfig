@@ -7,8 +7,8 @@ B.telescope = {}
 local M = B.telescope
 
 function M.list_buffers()
-  return table.grep(
-    table.map(vim.fn.getbufinfo(), function(x)
+  return array.grep(
+    array.map(vim.fn.getbufinfo(), function(x)
       local bufnr = x.bufnr
       local name = #x.name > 0 and x.name or false
       local loaded = x.loaded == 1
@@ -28,11 +28,11 @@ end
 
 function M.get_finder_table(p)
   local items = B.list(p)
-  if not items or #table.keys(items) == 0 then
+  if not items or #dict.keys(items) == 0 then
     return false
   end
   return {
-    results = table.items(items),
+    results = dict.items(items),
     entry_maker = function(entry)
       return {
         value = entry[1],

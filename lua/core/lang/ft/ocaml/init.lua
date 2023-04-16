@@ -3,7 +3,7 @@ Lang("ocaml", {
     "utop",
     on_input = function(s)
       if not s[#s]:match ";;$" then
-        return table.append(s, ";;")
+        return array.append(s, ";;")
       end
       return s
     end,

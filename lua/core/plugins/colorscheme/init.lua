@@ -1,4 +1,4 @@
-require 'core.plugins.colorscheme.manager'
+require "core.plugins.colorscheme.manager"
 
 user.plugins.colorscheme = {
   colorscheme = user.colorscheme,

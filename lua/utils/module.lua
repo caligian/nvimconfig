@@ -1,4 +1,4 @@
-require 'utils.errors'
+require "utils.errors"
 
 function module(methods)
   local mod = {}
@@ -9,11 +9,11 @@ function module(methods)
   return mod
 end
 
-local exception = Exception 'StateModuleException'
-exception.not_a_class = 'class expected'
+local exception = Exception "StateModuleException"
+exception.not_a_class = "class expected"
 
 function state_module(cls, methods)
-  exception.not_a_class:throw_unless(is_class(cls), cls)
+  exception.not_a_table:throw_unless(is_table(cls), cls)
   TypeException.not_a_table:throw_unless(is_table(methods), methods)
 
   local mod = module(methods or {})
@@ -41,14 +41,14 @@ function state_module(cls, methods)
   end
 
   function mod.remove(obj_name, ...)
-    local args = {...}
+    local args = { ... }
 
-    if #args == 0 then 
+    if #args == 0 then
       state[obj_name] = nil
     else
       local obj = mod.get(obj_name)
       if not obj then
-        return 
+        return
       elseif obj.remove then
         return obj:remove(...)
       end
@@ -64,19 +64,21 @@ function state_module(cls, methods)
   local add, remove, create = mod.add, mod.remove, mod.create
 
   function mod.init_remove(before, after)
-    if before and not after then  
+    if before and not after then
       after = before
       before = nil
     end
 
     function mod.remove(...)
-      local args = {...}
+      local args = { ... }
       local out = args
 
-      if before then out = {before(unpack(args))} end
+      if before then
+        out = { before(unpack(args)) }
+      end
 
-      if after then 
-        out = {after(remove(unpack(out)))} 
+      if after then
+        out = { after(remove(unpack(out))) }
       else
         out = remove(unpack(out))
       end
@@ -86,19 +88,21 @@ function state_module(cls, methods)
   end
 
   function mod.init_create(before, after)
-    if before and not after then  
+    if before and not after then
       after = before
       before = nil
     end
 
     function mod.create(...)
-      local args = {...}
+      local args = { ... }
       local out = args
 
-      if before then out = {before(unpack(args))} end
+      if before then
+        out = { before(unpack(args)) }
+      end
 
-      if after then 
-        out = {after(create(unpack(out)))} 
+      if after then
+        out = { after(create(unpack(out))) }
       else
         out = create(unpack(out))
       end
@@ -108,19 +112,21 @@ function state_module(cls, methods)
   end
 
   function mod.init_add(before, after)
-    if before and not after then  
+    if before and not after then
       after = before
       before = nil
     end
 
     function mod.add(...)
-      local args = {...}
+      local args = { ... }
       local out = args
 
-      if before then out = {before(unpack(args))} end
+      if before then
+        out = { before(unpack(args)) }
+      end
 
-      if after then 
-        out = {after(add(unpack(out)))} 
+      if after then
+        out = { after(add(unpack(out))) }
       else
         out = add(unpack(out))
       end

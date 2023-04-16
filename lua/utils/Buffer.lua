@@ -1,21 +1,21 @@
 --- Buffer object creater. This does not YET cover all the neovim buffer API functions
 
-require 'utils.buffers'
+require "utils.buffers"
 
 Buffer = Class.new("Buffer", false, {
   include = buffers,
-  attrib = 'bufnr',
+  attrib = "bufnr",
 })
 
-Buffer.ids = Buffer.ids or {}
-Buffer._scratch_id = Buffer._scratch_id or 1
+user.buffer = user.buffer or { BUFNR = {}, SCRATCH_ID = 1 }
+user.buffer.SCRATCH_ID = user.buffer.SCRATCH_ID or 1
 
 function Buffer:init(name, scratch)
   local bufnr
 
   if not name then
     scratch = true
-    name = "_scratch_buffer_" .. Buffer._scratch_id + 1
+    name = "_scratch_buffer_" .. user.buffer.SCRATCH_ID + 1
   end
 
   if is_a.n(name) then
@@ -44,7 +44,7 @@ function Buffer:init(name, scratch)
   self.wvar = {}
 
   if scratch then
-    Buffer._scratch_id = Buffer._scratch_id + 1
+    user.buffer.SCRATCH_ID = user.buffer.SCRATCH_ID + 1
     self:setopts {
       modified = false,
       buflisted = false,
@@ -125,5 +125,5 @@ function Buffer:delete()
 end
 
 function Buffer:update()
-  table.update(Buffer.ids, { bufnr }, self)
+  dict.update(user.buffer.BUFNR, { bufnr }, self)
 end

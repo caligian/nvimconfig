@@ -1,5 +1,5 @@
 local function list_buffers()
-  local buffers = table.grep(vim.fn.getbufinfo(), function(buf)
+  local buffers = array.grep(vim.fn.getbufinfo(), function(buf)
     local buftype = vim.api.nvim_buf_get_option(buf.bufnr, "buftype")
     if buftype == "nofile" or buf.listed == 0 or buf.loaded == 0 then
       return false
@@ -11,13 +11,13 @@ local function list_buffers()
     return true
   end)
 
-  return table.map(buffers, function(buf)
+  return array.map(buffers, function(buf)
     return buf.name
   end)
 end
 
 local function list_bookmarks()
-  return table.keys(Bookmarks.bookmarks)
+  return dict.keys(Bookmarks.bookmarks)
 end
 
 utils.command("BookmarksAddCurrent", function(args)
@@ -43,7 +43,7 @@ end, {
     if not Bookmarks.exists(name) then
       return {}
     end
-    return table.keys(Bookmarks.exists(name))
+    return dict.keys(Bookmarks.exists(name))
   end,
 })
 
@@ -59,7 +59,7 @@ utils.command("BookmarksAdd", function(args)
   if fname == "%" then
     fname = vim.fn.expand "%:p"
   end
-  local s_args = table.map(table.rest(args.fargs), function(x)
+  local s_args = array.map(array.rest(args.fargs), function(x)
     if x == "." then
       return x
     end
@@ -77,14 +77,14 @@ utils.command("BookmarksShow", function(args)
   if p then
     local ls = Bookmarks.list(p)
     if ls then
-      table.teach(Bookmarks.list(p), function(k, x)
+      dict.each(Bookmarks.list(p), function(k, x)
         print(sprintf("%-5d | %s", k, x))
       end)
     end
   else
     local ls = Bookmarks.list(p)
     if ls then
-      table.each(ls, print)
+      array.each(ls, print)
     end
   end
 end, { nargs = "?", complete = list_bookmarks })

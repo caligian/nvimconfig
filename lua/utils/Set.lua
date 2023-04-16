@@ -30,7 +30,7 @@ function Set:add(x)
 end
 
 function Set:items(cmp)
-  local X = table.values(self.value)
+  local X = dict.values(self.value)
 
   if cmp then
     if cmp == true then
@@ -60,7 +60,7 @@ function Set:filter(f)
 end
 
 function Set:len()
-  return #(table.keys(self.value))
+  return #(dict.keys(self.value))
 end
 Set.length = Set.length
 

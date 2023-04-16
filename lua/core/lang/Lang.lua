@@ -57,13 +57,13 @@ function Lang.init(self, lang, opts)
     self:map(unpack(opts.kbd))
   end
   if opts.linters then
-    opts.linters = table.tolist(opts.linters)
+    opts.linters = array.tolist(opts.linters)
   end
   if opts.server and is_a.s(opts.server) then
     opts.server = { name = opts.server }
   end
 
-  Lang.langs[lang] = table.merge(self, opts or {})
+  Lang.langs[lang] = dict.merge(self, opts or {})
 
   return self
 end
@@ -132,7 +132,7 @@ function Lang.load(lang, opts)
     local a, b = is_a.t(c), is_a.t(u)
 
     if a and b then
-      table.merge(c, u)
+      dict.merge(c, u)
       Lang(lang, c)
     elseif a then
       Lang(lang, c)

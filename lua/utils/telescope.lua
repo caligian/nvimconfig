@@ -10,7 +10,7 @@ local load_telescope = function()
       return M.values
     end),
     ivy = utils.try_require("telescope.themes", function(M)
-      return table.merge(M.get_ivy(), {
+      return dict.merge(M.get_ivy(), {
         disable_devicons = true,
         previewer = false,
         extensions = {},
@@ -59,7 +59,7 @@ function M.new(items, mappings, opts)
   opts.sorter = opts.sorter or _.sorters.get_fzy_sorter()
 
   if mappings then
-    mappings = table.tolist(mappings)
+    mappings = array.tolist(mappings)
     local attach_mappings = opts.attach_mappings
     opts.attach_mappings = function(prompt_bufnr, map)
       if mappings then
@@ -69,7 +69,7 @@ function M.new(items, mappings, opts)
             default(prompt_bufnr)
           end)
         end
-        table.each(table.rest(mappings), function(x)
+        array.each(array.rest(mappings), function(x)
           map(unpack(x))
         end)
       end
@@ -89,7 +89,7 @@ function M.create_actions_mod(no_close)
     __newindex = function(self, name, f)
       local _ = load_telescope()
       rawset(self, name, function(bufnr)
-        table.each(M.get_selected(bufnr, no_close), function(sel)
+        array.each(M.get_selected(bufnr, no_close), function(sel)
           return f(sel, bufnr)
         end)
       end)

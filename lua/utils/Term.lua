@@ -2,24 +2,25 @@ if not Term then
   class "Term"
 end
 
-Term.ids = Term.ids or {}
-Term.timeout = 30
+user.term = user.term or { ID = {}, timeout = 30 }
 
-local exception = Exception 'TermException'
+Term.timeout = user.term.timeout
+
+local exception = Exception "TermException"
 exception:set {
-  invalid_command = 'expected valid command',
-  not_executable = 'shell not executable',
-  exited_with_error = 'command exited with error',
-  interrupted = 'interrupted',
-  invalid_id = 'valid id expected',
-  unknown = 'unknown error'
+  invalid_command = "expected valid command",
+  not_executable = "shell not executable",
+  exited_with_error = "command exited with error",
+  interrupted = "interrupted",
+  invalid_id = "valid id expected",
+  unknown = "unknown error",
 }
 
 local function get_status(id, cmd)
   if id == 0 then
-    return 'invalid_command'
+    return "invalid_command"
   elseif id == -1 then
-    return 'not_executable'
+    return "not_executable"
   end
 
   local status = vim.fn.jobwait({ id }, Term.timeout)[1]
@@ -27,13 +28,13 @@ local function get_status(id, cmd)
     if status >= 126 then
       return false, "invalid_command"
     elseif status >= 1 then
-      return false, 'exited_with_error'
+      return false, "exited_with_error"
     elseif status == -2 then
-      return false, 'interrupted'
+      return false, "interrupted"
     elseif status == -3 then
-      return false, 'invalid_id'
+      return false, "invalid_id"
     else
-      return false, 'unknown'
+      return false, "unknown"
     end
   end
 
@@ -49,7 +50,9 @@ local function start_term(cmd, opts)
     id = vim.fn.termopen(cmd)
     term = vim.fn.bufnr()
     local ok, msg = get_status(id, cmd)
-    if not ok then exception[msg]:throw(self) end
+    if not ok then
+      exception[msg]:throw(self)
+    end
   end)
 
   return id, term
@@ -65,14 +68,20 @@ function Term:wait(timeout)
 end
 
 function Term:get_status()
-  if not self.id then return false end
+  if not self.id then
+    return false
+  end
   return get_status(self.id, self.command)
 end
 
 function Term:is_running()
-  if not self.id then return false end
+  if not self.id then
+    return false
+  end
   local ok, msg = get_status(self.id, self.command)
-  if not ok then exception[msg]:throw(self) end
+  if not ok then
+    exception[msg]:throw(self)
+  end
 
   return true
 end
@@ -86,7 +95,7 @@ function Term:start()
   self.id = id
   self.buffer = Buffer(term_buffer, true)
 
-  table.update(Term.ids, id, self)
+  dict.update(user.term.ID, id, self)
 
   return self
 end
@@ -113,7 +122,7 @@ function Term:stop()
 end
 
 function Term.stopall()
-  table.teach(Term.ids, function(id, _)
+  dict.each(user.term.ID, function(id, _)
     if is_a.n(id) then
       vim.fn.chanclose(id)
     end
@@ -139,11 +148,11 @@ function Term:float(opts)
 end
 
 function Term:center_float(opts)
-  self:float(table.merge({ center = { 0.8, 0.8 } }, opts or {}))
+  self:float(dict.merge({ center = { 0.8, 0.8 } }, opts or {}))
 end
 
 function Term:dock(opts)
-  self:float(table.merge({ dock = 0.3 }, opts or {}))
+  self:float(dict.merge({ dock = 0.3 }, opts or {}))
 end
 
 function Term:send(s)
