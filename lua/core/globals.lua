@@ -8,21 +8,19 @@ dict.merge(user, {
   plugins_dir = path.join(data_dir, "lazy"),
   plugins = user.plugins or {},
   shell = "/usr/bin/zsh",
-  font = { family = "Liberation Mono", height = 13 },
+  font = { family = "Ubuntu Mono", height = 12 },
   bitmap_font = { family = "Terminus", height = 11 },
 
   temp_buffer_patterns = {
     temp_buffers = "^__temp_buffer",
     vim_help = "/usr/share/nvim/runtime/doc",
-    help_files = function(bufnr)
-      return vim.api.nvim_buf_get_option(bufnr, "filetype") == "help"
-    end,
+    help_files = function(bufnr) return vim.api.nvim_buf_get_option(bufnr, "filetype") == "help" end,
   },
 
   colorscheme = {
     dark = "rosebones",
     light = "vimbones",
-    use = "light",
+    use = "dark",
   },
 
   conjure_langs = {
@@ -42,6 +40,7 @@ dict.merge(user, {
 })
 
 if vim.fn.has "gui" == 1 then
+  vim.cmd('set guifont=Liberation\\ Mono:h12')
   utils.set_font(user.font.family, user.font.height)
 end
 

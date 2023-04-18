@@ -27,5 +27,9 @@ function string.match_any(s, ...)
   end
 end
 
+function string.isblank(x)
+  return #x == 0
+end
+
 string.sprintf = sprintf
 string.printf = printf

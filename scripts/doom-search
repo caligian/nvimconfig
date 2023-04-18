@@ -1,0 +1,4 @@
+#!/bin/bash
+
+[[ -z $1 ]] && echo 'pattern not supplied' && exit 1 
+fd --type f "lua$" $HOME/.config/nvim/ -X grep -nE "$1" {}

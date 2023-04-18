@@ -330,13 +330,13 @@ function buffer.split(bufnr, split, opts)
     required = from_percent(current, height or 0.5, min)
     if not reverse then
       if opts.full then
-        vim.cmd("vert topleft split | b " .. bufnr)
+        vim.cmd("vert botright split | b " .. bufnr)
       else
         vim.cmd("vsplit | b " .. bufnr)
       end
     else
       if opts.full then
-        vim.cmd(sprintf("vert botright split | b %d", bufnr))
+        vim.cmd(sprintf("vert topleft split | b %d", bufnr))
       else
         vim.cmd(sprintf("vsplit | wincmd l | b %d", bufnr))
       end
@@ -391,6 +391,7 @@ end
 
 --- Hide current buffer if visible
 function buffer.hide(bufnr)
+  print(bufnr)
   local winid = vim.fn.bufwinid(bufnr)
   if winid ~= -1 then
     local current_tab = vim.api.nvim_get_current_tabpage()

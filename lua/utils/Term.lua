@@ -90,6 +90,7 @@ function Term:start()
   local id, term_buffer = start_term(self.command, self.opts)
   self.id = id
   self.bufnr = term_buffer
+  buffer.map(term_buffer, 'n', 'q', ':hide<CR>', {})
 
   dict.update(user.term.ID, id, self)
 
