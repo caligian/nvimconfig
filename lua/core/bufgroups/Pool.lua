@@ -105,55 +105,7 @@ function Pool:create_picker()
   })
 end
 
-function Pool.create_picker_for_buffer(bufnr)
-  bufnr = isa("number", bufnr)
-  assert(buffer.exists(bufnr), "expected valid buffer, got " .. bufnr)
-  assert(Bufgroup.BUFFERS[bufnr], "expected grouped buffer")
 
-  local groups = dict.keys(Bufgroup.BUFFERS[bufnr].groups)
-  if #groups == 1 then
-    local group = Bufgroup.get(nil, groups[1], true)
-    return group:create_picker()
-  end
-
-  local _ = utils.telescope.load()
-  local mod = _.create_actions_mod()
-
-  local results = {
-    results = groups,
-    entry_maker = function(x)
-      x = Bufgroup.BUFGROUPS[x]
-      return {
-        bufnr = bufnr,
-        group = x.name,
-        value = x,
-        display = sprintf("%s @ %s", x.name, table.concat(x.pattern, " ")),
-        ordinal = -1,
-      }
-    end,
-  }
-
-  local default_action = function(prompt_bufnr)
-    local sel = _.get_selected(prompt_bufnr)[1]
-    local x = sel.value
-    local picker = x:create_picker()
-    if not picker then
-      return utils.nvimerr("group is empty " .. x.name)
-    end
-    picker:find()
-  end
-
-  function mod.remove(sel)
-    sel.value:remove(sel.bufnr)
-  end
-
-  return _.new_picker(results, {
-    default_action,
-    { "n", "x", mod.remove },
-  }, {
-    prompt_title = "Select buffer group",
-  })
-end
 
 function Pool.create_main_picker(opts)
   local ls = dict.keys(Pool.get_state())

@@ -83,6 +83,10 @@ function M.new(items, mappings, opts)
 end
 
 M.new_picker = M.new
+M.create_picker = M.new
+M.run_picker = function (...)
+  return M.create_picker(...):find()
+end
 
 function M.create_actions_mod(no_close)
   return setmetatable({}, {
@@ -95,4 +99,34 @@ function M.create_actions_mod(no_close)
       end)
     end,
   })
+end
+
+--[[
+-- spec
+{
+  {<desc>, <callback>},
+  ...
+}
+--]]
+function M.create_menu(title, spec)
+  return M.create_picker(
+    {
+      results = spec,
+      entry_maker = function (entry)
+        return {
+          value = entry[1],
+          display = entry[1],
+          ordinal = -1,
+          callback = entry[2],
+        }
+      end
+    },
+    function (prompt_bufnr)
+      local sel = M.get_selected(prompt_bufnr)[1]
+      sel.callback(sel)
+    end,
+    {
+      prompt_title = title,
+    }
+  )
 end

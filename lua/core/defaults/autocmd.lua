@@ -22,6 +22,7 @@ Autocmd("BufEnter", {
   callback = "set ft=help",
 })
 
+local cmd = ':let buf = bufnr() <bar> blast <bar> execute "bwipeout " . buf <CR>'
 Autocmd("BufAdd", {
   name = "quit_temp_buffer_with_q",
   pattern = "*",
@@ -30,11 +31,11 @@ Autocmd("BufAdd", {
     array.each(dict.values(user.temp_buffer_patterns), function(pat)
       if is_callable(pat) then
         if pat(bufnr) then
-          vim.keymap.set({ "n", "i" }, "q", ":hide<CR>", { buffer = vim.fn.bufnr() })
+          vim.keymap.set({ "n", "i" }, "q", cmd, { buffer = vim.fn.bufnr() })
         end
       elseif is_string(pat) then
         if vim.api.nvim_buf_get_name(bufnr):match(pat) then
-          vim.keymap.set({ "n", "i" }, "q", ":hide<CR>", { buffer = bufnr })
+          vim.keymap.set({ "n", "i" }, "q", cmd, { buffer = bufnr })
         end
       end
     end)

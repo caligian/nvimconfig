@@ -1,94 +1,130 @@
-local function list_buffers()
-  local buffers = array.grep(vim.fn.getbufinfo(), function(buf)
-    local buftype = vim.api.nvim_buf_get_option(buf.bufnr, "buftype")
-    if buftype == "nofile" or buf.listed == 0 or buf.loaded == 0 then
-      return false
-    end
-    if #buf.name == 0 then
-      return false
-    end
+local Bookmark = require 'core.bookmarks.Bookmark'
+local list_buffers = Bookmark.list_buffers
+local list_bookmarks = function () return dict.keys(Bookmark.list_all()) end
 
-    return true
-  end)
-
-  return array.map(buffers, function(buf)
-    return buf.name
-  end)
+local function args2number(args)
+  return array.map(args, tonumber)
 end
 
-local function list_bookmarks()
-  return dict.keys(Bookmarks.bookmarks)
-end
+utils.command('BookmarkRemovePicker', function (args)
+  local arg = args.fargs[1]
+  if not arg then
+    local picker = Bookmark.create_main_picker(true)
+    if picker then picker:find() end
+  else
+    local exists = Bookmark.get(arg)
+    if exists then
+      local picker = exists:create_picker(true)
+      if picker then picker:find() end
+    end
+  end
+end, { complete = list_bookmarks, nargs = '?' })
 
-utils.command("BookmarksAddCurrent", function(args)
+utils.command('BookmarkPicker', function (args)
+  local arg = args.fargs[1]
+  if not arg then
+    local picker = Bookmark.create_main_picker()
+    if picker then picker:find() end
+  else
+    local exists = Bookmark.get(arg)
+    if exists then
+      local picker = exists:create_picker()
+      if picker then picker:find() end
+    end
+  end
+end, { complete = list_bookmarks, nargs = '?' })
+
+utils.command('BookmarkCurrentBufferPicker', function ()
+  local picker = Bookmark.create_current_buffer_picker()
+  if picker then picker:find() end
+end, {})
+
+utils.command('BookmarkRemoveCurrentBufferPicker', function ()
+  local picker = Bookmark.create_current_buffer_picker(true)
+  if picker then picker:find() end
+end, {})
+
+utils.command('BookmarkToggleLine', function (args)
+  local line = tonumber(args.fargs[1]) or vim.fn.line('.')
+  local bufnr = vim.fn.bufnr()
+  if not Bookmark.get(bufnr, line) then
+    Bookmark.add_line(bufnr, line)
+  else
+    Bookmark.remove_line(bufnr, line)
+  end
+end)
+
+utils.command('BookmarkRemoveLine', function (args)
+  args = args.fargs
+  if #args == 0 then
+    Bookmark.add_current_buffer(vim.fn.line('.'))
+  else
+    array.each(Bookmark.remove_current_buffer, args2number(args))
+  end
+end)
+
+utils.command('BookmarkLine', function (args)
+  args = args.fargs
+  if #args == 0 then
+    Bookmark.add_current_buffer(vim.fn.line('.'))
+  else
+    array.each(Bookmark.add_current_buffer, args2number(args))
+  end
+end)
+
+utils.command("BookmarkCurrentBuffer", function(args)
   local line = args.args[1]
   line = line or "."
-  if line ~= "." then
-    line = tonumber(line)
-  end
-  Bookmarks.add(vim.api.nvim_buf_get_name(vim.fn.bufnr()), line)
+  if line ~= "." then line = tonumber(line) end
+  Bookmark.add_current_buffer(line)
 end, { nargs = "?" })
 
-utils.command("BookmarksRemoveCurrent", function(args)
+utils.command("BookmarkRemoveCurrentBuffer", function(args)
   local line = args.args[1]
   line = line or "."
-  if line ~= "." then
-    line = tonumber(line)
-  end
-  Bookmarks.remove(vim.api.nvim_buf_get_name(vim.fn.bufnr()), line)
+  if line ~= "." then line = tonumber(line) end
+  Bookmark.remove_current_buffer(line)
 end, {
   nargs = "?",
   complete = function()
     local name = vim.api.nvim_buf_get_name(vim.fn.bufnr())
-    if not Bookmarks.exists(name) then
+    if not Bookmark.exists(name) then
       return {}
     end
-    return dict.keys(Bookmarks.exists(name))
+    return dict.keys(Bookmark.exists(name))
   end,
 })
 
-utils.command("BookmarksRemove", function(args)
+utils.command("BookmarkRemove", function(args)
+  local fname = args.fargs[1]
   for i = 2, #args.fargs do
-    args.fargs[i] = tonumber(args.fargs[i])
+    local line = tonumber(args.fargs[i])
+    Bookmark.remove_line(fname, line)
   end
-  Bookmarks.remove(unpack(args.fargs))
 end, { nargs = "+", complete = list_bookmarks })
 
-utils.command("BookmarksAdd", function(args)
+utils.command("BookmarkAdd", function(args)
   local fname = args.fargs[1]
-  if fname == "%" then
-    fname = vim.fn.expand "%:p"
+  for i = 2, #args.fargs do
+    local line = tonumber(args.fargs[i])
+    Bookmark.add_line(fname, line)
   end
-  local s_args = array.map(array.rest(args.fargs), function(x)
-    if x == "." then
-      return x
-    end
-    return tonumber(x)
-  end)
-  Bookmarks.add(fname, unpack(s_args))
 end, { nargs = "+", complete = list_buffers })
 
-utils.command("BookmarksOpen", function(args)
-  Bookmarks.jump(unpack(args.fargs))
-end, { nargs = 1, complete = list_bookmarks })
+utils.command("BookmarkOpen", function(args)
+  Bookmark.jump_to_line(unpack(args.fargs))
+end, { nargs = '+', complete = list_bookmarks })
 
-utils.command("BookmarksShow", function(args)
-  local p = args.fargs[1] or vim.api.nvim_buf_get_name(vim.fn.bufnr())
-  if p then
-    local ls = Bookmarks.list(p)
-    if ls then
-      dict.each(Bookmarks.list(p), function(k, x)
-        print(sprintf("%-5d | %s", k, x))
-      end)
-    end
+utils.command("BookmarkShow", function(args)
+  local p = args.fargs[1]
+  if not p then
+    Bookmark.print_all() 
   else
-    local ls = Bookmarks.list(p)
-    if ls then
-      array.each(ls, print)
-    end
+    local obj = Bookmark.get(p)
+    if obj then obj:print() end
   end
 end, { nargs = "?", complete = list_bookmarks })
 
-utils.command("BookmarksDelete", Bookmarks.delete_all, {})
-utils.command("BookmarksSave", Bookmarks.save, {})
-utils.command("BookmarksLoad", Bookmarks.load, {})
+utils.command("BookmarkSave", Bookmark.save, {})
+utils.command("BookmarkLoad", Bookmark.load, {})
+utils.command("BookmarkReset",Bookmark.reset, {})

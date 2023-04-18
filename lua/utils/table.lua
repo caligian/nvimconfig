@@ -10,6 +10,11 @@ array.join = table.concat
 array.concat = array.join
 array.remove = table.remove
 
+function array.sort(x, cmp)
+  table.sort(x, cmp)
+  return x
+end
+
 function array.isblank(x)
   return #x == 0
 end

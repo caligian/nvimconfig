@@ -72,7 +72,7 @@ local function create_globals(args)
   file = require "pl.file"
   dir = require "pl.dir"
   regex = require "rex_pcre2"
-  json = { encode = vim.json_encode, decode = vim.json_decode }
+  json = { encode = vim.fn.json_encode, decode = vim.fn.json_decode }
   logger = logging.file(log_path, "", "[%date] [%level]\n %message\n\n")
   user = {}
 

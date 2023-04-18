@@ -64,10 +64,10 @@ end
 -- @return object
 function K:init(mode, lhs, cb, rest)
   validate {
-    mode = { is { "s", "t" }, mode },
-    lhs = { "s", lhs },
-    cb = { is { "s", "f" }, cb },
-    ["?rest"] = { "t", rest },
+    mode = { is { "string", "table" }, mode },
+    lhs = { "string", lhs },
+    cb = { is { "string", "callable" }, cb },
+    ["?rest"] = { is {"table", 'string'}, rest },
   }
 
   rest = rest or {}

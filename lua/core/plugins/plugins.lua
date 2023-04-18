@@ -263,7 +263,6 @@ local plugins = {
       "kiyoon/treesitter-indent-object.nvim",
       "andymass/vim-matchup",
       "cshuaimin/ssr.nvim",
-      "RRethy/nvim-treesitter-endwise",
       "nvim-treesitter/nvim-treesitter-refactor",
       "MunifTanjim/nui.nvim",
     },
@@ -345,8 +344,6 @@ local plugins = {
       req "core.plugins.formatter"
     end,
   },
-
-  { "liuchengxu/vista.vim", keys = { "<C-t>" } },
 
   {
     "neovim/nvim-lspconfig",

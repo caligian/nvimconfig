@@ -19,10 +19,12 @@ function Autocmd:init(event, opts)
     },
   }
 
+  opts = copy(opts or {})
   local augroup
   local group = copy(opts.group or {})
   local name = opts.name
   opts.name = nil
+
   if type(group) == "string" then
     augroup = vim.api.nvim_create_augroup(group, {})
   else
@@ -55,28 +57,25 @@ function Autocmd:init(event, opts)
   self.group = group
   self.event = event
   self.enabled = false
-  self.opts = opts
-  self.opts.name = name
+  self.once = opts.once
+  self.nested = opts.nested
+  self.name = name
 
   for key, value in pairs(opts) do
     self[key] = value
   end
 
   dict.update(user.autocmd.ID, id, self)
-  dict.update(user.autocmd.GROUP, { augroup, id }, self)
+  dict.update(user.autocmd.GROUP, { gid, id }, self)
 
-  if name then
-    user.autocmd[name] = self
-  end
-  self.name = name
+  if name then user.autocmd[name] = self end
 
   return self
 end
 
 function Autocmd.disable(self)
-  if not self.enabled then
-    return
-  end
+  if not self.enabled then return end
+
   vim.api.nvim_del_autocmd(self.id)
   self.enabled = false
 
@@ -86,12 +85,9 @@ end
 function Autocmd.delete(self)
   self:disable()
 
-  if self.name then
-    user.autocmd[self.name] = nil
-  end
-
-  user.autocmd.ID[self.id] = nil
-  user.autocmd.GROUP[self.group][self.id] = nil
+  dict.delete(user.autocmd, self.name)
+  dict.delete(user.autocmd.ID, self.id)
+  dict.delete(user.autocmd.GROUP, {self.gid, self.id})
 
   return self
 end
@@ -108,60 +104,57 @@ end
 ---
 class "Augroup"
 
-Augroup.GROUPS = {}
+user.augroup = user.augroup or { ID = {} }
 
-function Augroup:init(name)
+function Augroup:init(name, clear)
   self.name = name
   self.autocmd = {}
+  self.clear = clear
+  self.id = vim.api.nvim_create_augroup(self.name, {clear=clear})
+
+  dict.update(user.augroup, self.name, self)
+  dict.update(user.augroup.ID, self.id, self)
 end
 
-function Augroup:add(name, event, opts)
-  validate {
-    autocmd_name = { "string", name },
-    event = { is { "string", "table" }, event },
-    opts = {
-      {
-        __nonexistent = true,
-        pattern = is { "string", "table" },
-      },
-      opts,
-    },
-  }
-
+function Augroup:add(event, opts)
+  opts = opts or {}
   opts.group = self.name
-  self.autocmd[name] = Autocmd(event, opts)
+
+  assert(opts.name, 'No autocmd name supplied')
+
+  local au = Autocmd(event, opts)
+  self.autocmd[opts.name] = au
+  self.autocmd[au.id] = au
+  user.augroup.ID[self.id] = self
+  user.augroup[self.name] = self
 
   return self
 end
 
 function Augroup:remove(name)
-  if dict.isblank(self.autocmd) then
-    return
-  end
-
-  self.autocmd[name]:delete()
+  local exists = self.autocmd[name]
+  if not exists then return end
+  exists:delete()
   self.autocmd[name] = nil
-
+  
   return self
 end
 
 function Augroup:disable()
-  if dict.isblank(self.autocmd) then
-    return
-  end
+  if not self.id then return end
+  array.each(dict.keys(self.autocmd), function (au_name) self:remove(au_name) end)
+  local id = self.id
+  vim.api.nvim_del_augroup_by_id(id)
+  self.id = false
 
-  dict.each(self.autocmd, function(au_name, obj)
-    obj:delete()
-    self.autocmd[au_name] = nil
-  end)
-
-  return self
+  return id
 end
 
 function Augroup:delete()
-  if self:disable() then
-    Augroup.GROUPS[self.name] = nil
-  end
+  local id = self:disable()
+  if not id then return end
+  user.augroup[self.name] = nil
+  user.augroup.ID[id] = nil
 
-  return self
+  return id
 end
