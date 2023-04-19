@@ -20,8 +20,8 @@ user.bufgroup.enable = {
     common_lisp = { "BufRead", get_path("Scripts", "CLisp") },
   },
   docs = {
-    work = { "BufRead", get_path("Work", ".+(tex|norg|txt)}$") },
-    docs = { "BufRead", get_path("Documents", ".+(tex|norg|txt)}$") },
+    work = { "BufRead", get_path("Work", ".+(tex|norg|txt)$") },
+    docs = { "BufRead", get_path("Documents", ".+(tex|norg|txt)$") },
   },
   langs = {
     python = { "BufRead", "\\.py$" },

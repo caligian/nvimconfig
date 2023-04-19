@@ -41,7 +41,7 @@ function Bufgroup:is_eligible(bufnr)
   local success = false
 
   for _, pattern in ipairs(self.pattern) do
-    if bufname:match(pattern) then
+    if regex.match(bufname, pattern) then
       success = true
       break
     end

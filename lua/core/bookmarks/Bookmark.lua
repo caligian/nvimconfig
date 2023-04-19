@@ -341,18 +341,7 @@ function Bookmark.list_all(telescope)
     return out
   end
 
-  return {
-    results = ks,
-    entry_maker = function(bookmark_path)
-      return {
-        object = user.bookmark.BOOKMARK[bookmark_path],
-        path = bookmark_path,
-        value = bookmark_path,
-        display = bookmark_path,
-        ordinal = -1,
-      }
-    end,
-  }
+  return ks
 end
 
 function Bookmark.create_main_picker(remover)
@@ -360,9 +349,10 @@ function Bookmark.create_main_picker(remover)
   if not ls then return end
   local _ = utils.telescope.load()
   local mod = _.create_actions_mod()
+  local function get_obj(k) return user.bookmark.BOOKMARK[k] end
 
   local function remove(sel)
-    local obj = sel.object
+    local obj = get_obj(sel[1])
     local lines = obj:list()
     if not lines then return obj:delete() end
     obj:create_picker(remove):find()
@@ -375,12 +365,13 @@ function Bookmark.create_main_picker(remover)
     if remover then
       remove(sel)
     else
-      local picker = sel.object:create_picker()
+      local obj = get_obj(sel[1])
+      local picker = obj:create_picker()
       if not picker then
-        if sel.object.bufnr then
-          vim.cmd("b " .. sel.path)
+        if obj.bufnr then
+          vim.cmd("b " .. sel[1])
         else
-          vim.cmd("e " .. sel.path)
+          vim.cmd("e " .. sel[1])
         end
       else
         picker:find()
@@ -395,7 +386,7 @@ function Bookmark.create_main_picker(remover)
     title = "All bookmarks"
   end
 
-  return _.new_picker(ls, {
+  return _.create_picker(ls, {
     default_action,
     { "n", "x", mod.remove },
   }, {
@@ -517,7 +508,7 @@ function Bookmark.create_current_buffer_picker(remove)
 end
 
 function Bookmark:print()
-  if self.dir then pp(sprintf("Directory: " .. self.path)) end
+  if self.dir then return pp(sprintf("Directory: " .. self.path)) end
 
   local display = {}
   if self.bufnr then
@@ -526,7 +517,7 @@ function Bookmark:print()
     display[1] = sprintf("File: %s", self.path)
   end
 
-  if not dict.isblank(self.lines) then
+  if self.lines and  not dict.isblank(self.lines) then
     local i = 2
     dict.each(self.lines, function(linenum, line)
       display[i] = sprintf("%-4d ⎥%s", linenum, line)

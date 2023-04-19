@@ -195,7 +195,6 @@ function dict.map(t, f)
     assert(o ~= nil, "non-nil expected")
     out[k] = o
   end
-  pp(out)
 
   return out
 end

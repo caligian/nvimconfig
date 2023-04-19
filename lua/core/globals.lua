@@ -8,7 +8,7 @@ dict.merge(user, {
   plugins_dir = path.join(data_dir, "lazy"),
   plugins = user.plugins or {},
   shell = "/usr/bin/zsh",
-  font = { family = "Ubuntu Mono", height = 12 },
+  font = { family = "Liberation Mono", height = 13 },
   bitmap_font = { family = "Terminus", height = 11 },
 
   temp_buffer_patterns = {
@@ -40,7 +40,6 @@ dict.merge(user, {
 })
 
 if vim.fn.has "gui" == 1 then
-  vim.cmd('set guifont=Liberation\\ Mono:h12')
   utils.set_font(user.font.family, user.font.height)
 end
 

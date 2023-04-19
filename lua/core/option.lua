@@ -33,10 +33,12 @@ user.option = {
     foldmethod = "indent",
     inccommand = "split",
     background = "dark",
+    guifont = 'Liberation Mono:h12'
   },
   g = {
     mapleader = " ",
     maplocalleader = ",",
+    neovide_cursor_vfx_mode = "sonicboom",
   },
 }
 
