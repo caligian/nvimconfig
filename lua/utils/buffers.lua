@@ -5,6 +5,11 @@ require "utils.Keybinding"
 
 buffer = {}
 buffer.bufadd = vim.fn.bufadd
+buffer.exception = Exception 'BufferException'
+local exception = buffer.exception
+exception.invalid_bufnr = 'expected valid buffer index'
+exception.invalid_buffer = 'expected valid buffer expr'
+local is_string_or_table = is {'string', 'table'}
 
 function buffer.exists(bufnr)
   return vim.fn.bufexists(bufnr) ~= 0
@@ -264,7 +269,7 @@ function buffer.setwinopts(bufnr, opts)
 end
 
 local function assert_exists(bufnr)
-  assert(buffer.exists(bufnr), "buffer does not exist: " .. bufnr)
+  exception.invalid_buffer:throw_unless(buffer.exists(bufnr), bufnr)
 end
 
 --- bufferake a new buffer local mapping.
@@ -391,7 +396,6 @@ end
 
 --- Hide current buffer if visible
 function buffer.hide(bufnr)
-  print(bufnr)
   local winid = vim.fn.bufwinid(bufnr)
   if winid ~= -1 then
     local current_tab = vim.api.nvim_get_current_tabpage()
@@ -419,8 +423,8 @@ function buffer.lines(bufnr, startrow, tillrow)
   tillrow = tillrow or -1
 
   validate {
-    start_row = { "n", startrow },
-    end_row = { "n", tillrow },
+    start_row = { "number", startrow },
+    end_row = { "number", tillrow },
   }
 
   return vim.api.nvim_buf_get_lines(bufnr, startrow, tillrow, false)
@@ -433,10 +437,10 @@ end
 -- @return
 function buffer.text(bufnr, start, till, repl)
   validate {
-    start_cood = { "t", start },
-    till_cood = { "t", till },
-    replacement = { "t", repl },
-    repl = { is { "s", "t" }, repl },
+    start_cood = { "table", start },
+    till_cood = { "table", till },
+    replacement = { "table", repl },
+    repl = { is_string_or_table , repl },
   }
 
   assert_exists(self)
@@ -530,7 +534,7 @@ function buffer.linenum(bufnr)
   end)
 end
 
-function buffer.is_listed(bufnr)
+function buffer.listed(bufnr)
   return vim.fn.buflisted(bufnr) ~= 0
 end
 
@@ -539,9 +543,7 @@ function buffer.info(bufnr)
 end
 
 function buffer.wininfo(bufnr)
-  if not buffer.is_visible(bufnr) then
-    return
-  end
+  if not buffer.is_visible(bufnr) then return end
   return vim.fn.getwininfo(buffer.winid(bufnr))
 end
 
@@ -582,12 +584,16 @@ function buffer.maplines(bufnr, f)
   return array.map(buffer.lines(bufnr, 0, -1), f)
 end
 
+function buffer.grep(bufnr, f)
+  return array.grep(buffer.lines(bufnr, 0, -1), f)
+end
+
 function buffer.filter(bufnr, f)
   return array.filter(buffer.lines(bufnr, 0, -1), f)
 end
 
 function buffer.match(bufnr, pat)
-  return array.filter(buffer.lines(bufnr, 0, -1), function(s)
+  return array.grep(buffer.lines(bufnr, 0, -1), function(s)
     return s:match(pat)
   end)
 end
@@ -632,14 +638,16 @@ function buffer.create_empty(listed, scratch)
   return vim.api.nvim_create_buf(listed, scratch)
 end
 
+function buffer.create(name)
+  return buffer.exists(name) 
+    and buffer.bufnr(name)
+    or buffer.bufadd(name)
+end
+
 function buffer.mkscratch(name, filetype)
-  if not name then
-    return buffer.create_empty(listed, true)
-  end
+  if not name then return buffer.create_empty(listed, true) end
   local bufnr = buffer.bufadd(name)
-  if bufnr == 0 then
-    return false
-  end
+  if bufnr == 0 then return false end
   buffer.setopts(bufnr, { buflisted = false, buftype = "nofile", filetype = filetype })
 
   return bufnr
@@ -653,10 +661,10 @@ end
 
 function buffer.menu(desc, items, formatter, callback)
   validate {
-    description = { is { "s", "t" }, desc },
-    items = { is { "s", "t" }, items },
-    callback = { "f", callback },
-    ["?formatter"] = { "f", formatter },
+    description = { is_string_or_table, desc },
+    items = { is_string_or_table, items },
+    callback = { "callable", callback },
+    ["?formatter"] = { "callable", formatter },
   }
 
   if is_a.s(dict.items) then
@@ -699,9 +707,9 @@ end
 
 function buffer.input(text, cb, opts)
   validate {
-    text = { is { "t", "s" }, text },
-    cb = { "f", cb },
-    ["?opts"] = { "t", opts },
+    text = { is_string_or_table, text },
+    cb = { "callable", cb },
+    ["?opts"] = { "table", opts },
   }
 
   opts = opts or {}
@@ -715,14 +723,11 @@ function buffer.input(text, cb, opts)
   end
 
   local buf = buffer.mkscratch()
-  buffer.hook(buf, "WinLeave", function()
-    buffer.wipeout(buf)
-  end)
+  buffer.hook(buf, "WinLeave", function() buffer.wipeout(buf) end)
   buffer.setlines(buf, 0, -1, text)
   buffer.split(buf, split, { reverse = opts.reverse, resize = opts.resize })
-  buffer.noremap(buf, "n", "q", function()
-    buffer.hide(buf)
-  end, "Close buffer")
+  buffer.noremap(buf, "n", "q", function() buffer.hide(buf) end, "Close buffer")
+
   buffer.noremap(buf, "n", trigger, function()
     local lines = buffer.lines(buffer.bufnr(), 0, -1)
     local sanitized = {}

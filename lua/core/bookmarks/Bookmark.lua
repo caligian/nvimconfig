@@ -1,7 +1,7 @@
 local Bookmark = Class.new(
   "Bookmark",
   nil,
-  { defaults = { DEST = vim.fn.stdpath "data" .. "/bookmarks.json" } }
+  { defaults = { DEST = vim.fn.stdpath "data" .. "/bookmarks.lua" } }
 )
 
 --------------------------------------------------
@@ -481,16 +481,14 @@ end
 function Bookmark.save()
   file.write(
     Bookmark.DEST,
-    json.encode(dict.map(
+    'return ' .. dump(dict.map(
       user.bookmark.BOOKMARK,
       function(_, obj)
-        local out = {}
-        dict.each(obj.lines, function (linenum, line) out[tostring(linenum)] = line end)
         return {
           path = obj.path,
           file = obj.file,
           dir = obj.dir,
-          lines = out
+          lines = obj.lines
         }
       end
     ))
@@ -498,27 +496,17 @@ function Bookmark.save()
 end
 
 function Bookmark.load()
-  local fh = io.open(Bookmark.DEST)
-  if not fh then return end
+  local ls = file.read(Bookmark.DEST)
+  if not ls then return end
 
-  local ls = json.decode(fh:read())
-  dict.each(ls, function(k, obj)
-    if buffer.exists(obj.path) then obj.bufnr = buffer.bufnr(obj.path) end
-    if not obj.lines then return end
-    local lines = {}
-    dict.each(obj.lines, function (linenum, line) lines[tonumber(linenum)] = line end)
-    ls[k].lines = lines
-  end)
-
-  fh:close()
-  if ls then user.bookmark.BOOKMARK = ls end
+  local ok, msg = pcall(loadstring, ls)
+  if not ok then return end
+  ls = msg()
+  if not ls then return end
+  dict.each(ls, function (k, obj) ls[k] = Bookmark(k) ls[k].lines = obj.lines end)
+  user.bookmark.BOOKMARK = ls
 
   return ls
-end
-
-function Bookmark.load_spec(spec)
-  local b = Bookmark(spec.path)
-  b.lines = spec.lines
 end
 
 function Bookmark.create_current_buffer_picker(remove)

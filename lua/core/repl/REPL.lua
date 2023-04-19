@@ -1,22 +1,20 @@
-if not REPL then class("REPL", Term) end
+local Term = require 'utils.Term'
+local REPL = Class.new("REPL", Term)
 local exception = Exception "REPLException"
 exception.no_command = "No command given for filetype"
-user.repl = user.repl or {}
+user.repl = user.repl or {FILETYPE={}}
+local state =  user.repl.FILETYPE
 
 function REPL.get(ft, bufnr)
   if ft == "sh" then
-    local exists = user.repl.sh
-    if exists and exists:is_running() then
-      return exists
-    end
+    local exists = state.sh
+    if exists and exists:is_running() then return exists end
   end
 
   ft = ft or vim.bo.filetype
   bufnr = bufnr or vim.fn.bufnr()
-  local exists = dict.get(user.repl, { ft, bufnr })
-  if exists and exists:is_running() then
-    return exists
-  end
+  local exists = dict.get(state, { ft, bufnr })
+  if exists and exists:is_running() then return exists end
 end
 
 function REPL:init(ft)
@@ -37,26 +35,28 @@ function REPL:init(ft)
 
   if is_shell then
     self.shell = true
-    user.repl.sh = self
+    user.repl.FILETYPE.sh = self
   else
-    dict.update(user.repl, { ft, bufnr }, self)
+    dict.update(state, { ft, bufnr }, self)
   end
 
-  self.filetype = self
+  self.filetype = ft
+
+  array.each({ "send", "split", "float", "center_float", "dock" }, function(f)
+    local cb = self[f]
+    self[f] = function(self, ...)
+      REPL.create(self.filetype) 
+      return cb(self, ...)
+    end
+  end)
 
   return self
 end
 
-function REPL.create(ft)
-  local exists = REPL.get(ft)
+function REPL.create(ft, bufnr)
+  local exists = REPL.get(ft, bufnr)
   if exists and exists:is_running() then return exists end
-  return REPL(ft)
+  return REPL(ft):start()
 end
 
-array.each({ "send", "split", "float", "center_float", "dock" }, function(f)
-  local cb = REPL[f]
-  REPL[f] = function(self, ...)
-    self:start()
-    return cb(self, ...)
-  end
-end)
+return REPL

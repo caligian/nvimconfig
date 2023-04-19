@@ -16,14 +16,6 @@ local function _toggle_option(option)
   end
 end
 
-local function clean_before_quitting()
-  for _, buf in pairs(user.buffer.BUFNR) do
-    buf:delete()
-  end
-
-  REPL.stopall()
-end
-
 --------------------------------------------------------------------------------
 
 K.bind(
@@ -92,30 +84,9 @@ K.bind(
   { "hl", ":ShowLogs<CR>", { desc = "Show startup logs", name = "startup_logs" } },
 
   -- Quit
-  {
-    "qa",
-    function()
-      clean_before_quitting()
-      vim.cmd "qa"
-    end,
-    { desc = ":qall" },
-  },
-  {
-    "qq",
-    function()
-      clean_before_quitting()
-      vim.cmd "qa!"
-    end,
-    ":qall!",
-  },
-  {
-    "qx",
-    function()
-      clean_before_quitting()
-      vim.cmd "xa"
-    end,
-    ":xa",
-  },
+  { "qa", ':qa<CR>',  ":qall"  },
+  { "qq", ":qa!<CR>", ":qall!" },
+  { "qx", ":xa<CR>", ":xa" },
 
   -- Set options
   { "ot", partial(_toggle_option, "textwrap"), "Toggle wrapping" },

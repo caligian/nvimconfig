@@ -33,3 +33,4 @@ end
 
 string.sprintf = sprintf
 string.printf = printf
+string.print = print

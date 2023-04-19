@@ -1,12 +1,11 @@
-if not Term then
-  class "Term"
-end
+require 'utils.buffers'
 
+local Term = Class.new 'Term'
 user.term = user.term or { ID = {}, timeout = 30 }
-
 Term.timeout = user.term.timeout
-
 local exception = Exception "TermException"
+Term.exception = exception
+
 exception:set {
   invalid_command = "expected valid command",
   not_executable = "shell not executable",
@@ -16,7 +15,7 @@ exception:set {
   unknown = "unknown error",
 }
 
-local function get_status(id, cmd)
+local function get_status(id)
   if id == 0 then
     return false, "invalid_command"
   elseif id == -1 then
@@ -45,7 +44,7 @@ local function start_term(cmd, opts)
     opts = opts or {}
     id = vim.fn.termopen(cmd)
     term = vim.fn.bufnr()
-    local ok, msg = get_status(id, cmd)
+    local ok, msg = get_status(id)
     if not ok then
       exception[msg]:throw(self)
     end
@@ -83,9 +82,7 @@ function Term:is_running(assrt)
 end
 
 function Term:start()
-  if self:is_running() then
-    return self
-  end
+  if self:is_running() then return self end
 
   local id, term_buffer = start_term(self.command, self.opts)
   self.id = id
@@ -116,11 +113,7 @@ function Term:stop()
 end
 
 function Term.stopall()
-  dict.each(user.term.ID, function(id, _)
-    if is_a.number(id) then
-      vim.fn.chanclose(id)
-    end
-  end)
+  dict.each(user.term.ID, function(obj) obj:stop() end)
 end
 
 function Term:hide()
@@ -128,12 +121,14 @@ function Term:hide()
 end
 
 function Term:split(direction, opts)
+  if not self:is_running() then return end
   if not self:is_visible() then
     buffer.split(self.bufnr, direction, opts)
   end
 end
 
 function Term:float(opts)
+  if not self:is_running() then return end
   if not self:is_visible() and self.bufnr then
     buffer.float(self.bufnr, opts)
   end
@@ -148,6 +143,8 @@ function Term:dock(opts)
 end
 
 function Term:send(s)
+  if not self:is_running() then return end
+
   local id = self.id
   if is_a.s(s) then
     s = string.split(s, "[\n\r]")
@@ -156,10 +153,12 @@ function Term:send(s)
     s = self.on_input(s)
   end
   s[#s + 1] = "\n"
-  vim.api.nvim_chan_send(id, table.concat(s, "\n"))
+  return vim.api.nvim_chan_send(id, table.concat(s, "\n"))
 end
 
 function Term:send_current_line(src_bufnr)
+  if not self:is_running() then return end
+
   src_bufnr = src_bufnr or vim.fn.bufnr()
   vim.api.nvim_buf_call(src_bufnr, function()
     self:send(vim.fn.getline ".")
@@ -167,11 +166,15 @@ function Term:send_current_line(src_bufnr)
 end
 
 function Term:send_buffer(src_bufnr)
+  if not self:is_running() then return end
+
   src_bufnr = src_bufnr or vim.fn.bufnr()
   self:send(vim.api.nvim_buf_get_lines(src_bufnr, 0, -1, false))
 end
 
 function Term:send_till_point(src_bufnr)
+  if not self:is_running() then return end
+
   src_bufnr = src_bufnr or vim.fn.bufnr()
   vim.api.nvim_buf_call(src_bufnr, function()
     local line = vim.fn.line "."
@@ -180,11 +183,15 @@ function Term:send_till_point(src_bufnr)
 end
 
 function Term:send_visual_range(src_bufnr)
+  if not self:is_running() then return end
+
   src_bufnr = src_bufnr or vim.fn.bufnr()
   return self:send(buffer.range(src_bufnr))
 end
 
 function Term:terminate_input()
+  if not self:is_running() then return end
+
   return self:send(vim.api.nvim_replace_termcodes("<C-c>", true, false, true))
 end
 
@@ -204,3 +211,5 @@ function Term:init(cmd, opts)
 
   return self
 end
+
+return Term

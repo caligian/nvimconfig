@@ -1,6 +1,41 @@
-class "Process"
+local Process = Class.new 'Process'
 
-Process.ids = Process.ids or {}
+user.process = user.process or {}
+user.process.ID = user.process.ID or {}
+user.timeout = user.timeout or 30
+local exception = Exception "TermException"
+Process.exception = exception
+Process.timeout = user.timeout
+
+exception:set {
+  invalid_command = "expected valid command",
+  not_executable = "shell not executable",
+  exited_with_error = "command exited with error",
+  interrupted = "interrupted",
+  invalid_id = "valid id expected",
+  unknown = "unknown error",
+}
+
+local function get_status(id, cmd)
+  if id == 0 then
+    return false, "invalid_command"
+  elseif id == -1 then
+    return false, "not_executable"
+  end
+
+  local status = vim.fn.jobwait({ id }, Term.timeout)[1]
+  if status ~= -1 and status ~= 0 then
+    if status >= 126 then
+      return false, "invalid_command"
+    elseif status == -2 then
+      return false, "interrupted"
+    elseif status == -3 then
+      return false, "invalid_id"
+    end
+  end
+
+  return true
+end
 
 local function parse(d, out)
   if type(d) == "string" then
@@ -13,9 +48,9 @@ local function parse(d, out)
   end
 end
 
-function Process._on_exit(self, cb)
+function Process:_on_exit(cb)
   return vim.schedule_wrap(function(j, exit_code)
-    j = Process.ids[j]
+    j = user.process.ID[j]
     j.exited = true
     j.exit_code = exit_code
 
@@ -25,7 +60,7 @@ function Process._on_exit(self, cb)
   end)
 end
 
-function Process._on_stderr(self, cb)
+function Process:_on_stderr(cb)
   self.stderr = self.stderr or {}
   local stderr = self.stderr
 
@@ -39,7 +74,7 @@ function Process._on_stderr(self, cb)
   end)
 end
 
-function Process._on_stdout(self, cb)
+function Process:_on_stdout(cb)
   self.stdout = self.stdout or {}
   local stdout = self.stdout
   return vim.schedule_wrap(function(_, d)
@@ -52,21 +87,14 @@ function Process._on_stdout(self, cb)
   end)
 end
 
-function Process.init(self, command, opts)
+function Process:init(command, opts)
   validate {
     command = { "string", command },
     ["?opts"] = { "table", opts },
   }
 
   opts = opts or {}
-
-  validate { opts = { "table", opts } }
-
-  opts = opts or {}
-  opts.env = opts.env or {
-    HOME = os.getenv "HOME",
-    PATH = os.getenv "PATH",
-  }
+  opts.env = opts.env or { HOME = os.getenv "HOME", PATH = os.getenv "PATH" }
   opts.cwd = opts.cwd or vim.fn.getcwd()
   opts.stdin = opts.stdin == nil and "pipe" or opts.stdin
 
@@ -84,10 +112,6 @@ function Process.init(self, command, opts)
     opts.on_stdout = self:_on_stdout(current)
   end
 
-  if opts.terminal then
-    self.buffer = Buffer(false, true)
-  end
-
   if not opts.on_exit then
     opts.on_exit = self:_on_exit()
   else
@@ -101,28 +125,41 @@ function Process.init(self, command, opts)
   return dict.lmerge(self, opts)
 end
 
-function Process.status(self, timeout)
-  if not self.id then
-    return false
+function Process:stop()
+  if not self:is_running() then
+    return
   end
 
-  timeout = timeout or 0
-  return vim.fn.jobwait({ self.id }, timeout)[1]
+  self:hide()
+  vim.fn.chanclose(self.id)
+  self.bufnr = nil
+  user.process.ID[self.id] = nil
+
+  return self
 end
 
-function Process.is_invalid(self)
-  return self:status() == -3
+function Process.stopall()
+  dict.each(user.process.ID, function(obj) obj:stop() end)
 end
 
-function Process.is_interrupted(self)
-  return self:status() == -2
+
+function Process:get_status()
+  return get_status(self.id, self.command)
 end
 
-function Process.is_running(self, timeout)
-  return self:status(timeout) == -1
+function Process:is_running(assrt)
+  if not self.id then return false end
+  local ok, msg = get_status(self.id, self.command)
+  if not ok and assrt then
+    exception[msg]:throw(self)
+  elseif not ok then
+    return false, msg
+  end
+
+  return true
 end
 
-function Process.wait(self, timeout)
+function Process:wait(timeout)
   if not self:is_running() then
     return
   end
@@ -130,63 +167,33 @@ function Process.wait(self, timeout)
   return vim.fn.jobwait({ self.id }, timeout)
 end
 
-function Process.run(self)
+function Process:run()
   if self:is_running() then
     return
   end
 
   local id
-  if self.terminal then
-    id = self.buffer:call(function()
-      return vim.fn.termopen(self.command, self.opts)
-    end)
-  else
-    id = vim.fn.jobstart(self.command, self.opts)
-  end
+  id = vim.fn.jobstart(self.command, self.opts)
+  local ok, msg = get_status(id)
 
-  assert(id ~= -1, "Could not start job with command " .. self.command)
+  if not ok then exception[msg]:throw(self.command) end
 
   self.id = id
-
-  dict.update(Process.ids, { id }, self)
-
-  return self
-end
-
-function Process.send(self, s)
-  if not self:is_running() then
-    return
-  end
-
-  validate {
-    s = { is { "s", "t" }, s },
-  }
-
-  if is_a.t(s) then
-    s = table.concat(s, "\n")
-  end
-
-  vim.api.nvim_chan_send(self.id, s)
+  dict.update(user.process.ID, { id }, self)
 
   return self
 end
 
-function Process.stop(self)
-  if not self:is_running() then
-    return
+function Process:send(s)
+  local id = self.id
+  if is_a.s(s) then
+    s = string.split(s, "[\n\r]")
   end
-
-  vim.fn.chanclose(self.id)
-  if self.buffer then
-    self.buffer:delete()
+  if self.on_input then
+    s = self.on_input(s)
   end
-  self.buffer = nil
-
-  return self
+  s[#s + 1] = "\n"
+  vim.api.nvim_chan_send(id, table.concat(s, "\n"))
 end
 
-function Process.stopall()
-  array.each(dict.values(Process.ids), function(p)
-    p:stop()
-  end)
-end
+return Process

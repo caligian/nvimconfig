@@ -1,3 +1,5 @@
+require 'core.repl.commands'
+
 Keybinding.bind(
   { leader = true, noremap = true },
 
