@@ -18,8 +18,8 @@ dict.merge(user, {
   },
 
   colorscheme = {
-    dark = "carbonfox",
-    light = "vimbones",
+    dark = "nordfox",
+    light = "github_light",
     use = "dark",
   },
 
