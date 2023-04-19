@@ -71,6 +71,7 @@ function Bufgroup:remove(bufnr)
   bufnr = bufnr or vim.fn.bufnr()
   self.buffer[bufnr] = nil
   user.bufgroup.BUFFER[bufnr] = nil
+  buffer.delete(bufnr)
 
   return self
 end
