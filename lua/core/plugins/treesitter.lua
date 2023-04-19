@@ -24,8 +24,6 @@ user.plugins.treesitter = {
       },
     },
 
-    endwise = { enable = true },
-
     matchup = { enable = true },
 
     ensure_installed = {
@@ -40,7 +38,7 @@ user.plugins.treesitter = {
       "gitignore",
     },
 
-    auto_install = true,
+    auto_install = false,
 
     textsubjects = {
       enable = true,

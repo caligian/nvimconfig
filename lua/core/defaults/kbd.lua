@@ -159,3 +159,6 @@ K.bind(
   { "<C-->", ":FontSize -1<CR>", "Decrease font size by 1pt" },
   { "<C-=>", ":FontSize +1<CR>", "Increase font size by 1pt" }
 )
+
+K.map('in', '<C-ScrollWheelUp>', '<cmd>FontSize +1<CR>')
+K.map('in', '<C-ScrollWheelDown>', '<cmd>FontSize -1<CR>')

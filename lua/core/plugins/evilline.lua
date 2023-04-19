@@ -159,13 +159,11 @@ local function setup()
   }
 
   -- ins_left { "location" }
-
-  ins_left { "progress", color = { fg = colors.fg, gui = "bold" } }
-
+  -- ins_left { "progress", color = { fg = colors.fg, gui = "bold" } }
   ins_left {
     "diagnostics",
     sources = { "nvim_diagnostic" },
-    symbols = { error = " ", warn = " ", info = " " },
+    symbols = { error = "[!!] ", warn = "[!] ", info = "[I] " },
     diagnostics_color = {
       color_error = { fg = colors.red },
       color_warn = { fg = colors.yellow },
@@ -228,7 +226,7 @@ local function setup()
   ins_right {
     "diff",
     -- Is it me or the symbol for modified us really weird
-    symbols = { added = " ", modified = "柳 ", removed = " " },
+    symbols = { added = "[+] ", modified = "[?] ", removed = "[-] " },
     diff_color = {
       added = { fg = colors.green },
       modified = { fg = colors.orange },

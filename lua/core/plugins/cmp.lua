@@ -37,6 +37,7 @@ user.plugins["nvim-cmp"] = {
       end,
     },
     sources = {
+      { name = 'neorg' }, 
       { name = "path" },
       { name = "ultisnips" },
       { name = "buffer" },

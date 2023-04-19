@@ -2,6 +2,25 @@ user.plugins.neorg = {
   config = {
     load = {
       ["core.defaults"] = {},
+      ['core.export'] = {},
+      ['core.norg.concealer'] = {},
+      ['core.norg.manoeuvre'] = {},
+      ['core.integrations.treesitter'] = {},
+
+      ['core.export.markdown'] = {
+        config = {
+          extensions = 'all',
+          extension = 'md',
+        }
+      },
+
+      ['core.norg.completion'] = {
+        config = {
+          engine = 'nvim-cmp',
+          name = '[Neorg]',
+        }
+      },
+
       ["core.norg.dirman"] = {
         config = {
           workspaces = {
