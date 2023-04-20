@@ -1,5 +1,5 @@
-local load_telescope = function()
-  return {
+local load_telescope = function(override)
+  local opts = dict.merge({
     exists = req "telescope",
     pickers = req "telescope.pickers",
     actions = req "telescope.actions",
@@ -10,21 +10,22 @@ local load_telescope = function()
       return M.values
     end),
     ivy = utils.try_require("telescope.themes", function(M)
-      return dict.merge(M.get_ivy(), {
+      return dict.merge(M.get_dropdown(), {
         disable_devicons = true,
         previewer = false,
         extensions = {},
-        layout_config = { height = 0.3 },
       })
     end),
-  }
+  }, override or {})
+
+  return opts
 end
 
 utils.telescope = {}
 local M = utils.telescope
 
-function M.load()
-  local _ = load_telescope()
+function M.load(override)
+  local _ = load_telescope(override)
   for name, val in pairs(_) do
     M[name] = val
   end
