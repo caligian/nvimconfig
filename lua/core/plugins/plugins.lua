@@ -353,7 +353,11 @@ use_plugin "tagbar" {
 
 use_plugin "which-key" {
   "folke/which-key.nvim",
-  config = function() req "core.plugins.which-key" end,
+  config = function() 
+    vim.defer_fn(function ()
+      req "core.plugins.which-key" 
+    end, 300) 
+  end,
 }
 
 use_plugin "markdown-preview" {
@@ -395,11 +399,13 @@ use_plugin "vim-bbye" {
       local n_wins = #(vim.fn.tabpagebuflist(tab))
       if n_wins > 1 then vim.cmd ":hide" end
     end
+
     Keybinding.bind(
       { noremap = true, leader = true },
       { "bq", delete_and_hide, { desc = "Delete buffer" } },
       { "bQ", partial(delete_and_hide, true), { desc = "Wipeout buffer" } }
     )
+
     req "user.plugins.vim-bbye"
   end),
 }

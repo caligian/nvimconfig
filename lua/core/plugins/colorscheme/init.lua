@@ -15,8 +15,10 @@ Autocmd("Colorscheme", {
 })
 
 local color = user.colorscheme
-color.loadall()
-color.setdefault()
+vim.defer_fn(function ()
+  color.loadall()
+  color.setdefault()
+end, 100)
 
 K.bind({ noremap = true, leader = true }, {
   "htl",

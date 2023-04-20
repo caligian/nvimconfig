@@ -85,4 +85,4 @@ user.plugins.lsp = lsp
 req "user.plugins.lsp"
 require "core.plugins.lsp.kbd"
 
-lsp.setup()
+vim.defer_fn(function () lsp.setup() end, 200)

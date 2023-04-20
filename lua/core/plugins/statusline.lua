@@ -45,8 +45,10 @@ user.plugins.statusline = {
 local config = user.plugins.statusline
 req "user.plugins.statusline"
 
-if config.evil then
-  require "core.plugins.evilline"
-else
-  require("lualine").setup(config.config)
-end
+vim.defer_fn(function ()
+  if config.evil then
+    require "core.plugins.evilline"
+  else
+    require("lualine").setup(config.config)
+  end
+end, 50)
