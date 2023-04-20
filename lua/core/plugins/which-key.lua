@@ -87,4 +87,5 @@ wk.register({
   q = { name = "Quit" },
   e = { name = "Lua eval" },
   m = { name = "Filetype" },
+  w = { name = 'Windows'},
 }, { prefix = "<leader>" })

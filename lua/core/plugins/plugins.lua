@@ -1,137 +1,157 @@
-local plugins = {
-  { "nvim-lua/plenary.nvim", priority = 500 },
+user.plugins = { PLUGIN = {} }
+local state = user.plugins.PLUGIN
 
-  { "nathom/filetype.nvim", priority = 300 },
+use_plugin = setmetatable({}, {
+  __newindex = function(self, name, conf)
+    user.plugins[name] = user.plugins[name] or { config = {} }
+    state[name] = state[name] or {}
+    dict.merge(state[name], conf)
+  end,
 
-  {
-    "nvim-telescope/telescope.nvim",
-    dependencies = { "nvim-telescope/telescope-fzy-native.nvim" },
-    config = partial(req, "core.plugins.telescope"),
-  },
+  __index = function(self, plugin) return user.plugins.PLUGIN[k] end,
 
-  {
-    "tpope/vim-dispatch",
-    event = "BufReadPost",
-    config = function()
-      req "core.plugins.dispatch"
-    end,
-  },
+  __call = function(self, name)
+    user.plugins[name] = user.plugins[name] or { config = {} }
+    state[name] = state[name] or {}
 
-  { "hylang/vim-hy", ft = { "hy" } },
+    return function(spec) return dict.merge(state[name], spec) end
+  end,
+})
 
-  { "rcarriga/nvim-notify" },
+local function load_plugin(s)
+  return function() req("core/plugins/" .. s) end
+end
 
-  {
-    "nvim-lualine/lualine.nvim",
-    dependencies = {
-      "rcarriga/nvim-notify",
-    },
-    config = function()
-      req "core.plugins.statusline"
-    end,
-    priority = 400,
-  },
+--------------------------------------------------
 
-  {
-    "lewis6991/gitsigns.nvim",
-    event = "BufReadPost",
-    config = function()
-      req "core.plugins.gitsigns"
-    end,
-  },
+use_plugin "filetype" {
+  "nathom/filetype.nvim",
+  priority = 500,
+}
 
-  {
-    "lukas-reineke/indent-blankline.nvim",
-    event = "BufReadPost",
-    config = function()
-      req "core.plugins.indent-blankline"
-    end,
-  },
+use_plugin "plenary" {
+  "nvim-lua/plenary.nvim",
+}
 
-  {
-    "nvim-neorg/neorg",
-    ft = "norg",
-    config = function()
-      req "core.plugins.neorg"
-    end,
-  },
+use_plugin "telescope" {
+  "nvim-telescope/telescope.nvim",
+  dependencies = { "nvim-telescope/telescope-fzy-native.nvim" },
+  config = function()
+    vim.defer_fn(function() req "core.plugins.telescope" end, 200)
+  end,
+}
 
-  {
-    "junegunn/vim-easy-align",
-    event = "BufReadPost",
-    config = utils.log_pcall_wrap(function()
+use_plugin "dispatch" {
+  "tpope/vim-dispatch",
+  event = "BufReadPost",
+  config = function() req "core.plugins.dispatch" end,
+}
+
+use_plugin "hy" {
+  "hylang/vim-hy",
+  ft = { "hy" },
+}
+
+use_plugin "notify" {
+  "rcarriga/nvim-notify",
+}
+
+use_plugin "statusline" {
+  "nvim-lualine/lualine.nvim",
+  dependencies = { "rcarriga/nvim-notify" },
+  config = load_plugin "statusline",
+  priority = 400,
+}
+
+use_plugin "gitsigns" {
+  "lewis6991/gitsigns.nvim",
+  event = "BufReadPost",
+  config = load_plugin "git_signs",
+}
+
+use_plugin "indent-blankline" {
+  "lukas-reineke/indent-blankline.nvim",
+  event = "BufReadPost",
+  config = function() req "core.plugins.indent-blankline" end,
+}
+
+use_plugin "align" {
+  "junegunn/vim-easy-align",
+  event = "BufReadPost",
+  config = utils.log_pcall_wrap(
+    function()
       K.bind(
         { leader = true, noremap = true },
         { "=", ":EasyAlign ", "Align" },
         { "=", ":'<,'>EasyAlign ", { mode = "v", desc = "Align" } }
       )
-    end),
-  },
+    end
+  ),
+}
 
-  {
-    "lambdalisue/suda.vim",
-    cmd = "SudaRead",
-    config = function()
-      vim.g.suda_smart_edit = 1
-    end,
-  },
+use_plugin "neorg" {
+  "nvim-neorg/neorg",
+  ft = "norg",
+  config = function() req "core.plugins.neorg" end,
+}
 
-  -- Good opinionated themes
-  {
-    "sainnhe/everforest",
-    -- A hack to ensure that all colorschemes are loaded at once
-    dependencies = {
-      "rktjmp/lush.nvim",
-      "rose-pine/neovim",
-      "navarasu/onedark.nvim",
-      "Shatur/neovim-ayu",
-      "mcchrish/zenbones.nvim",
-      "tjdevries/colorbuddy.nvim",
-      "jesseleite/nvim-noirbuddy",
-      "ray-x/starry.nvim",
-      "catppuccin/nvim",
-      "marko-cerovac/material.nvim",
-      "fenetikm/falcon",
-      "shaunsingh/nord.nvim",
-      "rebelot/kanagawa.nvim",
-      "EdenEast/nightfox.nvim",
-      "projekt0n/github-nvim-theme",
-      "bluz71/vim-nightfly-colors",
-      "bluz71/vim-moonfly-colors",
-      "folke/lsp-colors.nvim",
-      "savq/melange-nvim",
-      "AlexvZyl/nordic.nvim",
-      "mhartington/oceanic-next",
-      "folke/tokyonight.nvim",
-    },
-    config = function()
-      req "core.plugins.colorscheme"
-    end,
-    priority = 300,
-  },
+use_plugin "suda.vim" {
+  "lambdalisue/suda.vim",
+  cmd = "SudaRead",
+  config = function() vim.g.suda_smart_edit = 1 end,
+}
 
-  {
-    "lervag/vimtex",
-    config = function()
-      req "core.plugins.vimtex"
-    end,
-    ft = "tex",
+-- Good opinionated themes
+use_plugin "everforest" {
+  "sainnhe/everforest",
+  -- A hacvim-easy-alignk to ensure that all colorschemes are loaded at once
+  dependencies = {
+    "rktjmp/lush.nvim",
+    "rose-pine/neovim",
+    "navarasu/onedark.nvim",
+    "Shatur/neovim-ayu",
+    "mcchrish/zenbones.nvim",
+    "tjdevries/colorbuddy.nvim",
+    "jesseleite/nvim-noirbuddy",
+    "ray-x/starry.nvim",
+    "catppuccin/nvim",
+    "marko-cerovac/material.nvim",
+    "fenetikm/falcon",
+    "shaunsingh/nord.nvim",
+    "rebelot/kanagawa.nvim",
+    "EdenEast/nightfox.nvim",
+    "projekt0n/github-nvim-theme",
+    "bluz71/vim-nightfly-colors",
+    "bluz71/vim-moonfly-colors",
+    "folke/lsp-colors.nvim",
+    "savq/melange-nvim",
+    "AlexvZyl/nordic.nvim",
+    "mhartington/oceanic-next",
+    "folke/tokyonight.nvim",
   },
+  config = function() req "core.plugins.colorscheme" end,
+  priority = 300,
+}
 
-  {
-    "nvim-tree/nvim-web-devicons",
-    config = function()
-      local web = req "nvim-web-devicons"
-      if web then
-        web.setup {}
-      end
-    end,
-  },
+use_plugin "vimtex" {
+  "lervag/vimtex",
+  config = function() req "core.plugins.vimtex" end,
+  ft = "tex",
+}
 
-  {
-    "prichrd/netrw.nvim",
-    cmd = "Lexplore",
-    config = utils.log_pcall_wrap(function()
+use_plugin "devicons" {
+  "nvim-tree/nvim-web-devicons",
+  config = function()
+    local web = req "nvim-web-devicons"
+    if web then web.setup {} end
+  end,
+}
+
+use_plugin "netrw" {
+  "prichrd/netrw.nvim",
+  cmd = "Lexplore",
+  config = utils.log_pcall_wrap(
+    function()
       require("netrw").setup {
         icons = {
           symlink = "",
@@ -141,255 +161,237 @@ local plugins = {
         use_devicons = true,
         mappings = {},
       }
-    end),
-  },
+    end
+  ),
+}
 
-  {
-    "kylechui/nvim-surround",
-    event = "InsertEnter",
-    config = utils.log_pcall_wrap(function()
-      require("nvim-surround").setup {}
-    end),
-  },
+use_plugin "surround" {
+  "kylechui/nvim-surround",
+  event = "InsertEnter",
+  config = utils.log_pcall_wrap(
+    function() require("nvim-surround").setup {} end
+  ),
+}
 
-  {
-    "windwp/nvim-autopairs",
-    event = "InsertEnter",
-    config = partial(req, "core.plugins.autopairs"),
-  },
+use_plugin "autopairs" {
+  "windwp/nvim-autopairs",
+  event = "InsertEnter",
+  config = partial(req, "core.plugins.autopairs"),
+}
 
-  {
-    "mfussenegger/nvim-lint",
-    event = "BufReadPost",
-    config = function()
-      req "core.plugins.lint"
-    end,
-  },
+use_plugin "lint" {
+  "mfussenegger/nvim-lint",
+  event = "BufReadPost",
+  config = function() req "core.plugins.lint" end,
+}
 
-  { "jasonccox/vim-wayland-clipboard", keys = '"' },
+use_plugin "vim-wayland-clipboard" {
+  "jasonccox/vim-wayland-clipboard",
+  keys = '"',
+}
 
-  {
-    "dstein64/vim-startuptime",
-    cmd = "StartupTime",
-    config = function()
-      Autocmd("FileType", {
-        pattern = "startuptime",
-        callback = function()
-          vim.keymap.set(
-            { "n", "i" },
-            "q",
-            ":bwipeout % <bar> :b# <CR>",
-            { buffer = vim.fn.bufnr() }
-          )
-        end,
-      })
-    end,
-  },
+use_plugin "startuptime" {
+  "dstein64/vim-startuptime",
+  cmd = "StartupTime",
+  config = function()
+    Autocmd("FileType", {
+      pattern = "startuptime",
+      callback = function()
+        vim.keymap.set(
+          { "n", "i" },
+          "q",
+          ":bwipeout % <bar> :b# <CR>",
+          { buffer = vim.fn.bufnr() }
+        )
+      end,
+    })
+  end,
+}
 
-  { "tpope/vim-commentary", event = "BufReadPost" },
+use_plugin "vim-commentary" {
+  "tpope/vim-commentary",
+  event = "BufReadPost",
+}
 
-  { "lervag/vimtex", ft = "tex" },
+use_plugin "vimtex" {
+  "lervag/vimtex",
+  ft = "tex",
+  config = partial(req, "core/plugins/vimtex"),
+}
 
-  { "jaawerth/fennel.vim", ft = "fennel" },
+use_plugin "fennel" {
+  "jaawerth/fennel.vim",
+  ft = "fennel",
+}
 
-  {
-    "Olical/conjure",
-    ft = user.conjure_langs,
-  },
+use_plugin "conjure" {
+  "Olical/conjure",
+  ft = user.conjure_langs,
+}
 
-  {
-    "cshuaimin/ssr.nvim",
-    event = "BufReadPost",
-    config = function()
-      req "core.plugins.ssr"
-    end,
-  },
+use_plugin "ssr" {
+  "cshuaimin/ssr.nvim",
+  event = "BufReadPost",
+  config = function() req "core.plugins.ssr" end,
+}
 
-  {
-    "kiyoon/treesitter-indent-object.nvim",
-    keys = {
-      {
-        "ai",
-        "<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_outer()<CR>",
-        mode = { "x", "o" },
-        desc = "Select indent (outer)",
-      },
-      {
-        "aI",
-        "<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_outer(true)<CR>",
-        mode = { "x", "o" },
-        desc = "Select indent (outer, line-wise)",
-      },
-      {
-        "ii",
-        "<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_inner()<CR>",
-        mode = { "x", "o" },
-        desc = "Select indent (inner, partial range)",
-      },
-      {
-        "iI",
-        "<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_inner(true)<CR>",
-        mode = { "x", "o" },
-        desc = "Select indent (inner, entire range)",
-      },
-    },
-    event = "BufReadPost",
-  },
+use_plugin "hop" {
+  "phaazon/hop.nvim",
+  event = "BufReadPost",
+  config = function() req "core.plugins.hop" end,
+}
 
-  {
-    "phaazon/hop.nvim",
-    event = "BufReadPost",
-    config = function()
-      req "core.plugins.hop"
-    end,
-  },
-
-  {
-    "nvim-treesitter/nvim-treesitter",
-    event = "BufReadPost",
-    dependencies = {
-      "RRethy/vim-illuminate",
-      "RRethy/nvim-treesitter-textsubjects",
-      "nvim-treesitter/nvim-treesitter-textobjects",
-      {
-        "mfussenegger/nvim-treehopper",
-        dependencies = {
-          "phaazon/hop.nvim",
-          config = function()
-            req "core.plugins.hop"
-          end,
+use_plugin "treesitter" {
+  "nvim-treesitter/nvim-treesitter",
+  event = "BufReadPost",
+  dependencies = {
+    "RRethy/vim-illuminate",
+    "RRethy/nvim-treesitter-textsubjects",
+    "nvim-treesitter/nvim-treesitter-textobjects",
+    {
+      "kiyoon/treesitter-indent-object.nvim",
+      keys = {
+        {
+          "ai",
+          "<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_outer()<CR>",
+          mode = { "x", "o" },
+          desc = "Select indent (outer)",
+        },
+        {
+          "aI",
+          "<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_outer(true)<CR>",
+          mode = { "x", "o" },
+          desc = "Select indent (outer, line-wise)",
+        },
+        {
+          "ii",
+          "<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_inner()<CR>",
+          mode = { "x", "o" },
+          desc = "Select indent (inner, partial range)",
+        },
+        {
+          "iI",
+          "<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_inner(true)<CR>",
+          mode = { "x", "o" },
+          desc = "Select indent (inner, entire range)",
         },
       },
-      "kiyoon/treesitter-indent-object.nvim",
-      "andymass/vim-matchup",
-      "cshuaimin/ssr.nvim",
-      "nvim-treesitter/nvim-treesitter-refactor",
-      "MunifTanjim/nui.nvim",
+      event = "BufReadPost",
     },
-    config = function()
-      req "core.plugins.treesitter"
-    end,
-  },
-
-  {
-    "SirVer/ultisnips",
-    event = "InsertEnter",
-    dependencies = { "honza/vim-snippets" },
-    config = function()
-      req "core.plugins.ultisnips"
-    end,
-  },
-
-  {
-    "hrsh7th/nvim-cmp",
-    event = "InsertEnter",
-    dependencies = {
-      "quangnguyen30192/cmp-nvim-ultisnips",
-      "tamago324/cmp-zsh",
-      "hrsh7th/cmp-nvim-lsp",
-      "ray-x/cmp-treesitter",
-      "hrsh7th/cmp-nvim-lua",
-      "hrsh7th/cmp-path",
-      "hrsh7th/cmp-nvim-lsp-signature-help",
-      "hrsh7th/cmp-nvim-lsp-document-symbol",
+    {
+      "mfussenegger/nvim-treehopper",
+      dependencies = {
+        "phaazon/hop.nvim",
+        config = function() req "core.plugins.hop" end,
+      },
     },
-    config = function()
-      req "core.plugins.cmp"
-    end,
+    "kiyoon/treesitter-indent-object.nvim",
+    "andymass/vim-matchup",
+    "cshuaimin/ssr.nvim",
+    "nvim-treesitter/nvim-treesitter-refactor",
+    "MunifTanjim/nui.nvim",
   },
+  config = function() req "core.plugins.treesitter" end,
+}
 
-  {
-    "tpope/vim-fugitive",
-    dependencies = { "tpope/vim-git" },
-    keys = {
-      { "<leader>gs", ":Git stage %<CR>", "n", { desc = "Stage buffer" } },
-      { "<leader>gc", ":Git commit <CR>", "n", { desc = "Commit buffer" } },
-      { "<leader>gg", ":tab Git<CR>", "n", { desc = "Open Fugitive" } },
-    },
+use_plugin "ultisnips" {
+  "SirVer/ultisnips",
+  event = "InsertEnter",
+  dependencies = { "honza/vim-snippets" },
+  config = function() req "core.plugins.ultisnips" end,
+}
+
+use_plugin "cmp" {
+  "hrsh7th/nvim-cmp",
+  event = "InsertEnter",
+  dependencies = {
+    "quangnguyen30192/cmp-nvim-ultisnips",
+    "tamago324/cmp-zsh",
+    "hrsh7th/cmp-nvim-lsp",
+    "ray-x/cmp-treesitter",
+    "hrsh7th/cmp-nvim-lua",
+    "hrsh7th/cmp-path",
+    "hrsh7th/cmp-nvim-lsp-signature-help",
+    "hrsh7th/cmp-nvim-lsp-document-symbol",
   },
+  config = function() req "core.plugins.cmp" end,
+}
 
-  {
-    "preservim/tagbar",
-    keys = "<C-t>",
-    event = "BufReadPost",
-    config = utils.log_pcall_wrap(function()
-      Keybinding.noremap(
-        "n",
-        "<C-t>",
-        ":TagbarToggle<CR>",
-        { desc = "Toggle tagbar", name = "tagbar" }
-      )
-      vim.g.tagbar_position = "leftabove vertical"
-      req "user.plugins.tagbar"
-    end),
-  },
-
-  {
-    "folke/which-key.nvim",
-    config = function()
-      req "core.plugins.which-key"
-    end,
-  },
-
-  {
-    "iamcco/markdown-preview.nvim",
-    build = "cd app && yarn install",
-    ft = "markdown",
-  },
-
-  {
-    "mhartington/formatter.nvim",
-    event = "BufReadPost",
-    config = function()
-      req "core.plugins.formatter"
-    end,
-  },
-
-  {
-    "neovim/nvim-lspconfig",
-    dependencies = {
-      "lukas-reineke/lsp-format.nvim",
-      "williamboman/mason.nvim",
-      "mfussenegger/nvim-dap",
-      "simrat39/rust-tools.nvim",
-      "Saecki/crates.nvim",
-    },
-    config = function()
-      req "core.plugins.lsp"
-    end,
-  },
-
-  {
-    "moll/vim-bbye",
-    event = "BufReadPost",
-    config = utils.log_pcall_wrap(function()
-      local function delete_and_hide(wipeout)
-        local bufname = vim.fn.bufname(vim.fn.bufnr())
-        if wipeout then
-          vim.cmd(":Bwipeout " .. bufname)
-        else
-          vim.cmd(":Bdelete " .. bufname)
-        end
-        local tab = vim.fn.tabpagenr()
-        local n_wins = #(vim.fn.tabpagebuflist(tab))
-        if n_wins > 1 then
-          vim.cmd ":hide"
-        end
-      end
-      Keybinding.bind(
-        { noremap = true, leader = true },
-        { "bq", delete_and_hide, { desc = "Delete buffer" } },
-        { "bQ", partial(delete_and_hide, true), { desc = "Wipeout buffer" } }
-      )
-      req "user.plugins.vim-bbye"
-    end),
+use_plugin "fugitive" {
+  "tpope/vim-fugitive",
+  dependencies = { "tpope/vim-git" },
+  keys = {
+    { "<leader>gs", ":Git stage %<CR>", "n", { desc = "Stage buffer" } },
+    { "<leader>gc", ":Git commit <CR>", "n", { desc = "Commit buffer" } },
+    { "<leader>gg", ":tab Git<CR>", "n", { desc = "Open Fugitive" } },
   },
 }
 
-local names = {}
-array.each(plugins, function(spec)
-  local x = path.basename(spec[1])
-  names[x] = spec
-end)
+use_plugin "tagbar" {
+  "preservim/tagbar",
+  keys = "<C-t>",
+  event = "BufReadPost",
+  config = utils.log_pcall_wrap(function()
+    Keybinding.noremap(
+      "n",
+      "<C-t>",
+      ":TagbarToggle<CR>",
+      { desc = "Toggle tagbar", name = "tagbar" }
+    )
+    vim.g.tagbar_position = "leftabove vertical"
+    req "user.plugins.tagbar"
+  end),
+}
 
-return names
+use_plugin "which-key" {
+  "folke/which-key.nvim",
+  config = function() req "core.plugins.which-key" end,
+}
+
+use_plugin "markdown-preview" {
+  "iamcco/markdown-preview.nvim",
+  build = "cd app && yarn install",
+  ft = "markdown",
+}
+
+use_plugin "formatter" {
+  "mhartington/formatter.nvim",
+  event = "BufReadPost",
+  config = function() req "core.plugins.formatter" end,
+}
+
+use_plugin "lsp" {
+  "neovim/nvim-lspconfig",
+  dependencies = {
+    "lukas-reineke/lsp-format.nvim",
+    "williamboman/mason.nvim",
+    "mfussenegger/nvim-dap",
+    "simrat39/rust-tools.nvim",
+    "Saecki/crates.nvim",
+  },
+  config = function() req "core.plugins.lsp" end,
+}
+
+use_plugin "vim-bbye" {
+  "moll/vim-bbye",
+  event = "BufReadPost",
+  config = utils.log_pcall_wrap(function()
+    local function delete_and_hide(wipeout)
+      local bufname = vim.fn.bufname(vim.fn.bufnr())
+      if wipeout then
+        vim.cmd(":Bwipeout " .. bufname)
+      else
+        vim.cmd(":Bdelete " .. bufname)
+      end
+      local tab = vim.fn.tabpagenr()
+      local n_wins = #(vim.fn.tabpagebuflist(tab))
+      if n_wins > 1 then vim.cmd ":hide" end
+    end
+    Keybinding.bind(
+      { noremap = true, leader = true },
+      { "bq", delete_and_hide, { desc = "Delete buffer" } },
+      { "bQ", partial(delete_and_hide, true), { desc = "Wipeout buffer" } }
+    )
+    req "user.plugins.vim-bbye"
+  end),
+}

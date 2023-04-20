@@ -24,9 +24,17 @@ K.bind({ mode = "nvx" }, {
   utils.log_pcall_wrap(function()
     hop.hint_lines_skip_whitespace { direction = directions.BEFORE_CURSOR }
   end),
-}, {
+}, 
+
+-- evil-snipe
+{
   "s",
   function()
-    hop.hint_char2 {}
+    hop.hint_char2 {direction = directions.AFTER_CURSOR}
+  end,
+}, {
+  "S",
+  function()
+    hop.hint_char2 {direction = directions.BEFORE_CURSOR}
   end,
 })

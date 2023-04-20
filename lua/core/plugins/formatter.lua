@@ -20,18 +20,10 @@ end
 
 -- Setup autocmd for autoformatting
 Keybinding.noremap("n", "<leader>bf", ":FormatWrite<CR>", {
-  event = "FileType",
-  pattern = dict.keys(formatters),
   desc = "Format buffer",
   silent = true,
   name = "format_buffer",
 })
-
--- Autocmd("BufWritePost", {
--- 	pattern = "*",
--- 	callback = ":silent! FormatWrite",
--- 	name = "format_buffer",
--- })
 
 -- Finalize setup
 user.plugins.formatter = {

@@ -66,7 +66,7 @@ function Term:get_status()
   if not self.id then
     return false
   end
-  return get_status(self.id, self.command)
+  return get_status(self.id)
 end
 
 function Term:is_running(assrt)
@@ -113,7 +113,7 @@ function Term:stop()
 end
 
 function Term.stopall()
-  dict.each(user.term.ID, function(obj) obj:stop() end)
+  dict.each(user.term.ID, function(_, obj) obj:stop() end)
 end
 
 function Term:hide()
