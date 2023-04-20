@@ -14,6 +14,10 @@ local load_telescope = function(override)
         disable_devicons = true,
         previewer = false,
         extensions = {},
+        layout_config = {
+          height = 0.8,
+          width = 0.9
+        }
       })
     end),
   }, override or {})

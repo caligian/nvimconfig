@@ -115,11 +115,3 @@ function color.loadall()
     end
   end)
 end
-
--- User config format
---[[
-{
-colorscheme = config_table
-}
---]]
-color.loadall()

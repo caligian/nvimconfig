@@ -1,4 +1,5 @@
-local ivy = require("telescope.themes").get_ivy()
+local _ = utils.telescope.load()
+local ivy = _.ivy
 local buffer_actions = require "core.plugins.telescope.buffer-actions"
 local git_status_actions = require "core.plugins.telescope.git-status-actions"
 local git_files_actions = require "core.plugins.telescope.git-files-actions"
@@ -8,9 +9,6 @@ local T = user.plugins.telescope.config
 
 --------------------------------------------------------------------------------
 -- Some default overrides
-T.disable_devicons = true
-T.layout_config.height = 0.3
-T.previewer = false
 T.extensions = {}
 T.pickers = {
   buffers = {

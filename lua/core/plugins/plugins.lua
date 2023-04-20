@@ -104,8 +104,16 @@ use_plugin "suda.vim" {
 -- Good opinionated themes
 use_plugin "everforest" {
   "sainnhe/everforest",
-  -- A hacvim-easy-alignk to ensure that all colorschemes are loaded at once
+
   dependencies = {
+    {
+      "maxmx03/solarized.nvim",
+      config = utils.log_pcall_wrap(function ()
+        local solarized = require 'solarized'
+        vim.o.background = 'dark'
+        solarized:setup { config = {theme = 'neovim'} }
+      end)
+    },
     "rktjmp/lush.nvim",
     "rose-pine/neovim",
     "navarasu/onedark.nvim",
