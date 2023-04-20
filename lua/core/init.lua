@@ -9,7 +9,7 @@ defer_req("core.defaults", 300)
 defer_req("core.bufgroups", 150)
 defer_req("core.bookmarks", 100)
 
-utils.autocmd("BufRead", {
+utils.autocmd("BufEnter", {
   pattern = "*",
   once = true,
   callback = function() req "core.repl" end,
