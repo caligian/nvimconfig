@@ -1,19 +1,17 @@
----
--- @classmod Autocommand wrapper for vim.api.nvim_create_autocmd.
-class "Autocmd"
+--- Neovim autocmd wrapper in class
+Autocmd = class "Autocmd"
 
----
--- @field A Alias for Autocommand
+--- @alias A 
 A = Autocmd
 user.autocmd = user.autocmd or { ID = {}, GROUP = {}, BUFFER = {} }
 
 function Autocmd:init(event, opts)
   validate {
-    event = { is { "s", "t" }, event },
+    event = { is { "string", "table" }, event },
     options = {
       {
-        callback = is { "f", "s" },
-        pattern = is { "s", "t" },
+        callback = is { "callable", "string" },
+        pattern = is { "string", "table" },
       },
       opts,
     },
@@ -66,7 +64,7 @@ function Autocmd:init(event, opts)
   end
 
   dict.update(user.autocmd.ID, id, self)
-  dict.update(user.autocmd.GROUP, { gid, id }, self)
+  dict.update(user.autocmd.GROUP, { augroup, id }, self)
 
   if name then user.autocmd[name] = self end
 
@@ -102,7 +100,7 @@ function Autocmd.replace(self, opts)
 end
 
 ---
-class "Augroup"
+Augroup = class "Augroup"
 
 user.augroup = user.augroup or { ID = {} }
 

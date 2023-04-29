@@ -245,7 +245,6 @@ use_plugin "ssr" {
 
 use_plugin "hop" {
   "phaazon/hop.nvim",
-  event = "BufReadPost",
   config = function() req "core.plugins.hop" end,
 }
 

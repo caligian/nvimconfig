@@ -1,5 +1,3 @@
-require "utils.errors"
-
 function module(methods)
   local mod = {}
   for key, value in pairs(methods or {}) do
@@ -9,13 +7,7 @@ function module(methods)
   return mod
 end
 
-local exception = Exception "StateModuleException"
-exception.not_a_class = "class expected"
-
 function state_module(cls, methods)
-  exception.not_a_table:throw_unless(is_table(cls), cls)
-  TypeException.not_a_table:throw_unless(is_table(methods), methods)
-
   local mod = module(methods or {})
   mod.objects = {}
   local state = mod.objects

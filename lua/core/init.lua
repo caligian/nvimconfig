@@ -1,16 +1,14 @@
+local function defer(req_s, timeout)
+  vim.defer_fn(function() req(req_s) end, timeout)
+end
+
 req "core.globals"
 req "core.option"
-req "core.netrw"
 req "core.lang"
 req "core.plugins"
+req 'core.bufgroups'
 
-local function defer_req(s, timeout) vim.defer_fn(partial(req, s), timeout) end
-defer_req("core.defaults", 300)
-defer_req("core.bufgroups", 150)
-defer_req("core.bookmarks", 100)
-
-utils.autocmd("BufEnter", {
-  pattern = "*",
-  once = true,
-  callback = function() req "core.repl" end,
-})
+defer('core.netrw', 200)
+defer('core.defaults', 250)
+defer('core.bookmarks', 200)
+defer('core.repl', 400)

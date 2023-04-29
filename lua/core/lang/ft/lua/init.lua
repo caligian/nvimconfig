@@ -1,12 +1,10 @@
 Lang("lua", {
   compile = "lua5.1",
   repl = "lua5.1",
-
   server = {
     name = "lua_ls",
     config = require "core.lang.ft.lua.sumneko_lua",
   },
-
   formatters = {
     {
       exe = "stylua",
@@ -23,9 +21,9 @@ Lang("lua", {
       stdin = true,
     },
   },
-
   bo = {
     shiftwidth = 2,
     tabstop = 2,
   },
 })
+

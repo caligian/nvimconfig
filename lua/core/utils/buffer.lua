@@ -1,15 +1,10 @@
-require "utils.table"
-require "utils.types"
-require "utils.Autocmd"
-require "utils.Keybinding"
+require "core.utils.Autocmd"
+require "core.utils.Keybinding"
 
 buffer = {}
 buffer.bufadd = vim.fn.bufadd
-buffer.exception = Exception 'BufferException'
-local exception = buffer.exception
-exception.invalid_bufnr = 'expected valid buffer index'
-exception.invalid_buffer = 'expected valid buffer expr'
 local is_string_or_table = is {'string', 'table'}
+buffer.InvalidBufferException = exception('InvalidBufferException', 'invalid buffer expr')
 
 function buffer.exists(bufnr)
   return vim.fn.bufexists(bufnr) ~= 0
@@ -81,9 +76,9 @@ function buffer.float(bufnr, opts)
     win_options = {
       {
         __nonexistent = true,
-        ["?center"] = "t",
-        ["?panel"] = "n",
-        ["?dock"] = "n",
+        ["?center"] = "table",
+        ["?panel"] = "number",
+        ["?dock"] = "number",
       },
       opts or {},
     },
@@ -269,7 +264,7 @@ function buffer.setwinopts(bufnr, opts)
 end
 
 local function assert_exists(bufnr)
-  exception.invalid_buffer:throw_unless(buffer.exists(bufnr), bufnr)
+  buffer.InvalidBufferException:throw_unless(buffer.exists(bufnr), bufnr)
 end
 
 --- bufferake a new buffer local mapping.
@@ -309,7 +304,7 @@ function buffer.split(bufnr, split, opts)
   local required
   local reverse = opts.reverse
   local width = opts.resize or 0.3
-  local height = opts.resize or 0.3
+  local height = opts.resize or 0.5
   local min = 0.1
 
   -- Use decimal dict.values to use percentage changes
@@ -332,7 +327,7 @@ function buffer.split(bufnr, split, opts)
     vim.cmd("resize " .. required)
   elseif split == "v" then
     local current = vim.fn.winwidth(0)
-    required = from_percent(current, height or 0.5, min)
+    required = from_percent(current, height, min)
     if not reverse then
       if opts.full then
         vim.cmd("vert botright split | b " .. bufnr)
@@ -654,7 +649,7 @@ function buffer.mkscratch(name, filetype)
 end
 
 function buffer.open_scratch(name, split, opts)
-  name = name or "__scratch_buffer__"
+  name = name or path.join(vim.fn.stdpath('data'), '__scratch_buffer__')
   local bufnr = buffer.mkscratch(name)
   buffer.split(bufnr, split, opts)
 end
@@ -743,3 +738,5 @@ function buffer.input(text, cb, opts)
     cb(sanitized)
   end, "Execute callback")
 end
+
+return buffer

@@ -1,20 +1,14 @@
-local Process = Class.new 'Process'
-
+local Process = class 'Process'
 user.process = user.process or {}
 user.process.ID = user.process.ID or {}
 user.timeout = user.timeout or 30
-local exception = Exception "TermException"
-Process.exception = exception
 Process.timeout = user.timeout
+Process.InvalidCommandException = exception('InvalidCommandException',  "expected valid command")
+Process.ShellNotExecutableException = exception('ShellNotExecutableException', "shell not executable")
+Process.ExitedWithErrorException = exception("ExitedWithErrorException", "command exited with error")
+Process.InterruptedException = exception("InterruptedException", "interrupted")
+Process.InvalidIDException = exception("InvalidCommandException", "valid id expected")
 
-exception:set {
-  invalid_command = "expected valid command",
-  not_executable = "shell not executable",
-  exited_with_error = "command exited with error",
-  interrupted = "interrupted",
-  invalid_id = "valid id expected",
-  unknown = "unknown error",
-}
 
 local function get_status(id, cmd)
   if id == 0 then
@@ -26,11 +20,11 @@ local function get_status(id, cmd)
   local status = vim.fn.jobwait({ id }, Term.timeout)[1]
   if status ~= -1 and status ~= 0 then
     if status >= 126 then
-      return false, "invalid_command"
+      return false, "InvalidCommandException"
     elseif status == -2 then
-      return false, "interrupted"
+      return false, "InterruptedException"
     elseif status == -3 then
-      return false, "invalid_id"
+      return false, "InvalidIDException"
     end
   end
 
@@ -151,7 +145,7 @@ function Process:is_running(assrt)
   if not self.id then return false end
   local ok, msg = get_status(self.id, self.command)
   if not ok and assrt then
-    exception[msg]:throw(self)
+    Process[msg]:throw(self)
   elseif not ok then
     return false, msg
   end
@@ -176,7 +170,7 @@ function Process:run()
   id = vim.fn.jobstart(self.command, self.opts)
   local ok, msg = get_status(id)
 
-  if not ok then exception[msg]:throw(self.command) end
+  if not ok then Process[msg]:throw(self.command) end
 
   self.id = id
   dict.update(user.process.ID, { id }, self)

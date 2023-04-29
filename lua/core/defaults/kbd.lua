@@ -4,15 +4,11 @@ local function _toggle_option(option)
   local winid = vim.fn.bufwinid(bufnr)
   local ok, out = pcall(vim.api.nvim_buf_get_option, bufnr, option)
 
-  if ok then
-    vim.api.nvim_buf_set_option(bufnr, option, not out)
-  end
+  if ok then vim.api.nvim_buf_set_option(bufnr, option, not out) end
 
   if not ok then
     ok, out = pcall(vim.api.nvim_win_get_option, winid, option)
-    if ok then
-      vim.api.nvim_win_set_option(winid, option, not out)
-    end
+    if ok then vim.api.nvim_win_set_option(winid, option, not out) end
   end
 end
 
@@ -22,22 +18,38 @@ K.bind(
   { noremap = true, leader = true },
 
   -- File and buffer operations
-  { "fb", "mA", { desc = "Bookmark current file at pos", name = "save_bookmark" } },
+  {
+    "fb",
+    "mA",
+    { desc = "Bookmark current file at pos", name = "save_bookmark" },
+  },
   {
     "fP",
     ":chdir ~/.config/nvim <bar> e .<CR>",
     { desc = "Open framework config", name = "framework_conf" },
   },
-  { "fp", ":chdir ~/.nvim <bar> e .<CR>", { desc = "Open user config", name = "user_conf" } },
+  {
+    "fp",
+    ":chdir ~/.nvim <bar> e .<CR>",
+    { desc = "Open user config", name = "user_conf" },
+  },
   { "be", ":e!<CR>", { desc = "Reload buffer", name = "reload_buffer" } },
   { "fs", ":w! %<CR>", { desc = "Save buffer", name = "save_buffer" } },
   { "bk", ":hide<CR>", { desc = "Hide buffer", name = "hide_buffer" } },
-  { "bK", ":w! <bar> hide<CR>", { desc = "Save and hide buffer", name = "save_and_hide_buffer" } },
+  {
+    "bK",
+    ":w! <bar> hide<CR>",
+    { desc = "Save and hide buffer", name = "save_and_hide_buffer" },
+  },
   { "bp", ":bprev<CR>", { desc = "Previous buffer", name = "prev_buffer" } },
   { "bn", ":bnext<CR>", { desc = "Next buffer", name = "next_buffer" } },
   { "b0", ":bfirst<CR>", { desc = "First buffer", name = "first_buffer" } },
   { "b$", ":blast<CR>", { desc = "Last buffer", name = "last_buffer" } },
-  { "bl", ":b#<CR>", { desc = "Previously opened buffer", name = "recent_buffer" } },
+  {
+    "bl",
+    ":b#<CR>",
+    { desc = "Previously opened buffer", name = "recent_buffer" },
+  },
   {
     "fv",
     ":w! % <bar> :source %<CR>",
@@ -50,9 +62,21 @@ K.bind(
   },
 
   -- Lua eval anywhere like emacs eval-sexp, etc
-  { "<leader>", "<cmd>NvimEvalLine<CR>", { desc = "Lua source line", name = "eval_line" } },
-  { "ee", "<cmd>NvimEvalLine<CR>", { desc = "Lua source line", name = "eval line" } },
-  { "eb", "<cmd>NvimEvalBuffer<CR>", { desc = "Lua source buffer", name = "source_buffer" } },
+  {
+    "<leader>",
+    "<cmd>NvimEvalLine<CR>",
+    { desc = "Lua source line", name = "eval_line" },
+  },
+  {
+    "ee",
+    "<cmd>NvimEvalLine<CR>",
+    { desc = "Lua source line", name = "eval line" },
+  },
+  {
+    "eb",
+    "<cmd>NvimEvalBuffer<CR>",
+    { desc = "Lua source buffer", name = "source_buffer" },
+  },
   {
     "e.",
     "<cmd>NvimEvalTillPoint<CR>",
@@ -81,10 +105,14 @@ K.bind(
   { "tp", ":tabprev<CR>", { desc = "Previous tab", name = "prev_tab" } },
 
   -- Show startup logs
-  { "hl", ":ShowLogs<CR>", { desc = "Show startup logs", name = "startup_logs" } },
+  {
+    "hl",
+    ":ShowLogs<CR>",
+    { desc = "Show startup logs", name = "startup_logs" },
+  },
 
   -- Quit
-  { "qa", ':qa<CR>',  ":qall"  },
+  { "qa", ":qa<CR>", ":qall" },
   { "qq", ":qa!<CR>", ":qall!" },
   { "qx", ":xa<CR>", ":xa" },
 
@@ -141,7 +169,12 @@ K.bind(
 
 --------------------------------------------------------------------------------
 
-K.noremap("n", "\\\\", ":noh<CR>", { desc = "No highlight", silent = true, name = "noh" })
+K.noremap(
+  "n",
+  "\\\\",
+  ":noh<CR>",
+  { desc = "No highlight", silent = true, name = "noh" }
+)
 
 --------------------------------------------------------------------------------
 
@@ -160,5 +193,29 @@ K.bind(
   { "<C-=>", ":FontSize +1<CR>", "Increase font size by 1pt" }
 )
 
-K.map('in', '<C-ScrollWheelUp>', '<cmd>FontSize +1<CR>')
-K.map('in', '<C-ScrollWheelDown>', '<cmd>FontSize -1<CR>')
+K.bind(
+  { mode = "in" },
+  { "<C-ScrollWheelUp>", "<cmd>FontSize +1<CR>" },
+  { "<C-ScrollWheelDown>", "<cmd>FontSize -1<CR>" }
+)
+
+--------------------------------------------------------------------------------
+user.qf_open = user.qf_open or false
+user.loclist_open = user.loclist_open or false
+K.noremap('n', '<leader>Q', function ()
+  if user.qf_open then
+    vim.cmd ':cclose'
+  else
+    user.qf_open = true
+    vim.cmd ':copen'
+  end
+end, 'Open qflist')
+
+K.noremap('n', '<leader>L', function ()
+  if user.loclist_open then
+    vim.cmd ':lclose'
+  else
+    user.loclist_open = true
+    vim.cmd ':lopen'
+  end
+end, 'Open qflist')

@@ -1,8 +1,8 @@
 ---
 -- Keybinding wrapper for vim.keymap.set which integrates with nvim autocommands API. Aliased as 'K'
-class "Keybinding"
+Keybinding = class "Keybinding"
 
---- Alias for Keybinding
+--- @alias Keybinding
 K = Keybinding
 
 ---
@@ -20,10 +20,10 @@ local function parse_opts(opts)
 
   dict.each(opts, function(k, v)
     -- For autocommands
-    if string.match_any(k, "pattern", "once", "nested", "group") then
+    if str.match_any(k, "pattern", "once", "nested", "group") then
       parsed.au[k] = v
     elseif
-      string.match_any(k, "event", "name", "mode", "prefix", "leader", "localleader", "cond")
+      str.match_any(k, "event", "name", "mode", "prefix", "leader", "localleader", "cond")
     then
       parsed.misc[k] = v
     else
@@ -73,11 +73,11 @@ function K:init(mode, lhs, cb, rest)
   rest = rest or {}
   mode = mode or rest.mode or "n"
 
-  if is_a.s(mode) then
+  if is_a.string(mode) then
     mode = vim.split(mode, "")
   end
 
-  if is_a.s(rest) then
+  if is_a.string(rest) then
     rest = { desc = rest }
   end
 
@@ -196,21 +196,19 @@ function K.bind(opts, ...)
   local args = { ... }
   opts = opts or {}
   local bind = function(kbd)
-    validate { kbd_spec = { "t", kbd } }
+    validate { kbd_spec = { "table", kbd } }
     assert(#kbd >= 2)
 
     local lhs, cb, o = unpack(kbd)
 
     validate {
-      lhs = { "s", lhs },
-      cb = { is { "s", "f" }, cb },
-      ["?o"] = { is { "table", "string" }, o },
+      lhs = { "string", lhs },
+      cb = { is { "string", "callable" }, cb },
+      ['?o'] = { is { "table", "string" }, o },
     }
 
     o = o or {}
-    if is_a.s(o) then
-      o = { desc = o }
-    end
+    if is_a.string(o) then o = { desc = o } end
     validate { kbd_opts = { "table", o } }
 
     for key, value in pairs(opts) do
@@ -241,7 +239,7 @@ end
 --- Same as K.map but sets noremap to true
 function K.noremap(mode, lhs, cb, opts)
   opts = opts or {}
-  if is_a.s(opts) then
+  if is_a.string(opts) then
     opts = { desc = opts }
   end
   opts.noremap = true

@@ -1,12 +1,11 @@
 user.colorscheme.colorscheme = user.colorscheme.colorscheme or {}
 local color = user.colorscheme
 local state = color.colorscheme
-local ex = Exception "Colorscheme"
-ex.invalid_colorscheme = "valid colorscheme expected"
+color.InvalidColorscheme = exception('InvalidColorscheme', "valid colorscheme expected")
 
 local function get(name)
   local out = state[name]
-  ex.invalid_colorscheme:throw_unless(out)
+  color.InvalidColorscheme:throw_unless(out)
 
   return out
 end

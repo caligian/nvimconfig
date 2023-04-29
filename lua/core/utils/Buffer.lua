@@ -1,8 +1,7 @@
 --- Buffer object creater. This does not YET cover all the neovim buffer API functions
 
-require "utils.buffers"
-
-local Buffer = Class.new("Buffer", false, { include = buffers, attrib = "bufnr" })
+local buffer = require "core.utils.buffer"
+local Buffer = class("Buffer", false, { include = buffer, attrib = "bufnr" })
 user.buffer = user.buffer or { BUFNR = {}, SCRATCH_ID = 1 }
 user.buffer.SCRATCH_ID = user.buffer.SCRATCH_ID or 1
 
@@ -23,7 +22,7 @@ function Buffer:init(name, scratch)
     bufnr = buffer.create(name)
   end
 
-  buffer.exception.invalid_bufnr:throw_unless(buffer.exists(name), name)
+  buffer.InvalidBufferException:throw_unless(buffer.exists(name), name)
 
   self.bufnr = bufnr
   self.name = name

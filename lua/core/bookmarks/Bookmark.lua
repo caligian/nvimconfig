@@ -1,14 +1,16 @@
-local Bookmark = Class.new(
+local Bookmark = class(
   "Bookmark",
   nil,
   { defaults = { DEST = vim.fn.stdpath "data" .. "/bookmarks.lua" } }
 )
 
 --------------------------------------------------
-local exception = Exception "BookmarkException"
-exception.invalid_path = "expected valid buffer/path"
-exception.corrupted = "saved bookmarks could not be read"
-exception.cannot_save = "could not save bookmarks"
+Bookmark.InvalidPathException =
+  exception("InvalidPathException", "expected valid buffer/path")
+Bookmark.CorruptedException =
+  exception("CorruptedException", "saved bookmarks could not be read")
+Bookmark.CannotSaveException =
+  exception("CannotSaveException", "could not save bookmarks")
 
 --------------------------------------------------
 user.bookmark = user.bookmark or {}
@@ -90,7 +92,7 @@ end
 
 function Bookmark:init(p)
   local _p = resolve_path(p)
-  exception.invalid_path:throw_unless(_p, p)
+  Bookmark.InvalidPathException:throw_unless(_p, p)
   dict.merge(self, _p)
   dict.update(user.bookmark.BOOKMARK, _p.path, self)
 end
@@ -235,6 +237,9 @@ function Bookmark:autoremove()
 end
 
 function Bookmark:jump(line, split)
+  local bufnr = buffer.bufnr(self.path)
+  if bufnr then self.bufnr = bufnr end
+
   if self.dir then
     vim.cmd(sprintf(":Lexplore %s | vert size 40", sel.path))
   elseif not self.bufnr then
@@ -360,22 +365,27 @@ function Bookmark.create_main_picker(remover)
 
   function mod.remove(sel) remove(sel) end
 
+  function mod.marks(sel)
+    local obj = get_obj(sel[1])
+    local picker = obj:create_picker()
+    if not picker then
+      if obj.bufnr then
+        vim.cmd("b " .. sel[1])
+      else
+        vim.cmd("e " .. sel[1])
+      end
+    else
+      picker:find()
+    end
+  end
+
   local function default_action(prompt_bufnr)
     local sel = _.get_selected(prompt_bufnr)[1]
     if remover then
       remove(sel)
     else
       local obj = get_obj(sel[1])
-      local picker = obj:create_picker()
-      if not picker then
-        if obj.bufnr then
-          vim.cmd("b " .. sel[1])
-        else
-          vim.cmd("e " .. sel[1])
-        end
-      else
-        picker:find()
-      end
+      obj:jump()
     end
   end
 
@@ -389,6 +399,7 @@ function Bookmark.create_main_picker(remover)
   return _.create_picker(ls, {
     default_action,
     { "n", "x", mod.remove },
+    { "n", "m", mod.marks },
   }, {
     prompt_title = title,
   })
@@ -472,17 +483,18 @@ end
 function Bookmark.save()
   file.write(
     Bookmark.DEST,
-    'return ' .. dump(dict.map(
-      user.bookmark.BOOKMARK,
-      function(_, obj)
-        return {
-          path = obj.path,
-          file = obj.file,
-          dir = obj.dir,
-          lines = obj.lines
-        }
-      end
-    ))
+    "return "
+      .. dump(dict.map(
+        user.bookmark.BOOKMARK,
+        function(_, obj)
+          return {
+            path = obj.path,
+            file = obj.file,
+            dir = obj.dir,
+            lines = obj.lines,
+          }
+        end
+      ))
   )
 end
 
@@ -494,7 +506,10 @@ function Bookmark.load()
   if not ok then return end
   ls = msg()
   if not ls then return end
-  dict.each(ls, function (k, obj) ls[k] = Bookmark(k) ls[k].lines = obj.lines end)
+  dict.each(ls, function(k, obj)
+    ls[k] = Bookmark(k)
+    ls[k].lines = obj.lines
+  end)
   user.bookmark.BOOKMARK = ls
 
   return ls
@@ -517,7 +532,7 @@ function Bookmark:print()
     display[1] = sprintf("File: %s", self.path)
   end
 
-  if self.lines and  not dict.isblank(self.lines) then
+  if self.lines and not dict.isblank(self.lines) then
     local i = 2
     dict.each(self.lines, function(linenum, line)
       display[i] = sprintf("%-4d ⎥%s", linenum, line)

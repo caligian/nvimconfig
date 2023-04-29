@@ -1,12 +1,4 @@
-Date = Date or require "pl.Date"
-user = user or {}
 utils = utils or {}
-utils.stdpath = vim.fn.stdpath
-utils.islist = vim.tbl_islist
-dump = vim.inspect
-string.trim = vim.trim
-string.split = vim.split
-utils.deepcopy = vim.deepcopy
 utils.command = vim.api.nvim_create_user_command
 utils.autocmd = vim.api.nvim_create_autocmd
 utils.augroup = vim.api.nvim_create_augroup

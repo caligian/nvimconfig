@@ -1,7 +1,6 @@
-local Term = require 'utils.Term'
-local REPL = Class.new("REPL", Term)
-local exception = Exception "REPLException"
-exception.no_command = "No command given for filetype"
+local Term = require 'core.utils.Term'
+local REPL = class("REPL", Term)
+REPL.NoCommandException = exception('NoCommandException', "No command given for filetype")
 user.repl = user.repl or {FILETYPE={}}
 local state =  user.repl.FILETYPE
 
@@ -23,7 +22,7 @@ function REPL:init(ft)
   local cmd = dict.contains(Lang.langs, ft, "repl")
   local opts = {}
 
-  exception.no_command:throw_unless(cmd, self)
+  REPL.NoCommandException:throw_unless(cmd, ft)
 
   if is_a.table(cmd) then
     opts.on_input = cmd.on_input

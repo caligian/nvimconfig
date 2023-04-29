@@ -17,4 +17,5 @@ vim.api.nvim_create_autocmd("BufEnter", {
 require "bootstrap"
 
 -- Load the framework
+require 'core.utils'
 require "core"

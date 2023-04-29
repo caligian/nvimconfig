@@ -1,14 +1,12 @@
-class "Lang"
-
+Lang = class "Lang"
 Lang.langs = Lang.langs or {}
 local AUTOCMD_ID = 1
 
 function Lang.init(self, lang, opts)
   validate {
-    filetype = { "s", lang },
+    filetype = { "string", lang },
     ["?opts"] = {
       {
-        __nonexistent = false,
         ["?hooks"] = is { "callable", "table" },
         ["?bo"] = "table",
         ["?wo"] = "table",
@@ -33,11 +31,11 @@ function Lang.init(self, lang, opts)
   self.autocmd = false
 
   if opts.hooks then
-    if is_a.f(opts.hooks) then
+    if is_a.callable(opts.hooks) then
       self:hook(opts.hooks)
     else
       for _, h in ipairs(opts.hooks) do
-        if is_a.t(h) then
+        if is_a.table(h) then
           utils.log_pcall(function()
             self:hook(unpack(h))
           end)
@@ -59,7 +57,7 @@ function Lang.init(self, lang, opts)
   if opts.linters then
     opts.linters = array.tolist(opts.linters)
   end
-  if opts.server and is_a.s(opts.server) then
+  if opts.server and is_a.string(opts.server) then
     opts.server = { name = opts.server }
   end
 
@@ -129,7 +127,7 @@ function Lang.load(lang, opts)
   if not opts then
     local c = require("core.lang.ft." .. lang)
     local u = req("user.lang.ft." .. lang)
-    local a, b = is_a.t(c), is_a.t(u)
+    local a, b = is_a.table(c), is_a.table(u)
 
     if a and b then
       dict.merge(c, u)

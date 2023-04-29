@@ -1,19 +1,11 @@
-require 'utils.buffers'
-
-local Term = Class.new 'Term'
+local Term = class 'Term'
 user.term = user.term or { ID = {}, timeout = 30 }
 Term.timeout = user.term.timeout
-local exception = Exception "TermException"
-Term.exception = exception
-
-exception:set {
-  invalid_command = "expected valid command",
-  not_executable = "shell not executable",
-  exited_with_error = "command exited with error",
-  interrupted = "interrupted",
-  invalid_id = "valid id expected",
-  unknown = "unknown error",
-}
+Term.InvalidCommandException = exception('InvalidCommandException',  "expected valid command")
+Term.ShellNotExecutableException = exception('ShellNotExecutableException', "shell not executable")
+Term.ExitedWithErrorException = exception("ExitedWithErrorException", "command exited with error")
+Term.InterruptedException = exception("InterruptedException", "interrupted")
+Term.InvalidIDException = exception("InvalidCommandException", "valid id expected")
 
 local function get_status(id)
   if id == 0 then
@@ -46,7 +38,7 @@ local function start_term(cmd, opts)
     term = vim.fn.bufnr()
     local ok, msg = get_status(id)
     if not ok then
-      exception[msg]:throw(self)
+      Term[msg]:throw(self)
     end
   end)
 
@@ -73,7 +65,7 @@ function Term:is_running(assrt)
   if not self.id then return false end
   local ok, msg = get_status(self.id, self.command)
   if not ok and assrt then
-    exception[msg]:throw(self)
+    Term[msg]:throw(self)
   elseif not ok then
     return false, msg
   end

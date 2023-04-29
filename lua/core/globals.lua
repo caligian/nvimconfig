@@ -12,13 +12,13 @@ dict.merge(user, {
   bitmap_font = { family = "Terminus", height = 11 },
 
   temp_buffer_patterns = {
-    temp_buffers = "^__temp_buffer",
+    temp_buffers = "^__",
     vim_help = "/usr/share/nvim/runtime/doc",
     help_files = function(bufnr) return vim.api.nvim_buf_get_option(bufnr, "filetype") == "help" end,
   },
 
   colorscheme = {
-    dark = "solarized",
+    dark = "onedark",
     light = "github_light",
     use = "dark",
   },

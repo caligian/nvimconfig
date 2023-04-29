@@ -31,7 +31,7 @@ end
 
 command(
   "REPLStart",
-  wrap(function(r) r:split("s", { resize = 0.3, min = 0.1 }) end, false),
+  wrap(function(r) r:split("s", { resize = 0.4, min = 0.1 }) end, false),
   { nargs = "?", complete = get_builtin }
 )
 
@@ -67,13 +67,13 @@ command(
 
 command(
   "REPLSplit",
-  wrap(function(r) r:split("s", { resize = 0.3, min = 0.1 }, false) end, false),
+  wrap(function(r) r:split("s", { resize = 0.4, min = 0.1 }, false) end, false),
   { complete = get_builtin, nargs = "?" }
 )
 
 command(
   "REPLVsplit",
-  wrap(function(r) r:split("v", { resize = 0.3, min = 0.1 }, false) end, false),
+  wrap(function(r) r:split("v", { resize = 0.5, min = 0.1 }, false) end, false),
   { complete = get_builtin, nargs = "?" }
 )
 
@@ -122,7 +122,7 @@ command(
 -- Shell
 command(
   "ShellStart",
-  shell_wrap(function(r) r:split("s", { resize = 0.3, min = 10, full = true }) end),
+  shell_wrap(function(r) r:split("s", { resize = 0.4, min = 10, full = true }) end),
   {}
 )
 
@@ -140,13 +140,13 @@ command(
 
 command(
   "ShellSplit",
-  shell_wrap(function(r) r:split("s", { resize = 0.3, min = 0.1, full = true }) end),
+  shell_wrap(function(r) r:split("s", { resize = 0.4, min = 0.1, full = true }) end),
   {}
 )
 
 command(
   "ShellVsplit",
-  shell_wrap(function(r) r:split("v", { resize = 0.3, min = 0.1, full = true }) end),
+  shell_wrap(function(r) r:split("v", { resize = 0.5, min = 0.1, full = true }) end),
   {}
 )
 

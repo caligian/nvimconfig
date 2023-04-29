@@ -1,6 +1,4 @@
-require "utils.Class"
-
-class "Timer"
+local Timer = class "Timer"
 Timer.status = {}
 
 local uv = vim.loop

@@ -4,12 +4,9 @@ user.bufgroup = user.bufgroup or {
   BUFGROUP = {},
 }
 
-Bufgroup = Class.new "Bufgroup"
-local exception = Exception "BufgroupException"
-exception:set {
-  invalid_group = "valid group expected",
-  invalid_buffer = "valid buffer expected",
-}
+Bufgroup = class "Bufgroup"
+Bufgroup.InvalidGroupException = exception('InvalidGroupException', "valid group expected")
+Bufgroup.InvalidBufferException = exception('InvalidBufferException', 'valid buffer expected')
 
 function Bufgroup:init(name, event, pattern, pool)
   validate {
@@ -143,7 +140,7 @@ function Bufgroup.get(name, pool, ass)
   end
 
   if ass then
-    exception.invalid_group:throw_unless(group, { name = name, pool = pool })
+    Bufgroup.InvalidGroupException(group, { name = name, pool = pool })
   end
 
   return group
@@ -342,7 +339,7 @@ function Bufgroup.create_pool_picker(pool_name, remover)
 end
 
 function Bufgroup.create_picker_for_buffer(bufnr, remover)
-  exception.invalid_buffer:throw_unless(buffer.exists(bufnr), bufnr)
+  Bufgroup.InvalidBufferException:throw_unless(buffer.exists(bufnr), bufnr)
 
   if not user.bufgroup.BUFFER[bufnr] then return end
 
