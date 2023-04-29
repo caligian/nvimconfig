@@ -35,13 +35,13 @@ function Autocmd:init(event, opts)
   local callback = opts.callback
   opts.callback = function(...)
     if opts.once then
-      if is_a.s(callback) then
+      if is_a.string(callback) then
         vim.cmd(callback)
       else
         callback()
       end
     else
-      if is_a.s(callback) then
+      if is_a.string(callback) then
         vim.cmd(callback)
       else
         callback(...)
