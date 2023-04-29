@@ -60,35 +60,36 @@ local function install_rocks()
 
   install_luarock("lualogging", "logging.file")
   install_luarock("lrexlib-pcre2", "rex_pcre2")
-
-  -- Yet to upload
-  -- install_luarock('lua-utils', 'utils')
+  install_luarock('penlight', 'pl.path')
 end
 install_rocks()
 
 local function create_globals(args)
+  user = {}
+  json = { encode = vim.fn.json_encode, decode = vim.fn.json_decode }
+
   -- Make some global variables
   local log_path = vim.fn.stdpath "config" .. "/nvim.log"
+  logger = logging.file(log_path, "", "[%date] [%level]\n %message\n\n")
+
   path = require "pl.path"
   file = require "pl.file"
   dir = require "pl.dir"
   regex = require "rex_pcre2"
-  json = { encode = vim.fn.json_encode, decode = vim.fn.json_decode }
-  logger = logging.file(log_path, "", "[%date] [%level]\n %message\n\n")
-  user = {}
   utils = require "lua-utils.utils"
   array = require "lua-utils.array"
   dict = require "lua-utils.dict"
   class = require "lua-utils.class"
   multimethod = require "lua-utils.multimethod"
   exception = require "lua-utils.exception"
+  str = require "lua-utils.str"
+
   local validate = require "lua-utils.validate"
   local fn = require "lua-utils.fn"
   local types = require "lua-utils.types"
   dict.each(validate, function(key, value) _G[key] = value end)
   dict.each(fn, function(key, value) _G[key] = value end)
   dict.each(types, function(key, value) _G[key] = value end)
-  str = require "lua-utils.str"
 
   -- Delete the old log
   if path.exists(log_path) then vim.fn.system("rm " .. log_path) end
