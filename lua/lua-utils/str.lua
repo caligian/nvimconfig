@@ -20,7 +20,7 @@ function str.find_all(s, pat, limit)
 	local limit = limit or n
 
 	while i <= limit do
-		local from, till = str.find(s, pat, init + 1)
+		local from, till = string.find(s, pat, init + 1)
 		if from and till then
 			pos[i] = { from, till }
 			init = till
@@ -41,6 +41,7 @@ end
 function str.split(s, delim, times)
 	delim = delim or " "
 	local pos = str.find_all(s, delim, times)
+  if #pos == 0 then return {s} end
 	local out = {}
 	local from = 0
 	local last = 1

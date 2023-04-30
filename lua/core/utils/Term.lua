@@ -139,7 +139,7 @@ function Term:send(s)
 
   local id = self.id
   if is_a.string(s) then
-    s = s:split("[\n\r]")
+    s = str.split(s, "[\n\r]")
   end
   if self.on_input then
     s = self.on_input(s)
