@@ -1,10 +1,37 @@
---- Buffer object creater. This does not YET cover all the neovim buffer API functions
+--- Create a buffer object. Requires `buffer`
+-- @classmod Buffer
 
 local buffer = require "core.utils.buffer"
 local Buffer = class("Buffer", false, { include = buffer, attrib = "bufnr" })
-user.buffer = user.buffer or { BUFNR = {}, SCRATCH_ID = 1 }
+
+--- Store instances
+-- @table user.buffer
+user.buffer = user.buffer or {}
+
+--- Hash instances by bufnr
+user.buffer.BUFNR = user.buffer.BUFNR or {}
+
 user.buffer.SCRATCH_ID = user.buffer.SCRATCH_ID or 1
 
+--- Constructor 
+-- @usage
+-- local current = Buffer(vim.fn.bufnr())
+--
+-- --- current.wo.<window variable>
+-- print(current.wvar.number)
+--
+-- --- current.bo.<buffer variable>
+-- print(current.var.buflisted)
+--
+-- --- current.wo.<window option>
+-- print(current.wo.number)
+--
+-- --- current.bo.<buffer option>
+-- print(current.o.buflisted)
+--
+-- @tparam ?string name Name of the buffer
+-- @tparam ?boolean scratch Create scratch buffer?
+-- @return self
 function Buffer:init(name, scratch)
   if name then
     validate.buffer_expr(is {'number', "string"}, name)
@@ -80,6 +107,7 @@ function Buffer:init(name, scratch)
   self:update()
 end
 
+--- Wipeout buffer and delete instance reference
 function Buffer:delete()
   local bufnr = self.bufnr
 
@@ -89,8 +117,19 @@ function Buffer:delete()
   end
 end
 
+--- Track buffer instance by its bufnr
 function Buffer:update()
   dict.update(user.buffer.BUFNR, { bufnr }, self)
+end
+
+--- Get bufnr
+function Buffer:__tonumber()
+  return self.bufnr
+end
+
+--- Get buffer string
+function Buffer:__tostring()
+  return array.join(self:getbuffer(), "\n")
 end
 
 return Buffer

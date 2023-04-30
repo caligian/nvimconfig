@@ -1,17 +1,51 @@
---- Neovim autocmd wrapper in class
+--- Autocommand wrapper 
+-- Create autocommands via classes. All the instances are stored in
+-- user.autocmd.
+-- @classmod Autocmd
+-- @alias A
 Autocmd = class "Autocmd"
-
---- @alias A 
 A = Autocmd
 user.autocmd = user.autocmd or { ID = {}, GROUP = {}, BUFFER = {} }
 
+--- Store autocommand instances
+-- @table user.autocmd
+user.autocmd = user.autocmd or {}
+
+--- Contains instances hashed by id
+user.autocmd.ID = user.autocmd.ID or {}
+
+--- Contains instances hashed by augroup
+user.autocmd.GROUP = user.autocmd.GROUP or {}
+
+--- Contains instances hashed by buffer
+user.autocmd.BUFFER = user.autocmd.BUFFER or {}
+
+--- Create an autocommand
+-- @usage
+-- -- `:help autocmd`
+-- local a = Autocmd(
+--  'BufEnter', 
+--  {callback=partial(print, 'hello'), pattern='*'}
+-- )
+-- @param event string|array[string] of vim events
+-- @param opts opts
+-- @param opts.callback callable|string. Mandatory param
+-- @param opts.pattern Autocommand pattern. Mandatory param
+-- @param opts.once Run once?
+-- @param opts.nested Nested autocommands?
+-- @param opts.name Unique autocommand name
+-- @param opts.bufnr Buffer index
+-- @return self
 function Autocmd:init(event, opts)
   validate {
     event = { is { "string", "table" }, event },
     options = {
       {
+        __nonexistent = true,
         callback = is { "callable", "string" },
         pattern = is { "string", "table" },
+        opt_bufnr = 'number',
+        opt_name = 'string',
       },
       opts,
     },
@@ -21,7 +55,10 @@ function Autocmd:init(event, opts)
   local augroup
   local group = copy(opts.group or {})
   local name = opts.name
+  local bufnr = opts.bufnr
   opts.name = nil
+  opts.bufnr = nil
+  if bufnr then opts.pattern = '<buffer=' .. bufnr .. '>' end
 
   if type(group) == "string" then
     augroup = vim.api.nvim_create_augroup(group, {})
@@ -40,6 +77,7 @@ function Autocmd:init(event, opts)
       else
         callback()
       end
+      self.enabled = false
     else
       if is_a.string(callback) then
         vim.cmd(callback)
@@ -54,7 +92,7 @@ function Autocmd:init(event, opts)
   self.gid = augroup
   self.group = group
   self.event = event
-  self.enabled = false
+  self.enabled = true
   self.once = opts.once
   self.nested = opts.nested
   self.name = name
@@ -71,7 +109,8 @@ function Autocmd:init(event, opts)
   return self
 end
 
-function Autocmd.disable(self)
+--- Disable autocommand
+function Autocmd:disable()
   if not self.enabled then return end
 
   vim.api.nvim_del_autocmd(self.id)
@@ -80,7 +119,8 @@ function Autocmd.disable(self)
   return self
 end
 
-function Autocmd.delete(self)
+--- Delete autocommand instance reference in user.autocmd
+function Autocmd:delete()
   self:disable()
 
   dict.delete(user.autocmd, self.name)
@@ -90,69 +130,4 @@ function Autocmd.delete(self)
   return self
 end
 
-function Autocmd.replace(self, opts)
-  self:delete()
-
-  opts = self.opts or opts
-  opts.callback = callback
-
-  return Autocmd(self.event, opts)
-end
-
----
-Augroup = class "Augroup"
-
-user.augroup = user.augroup or { ID = {} }
-
-function Augroup:init(name, clear)
-  self.name = name
-  self.autocmd = {}
-  self.clear = clear
-  self.id = vim.api.nvim_create_augroup(self.name, {clear=clear})
-
-  dict.update(user.augroup, self.name, self)
-  dict.update(user.augroup.ID, self.id, self)
-end
-
-function Augroup:add(event, opts)
-  opts = opts or {}
-  opts.group = self.name
-
-  assert(opts.name, 'No autocmd name supplied')
-
-  local au = Autocmd(event, opts)
-  self.autocmd[opts.name] = au
-  self.autocmd[au.id] = au
-  user.augroup.ID[self.id] = self
-  user.augroup[self.name] = self
-
-  return self
-end
-
-function Augroup:remove(name)
-  local exists = self.autocmd[name]
-  if not exists then return end
-  exists:delete()
-  self.autocmd[name] = nil
-  
-  return self
-end
-
-function Augroup:disable()
-  if not self.id then return end
-  array.each(dict.keys(self.autocmd), function (au_name) self:remove(au_name) end)
-  local id = self.id
-  vim.api.nvim_del_augroup_by_id(id)
-  self.id = false
-
-  return id
-end
-
-function Augroup:delete()
-  local id = self:disable()
-  if not id then return end
-  user.augroup[self.name] = nil
-  user.augroup.ID[id] = nil
-
-  return id
-end
+return Autocmd

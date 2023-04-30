@@ -6,3 +6,5 @@ spell/*
 bookmarks.lua
 lua/doc/*
 lua/core/doc/*
+lua/copy-lua-utils
+config.ld

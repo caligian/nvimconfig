@@ -1,8 +1,9 @@
-local Term = require 'core.utils.Term'
+local Term = require "core.utils.Term"
 local REPL = class("REPL", Term)
-REPL.NoCommandException = exception('NoCommandException', "No command given for filetype")
-user.repl = user.repl or {FILETYPE={}}
-local state =  user.repl.FILETYPE
+REPL.NoCommandException =
+  exception("NoCommandException", "No command given for filetype")
+user.repl = user.repl or { FILETYPE = {} }
+local state = user.repl.FILETYPE
 
 function REPL.get(ft, bufnr)
   if ft == "sh" then
@@ -22,7 +23,7 @@ function REPL:init(ft)
   local cmd = dict.contains(Lang.langs, ft, "repl")
   local opts = {}
 
-  REPL.NoCommandException:throw_unless(cmd, ft)
+  if not cmd then print(REPL.NoCommandException:throw(ft)) end
 
   if is_a.table(cmd) then
     opts.on_input = cmd.on_input
@@ -44,7 +45,7 @@ function REPL:init(ft)
   array.each({ "send", "split", "float", "center_float", "dock" }, function(f)
     local cb = self[f]
     self[f] = function(self, ...)
-      REPL.create(self.filetype) 
+      REPL.create(self.filetype)
       return cb(self, ...)
     end
   end)
@@ -55,7 +56,7 @@ end
 function REPL.create(ft, bufnr)
   local exists = REPL.get(ft, bufnr)
   if exists and exists:is_running() then return exists end
-  return REPL(ft):start()
+  if ft then return REPL(ft):start() end
 end
 
 return REPL

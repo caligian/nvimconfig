@@ -1,4 +1,5 @@
 --- Classes in lua
+-- @classmod class
 local dict = require "lua-utils.dict"
 local types = require "lua-utils.types"
 local utils = require "lua-utils.utils"
@@ -36,6 +37,7 @@ local class = setmetatable({}, mt)
 class.comparators = utils.copy(valid_mt_ks)
 
 --- Compare classes by attributes. Tables will be deep compared
+-- @static
 --  @param cls class
 --  @param other class
 --  @return boolean
@@ -57,8 +59,7 @@ function class.comparators.eq(cls, other)
       elseif cls_value_t ~= value_t then
         return false
       elseif
-        cls_value_t == "table"
-        and not dict.compare(cls_value, value, nil, true)
+        cls_value_t == "table" and not dict.compare(cls_value, value, nil, true)
       then
         return false
       elseif cls_value ~= value then
@@ -71,6 +72,7 @@ function class.comparators.eq(cls, other)
 end
 
 --- Compare classes by attributes. Tables will not be deep compared
+-- @static
 --  @param cls class
 --  @param other class
 --  @return boolean
@@ -93,6 +95,7 @@ function class.comparators.equal(cls, other)
 end
 
 --- Compare classes by name
+-- @static
 -- @param cls class1
 -- @param other class2
 -- @return boolean
@@ -101,6 +104,7 @@ function class.comparators.name(cls, other)
 end
 
 --- Compare classes by name
+-- @static
 -- @param cls class
 -- @param other class
 -- @see class.comparators.name
@@ -109,6 +113,7 @@ function class.comparators.not_name(cls, other)
 end
 
 --- Compare classes by attributes
+-- @static
 -- @param cls class
 -- @param other class
 -- @see class.comparators.eq
@@ -117,6 +122,7 @@ function class.comparators.not_eq(cls, other)
 end
 
 --- Compare classes by attributes
+-- @static
 -- @param cls class
 -- @param other class
 -- @see class.comparators.equal
@@ -125,6 +131,7 @@ function class.comparators.not_equal(cls, other)
 end
 
 --- Get class name
+-- @static
 -- @function class.get_name
 -- @param x class
 -- @return string
@@ -134,6 +141,7 @@ function class.get_name(x)
 end
 
 --- Is class1 instance of class2?
+-- @static
 -- @param inst instance
 -- @param cls class
 -- @return boolean
@@ -144,6 +152,7 @@ function class.is_instance_of(inst, cls)
 end
 
 --- Get all ancestors of class
+-- @static
 -- @param cls class
 -- @return array of ancestors
 function class.get_ancestors(cls)
@@ -166,6 +175,7 @@ function class.get_ancestors(cls)
 end
 
 --- Is class1 parent of class2?
+-- @static
 -- @param cls class1
 -- @param inst class2
 -- @return boolean
@@ -179,21 +189,25 @@ function class.is_parent_of(cls, inst)
 end
 
 --- Get class
+-- @static
 -- @param x any
 -- @return ?class
 function class.get_class(x) return types.get_class(x) end
 
 --- Get parent of a class
+-- @static
 -- @param x any
 -- @return ?class
 function class.get_parent(x) return utils.mtget(class.get_class(x), "parent") end
 
 --- Is x a class instance?
+-- @static
 -- @param x any
 -- @return boolean
 function class.is_instance(x) return class.is_class(utils.mtget(x)) end
 
 --- Is class1 a parent/ancestor of class2?
+-- @static
 -- @param x class1
 -- @param y class2
 -- @return boolean
@@ -220,6 +234,7 @@ function class.is_ancestor_of(x, y)
 end
 
 --- Get class methods
+-- @static
 -- @param obj class
 -- @return dict of methods
 function class.get_methods(obj)
@@ -227,6 +242,7 @@ function class.get_methods(obj)
 end
 
 --- Get class variables
+-- @static
 -- @param obj class
 -- @return dict of variables
 function class.get_vars(obj)
@@ -237,6 +253,7 @@ function class.get_vars(obj)
 end
 
 --- Get a specific class method
+-- @static
 -- @param obj class
 -- @param k method name
 -- @return callable
@@ -247,6 +264,7 @@ function class.get_method(obj, k)
 end
 
 --- Get a specific class variable
+-- @static
 -- @param obj class
 -- @param k variable name
 -- @return any
@@ -257,12 +275,14 @@ function class.get_var(obj, k)
 end
 
 --- Get a specific class attribute
+-- @static
 -- @param obj class
 -- @param k attribute name
 -- @return any
 function class.get_attrib(obj, k) return obj[k] end
 
 --- Get class attributes
+-- @static
 -- @param obj class
 -- @return dict of attributes
 function class.get_attribs(obj)
@@ -273,6 +293,11 @@ function class.get_attribs(obj)
   return out
 end
 
+--- Do both objects have the same instance variables excluding the common ones?
+-- @static
+-- @tparam class x class 1
+-- @tparam class y class 2
+-- @return boolean
 function class.are_same_shape(x, y)
   local x_attribs = dict.grep(x:get_vars(), function(key, value)
     if not class[key] then return value end
@@ -285,12 +310,11 @@ function class.are_same_shape(x, y)
 end
 
 --- Include struct in a class
+-- @static
 -- @param obj class
 -- @param t dict of attributes
 -- @param opts optional options
--- @param opts.attrib use this class attribute while using method with that
--- class
--- @param opts.ignore_methods do not include methods (callables)
+-- @param opts.attrib use this class attribute while using method with that class
 -- @return modified class
 function class.include(obj, t, opts)
   assert(
@@ -320,6 +344,7 @@ function class.include(obj, t, opts)
 end
 
 --- Is class1 child of class2?
+-- @static
 -- @param child class1
 -- @param parent class2
 -- @return boolean
@@ -328,6 +353,7 @@ function class.is_child_of(child, parent)
 end
 
 --- Get the init method of the parent class. Instances do not have this method
+-- @static
 -- @usage
 -- local grandparent = class 'grandparent'
 -- function grandparent:init()
@@ -353,6 +379,7 @@ function class.super(obj)
 end
 
 --- Is x and y of the same class?
+-- @static
 -- @param x class1
 -- @param y class2
 -- @return boolean
@@ -365,12 +392,14 @@ end
 
 --------------------------------------------------
 --- Is x a class?
+-- @static
 -- @param x object
 -- @return boolean
 function class.is_class(x) return types.is_class(x) end
 
 --- Constructor to make a new class
--- @usage 
+-- @static
+-- @usage
 -- A = class 'A'
 -- A = class.new 'A'
 -- @param name Name of the class
@@ -456,6 +485,7 @@ function class.new(name, parent, opts)
 end
 
 --- Treat class like a struct
+-- @static
 -- @param name class name
 -- @param parent base class
 -- @param opts optional options

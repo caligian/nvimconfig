@@ -1,3 +1,4 @@
+local dir = require 'pl.dir'
 user.colorscheme.colorscheme = user.colorscheme.colorscheme or {}
 local color = user.colorscheme
 local state = color.colorscheme

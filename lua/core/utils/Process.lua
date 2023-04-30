@@ -1,12 +1,33 @@
+--- vim.fn.jobstart class wrapper for async job control
+-- @classmod Process
+
 local Process = class 'Process'
+
+--- Contains instances
 user.process = user.process or {}
+
+--- Contains instances hashed by id
 user.process.ID = user.process.ID or {}
+
+--- Default timeout for checking job status
 user.timeout = user.timeout or 30
+
+--- Default timeout for checking job status
 Process.timeout = user.timeout
+
+--- Raised when command is invalid and cannot be run
 Process.InvalidCommandException = exception('InvalidCommandException',  "expected valid command")
+
+--- Raised when command cannot be run
 Process.ShellNotExecutableException = exception('ShellNotExecutableException', "shell not executable")
+
+--- Raised when command exits with an error
 Process.ExitedWithErrorException = exception("ExitedWithErrorException", "command exited with error")
+
+--- Raised when job is interrupted
 Process.InterruptedException = exception("InterruptedException", "interrupted")
+
+--- Raised when job id is invalid
 Process.InvalidIDException = exception("InvalidCommandException", "valid id expected")
 
 
@@ -81,6 +102,10 @@ function Process:_on_stdout(cb)
   end)
 end
 
+--- Constructor. See ':help jobstart()'
+-- @param command Command to run
+-- @param[opt={}] opts optional options
+-- @return self
 function Process:init(command, opts)
   validate {
     command = { "string", command },
@@ -119,6 +144,8 @@ function Process:init(command, opts)
   return dict.lmerge(self, opts)
 end
 
+--- Stop process
+-- @return self
 function Process:stop()
   if not self:is_running() then
     return
@@ -132,15 +159,21 @@ function Process:stop()
   return self
 end
 
+--- Stop all processes
+-- @static
 function Process.stopall()
   dict.each(user.process.ID, function(obj) obj:stop() end)
 end
 
-
+--- Get process status
+-- @return boolean_status, exception_name
 function Process:get_status()
   return get_status(self.id, self.command)
 end
 
+--- Is process running?
+-- @param[opt=false] assrt assert a running process
+-- @return boolean
 function Process:is_running(assrt)
   if not self.id then return false end
   local ok, msg = get_status(self.id, self.command)
@@ -153,6 +186,9 @@ function Process:is_running(assrt)
   return true
 end
 
+--- Wait for timeout and return integer status
+-- @tparam[opt] number timeout Wait timeout
+-- @return number job status
 function Process:wait(timeout)
   if not self:is_running() then
     return
@@ -161,6 +197,8 @@ function Process:wait(timeout)
   return vim.fn.jobwait({ self.id }, timeout)
 end
 
+--- Start the process
+-- @return self
 function Process:run()
   if self:is_running() then
     return
@@ -178,9 +216,11 @@ function Process:run()
   return self
 end
 
+--- Send string to process
+-- @tparam array[string]|string s String to send
 function Process:send(s)
   local id = self.id
-  if is_a.s(s) then
+  if is_a.string(s) then
     s = string.split(s, "[\n\r]")
   end
   if self.on_input then

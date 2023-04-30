@@ -1,20 +1,19 @@
----
--- Keybinding wrapper for vim.keymap.set which integrates with nvim autocommands API. Aliased as 'K'
-Keybinding = class "Keybinding"
+--- Keybinding wrapper for vim.keymap.set which integrates with nvim autocommands API. Aliased as Keybinding
+-- @classmod Keybinding
+-- @alias K
 
---- @alias Keybinding
+Keybinding = class "Keybinding"
 K = Keybinding
 
----
-user.kbd = user.kbd or { ID = {} }
+--- Contains instances hashed by name
+user.kbd = user.kbd or {}
 
----
--- Contains maps indexed by name
-K.defaults = {}
+--- Contains instances hashed by unique integer
+user.kbd.ID = user.kbd.ID or {}
 
 local id = 1
 
-local function parse_opts(opts)
+function K._parse_opts(opts)
   opts = opts or {}
   local parsed = { au = {}, kbd = {}, misc = {} }
 
@@ -34,10 +33,9 @@ local function parse_opts(opts)
   return parsed
 end
 
----
--- Save object in K.ids and if name is passed, in K.defaults
--- @returns self
-function K:update()
+--- Save instance in user.kbd and user.kbd.ID
+-- @return self
+function Keybinding:update()
   dict.update(user.kbd.ID, self.id, self)
 
   if self.name then
@@ -47,22 +45,21 @@ function K:update()
   return self
 end
 
----
--- Create a keybinding
--- @tparam string|table mode If string is passed, it will be split, so that instead of passing a table, you can also pass 'nvo' for {'n', 'v', 'o'}. Any non-documented option is anything compatible with vim.keymap.set
--- @tparam string lhs Keys to map to
--- @tparam string|function cb Callback/RHS
+--- Constructor
+-- @param mode array[string]|string. If string is passed, it will be split, so that instead of passing a table, you can also pass 'nvo' for {'n', 'v', 'o'}. Any non-documented option is anything compatible with vim.keymap.set
+-- @param lhs Keys to map to
+-- @param cb string|callable
 -- @param rest (Optional) If string then opts.desc will be automatically set. If table then rest of the options
 -- @param rest.noremap Set as a non-recursive map (default: false)
 -- @param rest.remap Set as a recursive map (default: true)
 -- @param rest.leader Set as a leader map
 -- @param rest.localeader Set as a localeader map
--- @tparam string rest.prefix Prefix lhs. Cannot be used with rest.localleader or rest.leader
--- @tparam string|array.rest.event rest.pattern cannot be nil if this is used. Autocommand event(s) to bind to
--- @tparam string|array.rest.pattern rest.event cannot be nil if this is used. Autocommand pattern(s) to bind to
--- @see autocmd
+-- @param rest.prefix Prefix lhs. Cannot be used with rest.localleader or rest.leader
+-- @param rest.event array[string]|string rest.pattern cannot be nil if this is used
+-- @param rest.pattern array[string]|string rest.event cannot be nil if this is used
+-- @param rest.name Unique name to reference this instance
 -- @return object
-function K:init(mode, lhs, cb, rest)
+function Keybinding:init(mode, lhs, cb, rest)
   validate {
     mode = { is { "string", "table" }, mode },
     lhs = { "string", lhs },
@@ -82,7 +79,7 @@ function K:init(mode, lhs, cb, rest)
   end
 
   rest = rest or {}
-  rest = parse_opts(rest)
+  rest = K._parse_opts(rest)
   local au, kbd, misc = rest.au, rest.kbd, rest.misc
   local leader = misc.leader
   local localleader = misc.localleader
@@ -148,7 +145,7 @@ function K:init(mode, lhs, cb, rest)
 end
 
 --- Disable keybinding
-function K:disable()
+function Keybinding:disable()
   if not self.enabled then
     return
   end
@@ -173,7 +170,7 @@ function K:disable()
 end
 
 --- Delete keybinding
-function K:delete()
+function Keybinding:delete()
   if not self.enabled then
     return
   end
@@ -188,11 +185,12 @@ function K:delete()
   return self
 end
 
----
--- Helper function for Keybinding() to set keybindings with default options
--- @tparam table opts Default options
--- @return ?self Return object if only form was passed
-function K.bind(opts, ...)
+--- Set multiple keybindings
+-- @function Keybinding.bind
+-- @param opts table Default options
+-- @param ... Keybinding spec
+-- @see Keybinding.init
+function Keybinding.bind(opts, ...)
   local args = { ... }
   opts = opts or {}
   local bind = function(kbd)
@@ -220,7 +218,7 @@ function K.bind(opts, ...)
     local mode = o.mode or "n"
     kbd[3] = o
 
-    return K(mode, unpack(kbd))
+    return Keybinding(mode, unpack(kbd))
   end
 
   if #args == 1 then
@@ -230,14 +228,31 @@ function K.bind(opts, ...)
   end
 end
 
---- Simple classmethod that does the same thing as Keybinding()
--- @see K:_init
-function K.map(mode, lhs, cb, opts)
-  return K.new(mode, lhs, cb, opts)
+--- Replace current callback with a new one
+-- @param cb Callback to replace with
+-- @return self
+function Keybinding:replace(cb)
+  return utils.log_pcall(function()
+    assert(cb)
+    self:delete()
+    return Keybinding.new(self.mode, self.lhs, cb, lmerge(opts or {}, self.opts))
+  end)
 end
 
---- Same as K.map but sets noremap to true
-function K.noremap(mode, lhs, cb, opts)
+--- Simple classmethod that does the same thing as Keybinding()
+-- @static
+-- @field Keybinding.map
+-- @see Keybinding.init
+-- @return self
+function Keybinding.map(mode, lhs, cb, opts)
+  return Keybinding.new(mode, lhs, cb, opts)
+end
+
+--- Same as .map but sets noremap to true
+-- @static 
+-- @field Keybinding.noremap
+-- @return self
+function Keybinding.noremap(mode, lhs, cb, opts)
   opts = opts or {}
   if is_a.string(opts) then
     opts = { desc = opts }
@@ -245,20 +260,18 @@ function K.noremap(mode, lhs, cb, opts)
   opts.noremap = true
   opts.remap = false
 
-  return K.new(mode, lhs, cb, opts)
+  return Keybinding.new(mode, lhs, cb, opts)
 end
 
---- Replace current callback with a new one
--- @param cb Callback to replace with
-function K.replace(self, cb)
-  return utils.log_pcall(function()
-    assert(cb)
-    self:delete()
-    return K.new(self.mode, self.lhs, cb, lmerge(opts or {}, self.opts))
-  end)
+--- Unmap keybinding. ':help vim.keymap.del'
+-- @static
+-- @field Keybinding.unmap
+-- @param modes string|array[string]
+-- @param lhs Lhs to remove
+-- @param opts optional options
+function Keybinding.unmap(modes, lhs, opts)
+  if is_a.string(modes) then modes = modes:split('') end
+  vim.keymap.del(modes, lhs, opts)
 end
 
---- @see vim.keymap.del
-function K.unmap(...)
-  vim.keymap.del(...)
-end
+return Keybinding

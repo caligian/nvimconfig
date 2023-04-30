@@ -8,6 +8,7 @@ require "core.utils.color"
 
 --------------------------------------------------
 require "core.utils.Autocmd"
+require 'core.utils.Augroup'
 require "core.utils.Keybinding"
 require "core.utils.Buffer"
 require "core.utils.Term"
