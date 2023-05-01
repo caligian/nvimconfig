@@ -199,7 +199,7 @@ end
 
 --- Start the process
 -- @return self
-function Process:run()
+function Process:start()
   if self:is_running() then
     return
   end
