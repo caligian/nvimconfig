@@ -55,10 +55,10 @@ function REPL:init(ft)
     end
   end)
 
-  local old = partial(self.send, self)
+  local old = self.send
   function self:send(...)
     self:scroll_to_bottom()
-    old(...)
+    old(self, ...)
   end
 
   return self

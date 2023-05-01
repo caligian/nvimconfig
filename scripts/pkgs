@@ -3,7 +3,7 @@
 [[ $EUID -ne 0 ]] && echo 'Need root privileges to install packages' && exit 1
 
 arch=(fd ripgrep)
-debian=(fd-find ripgrep libpcre2-dev)
+debian=(fd-find ripgrep libpcre2-dev luarocks lua5.1)
 use=${1:-arch}
 
 if [[ $use =~ arch ]]; then

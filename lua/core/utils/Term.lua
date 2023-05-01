@@ -208,7 +208,8 @@ function Term:send_current_line(src_bufnr)
 
   src_bufnr = src_bufnr or vim.fn.bufnr()
   vim.api.nvim_buf_call(src_bufnr, function()
-    self:send(vim.fn.getline ".")
+    local s = vim.fn.getline "."
+    self:send(s)
   end)
 end
 
