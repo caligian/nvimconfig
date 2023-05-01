@@ -1,5 +1,6 @@
 Lang('julia', {
   compile = 'julia',
-  repl = 'julia'
+  repl = 'julia',
+  server = 'julials', 
 })
 

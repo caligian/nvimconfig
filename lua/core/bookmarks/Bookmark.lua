@@ -241,7 +241,9 @@ function Bookmark:jump(line, split)
   if bufnr then self.bufnr = bufnr end
 
   if self.dir then
-    vim.cmd(sprintf(":Lexplore %s | vert size 40", sel.path))
+    vim.cmd(':Lexplore ' .. self.path)
+    vim.cmd(':vert resize 40')
+    -- vim.cmd()
   elseif not self.bufnr then
     self = self.path
     if split == "s" then
@@ -413,6 +415,8 @@ function Bookmark.add_path(p)
 end
 
 function Bookmark.add_line(p, line)
+  if not line then return Bookmark.add_path(line) end
+
   local obj = Bookmark.add_path(p)
   if not obj then return end
 

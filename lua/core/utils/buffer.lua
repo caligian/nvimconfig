@@ -18,6 +18,43 @@ buffer.InvalidBufferException =
 -- @treturn number 0 on error, bufnr otherwise
 buffer.bufadd = vim.fn.bufadd
 
+--- Send keystrokes to buffer. `:help feedkeys()`
+-- @tparam number bufnr
+-- @tparam string keys
+-- @tparam ?string flags
+-- @treturn false if invalid buffer is provided
+function buffer.feedkeys(bufnr, keys, flags)
+  bufnr = bufnr or vim.fn.bufnr()
+  if not buffer.exists(bufnr) then return false end
+
+  buffer.call(bufnr, function() vim.cmd('normal! ' .. keys) end)
+
+  return true
+end
+
+--- Scroll buffer by N lines
+-- @tparam number bufnr
+-- @tparam string direction. '-' for upwards, '+' for downwards
+-- @tparam number lines Number of lines to scroll
+-- @treturn false on invalid bufnr
+function buffer.scroll(bufnr, direction, lines)
+  bufnr = bufnr or vim.fn.bufnr()
+  if not buffer.exists(bufnr) then return false end
+  local keys
+
+  if direction == "+" then
+    keys = lines .. "\\<C-e>"
+  else
+    keys = lines .. "\\<C-y>"
+  end
+
+  buffer.call(bufnr, function ()
+    vim.cmd(sprintf(':call feedkeys("%s")', keys))
+  end)
+
+  return true
+end
+
 --- Does buffer exists?
 -- @tparam number bufnr buffer index
 -- @treturn boolean success status
@@ -246,7 +283,7 @@ end
 function buffer.setopt(bufnr, k, v) vim.api.nvim_buf_set_option(bufnr, k, v) end
 
 --- Set buffer options
--- @tparam number bufnr 
+-- @tparam number bufnr
 -- @tparam dict opts Dict of options
 function buffer.setopts(bufnr, opts)
   for key, val in pairs(opts) do
@@ -275,7 +312,7 @@ function buffer.setwinopt(bufnr, k, v)
 end
 
 --- Set window options
--- @tparam number bufnr 
+-- @tparam number bufnr
 -- @tparam dict opts Dict of options
 function buffer.setwinopts(bufnr, opts)
   dict.each(opts, function(k, v) buffer.setwinopt(bufnr, k, v) end)
@@ -287,7 +324,7 @@ local function assert_exists(bufnr)
 end
 
 --- Make a new buffer local mapping.
--- @tparam number bufnr 
+-- @tparam number bufnr
 -- @see Keybinding.map
 -- @treturn Keybinding
 function buffer.map(bufnr, mode, lhs, callback, opts)
@@ -298,7 +335,7 @@ function buffer.map(bufnr, mode, lhs, callback, opts)
 end
 
 --- Make a new buffer local nonrecursive mapping.
--- @tparam number bufnr 
+-- @tparam number bufnr
 -- @see Keybinding.noremap
 -- @treturn Keybinding
 function buffer.noremap(bufnr, mode, lhs, callback, opts)
@@ -311,7 +348,7 @@ function buffer.noremap(bufnr, mode, lhs, callback, opts)
 end
 
 --- Split current window and focus this buffer
--- @tparam number bufnr 
+-- @tparam number bufnr
 -- @tparam[opt='s'] string split 's' for split and 'v' for vertical split
 -- @tparam dict opts Optional split options
 -- @tparam[opt=false] opts.reverse Focus window on the left or top
@@ -719,7 +756,6 @@ function buffer.input(text, cb, opts)
   buffer.setlines(buf, 0, -1, text)
   buffer.split(buf, split, { reverse = opts.reverse, resize = opts.resize })
   buffer.noremap(buf, "n", "q", function() buffer.hide(buf) end, "Close buffer")
-
   buffer.noremap(buf, "n", trigger, function()
     local lines = buffer.lines(buffer.bufnr(), 0, -1)
     local sanitized = {}

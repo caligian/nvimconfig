@@ -1,3 +1,4 @@
+local buffer = require 'core.utils.buffer'
 local Term = require "core.utils.Term"
 local REPL = class("REPL", Term)
 REPL.NoCommandException =
@@ -15,6 +16,10 @@ function REPL.get(ft, bufnr)
   bufnr = bufnr or vim.fn.bufnr()
   local exists = dict.get(state, { ft, bufnr })
   if exists and exists:is_running() then return exists end
+end
+
+function REPL:scroll_to_bottom()
+  return buffer.feedkeys(self.bufnr, 'G')
 end
 
 function REPL:init(ft)
@@ -42,13 +47,19 @@ function REPL:init(ft)
 
   self.filetype = ft
 
-  array.each({ "send", "split", "float", "center_float", "dock" }, function(f)
+  array.each({ "split", "float", "center_float", "dock" }, function(f)
     local cb = self[f]
     self[f] = function(self, ...)
       REPL.create(self.filetype)
       return cb(self, ...)
     end
   end)
+
+  local old = partial(self.send, self)
+  function self:send(...)
+    self:scroll_to_bottom()
+    old(...)
+  end
 
   return self
 end

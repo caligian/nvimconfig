@@ -5,81 +5,81 @@
 -- every table and that is cumbersome. This class helps you to dump the exception
 -- message whilst also making it useful to pass around and inspect.
 -- @classmod exception
-local class = require("lua-utils.class")
-local str = require("lua-utils.str")
-local pprint = require("lua-utils.pprint")
-local utils = require("lua-utils.utils")
-local array = require("lua-utils.array")
-local types = require("lua-utils.types")
-local exception = class("exception")
+local class = require "lua-utils.class"
+local str = require "lua-utils.str"
+local pprint = require "lua-utils.pprint"
+local utils = require "lua-utils.utils"
+local array = require "lua-utils.array"
+local types = require "lua-utils.types"
+local exception = class "exception"
 
 --------------------------------------------------------------------------------
 local function __tostring(self, obj, reason)
-	obj = obj or ""
-	reason = reason or ""
-	local traceback = str.split(debug.traceback("", 3), "\n")
+  obj = obj or ""
+  reason = reason or ""
+  local traceback = str.split(debug.traceback("", 3), "\n")
 
-	array.shift(traceback, 2)
+  array.shift(traceback, 2)
 
-	if traceback then
-		for i = 1, #traceback do
-			traceback[i] = "  " .. str.trim(traceback[i])
-		end
-	end
+  if traceback then
+    for i = 1, #traceback do
+      traceback[i] = "  " .. str.trim(traceback[i])
+    end
+  end
 
-	local show = setmetatable({
-		reason = self.reason or reason,
-		obj = tostring(obj),
-		traceback = traceback,
-		name = self.name,
-	}, { __tostring = dump })
+  local show = setmetatable({
+    reason = self.reason or reason,
+    obj = tostring(obj),
+    traceback = traceback,
+    name = self.name,
+  }, { __tostring = dump })
 
-	return show
+  return show
 end
 
 --- Get string representation of the exception
 function exception:__tostring()
-	return __tostring(self)
+  return __tostring(self)
 end
 
 --- Throw exception if test is false
--- @param test boolean
--- @param obj object to use in message
--- @param reason reason to use in the message
+-- @tparam boolean test
+-- @tparam any obj object to use in message
+-- @tparam string reason reason to use in the message
 function exception:raise_unless(test, obj, reason)
-	if not test then
-		error(__tostring(self, obj, reason))
-	end
+  if not test then
+    error(__tostring(self, obj, reason))
+  end
 end
 
 --- Throw exception if test is false
--- @param test boolean
--- @param obj object to use in message
--- @param reason reason to use in the message
+-- @tparam boolean test
+-- @tparam any obj object to use in message
+-- @tparam string reason reason to use in the message
 function exception:throw_unless(test, obj, reason)
-	self:raise_unless(test, obj, reason)
+  self:raise_unless(test, obj, reason)
 end
 
 --- Throw exception if test is false
--- @param test boolean
--- @param obj object to use in message
--- @param reason reason to use in the message
+-- @tparam boolean test
+-- @tparam any obj object to use in message
+-- @tparam string reason reason to use in the message
 function exception:assert(test, obj, reason)
-	assert(test, self)
+  assert(test, self)
 end
 
 --- Throw exception with object and reason
--- @param obj object to use in the exception
--- @param reason reason
+-- @tparam any obj object to use in the exception
+-- @tparam string reason reason
 function exception:raise(obj, reason)
-	error(__tostring(self, obj, reason))
+  error(__tostring(self, obj, reason))
 end
 
 --- Throw exception with object and reason
--- @param obj object to use in the exception
--- @param reason reason
+-- @tparam any obj object to use in the exception
+-- @tparam string reason reason
 function exception:throw(obj, reason)
-	self:raise(obj, reason)
+  self:raise(obj, reason)
 end
 
 --- Create a new object
@@ -99,12 +99,12 @@ end
 -- -- reason: short description of the exception
 -- -- object: object thrown with the exception
 --
--- @param name name of the exception
--- @param reason reason to show
--- @return self
+-- @tparam string name name of the exception
+-- @tparam string reason reason to show
+-- @treturn self
 function exception:init(name, reason)
-	self.name = name
-	self.reason = reason
+  self.name = name
+  self.reason = reason
 end
 
 return exception
