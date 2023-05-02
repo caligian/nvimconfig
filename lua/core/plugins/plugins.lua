@@ -369,6 +369,7 @@ use_plugin "formatter" {
 use_plugin "lsp" {
   "neovim/nvim-lspconfig",
   dependencies = {
+    "j-hui/fidget.nvim";
     "lukas-reineke/lsp-format.nvim",
     "williamboman/mason.nvim",
     "mfussenegger/nvim-dap",

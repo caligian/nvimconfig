@@ -1,10 +1,3 @@
-require "core.plugins.colorscheme.manager"
-
-user.plugins.colorscheme = {
-  colorscheme = user.colorscheme,
-  config = {},
-}
-
 Autocmd("Colorscheme", {
   name = "change_linenr_bg",
   pattern = "*",
@@ -14,16 +7,28 @@ Autocmd("Colorscheme", {
   end,
 })
 
-local color = user.colorscheme
-color.loadall()
-color.setdefault()
+user.colorscheme = user.colorscheme or function ()
+  require("kanagawa").setup {
+    compile = false,
+    undercurl = true,
+    commentStyle = { italic = true },
+    functionStyle = {},
+    keywordStyle = { italic = true },
+    statementStyle = { bold = true },
+    typeStyle = {},
+    transparent = false,
+    dimInactive = false,
+    terminalColors = true,
+    colors = {
+      palette = {},
+      theme = { wave = {}, lotus = {}, dragon = {}, all = {} },
+    },
+    overrides = function(...) return {} end,
+    theme = "dragon",
+    background = { dark = "dragon", light = "lotus" },
+  }
 
-K.bind({ noremap = true, leader = true }, {
-  "htl",
-  color.setlight,
-  "Set light colorscheme",
-}, {
-  "htd",
-  color.setdark,
-  "Set dark colorscheme",
-})   
+  vim.cmd('color kanagawa')
+end
+
+user.colorscheme()

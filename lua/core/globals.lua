@@ -10,17 +10,10 @@ dict.merge(user, {
   shell = "/usr/bin/zsh",
   font = { family = "Liberation Mono", height = 13 },
   bitmap_font = { family = "Terminus", height = 11 },
-
   temp_buffer_patterns = {
     temp_buffers = "^__",
     vim_help = "/usr/share/nvim/runtime/doc",
     help_files = function(bufnr) return vim.api.nvim_buf_get_option(bufnr, "filetype") == "help" end,
-  },
-
-  colorscheme = {
-    dark = "nightfly",
-    light = "github_light",
-    use = "dark",
   },
 })
 
