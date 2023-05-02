@@ -232,11 +232,6 @@ use_plugin "fennel" {
   ft = "fennel",
 }
 
-use_plugin "conjure" {
-  "Olical/conjure",
-  ft = user.conjure_langs,
-}
-
 use_plugin "ssr" {
   "cshuaimin/ssr.nvim",
   event = "BufReadPost",

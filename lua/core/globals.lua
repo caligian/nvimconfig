@@ -22,21 +22,6 @@ dict.merge(user, {
     light = "github_light",
     use = "dark",
   },
-
-  conjure_langs = {
-    "clojure",
-    "fennel",
-    "common-lisp",
-    "guile",
-    "hy",
-    "janet",
-    "julia",
-    "lua",
-    "python",
-    "racket",
-    "rust",
-    "scheme",
-  },
 })
 
 if vim.fn.has "gui" == 1 then
