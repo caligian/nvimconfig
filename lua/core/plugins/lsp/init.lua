@@ -85,4 +85,5 @@ user.plugins.lsp = lsp
 req "user.plugins.lsp"
 require "core.plugins.lsp.kbd"
 
-vim.defer_fn(function () lsp.setup() end, 200)
+lsp.setup()
+require('fidget').setup {}

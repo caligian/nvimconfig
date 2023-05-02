@@ -27,7 +27,7 @@ function buffer.feedkeys(bufnr, keys, flags)
   bufnr = bufnr or vim.fn.bufnr()
   if not buffer.exists(bufnr) then return false end
 
-  buffer.call(bufnr, function() vim.cmd('normal! ' .. keys) end)
+  buffer.call(bufnr, function() vim.cmd("normal! " .. keys) end)
 
   return true
 end
@@ -48,9 +48,10 @@ function buffer.scroll(bufnr, direction, lines)
     keys = lines .. "\\<C-y>"
   end
 
-  buffer.call(bufnr, function ()
-    vim.cmd(sprintf(':call feedkeys("%s")', keys))
-  end)
+  buffer.call(
+    bufnr,
+    function() vim.cmd(sprintf(':call feedkeys("%s")', keys)) end
+  )
 
   return true
 end
@@ -481,26 +482,21 @@ function buffer.lines(bufnr, startrow, tillrow)
 end
 
 --- Get buffer text
--- @tparam table start Should be table containing start row and col
--- @tparam table till Should be table containing end row and col
--- @param repl Replacement text
+-- @tparam number start_row Starting row
+-- @tparam number start_col Starting column
+-- @tparam number end_row Ending row
+-- @tparam number end_col Ending column
+-- @tparam[opt] dict Options
 -- @return
-function buffer.text(bufnr, start, till, repl)
-  validate {
-    start_cood = { "table", start },
-    till_cood = { "table", till },
-    replacement = { "table", repl },
-    repl = { is_string_or_table, repl },
-  }
-
-  assert_exists(self)
-
-  if is_a(repl) == "string" then repl = vim.split(repl, "[\n\r]") end
-
-  local a, b = unpack(start)
-  local m, n = unpack(till)
-
-  return vim.api.nvim_buf_get_text(bufnr, a, m, b, n, repl)
+function buffer.text(bufnr, start_row, start_col, end_row, end_col, opts)
+  return vim.api.nvim_buf_get_text(
+    bufnr,
+    start_row,
+    start_col,
+    end_row,
+    end_col,
+    opts or {}
+  )
 end
 
 function buffer.bind(bufnr, opts, ...)
@@ -771,5 +767,30 @@ function buffer.input(text, cb, opts)
     cb(sanitized)
   end, "Execute callback")
 end
+
+--- Get position for expr
+-- @tparam number bufnr
+-- @tparam[opt='.'] string expr 
+-- @treturn number line
+-- @treturn number column
+-- @treturn number offset
+function buffer.getpos(bufnr, expr)
+  bufnr = bufnr or vim.fn.bufnr()
+  return buffer.call(bufnr, function ()
+    return array.slice(vim.fn.getpos(expr or '.'), 2, -1)
+  end)
+end
+
+--- Get treesitter node text at position
+-- @tparam number bufnr
+-- @tparam number row 
+-- @tparam number col
+-- @treturn string
+function buffer.get_node_text_at_pos(bufnr, row, col)
+  local node = vim.treesitter.get_node_at_pos(bufnr, row, col)
+  if not node then return end
+  return table.concat(buffer.text(bufnr, node:range()), "\n")
+end
+
 
 return buffer

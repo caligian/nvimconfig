@@ -56,13 +56,6 @@ use_plugin "notify" {
   "rcarriga/nvim-notify",
 }
 
-use_plugin "statusline" {
-  "nvim-lualine/lualine.nvim",
-  dependencies = { "rcarriga/nvim-notify" },
-  config = load_plugin "statusline",
-  priority = 400,
-}
-
 use_plugin "gitsigns" {
   "lewis6991/gitsigns.nvim",
   event = "BufReadPost",

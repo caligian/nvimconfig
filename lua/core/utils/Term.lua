@@ -186,10 +186,21 @@ function Term:send(s)
   if is_a.string(s) then s = str.split(s, "[\n\r]+") end
   if self.on_input then s = self.on_input(s) end
 
-  s[#s+1] = "\n"
+  s[#s + 1] = "\n"
   s = array.map(s, string.trim)
 
   return vim.api.nvim_chan_send(id, table.concat(s, "\n"))
+end
+
+--- Send treesitter node under cursor
+-- @tparam[opt=bufnr()] number src_bufnr
+function Term:send_node_at_cursor(src_bufnr)
+  src_bufnr = src_bufnr or vim.fn.bufnr()
+  local line, col = unpack(buffer.getpos(src_bufnr))
+  line = line - 1
+  col = col - 1
+
+  self:send(buffer.get_node_text_at_pos(src_bufnr, line, col))
 end
 
 --- Send current line

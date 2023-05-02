@@ -31,19 +31,19 @@ end
 
 command(
   "REPLStart",
-  wrap(function(r) r:split("s", { resize = 0.4, min = 0.1 }) end, false),
+  wrap(function(r) r:split("s", { resize = 0.4, min = 0.1 }) end),
   { nargs = "?", complete = get_builtin }
 )
 
 command(
   "REPLTerminateInput",
-  wrap(function(r) r:terminate_input() end, false),
+  wrap(function(r) r:terminate_input() end),
   { complete = get_builtin, nargs = "?" }
 )
 
 command(
   "REPLStop",
-  wrap(function(r) r:stop() end, false),
+  wrap(function(r) r:stop() end),
   { complete = get_builtin, nargs = "?" }
 )
 
@@ -55,67 +55,73 @@ command(
 
 command(
   "REPLFloatEditor",
-  wrap(function(r) r:center_float { relative = "editor" } end, false),
+  wrap(function(r) r:center_float { relative = "editor" } end),
   { complete = get_builtin, nargs = "?" }
 )
 
 command(
   "REPLFloat",
-  wrap(function(r) r:center_float { relative = "win" } end, false),
+  wrap(function(r) r:center_float { relative = "win" } end),
   { complete = get_builtin, nargs = "?" }
 )
 
 command(
   "REPLSplit",
-  wrap(function(r) r:split("s", { resize = 0.4, min = 0.1 }, false) end, false),
+  wrap(function(r) r:split("s", { resize = 0.4, min = 0.1 }, false) end),
   { complete = get_builtin, nargs = "?" }
 )
 
 command(
   "REPLVsplit",
-  wrap(function(r) r:split("v", { resize = 0.5, min = 0.1 }, false) end, false),
+  wrap(function(r) r:split("v", { resize = 0.5, min = 0.1 }, false) end),
   { complete = get_builtin, nargs = "?" }
 )
 
 command(
   "REPLDock",
-  wrap(function(r) r:dock { relative = "win" } end, false),
+  wrap(function(r) r:dock { relative = "win" } end),
   { complete = get_builtin, nargs = "?" }
 )
 
 command(
   "REPLHide",
-  wrap(function(r) r:hide() end, false),
+  wrap(function(r) r:hide() end),
+  { complete = get_builtin, nargs = "?" }
+)
+
+command(
+  "REPLSendNode",
+  wrap(function(r) r:send_node_at_cursor() end),
   { complete = get_builtin, nargs = "?" }
 )
 
 command(
   "REPLSend",
-  wrap(function(r) r:send(vim.fn.input "To REPL > ") end, false),
+  wrap(function(r) r:send(vim.fn.input "To REPL > ") end),
   { complete = get_builtin, nargs = "?" }
 )
 
 command(
   "REPLSendLine",
-  wrap(function(r) r:send_current_line() end, false),
+  wrap(function(r) r:send_current_line() end),
   { complete = get_builtin, nargs = "?" }
 )
 
 command(
   "REPLSendBuffer",
-  wrap(function(r) r:send_buffer() end, false),
+  wrap(function(r) r:send_buffer() end),
   { complete = get_builtin, nargs = "?" }
 )
 
 command(
   "REPLSendTillPoint",
-  wrap(function(r) r:send_till_point() end, false),
+  wrap(function(r) r:send_till_point() end),
   { complete = get_builtin, nargs = "?" }
 )
 
 command(
   "REPLSendRange",
-  wrap(function(r) r:send_visual_range() end, false),
+  wrap(function(r) r:send_visual_range() end),
   { complete = get_builtin, nargs = "?" }
 )
 
@@ -202,4 +208,10 @@ command(
   "ShellSendRange",
   shell_wrap(function(r) r:send_visual_range() end),
   {}
+)
+
+command(
+  "ShellSendNode",
+  shell_wrap(function(r) r:send_node_at_cursor() end),
+  { complete = get_builtin, nargs = "?" }
 )

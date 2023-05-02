@@ -124,6 +124,7 @@ K.bind(
   { "ob", partial(_toggle_option, "backup"), "Toggle backup" },
   { "oe", partial(_toggle_option, "expandtab"), "Toggle expandtab" },
   { "os", partial(_toggle_option, "smartindent"), "Toggle smartindent" },
+  { "o!", partial(_toggle_option, "modified"), "Toggle modified status" },
   { "ou", partial(_toggle_option, "ruler"), "Toggle ruler" },
   { "om", partial(_toggle_option, "modifiable"), "Toggle modifiable" },
 
