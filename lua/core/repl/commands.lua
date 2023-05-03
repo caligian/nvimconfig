@@ -222,3 +222,9 @@ command(
   shell_wrap(function(r) r:send_node_at_cursor() end),
   { complete = get_builtin, nargs = "?" }
 )
+
+command(
+  "ShellSendTextSubject",
+  shell_wrap(function(r) r:send_textsubject_at_cursor() end),
+  { complete = get_builtin, nargs = "?" }
+)

@@ -245,6 +245,18 @@ function Term:send_visual_range(src_bufnr)
   return self:send(buffer.range(src_bufnr))
 end
 
+--- Send range using nvim-textsubjects
+-- @param[opt=bufnr()] src_bufnr Buffer index
+function Term:send_textsubject_at_cursor(src_bufnr)
+  if not self:is_running() then return end
+  src_bufnr = src_bufnr or vim.fn.bufnr()
+
+  return self:send(buffer.call(src_bufnr, function ()
+    vim.cmd 'normal! v.'
+    return buffer.range(src_bufnr)
+  end))
+end
+
 --- Send 'CTRL-C'
 function Term:terminate_input()
   if not self:is_running() then return end
@@ -272,5 +284,6 @@ function Term:init(cmd, opts)
 
   return self
 end
+
 
 return Term

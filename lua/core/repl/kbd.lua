@@ -13,6 +13,7 @@ Keybinding.bind(
   { "xq", "<cmd>ShellStop<CR>", { name = "shell_stop" } },
   { "xe", "<cmd>ShellSendLine<CR>", { name = "shell_send_line" } },
   { "x;", "<cmd>ShellSendNode<CR>", { name = "shell_send_node" } },
+  { "x.", ":ShellSendTextSubject<CR>", { name = "repl_send_textsubject"} },
   { "xb", "<cmd>ShellSendBuffer<CR>", { name = "shell_send_buffer" } },
   { "x.", "<cmd>ShellSendTillPoint<CR>", { name = "shell_send_till_point" } },
   { "xf", "<cmd>ShellFloat<CR>", { name = "shell_float" } },
@@ -31,6 +32,7 @@ Keybinding.bind(
   { "r.", "<cmd>REPLSendTillPoint<CR>", { name = "repl_send_till_point" } },
   { "rc", "<cmd>REPLTerminateInput<CR>", { name = "repl_terminate_input" } },
   { "re", "<esc>:REPLSendRange<CR>", { name = "repl_send_range", mode = "v" } },
+  { "r.", ":REPLSendTextSubject<CR>", { name = "repl_send_textsubject"} },
   { "rf", "<cmd>REPLFloat<CR>", { name = "shell_float" } },
   { "rF", "<cmd>REPLFloatEditor<CR>", { name = "shell_float_editor" } }
 )

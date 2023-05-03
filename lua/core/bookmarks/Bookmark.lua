@@ -149,7 +149,9 @@ function Bookmark:remove(line)
   return false
 end
 
-function Bookmark:delete() user.bookmark.BOOKMARK[self.path] = nil end
+function Bookmark:delete() 
+  user.bookmark.BOOKMARK[self.path] = nil 
+end
 
 function Bookmark:list(telescope)
   if self:is_dir() then

@@ -556,11 +556,17 @@ end
 function buffer.call(bufnr, cb) return vim.api.nvim_buf_call(bufnr, cb) end
 
 --- Return visually highlighted array range in this buffer
--- @see visualrange
+-- @tparam number bufnr 
+-- @treturn array[string]
 function buffer.range(bufnr)
   return buffer.call(bufnr or vim.fn.bufnr(), function()
     local _, csrow, cscol, _ = unpack(vim.fn.getpos "'<")
     local _, cerow, cecol, _ = unpack(vim.fn.getpos "'>")
+    local last_line = vim.fn.getline(cerow)
+
+    if cecol >= #last_line then cecol = 0 end
+    if csrow > cerow then return end
+
     if csrow < cerow or (csrow == cerow and cscol <= cecol) then
       return vim.api.nvim_buf_get_text(
         0,
