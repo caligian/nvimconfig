@@ -29,15 +29,22 @@ use_plugin "filetype" {
   priority = 500,
 }
 
+use_plugin 'statusline' {
+  'nvim-lualine/lualine.nvim',
+}
+
 use_plugin "plenary" {
   "nvim-lua/plenary.nvim",
 }
 
 use_plugin "telescope" {
   "nvim-telescope/telescope.nvim",
-  dependencies = { "nvim-telescope/telescope-fzy-native.nvim" },
+  dependencies = { 
+    "nvim-telescope/telescope-fzy-native.nvim",
+    "nvim-telescope/telescope-file-browser.nvim",
+  },
   config = function()
-    vim.defer_fn(function() req "core.plugins.telescope" end, 200)
+    req "core.plugins.telescope"
   end,
 }
 
@@ -341,9 +348,7 @@ use_plugin "tagbar" {
 use_plugin "which-key" {
   "folke/which-key.nvim",
   config = function() 
-    vim.defer_fn(function ()
-      req "core.plugins.which-key" 
-    end, 300) 
+    req "core.plugins.which-key" 
   end,
 }
 

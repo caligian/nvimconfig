@@ -146,8 +146,14 @@ local function setup()
       if not groups then return "" end
 
       groups = groups.groups
-      return sprintf("(%s)", array.join(dict.keys(groups), ","))
+      return sprintf("[%s]", array.join(dict.keys(groups), ","))
     end,
+  }
+
+  ins_left {
+    function ()
+      return '[y %l/%L] [x %c]'
+    end
   }
 
   -- ins_left { "location" }

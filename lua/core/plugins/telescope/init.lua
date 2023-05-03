@@ -4,12 +4,32 @@ local buffer_actions = require "core.plugins.telescope.buffer-actions"
 local git_status_actions = require "core.plugins.telescope.git-status-actions"
 local git_files_actions = require "core.plugins.telescope.git-files-actions"
 local find_files_actions = require "core.plugins.telescope.find-files-actions"
+local file_browser_actions =
+  require "core.plugins.telescope.file-browser-actions"
 user.plugins.telescope = { config = ivy }
 local T = user.plugins.telescope.config
 
 --------------------------------------------------------------------------------
 -- Some default overrides
-T.extensions = {}
+T.extensions = {
+  file_browser = {
+    hijack_netrw = true,
+    mappings = {
+      n = {
+        x = file_browser_actions.delete,
+        X = file_browser_actions.force_delete,
+        ["%"] = file_browser_actions.touch,
+        ["b"] = file_browser_actions.add_bookmark,
+        ["B"] = file_browser_actions.remove_bookmark,
+      },
+    },
+  },
+  fzy = {
+    override_generic_sorter = true,
+    override_file_sorter = true,
+  },
+}
+
 T.pickers = {
   buffers = {
     show_all_buffers = true,
@@ -51,37 +71,25 @@ T.pickers = {
 }
 
 --------------------------------------------------------------------------------
--- Setup extensions
-T.extensions = {
-  fzy = {
-    override_generic_sorter = true,
-    override_file_sorter = true,
-  },
-}
-
---------------------------------------------------------------------------------
 -- Setup telescope with extensions
 -- Require user overrides
 req "user.plugins.telescope"
 local telescope = require "telescope"
 telescope.setup(T)
 telescope.load_extension "fzy_native"
+telescope.load_extension "file_browser"
 
 --------------------------------------------------------------------------------
 -- Start keymappings
 local function picker(p, conf)
-  return function()
-    require("telescope.builtin")[p](dict.merge(conf or {}, ivy))
-  end
+  return function() require("telescope.builtin")[p](dict.merge(conf or {}, ivy)) end
 end
 
 local opts = Keybinding.bind(
   { noremap = true, leader = true, mode = "n" },
   {
     "/",
-    function()
-      picker("live_grep", { search_dirs = { vim.fn.expand "%:p" } })()
-    end,
+    function() picker("live_grep", { search_dirs = { vim.fn.expand "%:p" } })() end,
     { desc = "Grep string in workspace", name = "ts_grep" },
   },
   {
@@ -107,9 +115,7 @@ local opts = Keybinding.bind(
   },
   {
     "ff",
-    function()
-      picker("find_files", { cwd = vim.fn.expand "%:p:h" })()
-    end,
+    function() picker("find_files", { cwd = vim.fn.expand "%:p:h" })() end,
     { desc = "Find files in workspace", name = "ts_ff" },
   },
   { "gf", picker "git_files", { desc = "Do git ls-files", name = "ts_git_ls" } },
@@ -142,9 +148,7 @@ local opts = Keybinding.bind(
   },
   {
     "ld",
-    function()
-      picker("diagnostics", { bufnr = 0 })()
-    end,
+    function() picker("diagnostics", { bufnr = 0 })() end,
     { desc = "Show buffer LSP diagnostics", name = "ts_diagnostics" },
   },
   {
@@ -170,4 +174,9 @@ local opts = Keybinding.bind(
   }
 )
 
-req "core.plugins.telescope.colorscheme"
+K.map(
+  "n",
+  "<leader>\\",
+  function() require("telescope").extensions.file_browser.file_browser(ivy) end,
+  "Open file browser"
+)
