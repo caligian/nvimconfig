@@ -31,6 +31,7 @@ use_plugin "filetype" {
 
 use_plugin 'statusline' {
   'nvim-lualine/lualine.nvim',
+  config = partial(req, 'core.plugins.statusline')
 }
 
 use_plugin "plenary" {

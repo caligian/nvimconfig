@@ -203,6 +203,16 @@ function Term:send_node_at_cursor(src_bufnr)
   self:send(buffer.get_node_text_at_pos(src_bufnr, line, col))
 end
 
+--- Send node via nvim-textsubjects
+-- @tparam number src_bufnr
+function Term:send_textsubject_at_cursor(src_bufnr)
+  src_bufnr = src_bufnr or vim.fn.bufnr()
+  buffer.call(src_bufnr, function()
+    vim.cmd "normal! v."
+    pp(buffer.range(vim.fn.bufnr()))
+  end)
+end
+
 --- Send current line
 -- @param[opt=bufnr()] src_bufnr Buffer index
 function Term:send_current_line(src_bufnr)

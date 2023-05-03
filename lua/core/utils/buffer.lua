@@ -555,7 +555,7 @@ end
 -- @return self
 function buffer.call(bufnr, cb) return vim.api.nvim_buf_call(bufnr, cb) end
 
---- Return visually highlighted array.range in this buffer
+--- Return visually highlighted array range in this buffer
 -- @see visualrange
 function buffer.range(bufnr)
   return buffer.call(bufnr or vim.fn.bufnr(), function()
@@ -770,20 +770,21 @@ end
 
 --- Get position for expr
 -- @tparam number bufnr
--- @tparam[opt='.'] string expr 
+-- @tparam[opt='.'] string expr
 -- @treturn number line
 -- @treturn number column
 -- @treturn number offset
 function buffer.getpos(bufnr, expr)
   bufnr = bufnr or vim.fn.bufnr()
-  return buffer.call(bufnr, function ()
-    return array.slice(vim.fn.getpos(expr or '.'), 2, -1)
-  end)
+  return buffer.call(
+    bufnr,
+    function() return array.slice(vim.fn.getpos(expr or "."), 2, -1) end
+  )
 end
 
 --- Get treesitter node text at position
 -- @tparam number bufnr
--- @tparam number row 
+-- @tparam number row
 -- @tparam number col
 -- @treturn string
 function buffer.get_node_text_at_pos(bufnr, row, col)
@@ -791,6 +792,5 @@ function buffer.get_node_text_at_pos(bufnr, row, col)
   if not node then return end
   return table.concat(buffer.text(bufnr, node:range()), "\n")
 end
-
 
 return buffer

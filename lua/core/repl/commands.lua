@@ -90,6 +90,13 @@ command(
 )
 
 command(
+  "REPLSendTextSubject",
+  wrap(function(r) r:send_textsubject_at_cursor() end),
+  { complete = get_builtin, nargs = "?" }
+)
+
+
+command(
   "REPLSendNode",
   wrap(function(r) r:send_node_at_cursor() end),
   { complete = get_builtin, nargs = "?" }
