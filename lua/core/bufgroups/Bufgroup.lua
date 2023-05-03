@@ -83,6 +83,7 @@ function Bufgroup:clean()
 end
 
 function Bufgroup:delete()
+  self:disable()
   dict.delete(user.bufgroup.POOL, self.pool)
   dict.delete(user.bufgroup, self.name)
 
