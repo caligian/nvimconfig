@@ -1,4 +1,4 @@
-user.plugins.statusline = {
+plugin.statusline = {
   evil = true,
   config = {
     options = {
@@ -40,13 +40,14 @@ user.plugins.statusline = {
     inactive_winbar = {},
     extensions = {},
   },
+
+  setup = function(self)
+    if self.evil then
+      require 'core.plugins.evilline'
+    else
+      require('lualine').setup(self.config)
+    end
+  end
 }
 
-local config = user.plugins.statusline
-req "user.plugins.statusline"
-
-if config.evil then
-  require 'core.plugins.evilline'
-else
-  require('lualine').setup(config.config)
-end
+plugin.statusline:setup()

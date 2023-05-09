@@ -130,4 +130,16 @@ function Autocmd:delete()
   return self
 end
 
+function Autocmd.bind(autocmds)
+  dict.each(autocmds, function(name, x)
+    if x.group then
+      local augroup = Augroup(name)
+      array.each(x, function(au) augroup:add(unpack(x)) end)
+    else
+      x[2].name = name
+      Autocmd(unpack(x))
+    end
+  end)
+end
+
 return Autocmd

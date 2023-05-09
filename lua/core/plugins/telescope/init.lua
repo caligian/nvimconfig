@@ -1,13 +1,11 @@
-local _ = utils.telescope.load()
-local ivy = _.ivy
-local buffer_actions = require "core.plugins.telescope.buffer-actions"
-local git_status_actions = require "core.plugins.telescope.git-status-actions"
-local git_files_actions = require "core.plugins.telescope.git-files-actions"
-local find_files_actions = require "core.plugins.telescope.find-files-actions"
+local ivy = utils.telescope.load().ivy
+local buffer_actions = require "core.plugins.telescope.actions.buffer"
+local git_status_actions = require "core.plugins.telescope.actions.git-status"
+local git_files_actions = require "core.plugins.telescope.actions.git-files"
+local find_files_actions = require "core.plugins.telescope.actions.find-files"
 local file_browser_actions =
-  require "core.plugins.telescope.file-browser-actions"
-user.plugins.telescope = { config = ivy }
-local T = user.plugins.telescope.config
+  require "core.plugins.telescope.actions.file-browser"
+local T = utils.copy(ivy)
 
 --------------------------------------------------------------------------------
 -- Some default overrides
@@ -71,22 +69,14 @@ T.pickers = {
 }
 
 --------------------------------------------------------------------------------
--- Setup telescope with extensions
--- Require user overrides
-req "user.plugins.telescope"
-local telescope = require "telescope"
-telescope.setup(T)
-telescope.load_extension "fzy_native"
-telescope.load_extension "file_browser"
-
 --------------------------------------------------------------------------------
 -- Start keymappings
 local function picker(p, conf)
   return function() require("telescope.builtin")[p](dict.merge(conf or {}, ivy)) end
 end
 
-local opts = Keybinding.bind(
-  { noremap = true, leader = true, mode = "n" },
+local mappings = {
+  noremap = true, leader = true, mode = "n",
   {
     "/",
     function() picker("live_grep", { search_dirs = { vim.fn.expand "%:p" } })() end,
@@ -171,12 +161,26 @@ local opts = Keybinding.bind(
     "h;",
     picker "command_history",
     { desc = "Command history", name = "ts_git_status" },
+  },
+  {
+    'hc';
+    picker 'colorscheme',
+    {desc = 'Colorscheme picker', name = 'ts_colorscheme'},
+  },
+  {
+    "\\",
+    function() require("telescope").extensions.file_browser.file_browser(ivy) end,
+    {desc = "Open file browser", name = 'file_browser'},
   }
-)
+}
 
-K.map(
-  "n",
-  "<leader>\\",
-  function() require("telescope").extensions.file_browser.file_browser(ivy) end,
-  "Open file browser"
-)
+plugin.telescope = {
+  config = T,
+  kbd = mappings,
+  setup = function(self)
+    local telescope = require "telescope"
+    telescope.setup(self.config)
+    telescope.load_extension "fzy_native"
+    telescope.load_extension "file_browser"
+  end
+}

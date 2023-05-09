@@ -147,6 +147,12 @@ function Bufgroup.get(name, pool, ass)
   return group
 end
 
+function Bufgroup.create(name, ...)
+  local exists = Bufgroup.get(name)
+  if exists then return exists end
+  return Bufgroup(name, ...)
+end
+
 function Bufgroup:create_picker(remover)
   local ls = self:list(true)
   if not ls then return end

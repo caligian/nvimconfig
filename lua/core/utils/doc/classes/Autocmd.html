@@ -1,0 +1,271 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>LDoc documentation</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>LDoc</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Tables">Tables</a></li>
+<li><a href="#Fields">Fields</a></li>
+<li><a href="#Methods">Methods</a></li>
+</ul>
+
+
+<h2>Classes</h2>
+<ul class="nowrap">
+  <li><a href="../classes/Augroup.html">Augroup</a></li>
+  <li><strong>Autocmd</strong></li>
+  <li><a href="../classes/Buffer.html">Buffer</a></li>
+  <li><a href="../classes/Keybinding.html">Keybinding</a></li>
+  <li><a href="../classes/Process.html">Process</a></li>
+  <li><a href="../classes/Repeater.html">Repeater</a></li>
+  <li><a href="../classes/Term.html">Term</a></li>
+  <li><a href="../classes/Timeout.html">Timeout</a></li>
+  <li><a href="../classes/Timer.html">Timer</a></li>
+</ul>
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../modules/buffer.html">buffer</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Class <code>Autocmd</code></h1>
+<p>Autocommand wrapper
+ Create autocommands via classes.</p>
+<p> All the instances are stored in
+ user.autocmd.</p>
+
+
+<h2><a href="#Tables">Tables</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#user.autocmd">user.autocmd</a></td>
+	<td class="summary">Store autocommand instances</td>
+	</tr>
+</table>
+<h2><a href="#Fields">Fields</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#user.autocmd.ID">user.autocmd.ID</a></td>
+	<td class="summary">Contains instances hashed by id</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#user.autocmd.GROUP">user.autocmd.GROUP</a></td>
+	<td class="summary">Contains instances hashed by augroup</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#user.autocmd.BUFFER">user.autocmd.BUFFER</a></td>
+	<td class="summary">Contains instances hashed by buffer</td>
+	</tr>
+</table>
+<h2><a href="#Methods">Methods</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Autocmd:init">Autocmd:init (event, opts)</a></td>
+	<td class="summary">Create an autocommand</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Autocmd:disable">Autocmd:disable ()</a></td>
+	<td class="summary">Disable autocommand</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Autocmd:delete">Autocmd:delete ()</a></td>
+	<td class="summary">Delete autocommand instance reference in user.autocmd</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Tables"></a>Tables</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "user.autocmd"></a>
+    <strong>user.autocmd</strong>
+    </dt>
+    <dd>
+    Store autocommand instances
+
+
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Fields"></a>Fields</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "user.autocmd.ID"></a>
+    <strong>user.autocmd.ID</strong>
+    </dt>
+    <dd>
+    Contains instances hashed by id
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "user.autocmd.GROUP"></a>
+    <strong>user.autocmd.GROUP</strong>
+    </dt>
+    <dd>
+    Contains instances hashed by augroup
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "user.autocmd.BUFFER"></a>
+    <strong>user.autocmd.BUFFER</strong>
+    </dt>
+    <dd>
+    Contains instances hashed by buffer
+
+
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Methods"></a>Methods</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "Autocmd:init"></a>
+    <strong>Autocmd:init (event, opts)</strong>
+    </dt>
+    <dd>
+    Create an autocommand
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">event</span>
+         string|array[string] of vim events
+        </li>
+        <li><span class="parameter">opts</span> opts
+        <ul>
+        <li><span class="parameter">callback</span>
+         callable|string. Mandatory param
+        </li>
+        <li><span class="parameter">pattern</span>
+         Autocommand pattern. Mandatory param
+        </li>
+        <li><span class="parameter">once</span>
+         Run once?
+        </li>
+        <li><span class="parameter">nested</span>
+         Nested autocommands?
+        </li>
+        <li><span class="parameter">name</span>
+         Unique autocommand name
+        </li>
+        <li><span class="parameter">bufnr</span>
+         Buffer index
+        </li>
+        </li></ul>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        self
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example"><span class="comment">-- `:help autocmd`
+</span><span class="keyword">local</span> a = Autocmd(
+ <span class="string">'BufEnter'</span>,
+ {callback=partial(<span class="global">print</span>, <span class="string">'hello'</span>), pattern=<span class="string">'*'</span>}
+)</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "Autocmd:disable"></a>
+    <strong>Autocmd:disable ()</strong>
+    </dt>
+    <dd>
+    Disable autocommand
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Autocmd:delete"></a>
+    <strong>Autocmd:delete ()</strong>
+    </dt>
+    <dd>
+    Delete autocommand instance reference in user.autocmd
+
+
+
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2023-05-01 09:43:58 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

@@ -1,119 +1,73 @@
-user.plugins = { PLUGIN = {} }
-local state = user.plugins.PLUGIN
+local function load_plugin(s) utils.reqloadfile(s) end
+--------------------------------------------------------------------------------
 
-use_plugin = setmetatable({}, {
-  __newindex = function(self, name, conf)
-    user.plugins[name] = user.plugins[name] or { config = {} }
-    state[name] = state[name] or {}
-    dict.merge(state[name], conf)
-  end,
-
-  __index = function(self, plugin) return user.plugins.PLUGIN[k] end,
-
-  __call = function(self, name)
-    user.plugins[name] = user.plugins[name] or { config = {} }
-    state[name] = state[name] or {}
-
-    return function(spec) return dict.merge(state[name], spec) end
-  end,
-})
-
-local function load_plugin(s)
-  return function() req("core/plugins/" .. s) end
-end
-
---------------------------------------------------
-
-use_plugin "filetype" {
+plugin "filetype" {
   "nathom/filetype.nvim",
   priority = 500,
 }
 
-use_plugin 'statusline' {
-  'nvim-lualine/lualine.nvim',
-  config = partial(req, 'core.plugins.statusline')
+plugin "statusline" {
+  "nvim-lualine/lualine.nvim",
 }
 
-use_plugin "plenary" {
+plugin "plenary" {
   "nvim-lua/plenary.nvim",
 }
 
-use_plugin "telescope" {
+plugin "telescope" {
   "nvim-telescope/telescope.nvim",
-  dependencies = { 
+  dependencies = {
     "nvim-telescope/telescope-fzy-native.nvim",
     "nvim-telescope/telescope-file-browser.nvim",
   },
-  config = function()
-    req "core.plugins.telescope"
-  end,
 }
 
-use_plugin "dispatch" {
+plugin "dispatch" {
   "tpope/vim-dispatch",
   event = "BufReadPost",
-  config = function() req "core.plugins.dispatch" end,
 }
 
-use_plugin "hy" {
+plugin "hy" {
   "hylang/vim-hy",
   ft = { "hy" },
 }
 
-use_plugin "notify" {
+plugin "notify" {
   "rcarriga/nvim-notify",
 }
 
-use_plugin "gitsigns" {
+plugin "gitsigns" {
   "lewis6991/gitsigns.nvim",
   event = "BufReadPost",
-  config = load_plugin "git_signs",
 }
 
-use_plugin "indent-blankline" {
+plugin "indentblankline" {
   "lukas-reineke/indent-blankline.nvim",
   event = "BufReadPost",
-  config = function() req "core.plugins.indent-blankline" end,
 }
 
-use_plugin "align" {
+plugin "align" {
   "junegunn/vim-easy-align",
   event = "BufReadPost",
-  config = utils.log_pcall_wrap(
-    function()
-      K.bind(
-        { leader = true, noremap = true },
-        { "=", ":EasyAlign ", "Align" },
-        { "=", ":'<,'>EasyAlign ", { mode = "v", desc = "Align" } }
-      )
-    end
-  ),
 }
 
-use_plugin "neorg" {
+plugin "neorg" {
   "nvim-neorg/neorg",
   ft = "norg",
-  config = function() req "core.plugins.neorg" end,
 }
 
-use_plugin "suda.vim" {
+plugin "suda" {
   "lambdalisue/suda.vim",
-  cmd = "SudaRead",
-  config = function() vim.g.suda_smart_edit = 1 end,
 }
 
 -- Good opinionated themes
-use_plugin "everforest" {
+plugin "colorscheme" {
   "sainnhe/everforest",
 
   dependencies = {
     {
       "maxmx03/solarized.nvim",
-      config = utils.log_pcall_wrap(function ()
-        local solarized = require 'solarized'
-        vim.o.background = 'dark'
-        solarized:setup { config = {theme = 'neovim'} }
-      end)
+      config = load_plugin 'solarized',
     },
     "rktjmp/lush.nvim",
     "rose-pine/neovim",
@@ -138,68 +92,45 @@ use_plugin "everforest" {
     "mhartington/oceanic-next",
     "folke/tokyonight.nvim",
   },
-  config = function() req "core.plugins.colorscheme" end,
   priority = 300,
 }
 
-use_plugin "vimtex" {
+plugin "vimtex" {
   "lervag/vimtex",
-  config = function() req "core.plugins.vimtex" end,
   ft = "tex",
 }
 
-use_plugin "devicons" {
+plugin "devicons" {
   "nvim-tree/nvim-web-devicons",
-  config = function()
-    local web = req "nvim-web-devicons"
-    if web then web.setup {} end
-  end,
 }
 
-use_plugin "netrw" {
+plugin "netrw" {
   "prichrd/netrw.nvim",
   cmd = "Lexplore",
-  config = utils.log_pcall_wrap(
-    function()
-      require("netrw").setup {
-        icons = {
-          symlink = "",
-          directory = "",
-          file = "",
-        },
-        use_devicons = true,
-        mappings = {},
-      }
-    end
-  ),
 }
 
-use_plugin "surround" {
+plugin "surround" {
   "kylechui/nvim-surround",
   event = "InsertEnter",
-  config = utils.log_pcall_wrap(
-    function() require("nvim-surround").setup {} end
-  ),
 }
 
-use_plugin "autopairs" {
+plugin "autopairs" {
   "windwp/nvim-autopairs",
   event = "InsertEnter",
-  config = partial(req, "core.plugins.autopairs"),
 }
 
-use_plugin "lint" {
+plugin "lint" {
   "mfussenegger/nvim-lint",
   event = "BufReadPost",
   config = function() req "core.plugins.lint" end,
 }
 
-use_plugin "vim-wayland-clipboard" {
+plugin "vim-wayland-clipboard" {
   "jasonccox/vim-wayland-clipboard",
   keys = '"',
 }
 
-use_plugin "startuptime" {
+plugin "startuptime" {
   "dstein64/vim-startuptime",
   cmd = "StartupTime",
   config = function()
@@ -217,34 +148,34 @@ use_plugin "startuptime" {
   end,
 }
 
-use_plugin "vim-commentary" {
+plugin "comment" {
   "tpope/vim-commentary",
   event = "BufReadPost",
 }
 
-use_plugin "vimtex" {
+plugin "vimtex" {
   "lervag/vimtex",
   ft = "tex",
   config = partial(req, "core/plugins/vimtex"),
 }
 
-use_plugin "fennel" {
+plugin "fennel" {
   "jaawerth/fennel.vim",
   ft = "fennel",
 }
 
-use_plugin "ssr" {
+plugin "ssr" {
   "cshuaimin/ssr.nvim",
   event = "BufReadPost",
   config = function() req "core.plugins.ssr" end,
 }
 
-use_plugin "hop" {
+plugin "hop" {
   "phaazon/hop.nvim",
   config = function() req "core.plugins.hop" end,
 }
 
-use_plugin "treesitter" {
+plugin "treesitter" {
   "nvim-treesitter/nvim-treesitter",
   event = "BufReadPost",
   dependencies = {
@@ -297,14 +228,13 @@ use_plugin "treesitter" {
   config = function() req "core.plugins.treesitter" end,
 }
 
-use_plugin "ultisnips" {
+plugin "ultisnips" {
   "SirVer/ultisnips",
   event = "InsertEnter",
   dependencies = { "honza/vim-snippets" },
-  config = function() req "core.plugins.ultisnips" end,
 }
 
-use_plugin "cmp" {
+plugin "cmp" {
   "hrsh7th/nvim-cmp",
   event = "InsertEnter",
   dependencies = {
@@ -317,10 +247,9 @@ use_plugin "cmp" {
     "hrsh7th/cmp-nvim-lsp-signature-help",
     "hrsh7th/cmp-nvim-lsp-document-symbol",
   },
-  config = function() req "core.plugins.cmp" end,
 }
 
-use_plugin "fugitive" {
+plugin "fugitive" {
   "tpope/vim-fugitive",
   dependencies = { "tpope/vim-git" },
   keys = {
@@ -330,7 +259,7 @@ use_plugin "fugitive" {
   },
 }
 
-use_plugin "tagbar" {
+plugin "tagbar" {
   "preservim/tagbar",
   keys = "<C-t>",
   event = "BufReadPost",
@@ -346,60 +275,34 @@ use_plugin "tagbar" {
   end),
 }
 
-use_plugin "which-key" {
+plugin "whichkey" {
   "folke/which-key.nvim",
-  config = function() 
-    req "core.plugins.which-key" 
-  end,
 }
 
-use_plugin "markdown-preview" {
+plugin "markdownpreview" {
   "iamcco/markdown-preview.nvim",
   build = "cd app && yarn install",
   ft = "markdown",
 }
 
-use_plugin "formatter" {
+plugin "formatter" {
   "mhartington/formatter.nvim",
   event = "BufReadPost",
-  config = function() req "core.plugins.formatter" end,
 }
 
-use_plugin "lsp" {
+plugin "lsp" {
   "neovim/nvim-lspconfig",
   dependencies = {
-    "j-hui/fidget.nvim";
+    "j-hui/fidget.nvim",
     "lukas-reineke/lsp-format.nvim",
     "williamboman/mason.nvim",
     "mfussenegger/nvim-dap",
     "simrat39/rust-tools.nvim",
     "Saecki/crates.nvim",
   },
-  config = function() req "core.plugins.lsp" end,
 }
 
-use_plugin "vim-bbye" {
+plugin "bbye" {
   "moll/vim-bbye",
   event = "BufReadPost",
-  config = utils.log_pcall_wrap(function()
-    local function delete_and_hide(wipeout)
-      local bufname = vim.fn.bufname(vim.fn.bufnr())
-      if wipeout then
-        vim.cmd(":Bwipeout " .. bufname)
-      else
-        vim.cmd(":Bdelete " .. bufname)
-      end
-      local tab = vim.fn.tabpagenr()
-      local n_wins = #(vim.fn.tabpagebuflist(tab))
-      if n_wins > 1 then vim.cmd ":hide" end
-    end
-
-    Keybinding.bind(
-      { noremap = true, leader = true },
-      { "bq", delete_and_hide, { desc = "Delete buffer" } },
-      { "bQ", partial(delete_and_hide, true), { desc = "Wipeout buffer" } }
-    )
-
-    req "user.plugins.vim-bbye"
-  end),
 }

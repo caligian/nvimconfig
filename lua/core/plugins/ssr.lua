@@ -1,4 +1,4 @@
-user.plugins.ssr = {
+plugin.ssr = {
   config = {
     border = "rounded",
     min_width = 50,
@@ -13,11 +13,14 @@ user.plugins.ssr = {
       replace_all = "<leader><cr>",
     },
   },
+
+  kbd = {
+    {"nx", "<leader>%", function()
+      require("ssr").open()
+    end, {desc = "Structural editing", name = 'ssr'}}
+  },
+
+  setup = function (self)
+    require("ssr").setup(self.config)
+  end
 }
-
-req "user.plugins.ssr"
-require("ssr").setup(user.plugins.ssr.config)
-
-K.noremap("nx", "<leader>%", function()
-  require("ssr").open()
-end, "Structural editing")

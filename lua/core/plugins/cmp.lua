@@ -2,9 +2,7 @@ local cmp = require "cmp"
 local cmp_ultisnips_mappings = require "cmp_nvim_ultisnips.mappings"
 local cmp_zsh = require "cmp_zsh"
 
-cmp_zsh.setup { zshrc = true, filetypes = { "zsh" } }
-
-user.plugins["nvim-cmp"] = {
+plugin.cmp = {
   config = {
     mapping = {
       ["<Tab>"] = cmp.mapping(function(fallback)
@@ -32,12 +30,10 @@ user.plugins["nvim-cmp"] = {
       end, { "i", "s" }),
     },
     snippet = {
-      expand = function(args)
-        vim.fn["UltiSnips#Anon"](args.body)
-      end,
+      expand = function(args) vim.fn["UltiSnips#Anon"](args.body) end,
     },
     sources = {
-      { name = 'neorg' }, 
+      { name = "neorg" },
       { name = "path" },
       { name = "ultisnips" },
       { name = "buffer" },
@@ -50,21 +46,23 @@ user.plugins["nvim-cmp"] = {
         name = "spell",
         option = {
           keep_all_entries = false,
-          enable_in_context = function()
-            return true
-          end,
+          enable_in_context = function() return true end,
         },
       },
     },
   },
+
+  setup = function (self)
+    cmp_zsh.setup { zshrc = true, filetypes = { "zsh" } }
+
+    cmp.setup.cmdline("/", {
+      sources = cmp.config.sources {
+        { name = "nvim_lsp_document_symbol" },
+      },
+    })
+
+    req "user.plugins.cmp"
+
+    cmp.setup(self.config)
+  end
 }
-
-req "user.plugins.nvim-cmp"
-
-cmp.setup(user.plugins["nvim-cmp"].config)
-
--- cmp.setup.cmdline("/", {
---   sources = cmp.config.sources {
---     { name = "nvim_lsp_document_symbol" },
---   },
--- })

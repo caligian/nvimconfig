@@ -1,5 +1,5 @@
-user.plugins.autopairs = {
-  defaults = {
+plugin.autopairs = {
+  config = {
     disable_filetype = { "TelescopePrompt", "spectre_panel" },
     disable_in_macro = false,
     disable_in_visualblock = false,
@@ -32,8 +32,9 @@ user.plugins.autopairs = {
       highlight_grey = "Comment",
     },
   },
+
+  setup = function(self, opts)
+    dict.merge(self, opts or {})
+    require("nvim-autopairs").setup(self.config)
+  end,
 }
-
-req "user.plugins.autopairs"
-
-require("nvim-autopairs").setup(user.plugins.autopairs.defaults)

@@ -22,10 +22,12 @@ function REPL:scroll_to_bottom()
   return buffer.feedkeys(self.bufnr, 'G')
 end
 
+pp(Filetype.get('sh', 'repl'))
+
 function REPL:init(ft)
   ft = ft or vim.bo.filetype
   local is_shell = ft == "sh"
-  local cmd = dict.contains(Lang.langs, ft, "repl")
+  local cmd = dict.contains(Filetype.ft, ft, "repl")
   local opts = {}
 
   if not cmd then print(REPL.NoCommandException:throw(ft)) end

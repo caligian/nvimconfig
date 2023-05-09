@@ -20,6 +20,10 @@ function array.reverse(x)
   return out
 end
 
+function array.get_array(x)
+  local out = {}
+end
+
 --- Pop N items from an array
 -- @tparam array t
 -- @tparam number n of items to pop
@@ -165,14 +169,20 @@ end
 -- @tparam[opt=1] number times optional number of times
 -- @treturn array
 function array.shift(t, times)
+  local out = {}
   local l = #t
   times = times or 1
+
   for i = 1, times do
     if i > l then
       return t
     end
-    table.remove(t, 1)
+    out[i] = table.remove(t, 1)
   end
+
+	if times == 1 then 
+		return out[1]
+	end
 
   return t
 end

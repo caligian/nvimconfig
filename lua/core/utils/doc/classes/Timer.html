@@ -1,0 +1,326 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>LDoc documentation</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>LDoc</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Tables">Tables</a></li>
+<li><a href="#Methods">Methods</a></li>
+</ul>
+
+
+<h2>Classes</h2>
+<ul class="nowrap">
+  <li><a href="../classes/Augroup.html">Augroup</a></li>
+  <li><a href="../classes/Autocmd.html">Autocmd</a></li>
+  <li><a href="../classes/Buffer.html">Buffer</a></li>
+  <li><a href="../classes/Keybinding.html">Keybinding</a></li>
+  <li><a href="../classes/Process.html">Process</a></li>
+  <li><a href="../classes/Repeater.html">Repeater</a></li>
+  <li><a href="../classes/Term.html">Term</a></li>
+  <li><a href="../classes/Timeout.html">Timeout</a></li>
+  <li><strong>Timer</strong></li>
+</ul>
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../modules/buffer.html">buffer</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Class <code>Timer</code></h1>
+<p>Async timers powered by libuv</p>
+<p>
+
+</p>
+
+
+<h2><a href="#Tables">Tables</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Timer.status">Timer.status</a></td>
+	<td class="summary">Contains timer instances hashed by name</td>
+	</tr>
+</table>
+<h2><a href="#Methods">Methods</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Timer:get_due_in">Timer:get_due_in ()</a></td>
+	<td class="summary">Get time due for the timer</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Timer:init">Timer:init (timeout, interval, callback, wrap_callback)</a></td>
+	<td class="summary">Create a new timer.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Timer:track">Timer:track (name)</a></td>
+	<td class="summary">Save timer instance by name</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Timer:start">Timer:start ()</a></td>
+	<td class="summary">Start timer</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Timer:again">Timer:again ()</a></td>
+	<td class="summary">Rerun the timer</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Timer:delete">Timer:delete ()</a></td>
+	<td class="summary">Dereference instance from Timer.status</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Timer:set_repeat">Timer:set_repeat (interval)</a></td>
+	<td class="summary">Change timer interval</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Timer:get_repeat">Timer:get_repeat ()</a></td>
+	<td class="summary">Get repeat interval</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Timer:stop">Timer:stop ()</a></td>
+	<td class="summary">Stop timer</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Tables"></a>Tables</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "Timer.status"></a>
+    <strong>Timer.status</strong>
+    </dt>
+    <dd>
+    Contains timer instances hashed by name
+
+
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Methods"></a>Methods</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "Timer:get_due_in"></a>
+    <strong>Timer:get_due_in ()</strong>
+    </dt>
+    <dd>
+    Get time due for the timer
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Timer:init"></a>
+    <strong>Timer:init (timeout, interval, callback, wrap_callback)</strong>
+    </dt>
+    <dd>
+    Create a new timer.  Constructor function
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">timeout</span>
+         timeout length
+        </li>
+        <li><span class="parameter">interval</span>
+         repeat interval
+        </li>
+        <li><span class="parameter">callback</span>
+         callback to run
+        </li>
+        <li><span class="parameter">wrap_callback</span>
+         .schedule_wrap callback?
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Timer:track"></a>
+    <strong>Timer:track (name)</strong>
+    </dt>
+    <dd>
+    Save timer instance by name
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">name</span>
+
+
+
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Timer:start"></a>
+    <strong>Timer:start ()</strong>
+    </dt>
+    <dd>
+    Start timer
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+        true on success, false otherwise
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Timer:again"></a>
+    <strong>Timer:again ()</strong>
+    </dt>
+    <dd>
+    Rerun the timer
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+        true on success, false otherwise
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Timer:delete"></a>
+    <strong>Timer:delete ()</strong>
+    </dt>
+    <dd>
+    Dereference instance from Timer.status
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Timer:set_repeat"></a>
+    <strong>Timer:set_repeat (interval)</strong>
+    </dt>
+    <dd>
+    Change timer interval
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">interval</span>
+         repeat interval
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Timer:get_repeat"></a>
+    <strong>Timer:get_repeat ()</strong>
+    </dt>
+    <dd>
+    Get repeat interval
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+        number
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Timer:stop"></a>
+    <strong>Timer:stop ()</strong>
+    </dt>
+    <dd>
+    Stop timer
+
+
+
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2023-05-01 09:43:58 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

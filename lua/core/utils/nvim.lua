@@ -10,26 +10,14 @@ function utils.nvimexec(s, output)
 end
 
 -- If multiple dict.keys are supplied, the table is going to be assumed to be nested
+user.logs = user.logs or {}
 function req(require_string, do_assert)
   local ok, out = pcall(require, require_string)
-  if ok then
-    return out
-  end
-
-  local no_file = false
-  no_file = out:match "^module '[^']+' not found"
-
-  if no_file then
-    out = "Could not require " .. require_string
-  end
-
-  dict.makepath(user, "logs")
+  if ok then return out end
   array.append(user.logs, out)
   logger:debug(out)
 
-  if do_assert then
-    error(out)
-  end
+  if do_assert then error(out) end
 end
 
 function utils.glob(d, expr, nosuf, alllinks)
@@ -65,14 +53,10 @@ function utils.log_pcall(f, ...)
 end
 
 function utils.log_pcall_wrap(f)
-  return function(...)
-    return utils.log_pcall(f, ...)
-  end
+  return function(...) return utils.log_pcall(f, ...) end
 end
 
-function throw_error(desc)
-  error(dump(desc))
-end
+function throw_error(desc) error(dump(desc)) end
 
 function utils.try_require(s, success, failure)
   local M = require(s)
@@ -110,9 +94,15 @@ utils.del_command = vim.api.nvim_del_user_command
 function input(...)
   local out = {}
   for _, form in ipairs { ... } do
-    assert(is_a.table(form) and #form >= 1, "form: {var, [rest vim.fn.input args]}")
+    assert(
+      is_a.table(form) and #form >= 1,
+      "form: {var, [rest vim.fn.input args]}"
+    )
     local name = form[1]
-    local s = vim.fn.input(form[2] or name .. " % ", unpack(array.rest(array.rest(form))))
+    local s = vim.fn.input(
+      form[2] or name .. " % ",
+      unpack(array.rest(array.rest(form)))
+    )
 
     if #s == 0 then
       pp("\nexpected string for param " .. name)
@@ -122,4 +112,28 @@ function input(...)
   end
 
   return out
+end
+
+--- Only works for user and doom dirs
+function utils.reqloadfile(s)
+  s = s:split "%."
+  local fname
+
+  local function _loadfile(p)
+    local loaded
+    if path.isdir(p) then
+      loaded = loadfile(path.join(p, "init.lua"))
+    else
+      p = p .. ".lua"
+      loaded = loadfile(p)
+    end
+
+    return loaded and loaded()
+  end
+
+  if s[1] == "user" then
+    return _loadfile(path.join(os.getenv "HOME", ".nvim", unpack(s)))
+  elseif s[1] then
+    return _loadfile(path.join(vim.fn.stdpath('config'), 'lua', unpack(s)))
+  end
 end

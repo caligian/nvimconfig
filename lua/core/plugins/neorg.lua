@@ -1,5 +1,4 @@
-user.plugins.neorg = {
-  MODE = 'norg',
+plugin.neorg = {
   config = {
     load = {
       ["core.defaults"] = {},
@@ -35,7 +34,8 @@ user.plugins.neorg = {
       },
     },
   },
-}
 
-req "user.plugins.neorg"
-require("neorg").setup(user.plugins.neorg.config)
+  setup = function(self)
+    require("neorg").setup(self.config)
+  end
+}

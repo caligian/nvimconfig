@@ -1,5 +1,5 @@
 -- Textobjects are broken for some reason
-user.plugins.treesitter = {
+plugin.treesitter = {
   config = {
     refactor = {
       navigation = {
@@ -119,24 +119,22 @@ user.plugins.treesitter = {
       additional_vim_regex_highlighting = false,
     },
   },
+
+  kbd = {
+    silent = true,
+    {
+      "m",
+      ':<C-U>lua require("tsht").nodes()<CR>',
+      { mode = "o" },
+    },
+    {
+      "m",
+      ":lua require('tsht').nodes()<CR>",
+      { noremap = true, mode = "x" },
+    }
+  },
+
+  setup = function(self)
+    require("nvim-treesitter.configs").setup(self.config)
+  end
 }
-
---------------------------------------------------
---------------------------------------------------
--- nvim-treehopper
-req "core.plugins.hop"
-
-K.bind({ silent = true }, {
-  "m",
-  ':<C-U>lua require("tsht").nodes()<CR>',
-  { mode = "o" },
-}, {
-  "m",
-  ":lua require('tsht').nodes()<CR>",
-  { noremap = true, mode = "x" },
-})
-
---------------------------------------------------
--- Setup treesitter
-req "user.plugins.treesitter"
-require("nvim-treesitter.configs").setup(user.plugins.treesitter.config)

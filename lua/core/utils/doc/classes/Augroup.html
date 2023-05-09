@@ -1,0 +1,298 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>LDoc documentation</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>LDoc</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Tables">Tables</a></li>
+<li><a href="#Fields">Fields</a></li>
+<li><a href="#Methods">Methods</a></li>
+</ul>
+
+
+<h2>Classes</h2>
+<ul class="nowrap">
+  <li><strong>Augroup</strong></li>
+  <li><a href="../classes/Autocmd.html">Autocmd</a></li>
+  <li><a href="../classes/Buffer.html">Buffer</a></li>
+  <li><a href="../classes/Keybinding.html">Keybinding</a></li>
+  <li><a href="../classes/Process.html">Process</a></li>
+  <li><a href="../classes/Repeater.html">Repeater</a></li>
+  <li><a href="../classes/Term.html">Term</a></li>
+  <li><a href="../classes/Timeout.html">Timeout</a></li>
+  <li><a href="../classes/Timer.html">Timer</a></li>
+</ul>
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../modules/buffer.html">buffer</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Class <code>Augroup</code></h1>
+<p>Augroup wrapper
+ Create augroups via classes.</p>
+<p> All the instances are stored in
+ user.augroup.</p>
+
+
+<h2><a href="#Tables">Tables</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#user.augroup">user.augroup</a></td>
+	<td class="summary">Store augroup instances</td>
+	</tr>
+</table>
+<h2><a href="#Fields">Fields</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#user.augroup.ID">user.augroup.ID</a></td>
+	<td class="summary">Contains augroup indexed by ID [number|string]</td>
+	</tr>
+</table>
+<h2><a href="#Methods">Methods</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Augroup:init">Augroup:init (name, clear)</a></td>
+	<td class="summary">Create an augroup</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Augroup:add">Augroup:add (event, opts)</a></td>
+	<td class="summary">Add autocommand.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Augroup:remove">Augroup:remove (name)</a></td>
+	<td class="summary">Delete autocommand by name</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Augroup:disable">Augroup:disable ()</a></td>
+	<td class="summary">Delete all autocommands</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Augroup:delete">Augroup:delete ()</a></td>
+	<td class="summary">Delete all autocommands and delete reference to this instance</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Tables"></a>Tables</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "user.augroup"></a>
+    <strong>user.augroup</strong>
+    </dt>
+    <dd>
+    Store augroup instances
+
+
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Fields"></a>Fields</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "user.augroup.ID"></a>
+    <strong>user.augroup.ID</strong>
+    </dt>
+    <dd>
+    Contains augroup indexed by ID [number|string]
+
+
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Methods"></a>Methods</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "Augroup:init"></a>
+    <strong>Augroup:init (name, clear)</strong>
+    </dt>
+    <dd>
+    Create an augroup
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">name</span>
+         Augroup name
+        </li>
+        <li><span class="parameter">clear</span>
+         Clear augroup?
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        self
+    </ol>
+
+
+
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example">nvim = Augroup(<span class="string">'nvim_augroup'</span>, <span class="keyword">true</span>)
+
+nvim:add(
+  <span class="string">'BufAdd'</span>,
+  {
+    pattern = <span class="string">'.config/nvim'</span>,
+    callback = <span class="keyword">function</span> (opts)
+      <span class="comment">-- do something
+</span>    <span class="keyword">end</span>,
+  }
+)</pre>
+    </ul>
+
+</dd>
+    <dt>
+    <a name = "Augroup:add"></a>
+    <strong>Augroup:add (event, opts)</strong>
+    </dt>
+    <dd>
+    Add autocommand.  See ':help nvim<em>create</em>autocmd'
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">event</span>
+         Autocommand event
+        </li>
+        <li><span class="parameter">opts</span>
+         Autocommand opts
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        self
+    </ol>
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="../classes/Autocmd.html#Autocmd:init">Autocmd.init</a>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "Augroup:remove"></a>
+    <strong>Augroup:remove (name)</strong>
+    </dt>
+    <dd>
+    Delete autocommand by name
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">name</span>
+         autocommand name
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        deleted autocommand
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Augroup:disable"></a>
+    <strong>Augroup:disable ()</strong>
+    </dt>
+    <dd>
+    Delete all autocommands
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+        augroup id
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Augroup:delete"></a>
+    <strong>Augroup:delete ()</strong>
+    </dt>
+    <dd>
+    Delete all autocommands and delete reference to this instance
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+        augroup id
+    </ol>
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2023-05-01 09:43:58 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

@@ -21,8 +21,8 @@ local function shell_wrap(f)
 end
 
 local function get_builtin()
-  return array.grep(dict.keys(Lang.langs), function(ft)
-    if Lang.langs[ft].repl then
+  return array.grep(dict.keys(Filetype.ft), function(ft)
+    if Filetype.ft[ft].repl then
       return true
     end
     return false

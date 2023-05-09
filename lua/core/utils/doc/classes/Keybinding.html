@@ -1,0 +1,446 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>LDoc documentation</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>LDoc</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+<li><a href="#Fields">Fields</a></li>
+<li><a href="#Methods">Methods</a></li>
+</ul>
+
+
+<h2>Classes</h2>
+<ul class="nowrap">
+  <li><a href="../classes/Augroup.html">Augroup</a></li>
+  <li><a href="../classes/Autocmd.html">Autocmd</a></li>
+  <li><a href="../classes/Buffer.html">Buffer</a></li>
+  <li><strong>Keybinding</strong></li>
+  <li><a href="../classes/Process.html">Process</a></li>
+  <li><a href="../classes/Repeater.html">Repeater</a></li>
+  <li><a href="../classes/Term.html">Term</a></li>
+  <li><a href="../classes/Timeout.html">Timeout</a></li>
+  <li><a href="../classes/Timer.html">Timer</a></li>
+</ul>
+<h2>Modules</h2>
+<ul class="nowrap">
+  <li><a href="../modules/buffer.html">buffer</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Class <code>Keybinding</code></h1>
+<p>Keybinding wrapper for vim.keymap.set which integrates with nvim autocommands API.</p>
+<p> Aliased as Keybinding</p>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Keybinding.map">Keybinding.map (mode, lhs, cb, opts)</a></td>
+	<td class="summary">Simple classmethod that does the same thing as Keybinding()</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Keybinding.noremap">Keybinding.noremap (mode, lhs, cb, opts)</a></td>
+	<td class="summary">Same as .map but sets noremap to true</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Keybinding.unmap">Keybinding.unmap (modes, lhs, opts)</a></td>
+	<td class="summary">Unmap keybinding.</td>
+	</tr>
+</table>
+<h2><a href="#Fields">Fields</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#user.kbd">user.kbd</a></td>
+	<td class="summary">Contains instances hashed by name</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#user.kbd.ID">user.kbd.ID</a></td>
+	<td class="summary">Contains instances hashed by unique integer</td>
+	</tr>
+</table>
+<h2><a href="#Methods">Methods</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#Keybinding:update">Keybinding:update ()</a></td>
+	<td class="summary">Save instance in user.kbd and user.kbd.ID</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Keybinding:init">Keybinding:init (mode, lhs, cb, rest)</a></td>
+	<td class="summary">Constructor</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Keybinding:disable">Keybinding:disable ()</a></td>
+	<td class="summary">Disable keybinding</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Keybinding:delete">Keybinding:delete ()</a></td>
+	<td class="summary">Delete keybinding</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Keybinding:bind">Keybinding:bind (opts, ...)</a></td>
+	<td class="summary">Set multiple keybindings</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Keybinding:replace">Keybinding:replace (cb)</a></td>
+	<td class="summary">Replace current callback with a new one</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "Keybinding.map"></a>
+    <strong>Keybinding.map (mode, lhs, cb, opts)</strong>
+    </dt>
+    <dd>
+    Simple classmethod that does the same thing as Keybinding()
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">mode</span>
+
+
+
+        </li>
+        <li><span class="parameter">lhs</span>
+
+
+
+        </li>
+        <li><span class="parameter">cb</span>
+
+
+
+        </li>
+        <li><span class="parameter">opts</span>
+
+
+
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        self
+    </ol>
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="../classes/Keybinding.html#Keybinding:init">Keybinding.init</a>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "Keybinding.noremap"></a>
+    <strong>Keybinding.noremap (mode, lhs, cb, opts)</strong>
+    </dt>
+    <dd>
+    Same as .map but sets noremap to true
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">mode</span>
+
+
+
+        </li>
+        <li><span class="parameter">lhs</span>
+
+
+
+        </li>
+        <li><span class="parameter">cb</span>
+
+
+
+        </li>
+        <li><span class="parameter">opts</span>
+
+
+
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Keybinding.unmap"></a>
+    <strong>Keybinding.unmap (modes, lhs, opts)</strong>
+    </dt>
+    <dd>
+    Unmap keybinding.  ':help vim.keymap.del'
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">modes</span>
+         string|array[string]
+        </li>
+        <li><span class="parameter">lhs</span>
+         Lhs to remove
+        </li>
+        <li><span class="parameter">opts</span>
+         optional options
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Fields"></a>Fields</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "user.kbd"></a>
+    <strong>user.kbd</strong>
+    </dt>
+    <dd>
+    Contains instances hashed by name
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "user.kbd.ID"></a>
+    <strong>user.kbd.ID</strong>
+    </dt>
+    <dd>
+    Contains instances hashed by unique integer
+
+
+
+
+
+
+
+</dd>
+</dl>
+    <h2 class="section-header "><a name="Methods"></a>Methods</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "Keybinding:update"></a>
+    <strong>Keybinding:update ()</strong>
+    </dt>
+    <dd>
+    Save instance in user.kbd and user.kbd.ID
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+        self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Keybinding:init"></a>
+    <strong>Keybinding:init (mode, lhs, cb, rest)</strong>
+    </dt>
+    <dd>
+    Constructor
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">mode</span>
+         array[string]|string. If string is passed, it will be split, so that instead of passing a table, you can also pass 'nvo' for {'n', 'v', 'o'}. Any non-documented option is anything compatible with vim.keymap.set
+        </li>
+        <li><span class="parameter">lhs</span>
+         Keys to map to
+        </li>
+        <li><span class="parameter">cb</span>
+         string|callable
+        </li>
+        <li><span class="parameter">rest</span> (Optional) If string then opts.desc will be automatically set. If table then rest of the options
+        <ul>
+        <li><span class="parameter">noremap</span>
+         Set as a non-recursive map (default: false)
+        </li>
+        <li><span class="parameter">remap</span>
+         Set as a recursive map (default: true)
+        </li>
+        <li><span class="parameter">leader</span>
+         Set as a leader map
+        </li>
+        <li><span class="parameter">localeader</span>
+         Set as a localeader map
+        </li>
+        <li><span class="parameter">prefix</span>
+         Prefix lhs. Cannot be used with rest.localleader or rest.leader
+        </li>
+        <li><span class="parameter">event</span>
+         array[string]|string rest.pattern cannot be nil if this is used
+        </li>
+        <li><span class="parameter">pattern</span>
+         array[string]|string rest.event cannot be nil if this is used
+        </li>
+        <li><span class="parameter">name</span>
+         Unique name to reference this instance
+        </li>
+        </li></ul>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        object
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Keybinding:disable"></a>
+    <strong>Keybinding:disable ()</strong>
+    </dt>
+    <dd>
+    Disable keybinding
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Keybinding:delete"></a>
+    <strong>Keybinding:delete ()</strong>
+    </dt>
+    <dd>
+    Delete keybinding
+
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "Keybinding:bind"></a>
+    <strong>Keybinding:bind (opts, ...)</strong>
+    </dt>
+    <dd>
+    Set multiple keybindings
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">opts</span>
+         table Default options
+        </li>
+        <li><span class="parameter">...</span>
+         Keybinding spec
+        </li>
+    </ul>
+
+
+
+    <h3>See also:</h3>
+    <ul>
+         <a href="../classes/Keybinding.html#Keybinding:init">Keybinding.init</a>
+    </ul>
+
+
+</dd>
+    <dt>
+    <a name = "Keybinding:replace"></a>
+    <strong>Keybinding:replace (cb)</strong>
+    </dt>
+    <dd>
+    Replace current callback with a new one
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">cb</span>
+         Callback to replace with
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        self
+    </ol>
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.6</a></i>
+<i style="float:right;">Last updated 2023-05-01 09:43:58 </i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

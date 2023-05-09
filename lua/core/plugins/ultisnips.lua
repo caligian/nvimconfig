@@ -1,4 +1,4 @@
-user.plugins["ultisnips"] = {
+plugin.ultisnips = {
   config = {
     UltiSnipsExpandSnippet = "<tab>",
     UltiSnipsJumpForwardTrigger = "<C-j>",
@@ -6,10 +6,10 @@ user.plugins["ultisnips"] = {
     UltiSnipsEditSplit = "tabdo",
     UltiSnipsSnippetDirectories = { "UltiSnips", "snips" },
   },
+
+  setup = function(self)
+    for k, v in pairs(self.config) do
+      vim.g[k] = v
+    end
+  end
 }
-
-req "user.plugins.ultisnips"
-
-for k, v in pairs(user.plugins["ultisnips"].config) do
-  vim.g[k] = v
-end

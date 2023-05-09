@@ -13,7 +13,7 @@ local function _toggle_option(option)
 end
 
 --------------------------------------------------------------------------------
-
+--
 K.bind(
   { noremap = true, leader = true },
 
@@ -199,24 +199,3 @@ K.bind(
   { "<C-ScrollWheelUp>", "<cmd>FontSize +1<CR>" },
   { "<C-ScrollWheelDown>", "<cmd>FontSize -1<CR>" }
 )
-
---------------------------------------------------------------------------------
-user.qf_open = user.qf_open or false
-user.loclist_open = user.loclist_open or false
-K.noremap('n', '<leader>Q', function ()
-  if user.qf_open then
-    vim.cmd ':cclose'
-  else
-    user.qf_open = true
-    vim.cmd ':copen'
-  end
-end, 'Open qflist')
-
-K.noremap('n', '<leader>L', function ()
-  if user.loclist_open then
-    vim.cmd ':lclose'
-  else
-    user.loclist_open = true
-    vim.cmd ':lopen'
-  end
-end, 'Open qflist')

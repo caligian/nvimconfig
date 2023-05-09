@@ -513,8 +513,10 @@ function Bookmark.load()
   ls = msg()
   if not ls then return end
   dict.each(ls, function(k, obj)
-    ls[k] = Bookmark(k)
-    ls[k].lines = obj.lines
+    if resolve_path(k) then
+      ls[k] = Bookmark(k)
+      ls[k].lines = obj.lines
+    end
   end)
   user.bookmark.BOOKMARK = ls
 

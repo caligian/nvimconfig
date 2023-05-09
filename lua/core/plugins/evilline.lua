@@ -240,9 +240,9 @@ local function setup()
   lualine.setup(config)
 end
 
-Autocmd(
-  "Colorscheme",
-  { pattern = "*", callback = setup, name = "update_statusline_colors" }
-)
+Autocmd('ColorScheme', {
+  pattern = '*',
+  callback = setup
+})
 
 setup()
