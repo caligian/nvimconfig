@@ -96,12 +96,19 @@ function Filetype.load(ft, opts)
 end
 
 function Filetype.loadall()
-  local src =
-    utils.joinpath(vim.fn.stdpath "config", "lua", "core", "ft")
-  local dirs = dir.getdirectories(src)
-  for _, ft in ipairs(dirs) do
-    Filetype.load(utils.basename(ft))
-  end
+  local dest = path.join(vim.fn.stdpath "config", "lua", "core", "ft")
+  local configured = dir.getfiles(dest)
+
+  array.each(
+    configured,
+    function (fname)
+      fname = path.basename(fname)
+      fname = fname:gsub('.lua$', '') 
+      Filetype.load(fname)
+    end 
+  )
+
+  Filetype.loaded = true
 end
 
 Filetype.get = multimethod()

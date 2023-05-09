@@ -5,6 +5,7 @@ REPL.NoCommandException =
   exception("NoCommandException", "No command given for filetype")
 user.repl = user.repl or { FILETYPE = {} }
 local state = user.repl.FILETYPE
+--------------------------------------------------------------------------------
 
 function REPL.get(ft, bufnr)
   if ft == "sh" then
@@ -22,15 +23,13 @@ function REPL:scroll_to_bottom()
   return buffer.feedkeys(self.bufnr, 'G')
 end
 
-pp(Filetype.get('sh', 'repl'))
-
 function REPL:init(ft)
   ft = ft or vim.bo.filetype
   local is_shell = ft == "sh"
-  local cmd = dict.contains(Filetype.ft, ft, "repl")
+  local cmd = Filetype.get(ft, 'repl')
   local opts = {}
 
-  if not cmd then print(REPL.NoCommandException:throw(ft)) end
+  if not cmd then REPL.NoCommandException:throw(ft) end
 
   if is_a.table(cmd) then
     opts.on_input = cmd.on_input

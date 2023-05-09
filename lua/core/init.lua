@@ -1,3 +1,5 @@
+Filetype.loadall()
+
 req "core.globals"
 req "core.option"
 req "core.plugins"
@@ -6,5 +8,3 @@ req 'core.defaults'
 req 'core.bookmarks'
 req 'core.repl'
 req 'core.netrw'
-
-Filetype.loadall()
