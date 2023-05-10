@@ -1,11 +1,6 @@
 local function load_plugin(s) utils.reqloadfile(s) end
 --------------------------------------------------------------------------------
 
-plugin "filetype" {
-  "nathom/filetype.nvim",
-  priority = 500,
-}
-
 plugin "statusline" {
   "nvim-lualine/lualine.nvim",
 }

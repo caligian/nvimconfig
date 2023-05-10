@@ -5,10 +5,10 @@ local state = user.plugins
 --------------------------------------------------------------------------------
 Plugin = class "Plugin"
 
-function Plugin.load_configs() 
+function Plugin.load_configs()
   if Plugin.loaded then return end
   Plugin.loaded = true
-  require "core.plugins.plugins" 
+  require "core.plugins.plugins"
 end
 
 function Plugin.loadall()
@@ -23,8 +23,15 @@ end
 function Plugin.exists(name) return state[name] ~= nil end
 
 function Plugin:load()
-  req("core.plugins." .. self.name)
-  req("user.plugins." .. self.name)
+  local check = path.join(user.dir, 'lua', 'core', 'plugins', self.name)
+  if path.exists(check) or path.exists(check .. '.lua') then
+    req("core.plugins." .. self.name)
+  end
+
+  check = path.join(user.user_dir, 'lua', 'user', 'plugins', self.name)
+  if path.exists(check) or path.exists(check .. '.lua') then
+    req("user.plugins." .. self.name)
+  end
 
   if self.setup then self:setup() end
   if self.kbd then K.bind(self.kbd) end
@@ -46,15 +53,6 @@ function Plugin:init(name, conf)
   state[name] = dict.merge(self, conf)
 end
 
-function Plugin.create_kbd(kbd)
-  local mt = {}
-  setmetatable(kbd, mt)
-
-  function mt:__call(setup_fn, ...) setup_fn(self, ...) end
-
-  return kbd
-end
-
 function Plugin.get(name) return state[name] end
 
 function Plugin.create(name, conf)
@@ -67,6 +65,37 @@ end
 
 function Plugin:wrap(callback)
   return function(...) callback(self, ...) end
+end
+
+function Plugin:todict()
+  local out = dict.grep(self, function(key, _)
+    if not Plugin[key] then return true end
+    return false
+  end)
+
+  out.mappings = self.mappings
+  out.kbd = self.kbd
+  out.autocmds = self.autocmds
+  out.spec = self.spec
+
+  return out
+end
+
+function Plugin.create_template()
+  local src = path.join(user.dir, "lua", "core", "plugins")
+  local dest = path.join(user.user_dir, "lua", "user")
+
+  if not path.exists(dest) then dir.makepath(dest) end
+
+  vim.fn.system { "cp", "-r", src, dest }
+
+  dest = path.join(dest, 'plugins')
+  vim.fn.system {
+    "rm",
+    path.join(dest, "plugins.lua"),
+    path.join(dest, "Plugin.lua"),
+    path.join(dest, "init.lua"),
+  }
 end
 
 plugin = setmetatable({}, {

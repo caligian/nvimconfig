@@ -5,7 +5,12 @@ local types = require "lua-utils.types"
 local utils = require "lua-utils.utils"
 local array = require "lua-utils.array"
 
-local valid_mt_ks = {
+--------------------------------------------------------------------------------
+local mt = {}
+local class = setmetatable({}, mt)
+
+--------------------------------------------------------------------------------
+class.valid_mt_keys = {
   __unm = true,
   __eq = true,
   __ne = true,
@@ -28,13 +33,16 @@ local valid_mt_ks = {
   __mode = true,
 }
 
---------------------------------------------------------------------------------
-local mt = {}
-local class = setmetatable({}, mt)
-
 --- Methods for comparing classes via common __eq, __ne methods
 -- @table class.comparators
-class.comparators = utils.copy(valid_mt_ks)
+class.comparators = utils.copy(class.valid_mt_keys)
+class.comparators.__tostring = nil
+class.comparators.__tonumber = nil
+class.comparators.__index = nil
+class.comparators.__newindex = nil
+class.comparators.__call = nil
+class.comparators.__metatable = nil
+class.comparators.__mode = nil
 
 --- Compare classes by attributes. Tables will be deep compared
 -- @static
@@ -43,13 +51,13 @@ class.comparators = utils.copy(valid_mt_ks)
 -- @treturn boolean
 function class.comparators.eq(cls, other)
   for key, value in pairs(cls) do
-    if not class[key] and not valid_mt_ks[key] and not other[key] then
+    if not class[key] and not class.valid_mt_keys[key] and not other[key] then
       return false
     end
   end
 
   for key, value in pairs(other) do
-    if not class[key] and not valid_mt_ks[key] then
+    if not class[key] and not class.valid_mt_keys[key] then
       local cls_value = cls[key]
       local cls_value_t = types.typeof(cls_value)
       local value_t = types.typeof(value)
@@ -58,7 +66,9 @@ function class.comparators.eq(cls, other)
         return false
       elseif cls_value_t ~= value_t then
         return false
-      elseif cls_value_t == "table" and not dict.compare(cls_value, value, nil, true) then
+      elseif
+        cls_value_t == "table" and not dict.compare(cls_value, value, nil, true)
+      then
         return false
       elseif cls_value ~= value then
         return false
@@ -76,13 +86,11 @@ end
 -- @treturn boolean
 function class.comparators.equal(cls, other)
   for key, value in pairs(cls) do
-    if not other[key] then
-      return false
-    end
+    if not other[key] then return false end
   end
 
   for key, value in pairs(other) do
-    if not class[key] and not valid_mt_ks[key] then
+    if not class[key] and not class.valid_mt_keys[key] then
       if not cls[key] then
         return false
       elseif cls[key] ~= value then
@@ -136,9 +144,7 @@ end
 -- @tparam class x
 -- @treturn string
 function class.get_name(x)
-  if not types.is_class(x) then
-    return
-  end
+  if not types.is_class(x) then return end
   return types.get_name(x)
 end
 
@@ -148,7 +154,9 @@ end
 -- @tparam class cls
 -- @treturn boolean
 function class.is_instance_of(inst, cls)
-  return class.is_instance(inst) and class.get_class(inst) == class.get_class(cls) or false
+  return class.is_instance(inst)
+      and class.get_class(inst) == class.get_class(cls)
+    or false
 end
 
 --- Get all ancestors of class
@@ -159,9 +167,7 @@ function class.get_ancestors(cls)
   cls = class.get_class(cls)
   local ancestors = {}
   local ancestor = class.get_parent(cls)
-  if not ancestor then
-    return
-  end
+  if not ancestor then return end
   ancestors[1] = ancestor
   local i = 2
 
@@ -185,9 +191,7 @@ function class.is_parent_of(cls, inst)
   cls = class.get_class(cls)
   inst = class.get_parent(inst)
 
-  if not cls or not inst then
-    return false
-  end
+  if not cls or not inst then return false end
 
   return cls == inst
 end
@@ -196,25 +200,19 @@ end
 -- @static
 -- @tparam any x
 -- @treturn ?class
-function class.get_class(x)
-  return types.get_class(x)
-end
+function class.get_class(x) return types.get_class(x) end
 
 --- Get parent of a class
 -- @static
 -- @tparam any x
 -- @treturn ?class
-function class.get_parent(x)
-  return utils.mtget(class.get_class(x), "parent")
-end
+function class.get_parent(x) return utils.mtget(class.get_class(x), "parent") end
 
 --- Is x a class instance?
 -- @static
 -- @tparam any x
 -- @treturn boolean
-function class.is_instance(x)
-  return class.is_class(utils.mtget(x))
-end
+function class.is_instance(x) return class.is_class(utils.mtget(x)) end
 
 --- Is class1 a parent/ancestor of class2?
 -- @static
@@ -222,9 +220,7 @@ end
 -- @tparam class y
 -- @treturn boolean
 function class.is_ancestor_of(x, y)
-  if not types.is_class(x) or not types.is_class(y) then
-    return false
-  end
+  if not types.is_class(x) or not types.is_class(y) then return false end
 
   x = x:get_class()
   y = y:get_class()
@@ -238,9 +234,7 @@ function class.is_ancestor_of(x, y)
   end
 
   while child_parent do
-    if parent == child_parent then
-      return true
-    end
+    if parent == child_parent then return true end
     child_parent = child_parent:get_parent()
   end
 
@@ -252,9 +246,7 @@ end
 -- @tparam class obj
 -- @treturn dict of methods
 function class.get_methods(obj)
-  return dict.grep(obj, function(_, value)
-    return types.is_callable(value)
-  end)
+  return dict.grep(obj, function(_, value) return types.is_callable(value) end)
 end
 
 --- Get class variables
@@ -262,9 +254,10 @@ end
 -- @tparam class obj
 -- @treturn dict of variables
 function class.get_vars(obj)
-  return dict.grep(obj, function(_, value)
-    return types.is_callable(value) ~= true
-  end)
+  return dict.grep(
+    obj,
+    function(_, value) return types.is_callable(value) ~= true end
+  )
 end
 
 --- Get a specific class method
@@ -274,9 +267,7 @@ end
 -- @treturn callable
 function class.get_method(obj, k)
   local methods = class.get_methods(obj)
-  if not methods then
-    return
-  end
+  if not methods then return end
   return methods[k]
 end
 
@@ -287,9 +278,7 @@ end
 -- @treturn any
 function class.get_var(obj, k)
   local vars = class.get_vars(obj)
-  if not vars then
-    return
-  end
+  if not vars then return end
   return vars[k]
 end
 
@@ -298,9 +287,7 @@ end
 -- @tparam class obj
 -- @tparam any k attribute name
 -- @treturn any
-function class.get_attrib(obj, k)
-  return obj[k]
-end
+function class.get_attrib(obj, k) return obj[k] end
 
 --- Get class attributes
 -- @static
@@ -321,14 +308,10 @@ end
 -- @treturn boolean
 function class.are_same_shape(x, y)
   local x_attribs = dict.grep(x:get_vars(), function(key, value)
-    if not class[key] then
-      return value
-    end
+    if not class[key] then return value end
   end)
   local y_attribs = dict.grep(y:get_vars(), function(key, value)
-    if not class[key] then
-      return value
-    end
+    if not class[key] then return value end
   end)
 
   return dict.compare(x_attribs, y_attribs, nil, true)
@@ -342,7 +325,10 @@ end
 -- @tparam any opts.attrib use this attribute while using method with that class
 -- @treturn class
 function class.include(obj, t, opts)
-  assert(types.is_table(t) or types.is_class(t), "table expected, got " .. tostring(t))
+  assert(
+    types.is_table(t) or types.is_class(t),
+    "table expected, got " .. tostring(t)
+  )
 
   opts = opts or {}
 
@@ -397,9 +383,7 @@ end
 -- @treturn callable
 function class.super(obj)
   local parent = obj:get_parent()
-  if parent and parent.init then
-    return parent.init
-  end
+  if parent and parent.init then return parent.init end
 end
 
 --- Is x and y of the same class?
@@ -408,7 +392,10 @@ end
 -- @tparam class y
 -- @treturn boolean
 function class.is_a(x, y)
-  return x == y or class.get_class(x) == class.get_class(y) or class.is_ancestor_of(y, x) or false
+  return x == y
+    or class.get_class(x) == class.get_class(y)
+    or class.is_ancestor_of(y, x)
+    or false
 end
 
 --------------------------------------------------
@@ -416,9 +403,7 @@ end
 -- @static
 -- @tparam any x
 -- @treturn boolean
-function class.is_class(x)
-  return types.is_class(x)
-end
+function class.is_class(x) return types.is_class(x) end
 
 --- Constructor to make a new class
 -- @static
@@ -433,9 +418,7 @@ end
 -- @tparam dict opts.defaults default class attributes
 -- @treturn instance
 function class.new(name, parent, opts)
-  if parent then
-    parent = class.get_class(parent)
-  end
+  if parent then parent = class.get_class(parent) end
 
   opts = opts or {}
   local mt = { name = name, parent = parent, type = "class" }
@@ -462,14 +445,10 @@ function class.new(name, parent, opts)
     class.include(cls, include)
   end
 
-  if defaults then
-    dict.merge(cls, defaults)
-  end
+  if defaults then dict.merge(cls, defaults) end
 
   function cls:__newindex(k, v)
-    if valid_mt_ks[k] then
-      mt[k] = v
-    end
+    if class.valid_mt_keys[k] then mt[k] = v end
     rawset(self, k, v)
   end
 
@@ -499,9 +478,7 @@ function class.new(name, parent, opts)
       obj:init(...)
     else
       local parent_init = obj:super()
-      if parent_init then
-        parent_init(obj)
-      end
+      if parent_init then parent_init(obj) end
     end
 
     return obj
@@ -510,9 +487,7 @@ function class.new(name, parent, opts)
   mt.__index = cls.__index
   mt.__newindex = cls.__newindex
   mt.__tostring = cls.__tostring
-  function mt:__call(...)
-    return cls.new(...)
-  end
+  function mt:__call(...) return cls.new(...) end
 
   return cls
 end
@@ -531,8 +506,22 @@ function class.shape(name, parent, opts)
   return class.new(name, parent, opts)
 end
 
-function mt:__call(name, parent, opts)
-  return class.new(name, parent, opts)
+function mt:__call(name, parent, opts) return class.new(name, parent, opts) end
+
+function class:todict(f)
+  if f then return f(self) end
+  local out = {}
+
+  dict.each(
+    self,
+    function(k, v) 
+      if not class[k] and not class.valid_mt_keys[k] then
+        out[k] = v
+      end
+    end
+  )
+
+  return out
 end
 
 return class
