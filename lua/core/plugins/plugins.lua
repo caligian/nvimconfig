@@ -113,7 +113,6 @@ plugin "autopairs" {
 plugin "lint" {
   "mfussenegger/nvim-lint",
   event = "BufReadPost",
-  config = function() req "core.plugins.lint" end,
 }
 
 plugin "vim-wayland-clipboard" {
@@ -147,7 +146,6 @@ plugin "comment" {
 plugin "vimtex" {
   "lervag/vimtex",
   ft = "tex",
-  config = partial(req, "core/plugins/vimtex"),
 }
 
 plugin "fennel" {
@@ -158,12 +156,11 @@ plugin "fennel" {
 plugin "ssr" {
   "cshuaimin/ssr.nvim",
   event = "BufReadPost",
-  config = function() req "core.plugins.ssr" end,
 }
 
 plugin "hop" {
   "phaazon/hop.nvim",
-  config = function() req "core.plugins.hop" end,
+  event = 'WinEnter',
 }
 
 plugin "treesitter" {
@@ -205,10 +202,7 @@ plugin "treesitter" {
     },
     {
       "mfussenegger/nvim-treehopper",
-      dependencies = {
-        "phaazon/hop.nvim",
-        config = function() req "core.plugins.hop" end,
-      },
+      dependencies = { "phaazon/hop.nvim" },
     },
     "kiyoon/treesitter-indent-object.nvim",
     "andymass/vim-matchup",
@@ -216,7 +210,6 @@ plugin "treesitter" {
     "nvim-treesitter/nvim-treesitter-refactor",
     "MunifTanjim/nui.nvim",
   },
-  config = function() req "core.plugins.treesitter" end,
 }
 
 plugin 'snippets' {
@@ -255,7 +248,7 @@ plugin "tagbar" {
   "preservim/tagbar",
   keys = "<C-t>",
   event = "BufReadPost",
-  config = utils.log_pcall_wrap(function()
+  config = function()
     Keybinding.noremap(
       "n",
       "<C-t>",
@@ -264,7 +257,7 @@ plugin "tagbar" {
     )
     vim.g.tagbar_position = "leftabove vertical"
     req "user.plugins.tagbar"
-  end),
+  end,
 }
 
 plugin "whichkey" {
