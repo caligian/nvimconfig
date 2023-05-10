@@ -558,7 +558,9 @@ function Bookmark.print_all()
   end)
 end
 
-function Bookmark.reset() return vim.fn.system { "rm", Bookmark.DEST } end
+function Bookmark.reset() 
+  Bookmark.BOOKMARK = {}
+  return vim.fn.system { "rm", Bookmark.DEST } 
+end
 
---------------------------------------------------
 return Bookmark
