@@ -1,19 +1,16 @@
-snippet lfun "New local function"
-local function ${1:new_function}(${2:args})
-	$0
-end
-endsnippet
+snippet lfun local-function
+	local function ${1:new_function}(${2:args})
+		$0
+	end
 
-snippet cfun "New class function"
-function ${1:class}:${2:new_function}(${3:args})
-	$0
-end
-endsnippet
+snippet cfun class function
+	function ${1:class}:${2:new_function}(${3:args})
+		$0
+	end
 
-snippet mfun "New module function"
-function ${1:module}.${2:new_function}(${3:args})
-	$0
-end
-endsnippet
+snippet rfun closure
+	return function (${1:args})
+		$0
+	end
 
 # vim:ft=snippets:

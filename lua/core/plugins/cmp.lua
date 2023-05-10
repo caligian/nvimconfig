@@ -1,17 +1,27 @@
 local cmp = require "cmp"
-local cmp_ultisnips_mappings = require "cmp_nvim_ultisnips.mappings"
 local cmp_zsh = require "cmp_zsh"
 
 plugin.cmp = {
   config = {
     mapping = {
-      ["<Tab>"] = cmp.mapping(function(fallback)
+      ["<C-j>"] = cmp.mapping(function(fallback)
         if cmp.visible() then
           cmp.select_next_item()
+        elseif luasnip.expand_or_jumpable() then
+          luasnip.expand_or_jump()
         else
           fallback()
         end
-      end),
+      end, { "i", "s" }),
+      ["<C-k>"] = cmp.mapping(function(fallback)
+        if cmp.visible() then
+          cmp.select_prev_item()
+        elseif luasnip.jumpable(-1) then
+          luasnip.jump(-1)
+        else
+          fallback()
+        end
+      end, { "i", "s" }),
       ["<C-b>"] = cmp.mapping.scroll_docs(-4),
       ["<C-f>"] = cmp.mapping.scroll_docs(4),
       ["<C-n>"] = cmp.mapping.select_next_item(),
@@ -19,23 +29,14 @@ plugin.cmp = {
       ["<C-Space>"] = cmp.mapping.complete(),
       ["<C-e>"] = cmp.mapping.abort(),
       ["<CR>"] = cmp.mapping.confirm { select = true },
-      ["<C-/>"] = cmp.mapping(function(fallback)
-        cmp_ultisnips_mappings.compose { "expand" }(function() end)
-      end),
-      ["<C-j>"] = cmp.mapping(function(fallback)
-        cmp_ultisnips_mappings.compose { "jump_forwards" }(function() end)
-      end, { "i", "s" }),
-      ["<C-k>"] = cmp.mapping(function(fallback)
-        cmp_ultisnips_mappings.compose { "jump_backwards" }(function() end)
-      end, { "i", "s" }),
     },
     snippet = {
-      expand = function(args) vim.fn["UltiSnips#Anon"](args.body) end,
+      expand = function(args) require("luasnip").lsp_expand(args.body) end,
     },
     sources = {
+      { name = "luasnip" },
       { name = "neorg" },
       { name = "path" },
-      { name = "ultisnips" },
       { name = "buffer" },
       { name = "treesitter" },
       { name = "nvim_lsp" },
@@ -52,7 +53,7 @@ plugin.cmp = {
     },
   },
 
-  setup = function (self)
+  setup = function(self)
     cmp_zsh.setup { zshrc = true, filetypes = { "zsh" } }
 
     cmp.setup.cmdline("/", {
@@ -64,5 +65,5 @@ plugin.cmp = {
     req "user.plugins.cmp"
 
     cmp.setup(self.config)
-  end
+  end,
 }

@@ -1,4 +1,3 @@
-local function load_plugin(s) utils.reqloadfile(s) end
 --------------------------------------------------------------------------------
 
 plugin "statusline" {
@@ -60,10 +59,7 @@ plugin "colorscheme" {
   "sainnhe/everforest",
 
   dependencies = {
-    {
-      "maxmx03/solarized.nvim",
-      config = load_plugin 'solarized',
-    },
+    "maxmx03/solarized.nvim",
     "rktjmp/lush.nvim",
     "rose-pine/neovim",
     "navarasu/onedark.nvim",
@@ -223,17 +219,18 @@ plugin "treesitter" {
   config = function() req "core.plugins.treesitter" end,
 }
 
-plugin "ultisnips" {
-  "SirVer/ultisnips",
-  event = "InsertEnter",
-  dependencies = { "honza/vim-snippets" },
+plugin 'snippets' {
+  'L3MON4D3/LuaSnip',
+  dependencies = { "rafamadriz/friendly-snippets" },
+  event = 'InsertEnter',
 }
 
 plugin "cmp" {
   "hrsh7th/nvim-cmp",
   event = "InsertEnter",
   dependencies = {
-    "quangnguyen30192/cmp-nvim-ultisnips",
+    'L3MON4D3/LuaSnip',
+    'saadparwaiz1/cmp_luasnip',
     "tamago324/cmp-zsh",
     "hrsh7th/cmp-nvim-lsp",
     "ray-x/cmp-treesitter",
@@ -292,8 +289,6 @@ plugin "lsp" {
     "lukas-reineke/lsp-format.nvim",
     "williamboman/mason.nvim",
     "mfussenegger/nvim-dap",
-    "simrat39/rust-tools.nvim",
-    "Saecki/crates.nvim",
   },
 }
 
