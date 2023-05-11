@@ -1,5 +1,31 @@
 plugin.colorscheme = {
   config = {
+    starry = {
+      config = {
+        starry_bold = true,
+        starry_italic = true,
+        starry_italic_comments = true,
+        starry_italic_string = false,
+        starry_italic_keywords = false,
+        starry_italic_functions = true,
+        starry_italic_variables = true,
+        starry_contrast = true,
+        starry_borders = false,
+        starry_disable_background = false,
+        starry_style_fix = true,
+        starry_style = "moonlight",
+        starry_darker_contrast = true,
+        starry_deep_black = true,
+        starry_set_hl = false,
+        starry_daylight_switch = false,
+      },
+      setup = function (self, opts)
+        opts = opts or {}
+        opts = dict.merge(utils.copy(self.config), opts)
+        dict.each(opts, function (key, value) vim.g[key] = value end)
+        vim.cmd ':color starry'
+      end
+    },
     rosepine = {
       config = {
         variant = "auto",
@@ -36,14 +62,18 @@ plugin.colorscheme = {
         },
       },
       setup = function(self, opts)
-        require("rose-pine").setup(opts or self.config)
+        opts = opts or {}
+        opts = dict.merge(utils.copy(self.config), opts)
+        require("rose-pine").setup(opts)
       end,
     },
     solarized = {
       config = { theme = "neovim" },
-      setup = function(self)
+      setup = function(self, opts)
+        opts = opts or {}
+        opts = dict.merge(utils.copy(self.config), opts)
         vim.o.background = "dark"
-        require("solarized"):setup(self.config)
+        require("solarized"):setup(opts)
       end,
     },
     tokyonight = {
@@ -69,8 +99,9 @@ plugin.colorscheme = {
         on_highlights = function(highlights, colors) end,
       },
       setup = function(self, opts)
-        opts = opts or self.config
-        require("tokyonight").setup(self.config)
+        opts = opts or {}
+        opts = dict.merge(utils.copy(self.config), opts)
+        require("tokyonight").setup(opts)
         vim.cmd ":color tokyonight"
       end,
     },
@@ -81,6 +112,11 @@ plugin.colorscheme = {
       user.colorscheme(config)
     elseif is_string(name) and self.config[name] then
       self.config[name]:setup(config)
+    elseif is_table(name) then
+      local color, config = name[1], name.config
+      if not self.config[color] then return end
+      color = self.config[color]
+      color:setup(config)
     else
       self.config.tokyonight:setup()
     end
