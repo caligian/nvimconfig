@@ -96,12 +96,15 @@ function Filetype:map(opts)
 end
 
 function Filetype.load(ft, opts)
-  if not opts then
-    local _ = utils.reqloadfile("core.ft." .. ft)
-    local config = utils.copy(_)
-    local user_config = utils.copy(req("user.ft." .. ft) or {})
-    config = dict.merge(config, user_config)
-    opts = config
+  local builtin = 'core.ft.' .. ft
+  local override = 'user.ft.' .. ft
+
+  if not utils.req2path(builtin) and not utils.req2path(override) then
+    return 
+  elseif not opts then
+    builtin = utils.copy(require(builtin))
+    override = utils.require(override) or {}
+    opts = dict.merge(builtin, override)
   end
 
   return Filetype(ft, opts)

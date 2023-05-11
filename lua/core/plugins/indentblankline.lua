@@ -1,4 +1,4 @@
-local indent = req "indent_blankline"
+local indent = require "indent_blankline"
 
 local function set_highlight()
   local normal = utils.highlight "Normal"

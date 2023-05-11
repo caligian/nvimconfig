@@ -20,7 +20,7 @@ user.bookmark.save_on_exit = true
 user.bookmark.load_on_open = true
 
 --------------------------------------------------
-req "user.bookmarks"
+utils.require "user.bookmarks"
 
 --------------------------------------------------
 local function resolve_path(p)

@@ -1,14 +1,14 @@
-req "core.globals"
-req "core.option"
+require "core.globals"
+require "core.option"
 Filetype.loadall()
 
 --------------------------------------------------------------------------------
-req "core.plugins"
+require "core.plugins"
 Plugin.loadall()
 
 --------------------------------------------------------------------------------
-req "core.bufgroups"
-req "core.defaults"
-req "core.bookmarks"
-req "core.repl"
-req "core.netrw"
+require "core.bufgroups"
+require "core.defaults"
+require "core.bookmarks"
+require "core.repl"
+require "core.netrw"

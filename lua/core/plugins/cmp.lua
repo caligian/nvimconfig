@@ -66,7 +66,7 @@ plugin.cmp = {
       },
     })
 
-    req "user.plugins.cmp"
+    require "user.plugins.cmp"
 
     cmp.setup(self.config)
   end,

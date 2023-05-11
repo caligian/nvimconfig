@@ -1,11 +1,11 @@
 local load_telescope = function(override)
   local opts = dict.merge({
-    exists = req "telescope",
-    pickers = req "telescope.pickers",
-    actions = req "telescope.actions",
-    action_state = req "telescope.actions.state",
-    sorters = req "telescope.sorters",
-    finders = req "telescope.finders",
+    exists = require "telescope",
+    pickers = require "telescope.pickers",
+    actions = require "telescope.actions",
+    action_state = require "telescope.actions.state",
+    sorters = require "telescope.sorters",
+    finders = require "telescope.finders",
     conf = utils.try_require("telescope.config", function(M)
       return M.values
     end),

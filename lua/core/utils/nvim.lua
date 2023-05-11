@@ -145,3 +145,14 @@ function utils.reqloadfile(s)
     return _loadfile(path.join(vim.fn.stdpath "config", "lua", unpack(s)))
   end
 end
+
+function utils.require(s)
+  local p, tp = utils.req2path(s)
+  if not p then 
+    return
+  elseif tp == 'dir' and path.exists(p .. '/init.lua') then
+    require(s)
+  else
+    require(s)
+  end
+end
