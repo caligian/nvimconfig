@@ -8,7 +8,7 @@ local function set_highlight()
   })
 end
 
-plugin.indent = {
+plugin.indentblankline = {
   methods = {
     set_highlight = set_highlight,
   },
