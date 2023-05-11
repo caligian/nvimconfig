@@ -62,7 +62,9 @@ local function start_term(cmd, opts)
     id = vim.fn.termopen(cmd)
     term = vim.fn.bufnr()
     local ok, msg = get_status(id)
-    if not ok then Term[msg]:throw(self) end
+    if not ok then
+      Term[msg]:throw(self)
+    end
   end)
 
   return id, term
@@ -72,7 +74,9 @@ end
 -- @tparam[opt] number timeout Wait timeout
 -- @return number job status
 function Term:wait(timeout)
-  if not self.id then return false end
+  if not self.id then
+    return false
+  end
 
   local status = vim.fn.jobwait({ self.id }, timeout or Term.timeout)
   return status[1]
@@ -81,7 +85,9 @@ end
 --- Get process status
 -- @return boolean_status, exception_name
 function Term:get_status()
-  if not self.id then return false end
+  if not self.id then
+    return false
+  end
   return get_status(self.id)
 end
 
@@ -89,7 +95,9 @@ end
 -- @param[opt=false] assrt assert a running process
 -- @return boolean
 function Term:is_running(assrt)
-  if not self.id then return false end
+  if not self.id then
+    return false
+  end
   local ok, msg = get_status(self.id, self.command)
   if not ok and assrt then
     Term[msg]:throw(self)
@@ -103,7 +111,9 @@ end
 --- Start the process
 -- @return self
 function Term:start()
-  if self:is_running() then return self end
+  if self:is_running() then
+    return self
+  end
 
   local id, term_buffer = start_term(self.command, self.opts)
   self.id = id
@@ -118,13 +128,17 @@ end
 --- Is terminal in a window?
 -- @return boolean
 function Term:is_visible()
-  if self.bufnr then return buffer.is_visible(self.bufnr) end
+  if self.bufnr then
+    return buffer.is_visible(self.bufnr)
+  end
   return false
 end
 
 --- Stop terminal
 function Term:stop()
-  if not self:is_running() then return end
+  if not self:is_running() then
+    return
+  end
 
   self:hide()
   vim.fn.chanclose(self.id)
@@ -137,13 +151,17 @@ end
 --- Stop all processes
 -- @static
 function Term.stopall()
-  dict.each(user.term.ID, function(_, obj) obj:stop() end)
+  dict.each(user.term.ID, function(_, obj)
+    obj:stop()
+  end)
 end
 
 --- Hide terminal window
 -- @see buffer.hide
 function Term:hide()
-  if self.bufnr then buffer.hide(self.bufnr) end
+  if self.bufnr then
+    buffer.hide(self.bufnr)
+  end
 end
 
 --- Split terminal in a direction
@@ -151,15 +169,21 @@ end
 -- @tparam dict opts split options
 -- @see buffer.split
 function Term:split(direction, opts)
-  if not self:is_running() then return end
-  if not self:is_visible() then buffer.split(self.bufnr, direction, opts) end
+  if not self:is_running() then
+    return
+  end
+  if not self:is_visible() then
+    buffer.split(self.bufnr, direction, opts)
+  end
 end
 
 --- Open terminal in a floating window
 -- @tparam dict opts Floating window options
 -- @see buffer.float
 function Term:float(opts)
-  if not self:is_running() then return end
+  if not self:is_running() then
+    return
+  end
   if not self:is_visible() and self.bufnr then
     buffer.float(self.bufnr, opts)
   end
@@ -175,16 +199,24 @@ end
 --- Dock terminal in a floating window at the bottom
 -- @tparam dict opts Floating window options
 -- @see buffer.float
-function Term:dock(opts) self:float(dict.merge({ dock = 0.3 }, opts or {})) end
+function Term:dock(opts)
+  self:float(dict.merge({ dock = 0.3 }, opts or {}))
+end
 
 --- Send string
 -- @tparam string|array[string] string to send
 function Term:send(s)
-  if not self:is_running() then return end
+  if not self:is_running() then
+    return
+  end
 
   local id = self.id
-  if is_a.string(s) then s = str.split(s, "[\n\r]+") end
-  if self.on_input then s = self.on_input(s) end
+  if is_a.string(s) then
+    s = str.split(s, "[\n\r]+")
+  end
+  if self.on_input then
+    s = self.on_input(s)
+  end
 
   s[#s + 1] = "\n"
   s = array.map(s, string.trim)
@@ -206,7 +238,9 @@ end
 --- Send current line
 -- @param[opt=bufnr()] src_bufnr Buffer index
 function Term:send_current_line(src_bufnr)
-  if not self:is_running() then return end
+  if not self:is_running() then
+    return
+  end
 
   src_bufnr = src_bufnr or vim.fn.bufnr()
   vim.api.nvim_buf_call(src_bufnr, function()
@@ -218,7 +252,9 @@ end
 --- Send buffer
 -- @param[opt=bufnr()] src_bufnr Buffer index
 function Term:send_buffer(src_bufnr)
-  if not self:is_running() then return end
+  if not self:is_running() then
+    return
+  end
 
   src_bufnr = src_bufnr or vim.fn.bufnr()
   self:send(vim.api.nvim_buf_get_lines(src_bufnr, 0, -1, false))
@@ -227,7 +263,9 @@ end
 --- Send everything till current line
 -- @param[opt=bufnr()] src_bufnr Buffer index
 function Term:send_till_point(src_bufnr)
-  if not self:is_running() then return end
+  if not self:is_running() then
+    return
+  end
 
   src_bufnr = src_bufnr or vim.fn.bufnr()
   vim.api.nvim_buf_call(src_bufnr, function()
@@ -239,7 +277,9 @@ end
 --- Send visual range
 -- @param[opt=bufnr()] src_bufnr Buffer index
 function Term:send_visual_range(src_bufnr)
-  if not self:is_running() then return end
+  if not self:is_running() then
+    return
+  end
 
   src_bufnr = src_bufnr or vim.fn.bufnr()
   return self:send(buffer.range(src_bufnr))
@@ -248,18 +288,22 @@ end
 --- Send range using nvim-textsubjects
 -- @param[opt=bufnr()] src_bufnr Buffer index
 function Term:send_textsubject_at_cursor(src_bufnr)
-  if not self:is_running() then return end
+  if not self:is_running() then
+    return
+  end
   src_bufnr = src_bufnr or vim.fn.bufnr()
 
-  return self:send(buffer.call(src_bufnr, function ()
-    vim.cmd 'normal! v.'
+  return self:send(buffer.call(src_bufnr, function()
+    vim.cmd "normal! v."
     return buffer.range(src_bufnr)
   end))
 end
 
 --- Send 'CTRL-C'
 function Term:terminate_input()
-  if not self:is_running() then return end
+  if not self:is_running() then
+    return
+  end
 
   return self:send(vim.api.nvim_replace_termcodes("<C-c>", true, false, true))
 end
@@ -284,6 +328,5 @@ function Term:init(cmd, opts)
 
   return self
 end
-
 
 return Term

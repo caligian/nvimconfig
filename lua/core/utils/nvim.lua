@@ -13,11 +13,15 @@ end
 user.logs = user.logs or {}
 function req(require_string, do_assert)
   local ok, out = pcall(require, require_string)
-  if ok then return out end
+  if ok then
+    return out
+  end
   array.append(user.logs, out)
   logger:debug(out)
 
-  if do_assert then error(out) end
+  if do_assert then
+    error(out)
+  end
 end
 
 function utils.glob(d, expr, nosuf, alllinks)
@@ -53,10 +57,14 @@ function utils.log_pcall(f, ...)
 end
 
 function utils.log_pcall_wrap(f)
-  return function(...) return utils.log_pcall(f, ...) end
+  return function(...)
+    return utils.log_pcall(f, ...)
+  end
 end
 
-function throw_error(desc) error(dump(desc)) end
+function throw_error(desc)
+  error(dump(desc))
+end
 
 function utils.try_require(s, success, failure)
   local M = require(s)
@@ -134,6 +142,6 @@ function utils.reqloadfile(s)
   if s[1] == "user" then
     return _loadfile(path.join(os.getenv "HOME", ".nvim", unpack(s)))
   elseif s[1] then
-    return _loadfile(path.join(vim.fn.stdpath('config'), 'lua', unpack(s)))
+    return _loadfile(path.join(vim.fn.stdpath "config", "lua", unpack(s)))
   end
 end

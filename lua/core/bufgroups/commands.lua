@@ -1,4 +1,4 @@
-local Bufgroup = require 'core.utils.Bufgroup'
+local Bufgroup = require "core.utils.Bufgroup"
 
 local function get_bufgroups()
   return array.sort(dict.keys(user.bufgroup.BUFGROUP))
@@ -10,12 +10,16 @@ end
 
 utils.command("GroupCurrentBufferSelect", function()
   local picker = Bufgroup.create_picker_for_buffer(vim.fn.bufnr())
-  if picker then picker:find() end
+  if picker then
+    picker:find()
+  end
 end)
 
 utils.command("GroupShowAll", function()
   local ks = dict.keys(user.bufgroup.BUFGROUP)
-  if #ks == 0 then return end
+  if #ks == 0 then
+    return
+  end
   table.sort(ks)
   array.each(ks, print)
 end)

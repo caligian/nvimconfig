@@ -1,7 +1,7 @@
 local action_state = require "telescope.actions.state"
 local actions = require "telescope.actions"
 local mod = utils.telescope.create_actions_mod()
-local Bookmark = require 'core.utils.Bookmark'
+local Bookmark = require "core.utils.Bookmark"
 
 function mod.bwipeout(sel)
   print("Wiping out buffer " .. sel.bufnr)
@@ -34,11 +34,15 @@ function mod.add_bookmark(sel)
 end
 
 function mod.remove_bookmark(sel)
-  print('Removing bookmark ' .. buffer.name(sel.bufnr))
+  print("Removing bookmark " .. buffer.name(sel.bufnr))
   local exists = Bookmark.get(sel.bufnr)
-  if not exists then return end
+  if not exists then
+    return
+  end
   local picker = exists:create_picker(true)
-  if picker then return picker:find() end
+  if picker then
+    return picker:find()
+  end
   exists:delete()
 end
 

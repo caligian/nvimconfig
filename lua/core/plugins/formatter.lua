@@ -38,7 +38,9 @@ plugin.formatter = {
 
   methods = { get_formatters = get_formatters },
 
-  setup = function(self) require("formatter").setup(self.config) end,
+  setup = function(self)
+    require("formatter").setup(self.config)
+  end,
 
   config = {
     filetype = get_formatters(),

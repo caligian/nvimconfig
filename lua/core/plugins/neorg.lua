@@ -2,25 +2,25 @@ plugin.neorg = {
   config = {
     load = {
       ["core.defaults"] = {},
-      ['core.export'] = {},
-      ['core.norg.concealer'] = {},
-      ['core.norg.manoeuvre'] = {},
-      ['core.integrations.treesitter'] = {},
-      ['core.keybinds'] = {},
-      ['core.mode'] = {},
+      ["core.export"] = {},
+      ["core.norg.concealer"] = {},
+      ["core.norg.manoeuvre"] = {},
+      ["core.integrations.treesitter"] = {},
+      ["core.keybinds"] = {},
+      ["core.mode"] = {},
 
-      ['core.export.markdown'] = {
+      ["core.export.markdown"] = {
         config = {
-          extensions = 'all',
-          extension = 'md',
-        }
+          extensions = "all",
+          extension = "md",
+        },
       },
 
-      ['core.norg.completion'] = {
+      ["core.norg.completion"] = {
         config = {
-          engine = 'nvim-cmp',
-          name = '[Neorg]',
-        }
+          engine = "nvim-cmp",
+          name = "[Neorg]",
+        },
       },
 
       ["core.norg.dirman"] = {
@@ -37,5 +37,5 @@ plugin.neorg = {
 
   setup = function(self)
     require("neorg").setup(self.config)
-  end
+  end,
 }

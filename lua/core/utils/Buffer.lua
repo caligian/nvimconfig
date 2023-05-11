@@ -13,7 +13,7 @@ user.buffer.BUFNR = user.buffer.BUFNR or {}
 
 user.buffer.SCRATCH_ID = user.buffer.SCRATCH_ID or 1
 
---- Constructor 
+--- Constructor
 -- @usage
 -- local current = Buffer(vim.fn.bufnr())
 --
@@ -34,14 +34,16 @@ user.buffer.SCRATCH_ID = user.buffer.SCRATCH_ID or 1
 -- @return self
 function Buffer:init(name, scratch)
   if name then
-    validate.buffer_expr(is {'number', "string"}, name)
+    validate.buffer_expr(is { "number", "string" }, name)
   end
 
   local bufnr, scratch
   if name and not scratch then
     bufnr = buffer.create(name)
     name = buffer.name(bufnr)
-    if name:match '^_scratch_buffer_' then scratch = true end
+    if name:match "^_scratch_buffer_" then
+      scratch = true
+    end
   elseif scratch then
     scratch = true
     user.buffer.SCRATCH_ID = user.buffer.SCRATCH_ID + 1
@@ -71,35 +73,51 @@ function Buffer:init(name, scratch)
   end
 
   setmetatable(self.var, {
-    __index = function(_, k) return self:getvar(k) end,
-    __newindex = function(_, k, v) return self:setvar(k, v) end,
+    __index = function(_, k)
+      return self:getvar(k)
+    end,
+    __newindex = function(_, k, v)
+      return self:setvar(k, v)
+    end,
   })
 
   setmetatable(self.o, {
-    __index = function(_, k) return self:getopt(k) end,
-    __newindex = function(_, k, v) return self:setopt(k, v) end,
+    __index = function(_, k)
+      return self:getopt(k)
+    end,
+    __newindex = function(_, k, v)
+      return self:setopt(k, v)
+    end,
   })
 
   setmetatable(self.wvar, {
     __index = function(_, k)
-      if not self:is_visible() then return end
+      if not self:is_visible() then
+        return
+      end
       return self:getwinvar(k)
     end,
 
     __newindex = function(_, k, v)
-      if not self:is_visible() then return end
+      if not self:is_visible() then
+        return
+      end
       return self:setwinvar(k, v)
     end,
   })
 
   setmetatable(self.wo, {
     __index = function(_, k)
-      if not self:is_visible() then return end
+      if not self:is_visible() then
+        return
+      end
       return self:getwinopt(k)
     end,
 
     __newindex = function(_, k, v)
-      if not self:is_visible() then return end
+      if not self:is_visible() then
+        return
+      end
       return self:setwinopt(k, v)
     end,
   })

@@ -9,28 +9,32 @@ lsp.diagnostic = {
 }
 
 lsp.kbd = {
-  noremap = true, 
+  noremap = true,
   {
     "<leader>li",
     partial(vim.diagnostic.open_float, { scope = "l", focus = false }),
     { desc = "LSP diagnostic float", name = "lsp_diagnostic_float" },
-  }, {
+  },
+  {
     "[d",
     vim.diagnostic.goto_prev,
     { desc = "LSP go to previous diagnostic", name = "lsp_prev_diagnostic" },
-  }, {
+  },
+  {
     "]d",
     vim.diagnostic.goto_next,
     { desc = "LSP go to next diagnostic", name = "lsp_next_diagnostic" },
-  }, {
+  },
+  {
     "<leader>lq",
     vim.diagnostic.setloclist,
     { desc = "LSP set loclist", name = "lsp_set_loclist" },
-  }
+  },
 }
 
 lsp.mappings = {
-  silent = true, noremap = true,
+  silent = true,
+  noremap = true,
   { "gD", vim.lsp.buf.declaration, { desc = "Buffer declarations" } },
   { "gd", vim.lsp.buf.definition, { desc = "Buffer definitions" } },
   { "K", vim.lsp.buf.hover, { desc = "Show float UI" } },
@@ -60,10 +64,10 @@ lsp.mappings = {
   },
   { "<leader>lR", vim.lsp.buf.rename, { desc = "Rename buffer" } },
   { "<leader>la", vim.lsp.buf.code_action, { desc = "Show code actions" } },
-  { "gr", vim.lsp.buf.references, { desc = "Show buffer references" } }
+  { "gr", vim.lsp.buf.references, { desc = "Show buffer references" } },
 }
 
-lsp.on_attach = function (bufnr)
+lsp.on_attach = function(bufnr)
   buffer.setopt(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 
   if not dict.contains(Filetype.ft, vim.bo.filetype, "formatters") then
@@ -80,7 +84,8 @@ function lsp.setup_server(server, opts)
   local capabilities = opts.capabilities or lsp.capabilties
   local on_attach = opts.on_attach or lsp.on_attach
   local flags = opts.flags or lsp.flags
-  local default_conf = { capabilities = capabilities, on_attach = on_attach, flags = flags }
+  local default_conf =
+    { capabilities = capabilities, on_attach = on_attach, flags = flags }
 
   default_conf = dict.merge(default_conf, opts)
 
@@ -89,7 +94,7 @@ end
 
 function lsp:setup(self)
   require("mason").setup()
-  require('fidget').setup {}
+  require("fidget").setup {}
 
   -- Other settings
   vim.diagnostic.config(lsp.diagnostic)

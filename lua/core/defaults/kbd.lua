@@ -4,11 +4,15 @@ local function _toggle_option(option)
   local winid = vim.fn.bufwinid(bufnr)
   local ok, out = pcall(vim.api.nvim_buf_get_option, bufnr, option)
 
-  if ok then vim.api.nvim_buf_set_option(bufnr, option, not out) end
+  if ok then
+    vim.api.nvim_buf_set_option(bufnr, option, not out)
+  end
 
   if not ok then
     ok, out = pcall(vim.api.nvim_win_get_option, winid, option)
-    if ok then vim.api.nvim_win_set_option(winid, option, not out) end
+    if ok then
+      vim.api.nvim_win_set_option(winid, option, not out)
+    end
   end
 end
 

@@ -6,11 +6,15 @@ function utils.whereis(bin, regex)
   out = string.trim(out)
   out = string.split(out, " ")
 
-  if dict.isblank(out) then return false end
+  if dict.isblank(out) then
+    return false
+  end
 
   if regex then
     for _, value in ipairs(out) do
-      if value:match(regex) then return value end
+      if value:match(regex) then
+        return value
+      end
     end
   end
   return out[1]
@@ -41,7 +45,9 @@ function utils.with_open(fname, mode, callback)
   return out
 end
 
-function utils.joinpath(...) return table.concat({ ... }, "/") end
+function utils.joinpath(...)
+  return table.concat({ ... }, "/")
+end
 
 function utils.basename(s)
   s = vim.split(s, "/")
@@ -49,10 +55,10 @@ function utils.basename(s)
 end
 
 function utils.req2path(s, is_file)
-  local p = str.split(s, "[./]") or {s}
+  local p = str.split(s, "[./]") or { s }
   local test
   user.user_dir = user.user_dir or path.join(os.getenv "HOME", ".nvim")
-  user.dir = user.dir or vim.fn.stdpath 'config'
+  user.dir = user.dir or vim.fn.stdpath "config"
 
   if p[1]:match "user" then
     test = path.join(user.user_dir, "lua", unpack(p))
@@ -73,18 +79,24 @@ function utils.req2path(s, is_file)
 end
 
 function utils.reqmodule(s)
-  if not s:match_any("^core") then return end
-  if s:match('^core%.utils') then return end
+  if not s:match_any "^core" then
+    return
+  end
+  if s:match "^core%.utils" then
+    return
+  end
 
   local p = s:gsub("^core", "user")
-  if not utils.req2path(s) then return end
+  if not utils.req2path(s) then
+    return
+  end
 
   local builtin, builtin_tp = utils.req2path(s)
   local _user, user_tp = utils.req2path(p)
 
   if not builtin then
     return
-  elseif builtin_tp == "dir" and path.exists(builtin .. '/init.lua') then
+  elseif builtin_tp == "dir" and path.exists(builtin .. "/init.lua") then
     builtin = require(s)
   else
     builtin = require(s)

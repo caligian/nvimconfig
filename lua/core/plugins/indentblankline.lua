@@ -14,11 +14,14 @@ plugin.indent = {
   },
 
   autocmds = {
-    set_indentblankline_hi = {"Colorscheme", { pattern = "*", callback = set_highlight}}
+    set_indentblankline_hi = {
+      "Colorscheme",
+      { pattern = "*", callback = set_highlight },
+    },
   },
 
   setup = function(self)
     set_highlight()
     indent.setup(self.config)
-  end
+  end,
 }

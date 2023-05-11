@@ -28,12 +28,20 @@ function Filetype:init(ft, opts)
   self.autocmd = false
 
   if opts.hooks then
-    array.each(array.tolist(opts.hooks), function(cb) self:hook(cb) end)
+    array.each(array.tolist(opts.hooks), function(cb)
+      self:hook(cb)
+    end)
   end
 
-  if opts.bo then self:setbufopts(opts.bo) end
-  if opts.kbd then self:map(opts.kbd) end
-  if opts.linters then opts.linters = array.tolist(opts.linters) end
+  if opts.bo then
+    self:setbufopts(opts.bo)
+  end
+  if opts.kbd then
+    self:map(opts.kbd)
+  end
+  if opts.linters then
+    opts.linters = array.tolist(opts.linters)
+  end
   if opts.server and is_a.string(opts.server) then
     opts.server = { name = opts.server }
   end
@@ -54,7 +62,9 @@ function Filetype:hook(callback, opts)
 end
 
 function Filetype:unhook(id)
-  if self.autocmd[id] then self.autocmd[id]:delete() end
+  if self.autocmd[id] then
+    self.autocmd[id]:delete()
+  end
 end
 
 function Filetype:setbufopts(bo)
@@ -69,7 +79,9 @@ end
 function Filetype:setwinopts(wo)
   self:hook(function()
     local winid = vim.fn.bufwinid(0)
-    if winid == -1 then return end
+    if winid == -1 then
+      return
+    end
 
     for name, val in pairs(wo) do
       vim.api.nvim_win_set_option(winid, name, val)
@@ -85,7 +97,7 @@ end
 
 function Filetype.load(ft, opts)
   if not opts then
-		local _ = utils.reqloadfile("core.ft." .. ft)
+    local _ = utils.reqloadfile("core.ft." .. ft)
     local config = utils.copy(_)
     local user_config = utils.copy(req("user.ft." .. ft) or {})
     config = dict.merge(config, user_config)
@@ -99,30 +111,27 @@ function Filetype.loadall()
   local dest = path.join(vim.fn.stdpath "config", "lua", "core", "ft")
   local configured = dir.getfiles(dest)
 
-  array.each(
-    configured,
-    function (fname)
-      fname = path.basename(fname)
-      fname = fname:gsub('.lua$', '') 
-      Filetype.load(fname)
-    end 
-  )
+  array.each(configured, function(fname)
+    fname = path.basename(fname)
+    fname = fname:gsub(".lua$", "")
+    Filetype.load(fname)
+  end)
 
   Filetype.loaded = true
 end
 
 Filetype.get = multimethod()
 
-Filetype.get:set(
-  function(name, attrib) return dict.get(Filetype.ft, { name, attrib }) end,
-  "string",
-  "string"
-)
+Filetype.get:set(function(name, attrib)
+  return dict.get(Filetype.ft, { name, attrib })
+end, "string", "string")
 
 Filetype.get:set(function(attrib)
   local has = {}
   dict.each(Filetype.ft, function(ft, config)
-    if config[attrib] then has[ft] = config[attrib] end
+    if config[attrib] then
+      has[ft] = config[attrib]
+    end
   end)
 
   return has

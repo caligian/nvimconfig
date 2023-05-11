@@ -1,12 +1,15 @@
-user.bufgroup = user.bufgroup or {
-  POOL = {},
-  BUFFER = {},
-  BUFGROUP = {},
-}
+user.bufgroup = user.bufgroup
+  or {
+    POOL = {},
+    BUFFER = {},
+    BUFGROUP = {},
+  }
 
 Bufgroup = class "Bufgroup"
-Bufgroup.InvalidGroupException = exception('InvalidGroupException', "valid group expected")
-Bufgroup.InvalidBufferException = exception('InvalidBufferException', 'valid buffer expected')
+Bufgroup.InvalidGroupException =
+  exception("InvalidGroupException", "valid group expected")
+Bufgroup.InvalidBufferException =
+  exception("InvalidBufferException", "valid buffer expected")
 
 function Bufgroup:init(name, event, pattern, pool)
   validate {
@@ -32,7 +35,9 @@ end
 function Bufgroup:is_eligible(bufnr)
   bufnr = bufnr or vim.fn.bufnr()
 
-  if vim.fn.bufexists(bufnr) == -1 then return false end
+  if vim.fn.bufexists(bufnr) == -1 then
+    return false
+  end
 
   local bufname = vim.api.nvim_buf_get_name(bufnr)
   local success = false
@@ -44,14 +49,18 @@ function Bufgroup:is_eligible(bufnr)
     end
   end
 
-  if not success then return false end
+  if not success then
+    return false
+  end
 
   return bufnr, bufname
 end
 
 function Bufgroup:add(bufnr)
   local bufnr, bufname = self:is_eligible(bufnr)
-  if not bufnr then return false end
+  if not bufnr then
+    return false
+  end
 
   self.buffer[bufnr] = buffer.name(bufnr)
   dict.update(user.bufgroup.BUFFER, { bufnr, "pools", self.pool }, self.pool)
@@ -61,7 +70,9 @@ function Bufgroup:add(bufnr)
 end
 
 function Bufgroup:disable()
-  if self.augroup then self.augroup:disable() end
+  if self.augroup then
+    self.augroup:disable()
+  end
 end
 
 function Bufgroup:remove(bufnr)
@@ -74,7 +85,7 @@ function Bufgroup:remove(bufnr)
 end
 
 function Bufgroup:clean()
-  dict.each(self.buffer, function (bufnr, _)
+  dict.each(self.buffer, function(bufnr, _)
     if not buffer.exists(bufnr) then
       self.buffer[bufnr] = nil
       user.bufgroup.BUFFER[bufnr] = nil
@@ -100,10 +111,9 @@ function Bufgroup:list(telescope)
   end
 
   return {
-    results = array.imap(
-      dict.keys(self.buffer),
-      function(idx, bufnr) return { bufnr, self.buffer[bufnr], idx } end
-    ),
+    results = array.imap(dict.keys(self.buffer), function(idx, bufnr)
+      return { bufnr, self.buffer[bufnr], idx }
+    end),
     entry_maker = function(entry)
       return {
         value = entry[2],
@@ -119,14 +129,18 @@ function Bufgroup:list(telescope)
 end
 
 function Bufgroup:enable(clear)
-  if self.augroup then return end
-  local augroup_name = "bufgroup_" .. self.name:gsub('[^0-9a-zA-Z_]', '_')
+  if self.augroup then
+    return
+  end
+  local augroup_name = "bufgroup_" .. self.name:gsub("[^0-9a-zA-Z_]", "_")
   self.augroup = Augroup(augroup_name, clear)
 
-  self.augroup:add('BufRead', {
-    pattern = '*',
-    callback = function () self:add(vim.fn.bufnr()) end,
-    name = 'bufgroup_add_' .. self.name
+  self.augroup:add("BufRead", {
+    pattern = "*",
+    callback = function()
+      self:add(vim.fn.bufnr())
+    end,
+    name = "bufgroup_add_" .. self.name,
   })
 
   return self.augroup
@@ -149,13 +163,17 @@ end
 
 function Bufgroup.create(name, ...)
   local exists = Bufgroup.get(name)
-  if exists then return exists end
+  if exists then
+    return exists
+  end
   return Bufgroup(name, ...)
 end
 
 function Bufgroup:create_picker(remover)
   local ls = self:list(true)
-  if not ls then return end
+  if not ls then
+    return
+  end
   local _ = utils.telescope.load()
   local mod = _.create_actions_mod()
 
@@ -170,7 +188,9 @@ function Bufgroup:create_picker(remover)
 
   function mod.add_pattern()
     local pattern = vim.fn.input "Lua pattern % "
-    if #pattern == 0 then return end
+    if #pattern == 0 then
+      return
+    end
     self.pattern[#self.pattern + 1] = pattern
   end
 
@@ -184,9 +204,8 @@ function Bufgroup:create_picker(remover)
   end
 
   local title
-  title = remover
-    and ('(Remover) Buffer group: ' .. self.name) 
-    or ('Buffer group ' .. self.name)
+  title = remover and ("(Remover) Buffer group: " .. self.name)
+    or ("Buffer group " .. self.name)
 
   local picker = _.new_picker(self:list(true), {
     default_action,
@@ -200,13 +219,13 @@ function Bufgroup:create_picker(remover)
 end
 
 function Bufgroup.create_main_picker(remover)
-  local ls = array.sort(
-    array.grep(
-      dict.keys(user.bufgroup.BUFGROUP),
-      function(k) return k ~= "POOL" and k ~= "BUFFER" end
-    )
-  )
-  if array.isblank(ls) then return end
+  local ls =
+    array.sort(array.grep(dict.keys(user.bufgroup.BUFGROUP), function(k)
+      return k ~= "POOL" and k ~= "BUFFER"
+    end))
+  if array.isblank(ls) then
+    return
+  end
   local _ = utils.telescope.load()
   local mod = _.create_actions_mod()
 
@@ -218,7 +237,9 @@ function Bufgroup.create_main_picker(remover)
     end)
   end
 
-  function mod.remove(sel) remove(sel) end
+  function mod.remove(sel)
+    remove(sel)
+  end
 
   local function default_action(prompt_bufnr)
     if remover then
@@ -226,26 +247,26 @@ function Bufgroup.create_main_picker(remover)
     else
       local sel = _.get_selected(prompt_bufnr)[1][1]
       local group = user.bufgroup.BUFGROUP[sel]
-      if group then 
+      if group then
         local picker = group:create_picker()
-        if picker then picker:find() end
+        if picker then
+          picker:find()
+        end
       end
     end
   end
 
-  return _.new_picker(
-    ls,
-    {
-      default_action,
-      {'n', 'x', mod.remove}
-    },
-    { prompt_title = "All buffer groups" }
-  )
+  return _.new_picker(ls, {
+    default_action,
+    { "n", "x", mod.remove },
+  }, { prompt_title = "All buffer groups" })
 end
 
 function Bufgroup.list_pool(pool_name, telescope)
   local pool = user.bufgroup.POOL[pool_name]
-  if not pool then return end
+  if not pool then
+    return
+  end
   local ks = dict.keys(pool)
 
   if dict.isblank(ks) then
@@ -282,7 +303,9 @@ end
 
 function Bufgroup.create_pool_picker(pool_name, remover)
   local ls = Bufgroup.list_pool(pool_name, true)
-  if not ls then return end
+  if not ls then
+    return
+  end
   local _ = utils.telescope.load()
   local mod = _.create_actions_mod()
   local input = vim.fn.input
@@ -299,14 +322,20 @@ function Bufgroup.create_pool_picker(pool_name, remover)
     end
   end
 
-  function mod.remove(sel) remove(sel) end
+  function mod.remove(sel)
+    remove(sel)
+  end
 
   function mod.add(_)
     local group = input "Buffer group name % "
-    if #group == 0 then return false end
+    if #group == 0 then
+      return false
+    end
 
     local pattern = input "Patterns to match (delim = ::) % "
-    if #pattern == 0 then return false end
+    if #pattern == 0 then
+      return false
+    end
     pattern = pattern:split "%s*::%s*"
 
     Bufgroup(group, "BufRead", pattern, pool_name)
@@ -318,10 +347,9 @@ function Bufgroup.create_pool_picker(pool_name, remover)
     local opts = copy(_.ivy)
     opts.grep_open_files = true
     opts.use_regex = true
-    opts.search_dirs = array.map(
-      dict.values(group:list()),
-      function(state) return state end
-    )
+    opts.search_dirs = array.map(dict.values(group:list()), function(state)
+      return state
+    end)
     grep(opts)
   end
 
@@ -331,7 +359,9 @@ function Bufgroup.create_pool_picker(pool_name, remover)
     else
       local sel = _.get_selected(prompt_bufnr)[1]
       local group = pool[sel]
-      if not dict.isblank(group.buffer) then group:create_picker():find() end
+      if not dict.isblank(group.buffer) then
+        group:create_picker():find()
+      end
     end
   end
 
@@ -348,14 +378,20 @@ end
 function Bufgroup.create_picker_for_buffer(bufnr, remover)
   Bufgroup.InvalidBufferException:throw_unless(buffer.exists(bufnr), bufnr)
 
-  if not user.bufgroup.BUFFER[bufnr] then return end
+  if not user.bufgroup.BUFFER[bufnr] then
+    return
+  end
 
   local groups = dict.keys(user.bufgroup.BUFFER[bufnr].groups)
   if #groups == 1 then
     local group = Bufgroup.get(groups[1])
-    if not group then return end
+    if not group then
+      return
+    end
     local picker = group:create_picker(remover)
-    if picker then return picker end
+    if picker then
+      return picker
+    end
   end
 
   local _ = utils.telescope.load()
@@ -386,18 +422,16 @@ function Bufgroup.create_picker_for_buffer(bufnr, remover)
     end
   end
 
-
   local function default_action(prompt_bufnr)
     if remover then
-      array.each(
-        _.get_selected(prompt_bufnr),
-        remove
-      )
+      array.each(_.get_selected(prompt_bufnr), remove)
     else
       local sel = _.get_selected(prompt_bufnr)[1][1]
       local group = user.bufgroup.BUFGROUP[sel]
       local picker = group:create_picker()
-      if picker then picker:find() end
+      if picker then
+        picker:find()
+      end
     end
   end
 
@@ -411,36 +445,40 @@ function Bufgroup.create_picker_for_buffer(bufnr, remover)
     local opts = copy(_.ivy)
     opts.grep_open_files = true
     opts.use_regex = true
-    opts.search_dirs = array.map(
-      dict.values(group:list()),
-      function(state) return state end
-    )
+    opts.search_dirs = array.map(dict.values(group:list()), function(state)
+      return state
+    end)
     grep(opts)
   end
 
   function mod.add(_)
     local pool = input "Buffer group pool name % "
-    if #pool == 0 then return false end
+    if #pool == 0 then
+      return false
+    end
 
     local group = input "Buffer group name % "
-    if #group == 0 then return false end
+    if #group == 0 then
+      return false
+    end
 
     local pattern = input "Patterns to match (delim = ::) % "
-    if #pattern == 0 then return false end
+    if #pattern == 0 then
+      return false
+    end
     pattern = pattern:split "%s*::%s*"
 
     Bufgroup(group, "BufRead", pattern, pool_name)
   end
 
-  local title = remover 
-    and '(Remover) Select buffer group'
-    or 'Select buffer group'
+  local title = remover and "(Remover) Select buffer group"
+    or "Select buffer group"
 
   return _.new_picker(results, {
     default_action,
     { "n", "x", mod.remove },
   }, {
-    prompt_title = title
+    prompt_title = title,
   })
 end
 

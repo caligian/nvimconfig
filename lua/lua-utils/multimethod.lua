@@ -14,13 +14,14 @@ multimethod = setmetatable({}, mt)
 
 --------------------------------------------------------------------------------
 --- Raised when parameters' type signature is not recognized by method
-multimethod.InvalidTypeSignatureException =
-  exception("InvalidTypeSignatureException", "no callable associated with type signature")
+multimethod.InvalidTypeSignatureException = exception(
+  "InvalidTypeSignatureException",
+  "no callable associated with type signature"
+)
 
 --- Raised when multiple type signatures match the param's signatures
 multimethod.MultipleSignaturesException =
   exception("MultipleSignaturesException", "duplicate type signature found")
-
 
 --- Set callable for type signature
 -- @tparam callable f
@@ -59,14 +60,16 @@ end
 
 function multimethod.get_best_match(signatures, params)
   local found = multimethod.get_matches(signatures, params)
-  array.sort(found, function (x, y) return #x > #y end)
+  array.sort(found, function(x, y)
+    return #x > #y
+  end)
 
   if #found == 0 then
     multimethod.InvalidTypeSignatureException:raise()
   end
 
   local dups = {}
-  array.each(found, function (x)
+  array.each(found, function(x)
     local n = #x
     if not dups[n] then
       dups[n] = true

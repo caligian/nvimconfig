@@ -1,7 +1,7 @@
 --- vim.fn.jobstart class wrapper for async job control
 -- @classmod Process
 
-local Process = class 'Process'
+local Process = class "Process"
 
 --- Contains instances
 user.process = user.process or {}
@@ -16,20 +16,23 @@ user.timeout = user.timeout or 30
 Process.timeout = user.timeout
 
 --- Raised when command is invalid and cannot be run
-Process.InvalidCommandException = exception('InvalidCommandException',  "expected valid command")
+Process.InvalidCommandException =
+  exception("InvalidCommandException", "expected valid command")
 
 --- Raised when command cannot be run
-Process.ShellNotExecutableException = exception('ShellNotExecutableException', "shell not executable")
+Process.ShellNotExecutableException =
+  exception("ShellNotExecutableException", "shell not executable")
 
 --- Raised when command exits with an error
-Process.ExitedWithErrorException = exception("ExitedWithErrorException", "command exited with error")
+Process.ExitedWithErrorException =
+  exception("ExitedWithErrorException", "command exited with error")
 
 --- Raised when job is interrupted
 Process.InterruptedException = exception("InterruptedException", "interrupted")
 
 --- Raised when job id is invalid
-Process.InvalidIDException = exception("InvalidCommandException", "valid id expected")
-
+Process.InvalidIDException =
+  exception("InvalidCommandException", "valid id expected")
 
 local function get_status(id, cmd)
   if id == 0 then
@@ -162,7 +165,9 @@ end
 --- Stop all processes
 -- @static
 function Process.stopall()
-  dict.each(user.process.ID, function(obj) obj:stop() end)
+  dict.each(user.process.ID, function(obj)
+    obj:stop()
+  end)
 end
 
 --- Get process status
@@ -175,7 +180,9 @@ end
 -- @param[opt=false] assrt assert a running process
 -- @return boolean
 function Process:is_running(assrt)
-  if not self.id then return false end
+  if not self.id then
+    return false
+  end
   local ok, msg = get_status(self.id, self.command)
   if not ok and assrt then
     Process[msg]:throw(self)
@@ -208,7 +215,9 @@ function Process:start()
   id = vim.fn.jobstart(self.command, self.opts)
   local ok, msg = get_status(id)
 
-  if not ok then Process[msg]:throw(self.command) end
+  if not ok then
+    Process[msg]:throw(self.command)
+  end
 
   self.id = id
   dict.update(user.process.ID, { id }, self)

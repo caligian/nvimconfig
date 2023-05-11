@@ -13,7 +13,9 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 local ok = pcall(require, "lazy")
-if not ok then error "FATAL ERROR: Could not install lazy.nvim" end
+if not ok then
+  error "FATAL ERROR: Could not install lazy.nvim"
+end
 
 local data_dir = vim.fn.stdpath "data"
 local home_dir = os.getenv "HOME" .. "/.nvim"
@@ -53,9 +55,17 @@ local validate = require "lua-utils.validate"
 local fn = require "lua-utils.fn"
 local types = require "lua-utils.types"
 
-dict.each(validate, function(key, value) _G[key] = value end)
-dict.each(fn, function(key, value) _G[key] = value end)
-dict.each(types, function(key, value) _G[key] = value end)
+dict.each(validate, function(key, value)
+  _G[key] = value
+end)
+dict.each(fn, function(key, value)
+  _G[key] = value
+end)
+dict.each(types, function(key, value)
+  _G[key] = value
+end)
 
 -- Delete the old log
-if path.exists(log_path) then vim.fn.system("rm " .. log_path) end
+if path.exists(log_path) then
+  vim.fn.system("rm " .. log_path)
+end

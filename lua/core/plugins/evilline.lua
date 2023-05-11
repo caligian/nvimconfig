@@ -33,8 +33,12 @@ local function setup()
   set_colors()
 
   local conditions = {
-    buffer_not_empty = function() return vim.fn.empty(vim.fn.expand "%:t") ~= 1 end,
-    hide_in_width = function() return vim.fn.winwidth(0) > 80 end,
+    buffer_not_empty = function()
+      return vim.fn.empty(vim.fn.expand "%:t") ~= 1
+    end,
+    hide_in_width = function()
+      return vim.fn.winwidth(0) > 80
+    end,
     check_git_workspace = function()
       local filepath = vim.fn.expand "%:p:h"
       local gitdir = vim.fn.finddir(".git", filepath .. ";")
@@ -88,7 +92,9 @@ local function setup()
   end
 
   ins_left {
-    function() return "▊" end,
+    function()
+      return "▊"
+    end,
     color = { fg = colors.red }, -- Sets highlighting of component
     padding = { left = 0, right = 1 }, -- We don't need space before this
   }
@@ -144,9 +150,9 @@ local function setup()
   }
 
   ins_left {
-    function ()
-      return '(%c, %l/%L)'
-    end
+    function()
+      return "(%c, %l/%L)"
+    end,
   }
 
   -- ins_left { "location" }
@@ -154,7 +160,7 @@ local function setup()
   ins_left {
     "diagnostics",
     sources = { "nvim_diagnostic" },
-    symbols = { error = "!!", warn = "!", info = "~", hint = '?' },
+    symbols = { error = "!!", warn = "!", info = "~", hint = "?" },
     diagnostics_color = {
       color_error = { fg = colors.red },
       color_warn = { fg = colors.yellow },
@@ -165,7 +171,9 @@ local function setup()
   -- Insert mid section. You can make any number of sections in neovim :)
   -- for lualine it's any number greater then 2
   ins_left {
-    function() return "%=" end,
+    function()
+      return "%="
+    end,
   }
 
   -- ins_left {
@@ -188,21 +196,21 @@ local function setup()
   --   icon = " ",
   --   color = { fg = "#ffffff", gui = "bold" },
   -- }
- 
+
   -- Bufgroup
   ins_right {
     function()
       local bufnr = vim.fn.bufnr()
       local groups = user.bufgroup.BUFFER[bufnr]
 
-      if not groups then return "" end
+      if not groups then
+        return ""
+      end
 
       groups = groups.groups
       return sprintf("<%s>", array.join(dict.keys(groups), ","))
     end,
   }
-
-
 
   -- Add components to right sections
   ins_right {
@@ -231,7 +239,9 @@ local function setup()
   }
 
   ins_right {
-    function() return "▊" end,
+    function()
+      return "▊"
+    end,
     color = { fg = colors.red },
     padding = { left = 1 },
   }
@@ -240,9 +250,9 @@ local function setup()
   lualine.setup(config)
 end
 
-Autocmd('ColorScheme', {
-  pattern = '*',
-  callback = setup
+Autocmd("ColorScheme", {
+  pattern = "*",
+  callback = setup,
 })
 
 setup()

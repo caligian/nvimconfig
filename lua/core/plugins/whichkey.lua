@@ -84,7 +84,7 @@ plugin.whichkey = {
       q = { name = "Quit" },
       e = { name = "Lua eval" },
       m = { name = "Filetype" },
-      w = { name = 'Windows'},
+      w = { name = "Windows" },
     }, { prefix = "<leader>" })
-  end
+  end,
 }

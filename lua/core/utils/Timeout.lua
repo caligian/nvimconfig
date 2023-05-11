@@ -1,7 +1,7 @@
 --- Create a timer that runs callback and stops after timeout delay
 -- Inherits from: Timer
 -- @classmod Timeout
-local Timer = require 'core.utils.Timer'
+local Timer = require "core.utils.Timer"
 local Timeout = class("Timeout", Timer)
 
 --- Constructor

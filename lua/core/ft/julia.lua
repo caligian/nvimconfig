@@ -1,12 +1,12 @@
 return {
-  compile = 'julia',
-  repl = 'julia',
+  compile = "julia",
+  repl = "julia",
   server = {
-    name = 'julials',
+    name = "julials",
     config = {
       autostart = true,
       single_file_support = true,
-      cmd = {'julia-lsp', '-e', 'using LanguageServer; runserver()'},
-    }
-  }, 
+      cmd = { "julia-lsp", "-e", "using LanguageServer; runserver()" },
+    },
+  },
 }

@@ -16,9 +16,9 @@ snoremap <silent> <S-Tab> <cmd>lua require('luasnip').jump(-1)<Cr>
     local luasnip = require "luasnip"
     luasnip.setup(self.config)
 
-    require("luasnip.loaders.from_lua").lazy_load() 
-    require("luasnip.loaders.from_vscode").lazy_load() 
-    require("luasnip.loaders.from_snipmate").lazy_load() 
+    require("luasnip.loaders.from_lua").lazy_load()
+    require("luasnip.loaders.from_vscode").lazy_load()
+    require("luasnip.loaders.from_snipmate").lazy_load()
 
     require("luasnip.loaders.from_lua").load {
       paths = {
@@ -27,18 +27,18 @@ snoremap <silent> <S-Tab> <cmd>lua require('luasnip').jump(-1)<Cr>
       },
     }
 
-    require("luasnip.loaders.from_vscode").load({
+    require("luasnip.loaders.from_vscode").load {
       paths = {
         "~/.config/nvim/snips",
         "~/.nvim/snips",
       },
-    })
+    }
 
-    require("luasnip.loaders.from_snipmate").load({
+    require("luasnip.loaders.from_snipmate").load {
       paths = {
         "~/.config/nvim/snips",
         "~/.nvim/snips",
       },
-    })
+    }
   end,
 }

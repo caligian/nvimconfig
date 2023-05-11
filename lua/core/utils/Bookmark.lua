@@ -26,16 +26,22 @@ req "user.bookmarks"
 local function resolve_path(p)
   validate { path = { is { "string", "number" }, p } }
 
-  if p == 0 then p = vim.fn.bufnr() end
+  if p == 0 then
+    p = vim.fn.bufnr()
+  end
   local is_buffer = vim.fn.bufexists(p) ~= 0
   local is_file = is_a.string(p) and path.exists(p)
 
-  if not is_buffer and not is_file then return end
+  if not is_buffer and not is_file then
+    return
+  end
 
   if is_buffer then
     local bufnr = vim.fn.bufnr()
     local bufname = vim.api.nvim_buf_get_name(bufnr)
-    if #bufname == 0 then return end
+    if #bufname == 0 then
+      return
+    end
 
     if path.isdir(bufname) then
       p = {
@@ -44,9 +50,13 @@ local function resolve_path(p)
       }
     else
       local loaded = vim.fn.bufloaded(bufnr) == 1
-      if not loaded then return end
+      if not loaded then
+        return
+      end
       local listed = vim.api.nvim_buf_get_option(bufnr, "buflisted")
-      if not listed then return end
+      if not listed then
+        return
+      end
       p = {
         bufnr = bufnr,
         path = bufname,
@@ -77,7 +87,9 @@ function Bookmark.get(p, line)
   exists = user.bookmark.BOOKMARK[p]
   if not exists then
     p = resolve_path(p)
-    if not p then return end
+    if not p then
+      return
+    end
     p = p.path
   end
 
@@ -97,21 +109,29 @@ function Bookmark:init(p)
   dict.update(user.bookmark.BOOKMARK, _p.path, self)
 end
 
-local function file_line_count(p) return #(file.read(p):split "\n") end
+local function file_line_count(p)
+  return #(file.read(p):split "\n")
+end
 
 local function buffer_line_count(bufnr)
   return vim.api.nvim_buf_line_count(bufnr)
 end
 
-local function file_line(p, line) return file.read(p):split("\n")[line] end
+local function file_line(p, line)
+  return file.read(p):split("\n")[line]
+end
 
 local function buffer_line(bufnr, line)
   return vim.api.nvim_buf_get_lines(bufnr, line - 1, line, false)[1]
 end
 
 function Bookmark:update_context()
-  if self.dir then return end
-  if dict.isblank(self.lines) then return end
+  if self.dir then
+    return
+  end
+  if dict.isblank(self.lines) then
+    return
+  end
 
   local n
   if self.bufnr then
@@ -137,7 +157,9 @@ function Bookmark:open(line)
     vim.cmd(":e " .. self.path)
   end
 
-  if line then vim.cmd(":normal! " .. tostring(line) .. "G") end
+  if line then
+    vim.cmd(":normal! " .. tostring(line) .. "G")
+  end
 end
 
 function Bookmark:remove(line)
@@ -149,8 +171,8 @@ function Bookmark:remove(line)
   return false
 end
 
-function Bookmark:delete() 
-  user.bookmark.BOOKMARK[self.path] = nil 
+function Bookmark:delete()
+  user.bookmark.BOOKMARK[self.path] = nil
 end
 
 function Bookmark:list(telescope)
@@ -186,19 +208,22 @@ function Bookmark:add(line)
   validate.line(function(x)
     local msg = "'.' for current line or line number"
     local ok = x == "." or is_a.number(x)
-    if not ok then return ok, msg end
+    if not ok then
+      return ok, msg
+    end
     return true
   end, line)
 
-  if buffer.exists(self.path) then self.bufnr = buffer.bufnr(self.path) end
+  if buffer.exists(self.path) then
+    self.bufnr = buffer.bufnr(self.path)
+  end
 
   if self.bufnr and line == "." then
     local winid = vim.fn.bufwinid(self.bufnr)
     if winid ~= -1 then
-      line = vim.api.nvim_buf_call(
-        self.bufnr,
-        function() return vim.fn.getpos(".")[2] end
-      )
+      line = vim.api.nvim_buf_call(self.bufnr, function()
+        return vim.fn.getpos(".")[2]
+      end)
     else
       return false, self.path .. " is not visible"
     end
@@ -224,27 +249,37 @@ function Bookmark:is_dir()
   return self.dir
 end
 
-function Bookmark:is_buffer() return self.bufnr end
+function Bookmark:is_buffer()
+  return self.bufnr
+end
 
 function Bookmark:is_invalid()
-  if not buffer.exists(self.bufnr) then self.bufnr = nil end
+  if not buffer.exists(self.bufnr) then
+    self.bufnr = nil
+  end
 
-  if not buffer.exists(self.path) then return true end
+  if not buffer.exists(self.path) then
+    return true
+  end
 
   return false
 end
 
 function Bookmark:autoremove()
-  if self:is_invalid() then self:delete() end
+  if self:is_invalid() then
+    self:delete()
+  end
 end
 
 function Bookmark:jump(line, split)
   local bufnr = buffer.bufnr(self.path)
-  if bufnr then self.bufnr = bufnr end
+  if bufnr then
+    self.bufnr = bufnr
+  end
 
   if self.dir then
-    vim.cmd(':Lexplore ' .. self.path)
-    vim.cmd(':vert resize 40')
+    vim.cmd(":Lexplore " .. self.path)
+    vim.cmd ":vert resize 40"
     -- vim.cmd()
   elseif not self.bufnr then
     self = self.path
@@ -281,13 +316,17 @@ end
 
 function Bookmark.jump_to_path(p, split)
   local obj = Bookmark.exists(p)
-  if not obj then return end
+  if not obj then
+    return
+  end
   obj:jump(nil, split)
 end
 
 function Bookmark.jump_to_line(p, line, split)
   local obj = Bookmark.exists(p)
-  if not obj then return end
+  if not obj then
+    return
+  end
   obj:jump(line, split)
 end
 
@@ -295,7 +334,9 @@ function Bookmark:create_picker(remover)
   local _ = utils.telescope.load()
   local mod = _.create_actions_mod()
   local ls = self:list(true)
-  if not ls then return end
+  if not ls then
+    return
+  end
   local default_action
   local title
 
@@ -303,10 +344,9 @@ function Bookmark:create_picker(remover)
     title = "[Remover] Bookmarks for " .. self.path
 
     default_action = function(prompt_bufnr)
-      array.each(
-        _.get_selected(prompt_bufnr),
-        function(sel) self:remove(sel.line) end
-      )
+      array.each(_.get_selected(prompt_bufnr), function(sel)
+        self:remove(sel.line)
+      end)
     end
   else
     title = "Bookmarks for " .. self.path
@@ -317,10 +357,18 @@ function Bookmark:create_picker(remover)
     end
   end
 
-  function mod.remove(sel) self:remove(sel.line) end
-  function mod.split(sel) self:jump(sel.line, "s") end
-  function mod.tabnew(sel) self:jump(sel.line, "t") end
-  function mod.vsplit(sel) self:jump(sel.line, "v") end
+  function mod.remove(sel)
+    self:remove(sel.line)
+  end
+  function mod.split(sel)
+    self:jump(sel.line, "s")
+  end
+  function mod.tabnew(sel)
+    self:jump(sel.line, "t")
+  end
+  function mod.vsplit(sel)
+    self:jump(sel.line, "v")
+  end
 
   return _.new(ls, {
     default_action,
@@ -340,12 +388,9 @@ function Bookmark.list_all(telescope)
     return
   elseif not telescope then
     local out = {}
-    array.each(
-      ks,
-      function(bookmark_path)
-        out[bookmark_path] = user.bookmark.BOOKMARK[bookmark_path]:list()
-      end
-    )
+    array.each(ks, function(bookmark_path)
+      out[bookmark_path] = user.bookmark.BOOKMARK[bookmark_path]:list()
+    end)
 
     return out
   end
@@ -355,19 +400,27 @@ end
 
 function Bookmark.create_main_picker(remover)
   local ls = Bookmark.list_all(true)
-  if not ls then return end
+  if not ls then
+    return
+  end
   local _ = utils.telescope.load()
   local mod = _.create_actions_mod()
-  local function get_obj(k) return user.bookmark.BOOKMARK[k] end
+  local function get_obj(k)
+    return user.bookmark.BOOKMARK[k]
+  end
 
   local function remove(sel)
     local obj = get_obj(sel[1])
     local lines = obj:list()
-    if not lines then return obj:delete() end
+    if not lines then
+      return obj:delete()
+    end
     obj:create_picker(remove):find()
   end
 
-  function mod.remove(sel) remove(sel) end
+  function mod.remove(sel)
+    remove(sel)
+  end
 
   function mod.marks(sel)
     local obj = get_obj(sel[1])
@@ -411,16 +464,22 @@ end
 
 function Bookmark.add_path(p)
   local obj = Bookmark.exists(p)
-  if not obj then obj = Bookmark(p) end
+  if not obj then
+    obj = Bookmark(p)
+  end
 
   return obj
 end
 
 function Bookmark.add_line(p, line)
-  if not line then return Bookmark.add_path(line) end
+  if not line then
+    return Bookmark.add_path(line)
+  end
 
   local obj = Bookmark.add_path(p)
-  if not obj then return end
+  if not obj then
+    return
+  end
 
   obj:update_context()
   obj:add(line)
@@ -430,7 +489,9 @@ end
 
 function Bookmark.remove_line(p, line)
   local obj = Bookmark.exists(p)
-  if obj then obj:remove(line) end
+  if obj then
+    obj:remove(line)
+  end
 
   return obj
 end
@@ -440,7 +501,9 @@ function Bookmark.remove_path(p)
     user.bookmark.BOOKMARKs[p] = nil
   else
     p = resolve_path(p)
-    if not p then return end
+    if not p then
+      return
+    end
     user.bookmark.BOOKMARK[p.path] = nil
   end
 end
@@ -463,7 +526,9 @@ function Bookmark.exists(p)
 end
 
 function Bookmark.remove_current_buffer(line)
-  if line then return Bookmark.remove_line(vim.fn.bufnr(), line) end
+  if line then
+    return Bookmark.remove_line(vim.fn.bufnr(), line)
+  end
 
   return Bookmark.remove_path(vim.fn.bufnr())
 end
@@ -478,40 +543,47 @@ function Bookmark.list_buffers()
     if buftype == "nofile" or buf.listed == 0 or buf.loaded == 0 then
       return false
     end
-    if #buf.name == 0 then return false end
+    if #buf.name == 0 then
+      return false
+    end
 
     return true
   end)
 
-  return array.map(buffers, function(buf) return buf.name end)
+  return array.map(buffers, function(buf)
+    return buf.name
+  end)
 end
 
 function Bookmark.save()
   file.write(
     Bookmark.DEST,
     "return "
-      .. dump(dict.map(
-        user.bookmark.BOOKMARK,
-        function(_, obj)
-          return {
-            path = obj.path,
-            file = obj.file,
-            dir = obj.dir,
-            lines = obj.lines,
-          }
-        end
-      ))
+      .. dump(dict.map(user.bookmark.BOOKMARK, function(_, obj)
+        return {
+          path = obj.path,
+          file = obj.file,
+          dir = obj.dir,
+          lines = obj.lines,
+        }
+      end))
   )
 end
 
 function Bookmark.load()
   local ls = file.read(Bookmark.DEST)
-  if not ls then return end
+  if not ls then
+    return
+  end
 
   local ok, msg = pcall(loadstring, ls)
-  if not ok then return end
+  if not ok then
+    return
+  end
   ls = msg()
-  if not ls then return end
+  if not ls then
+    return
+  end
   dict.each(ls, function(k, obj)
     if resolve_path(k) then
       ls[k] = Bookmark(k)
@@ -525,13 +597,19 @@ end
 
 function Bookmark.create_current_buffer_picker(remove)
   local exists = Bookmark.get(vim.fn.bufnr())
-  if not exists then return end
+  if not exists then
+    return
+  end
   local picker = exists:create_picker(remove)
-  if picker then return picker end
+  if picker then
+    return picker
+  end
 end
 
 function Bookmark:print()
-  if self.dir then return pp(sprintf("Directory: " .. self.path)) end
+  if self.dir then
+    return pp(sprintf("Directory: " .. self.path))
+  end
 
   local display = {}
   if self.bufnr then
@@ -558,9 +636,9 @@ function Bookmark.print_all()
   end)
 end
 
-function Bookmark.reset() 
+function Bookmark.reset()
   Bookmark.BOOKMARK = {}
-  return vim.fn.system { "rm", Bookmark.DEST } 
+  return vim.fn.system { "rm", Bookmark.DEST }
 end
 
 return Bookmark

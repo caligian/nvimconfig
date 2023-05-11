@@ -145,12 +145,14 @@ local function get_common_keys(spec, param)
   local common = ks_param ^ ks_spec
 
   if missing:len() > 0 then
-    local msg = sprintf("%s: missing keys: %s", t_name, array.join(missing:items(), ","))
+    local msg =
+      sprintf("%s: missing keys: %s", t_name, array.join(missing:items(), ","))
     error(msg)
   end
 
   if no_extra and extra:len() > 0 then
-    local msg = sprintf("%s: extra keys: %s", t_name, array.join(extra:items(), ","))
+    local msg =
+      sprintf("%s: extra keys: %s", t_name, array.join(extra:items(), ","))
     error(msg)
   end
 
@@ -249,7 +251,8 @@ validate.validate = setmetatable({}, {
           error(key .. ": " .. "expected table, got " .. types.typeof(param))
         end
         spec.__name = spec.__name or key
-        spec.__nonexistent = spec.__nonexistent == nil and true or spec.__nonexistent
+        spec.__nonexistent = spec.__nonexistent == nil and true
+          or spec.__nonexistent
         validate_table(spec, param)
       else
         local ok, msg = is_a(got, expected)

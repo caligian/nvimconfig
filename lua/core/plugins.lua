@@ -1,4 +1,4 @@
-require 'core.utils.Plugin'
+require "core.utils.Plugin"
 
 plugin "statusline" {
   "nvim-lualine/lualine.nvim",
@@ -160,7 +160,7 @@ plugin "ssr" {
 
 plugin "hop" {
   "phaazon/hop.nvim",
-  event = 'WinEnter',
+  event = "WinEnter",
 }
 
 plugin "treesitter" {
@@ -212,18 +212,18 @@ plugin "treesitter" {
   },
 }
 
-plugin 'snippets' {
-  'L3MON4D3/LuaSnip',
+plugin "snippets" {
+  "L3MON4D3/LuaSnip",
   dependencies = { "rafamadriz/friendly-snippets" },
-  event = 'InsertEnter',
+  event = "InsertEnter",
 }
 
 plugin "cmp" {
   "hrsh7th/nvim-cmp",
   event = "InsertEnter",
   dependencies = {
-    'L3MON4D3/LuaSnip',
-    'saadparwaiz1/cmp_luasnip',
+    "L3MON4D3/LuaSnip",
+    "saadparwaiz1/cmp_luasnip",
     "tamago324/cmp-zsh",
     "hrsh7th/cmp-nvim-lsp",
     "ray-x/cmp-treesitter",

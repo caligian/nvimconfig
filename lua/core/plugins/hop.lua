@@ -26,15 +26,15 @@ function plugin.hop:setup()
     end,
   })
 
-  K.bind({mode='nvx'}, {
+  K.bind({ mode = "nvx" }, {
     "s",
     function()
-      hop.hint_char2 {direction = directions.AFTER_CURSOR}
+      hop.hint_char2 { direction = directions.AFTER_CURSOR }
     end,
   }, {
     "<A-s>",
     function()
-      hop.hint_char2 {direction = directions.BEFORE_CURSOR}
+      hop.hint_char2 { direction = directions.BEFORE_CURSOR }
     end,
   })
 end

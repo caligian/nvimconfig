@@ -16,8 +16,8 @@ local load_telescope = function(override)
         extensions = {},
         layout_config = {
           height = 0.8,
-          width = 0.9
-        }
+          width = 0.9,
+        },
       })
     end),
   }, override or {})
@@ -89,7 +89,7 @@ end
 
 M.new_picker = M.new
 M.create_picker = M.new
-M.run_picker = function (...)
+M.run_picker = function(...)
   return M.create_picker(...):find()
 end
 
@@ -114,24 +114,20 @@ end
 }
 --]]
 function M.create_menu(title, spec)
-  return M.create_picker(
-    {
-      results = spec,
-      entry_maker = function (entry)
-        return {
-          value = entry[1],
-          display = entry[1],
-          ordinal = -1,
-          callback = entry[2],
-        }
-      end
-    },
-    function (prompt_bufnr)
-      local sel = M.get_selected(prompt_bufnr)[1]
-      sel.callback(sel)
+  return M.create_picker({
+    results = spec,
+    entry_maker = function(entry)
+      return {
+        value = entry[1],
+        display = entry[1],
+        ordinal = -1,
+        callback = entry[2],
+      }
     end,
-    {
-      prompt_title = title,
-    }
-  )
+  }, function(prompt_bufnr)
+    local sel = M.get_selected(prompt_bufnr)[1]
+    sel.callback(sel)
+  end, {
+    prompt_title = title,
+  })
 end

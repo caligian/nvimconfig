@@ -1,13 +1,17 @@
 Autocmd("TextYankPost", {
   name = "highlight_on_yank",
   pattern = "*",
-  callback = function() vim.highlight.on_yank { timeout = 100 } end,
+  callback = function()
+    vim.highlight.on_yank { timeout = 100 }
+  end,
 })
 
 Autocmd("BufAdd", {
   name = "textwidth_colorcolumn",
   pattern = "*",
-  callback = function() buffer.setwinopt(vim.fn.bufnr(), "colorcolumn", "+2") end,
+  callback = function()
+    buffer.setwinopt(vim.fn.bufnr(), "colorcolumn", "+2")
+  end,
 })
 
 Autocmd("BufAdd", {

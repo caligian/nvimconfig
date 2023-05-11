@@ -2,7 +2,7 @@ return {
   repl = {
     "evcxr",
     on_input = function(s)
-      s[#s+1] = "\n"
+      s[#s + 1] = "\n"
       return s
     end,
   },

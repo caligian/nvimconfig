@@ -2,7 +2,7 @@
 -- Create augroups via classes. All the instances are stored in
 -- user.augroup.
 -- @classmod Augroup
-require 'core.utils.Autocmd'
+require "core.utils.Autocmd"
 Augroup = class "Augroup"
 
 --- Store augroup instances
@@ -32,7 +32,7 @@ function Augroup:init(name, clear)
   self.name = name
   self.autocmd = {}
   self.clear = clear
-  self.id = vim.api.nvim_create_augroup(self.name, {clear=clear})
+  self.id = vim.api.nvim_create_augroup(self.name, { clear = clear })
 
   dict.update(user.augroup, self.name, self)
   dict.update(user.augroup.ID, self.id, self)
@@ -47,7 +47,7 @@ function Augroup:add(event, opts)
   opts = opts or {}
   opts.group = self.name
 
-  assert(opts.name, 'No autocmd name supplied')
+  assert(opts.name, "No autocmd name supplied")
 
   local au = Autocmd(event, opts)
   self.autocmd[opts.name] = au
@@ -59,23 +59,29 @@ function Augroup:add(event, opts)
 end
 
 --- Delete autocommand by name
--- @param name autocommand name 
+-- @param name autocommand name
 -- @return deleted autocommand
 function Augroup:remove(name)
   local exists = self.autocmd[name]
-  if not exists then return end
+  if not exists then
+    return
+  end
 
   exists:delete()
   self.autocmd[name] = nil
-  
+
   return exists
 end
 
 --- Delete all autocommands
 -- @return augroup id
 function Augroup:disable()
-  if not self.id then return end
-  array.each(dict.keys(self.autocmd), function (au_name) self:remove(au_name) end)
+  if not self.id then
+    return
+  end
+  array.each(dict.keys(self.autocmd), function(au_name)
+    self:remove(au_name)
+  end)
   local id = self.id
   vim.api.nvim_del_augroup_by_id(id)
   self.id = false
@@ -87,7 +93,9 @@ end
 -- @return augroup id
 function Augroup:delete()
   local id = self:disable()
-  if not id then return end
+  if not id then
+    return
+  end
   user.augroup[self.name] = nil
   user.augroup.ID[id] = nil
 

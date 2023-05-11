@@ -180,9 +180,9 @@ function array.shift(t, times)
     out[i] = table.remove(t, 1)
   end
 
-	if times == 1 then 
-		return out[1]
-	end
+  if times == 1 then
+    return out[1]
+  end
 
   return t
 end

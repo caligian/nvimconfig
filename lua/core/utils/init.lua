@@ -29,7 +29,7 @@ require "core.utils.color"
 --------------------------------------------------
 -- API
 require "core.utils.Autocmd"
-require 'core.utils.Augroup'
+require "core.utils.Augroup"
 require "core.utils.Keybinding"
 require "core.utils.Buffer"
 require "core.utils.Term"
@@ -37,4 +37,4 @@ require "core.utils.Process"
 
 --------------------------------------------------------------------------------
 -- Framework utils
-require 'core.utils.Filetype'
+require "core.utils.Filetype"

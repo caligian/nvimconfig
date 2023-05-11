@@ -1,6 +1,6 @@
 --- Create a timer running at fixed intervals
 -- @classmod Repeater
-local Timer = require 'core.utils.Timer'
+local Timer = require "core.utils.Timer"
 local Repeater = class("Repeater", Timer)
 
 --- Constructor function
@@ -14,4 +14,3 @@ function Repeater:init(interval, callback, wrap)
 end
 
 return Repeater
-

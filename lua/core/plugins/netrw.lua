@@ -11,5 +11,5 @@ plugin.netrw = {
 
   setup = function(self)
     require("netrw").setup(self.config)
-  end
+  end,
 }

@@ -43,11 +43,11 @@ plugin.statusline = {
 
   setup = function(self)
     if self.evil then
-      require 'core.plugins.evilline'
+      require "core.plugins.evilline"
     else
-      require('lualine').setup(self.config)
+      require("lualine").setup(self.config)
     end
-  end
+  end,
 }
 
 plugin.statusline:setup()

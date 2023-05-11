@@ -1,5 +1,6 @@
 plugin.dispatch.kbd = {
-  noremap = true, leader = true, 
+  noremap = true,
+  leader = true,
   {
     "cb",
     function()
@@ -16,12 +17,14 @@ plugin.dispatch.kbd = {
     end,
     "n",
     { noremap = true, desc = "Build file" },
-  }, {
+  },
+  {
     "cq",
     ":Copen<CR>",
     "n",
     { desc = "Open qflist", noremap = true },
-  }, {
+  },
+  {
     "ct",
     function()
       local ft = vim.bo.filetype
@@ -37,7 +40,8 @@ plugin.dispatch.kbd = {
     end,
     "n",
     { noremap = true, desc = "Test file" },
-  }, {
+  },
+  {
     "cc",
     function()
       local ft = vim.bo.filetype
@@ -53,5 +57,5 @@ plugin.dispatch.kbd = {
     end,
     "n",
     { noremap = true, desc = "Compile file" },
-  }
+  },
 }

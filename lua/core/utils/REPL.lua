@@ -1,4 +1,4 @@
-local buffer = require 'core.utils.buffer'
+local buffer = require "core.utils.buffer"
 local Term = require "core.utils.Term"
 local REPL = class("REPL", Term)
 REPL.NoCommandException =
@@ -10,26 +10,32 @@ local state = user.repl.FILETYPE
 function REPL.get(ft, bufnr)
   if ft == "sh" then
     local exists = state.sh
-    if exists and exists:is_running() then return exists end
+    if exists and exists:is_running() then
+      return exists
+    end
   end
 
   ft = ft or vim.bo.filetype
   bufnr = bufnr or vim.fn.bufnr()
   local exists = dict.get(state, { ft, bufnr })
-  if exists and exists:is_running() then return exists end
+  if exists and exists:is_running() then
+    return exists
+  end
 end
 
 function REPL:scroll_to_bottom()
-  return buffer.feedkeys(self.bufnr, 'G')
+  return buffer.feedkeys(self.bufnr, "G")
 end
 
 function REPL:init(ft)
   ft = ft or vim.bo.filetype
   local is_shell = ft == "sh"
-  local cmd = Filetype.get(ft, 'repl')
+  local cmd = Filetype.get(ft, "repl")
   local opts = {}
 
-  if not cmd then REPL.NoCommandException:throw(ft) end
+  if not cmd then
+    REPL.NoCommandException:throw(ft)
+  end
 
   if is_a.table(cmd) then
     opts.on_input = cmd.on_input
@@ -67,8 +73,12 @@ end
 
 function REPL.create(ft, bufnr)
   local exists = REPL.get(ft, bufnr)
-  if exists and exists:is_running() then return exists end
-  if ft then return REPL(ft):start() end
+  if exists and exists:is_running() then
+    return exists
+  end
+  if ft then
+    return REPL(ft):start()
+  end
 end
 
 return REPL

@@ -31,7 +31,9 @@ plugin.cmp = {
       ["<CR>"] = cmp.mapping.confirm { select = true },
     },
     snippet = {
-      expand = function(args) require("luasnip").lsp_expand(args.body) end,
+      expand = function(args)
+        require("luasnip").lsp_expand(args.body)
+      end,
     },
     sources = {
       { name = "luasnip" },
@@ -47,7 +49,9 @@ plugin.cmp = {
         name = "spell",
         option = {
           keep_all_entries = false,
-          enable_in_context = function() return true end,
+          enable_in_context = function()
+            return true
+          end,
         },
       },
     },

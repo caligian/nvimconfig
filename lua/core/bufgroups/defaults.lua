@@ -37,9 +37,9 @@ user.bufgroup.enable = {
   },
 }
 
-dict.each(user.bufgroup.enable, function (pool, groups)
-  dict.each(groups, function (group_name, spec)
-    if not Bufgroup.get(pool .. '.' .. group_name) then
+dict.each(user.bufgroup.enable, function(pool, groups)
+  dict.each(groups, function(group_name, spec)
+    if not Bufgroup.get(pool .. "." .. group_name) then
       Bufgroup(group_name, unpack(array.append(spec, pool))):enable()
     end
   end)

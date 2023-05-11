@@ -1,4 +1,4 @@
---- Autocommand wrapper 
+--- Autocommand wrapper
 -- Create autocommands via classes. All the instances are stored in
 -- user.autocmd.
 -- @classmod Autocmd
@@ -24,7 +24,7 @@ user.autocmd.BUFFER = user.autocmd.BUFFER or {}
 -- @usage
 -- -- `:help autocmd`
 -- local a = Autocmd(
---  'BufEnter', 
+--  'BufEnter',
 --  {callback=partial(print, 'hello'), pattern='*'}
 -- )
 -- @param event string|array[string] of vim events
@@ -44,8 +44,8 @@ function Autocmd:init(event, opts)
         __nonexistent = true,
         callback = is { "callable", "string" },
         pattern = is { "string", "table" },
-        opt_bufnr = 'number',
-        opt_name = 'string',
+        opt_bufnr = "number",
+        opt_name = "string",
       },
       opts,
     },
@@ -58,7 +58,9 @@ function Autocmd:init(event, opts)
   local bufnr = opts.bufnr
   opts.name = nil
   opts.bufnr = nil
-  if bufnr then opts.pattern = '<buffer=' .. bufnr .. '>' end
+  if bufnr then
+    opts.pattern = "<buffer=" .. bufnr .. ">"
+  end
 
   if type(group) == "string" then
     augroup = vim.api.nvim_create_augroup(group, {})
@@ -104,14 +106,18 @@ function Autocmd:init(event, opts)
   dict.update(user.autocmd.ID, id, self)
   dict.update(user.autocmd.GROUP, { augroup, id }, self)
 
-  if name then user.autocmd[name] = self end
+  if name then
+    user.autocmd[name] = self
+  end
 
   return self
 end
 
 --- Disable autocommand
 function Autocmd:disable()
-  if not self.enabled then return end
+  if not self.enabled then
+    return
+  end
 
   vim.api.nvim_del_autocmd(self.id)
   self.enabled = false
@@ -125,7 +131,7 @@ function Autocmd:delete()
 
   dict.delete(user.autocmd, self.name)
   dict.delete(user.autocmd.ID, self.id)
-  dict.delete(user.autocmd.GROUP, {self.gid, self.id})
+  dict.delete(user.autocmd.GROUP, { self.gid, self.id })
 
   return self
 end
@@ -134,7 +140,9 @@ function Autocmd.bind(autocmds)
   dict.each(autocmds, function(name, x)
     if x.group then
       local augroup = Augroup(name)
-      array.each(x, function(au) augroup:add(unpack(x)) end)
+      array.each(x, function(au)
+        augroup:add(unpack(x))
+      end)
     else
       x[2].name = name
       Autocmd(unpack(x))

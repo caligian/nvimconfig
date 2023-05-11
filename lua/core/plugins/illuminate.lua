@@ -19,7 +19,7 @@ plugin.illuminate = {
       "startuptime",
       "latex",
       "markdown",
-      'norg',
+      "norg",
     },
     filetypes_allowlist = {},
     modes_denylist = {},
@@ -32,7 +32,7 @@ plugin.illuminate = {
     min_count_to_highlight = 1,
   },
 
-  setup = function (self)
-    require("illuminate").configure(self.config) 
-  end
+  setup = function(self)
+    require("illuminate").configure(self.config)
+  end,
 }

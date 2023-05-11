@@ -20,7 +20,7 @@ function Timer:is_running()
 end
 
 --- Create a new timer. Constructor function
--- @param timeout timeout length 
+-- @param timeout timeout length
 -- @param interval repeat interval
 -- @param callback callback to run
 -- @param wrap_callback .schedule_wrap callback?
@@ -75,4 +75,3 @@ function Timer:stop()
 end
 
 return Timer
-

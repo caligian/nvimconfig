@@ -77,7 +77,8 @@ return {
     vim.cmd [[ autocmd BufWrite <buffer> :TrimWhiteSpace ]]
   end,
   kbd = {
-    noremap = true, prefix = "<leader>m",
+    noremap = true,
+    prefix = "<leader>m",
 
     -- If line already dict.contains == then, reformat it
     { "+", put_sep, "Put seperator: =" },

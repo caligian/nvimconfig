@@ -131,10 +131,10 @@ plugin.treesitter = {
       "m",
       ":lua require('tsht').nodes()<CR>",
       { noremap = true, mode = "x" },
-    }
+    },
   },
 
   setup = function(self)
     require("nvim-treesitter.configs").setup(self.config)
-  end
+  end,
 }
