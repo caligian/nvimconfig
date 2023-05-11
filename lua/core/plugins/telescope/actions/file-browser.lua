@@ -2,7 +2,7 @@ require "core.utils.telescope"
 
 local _ = utils.telescope.load()
 local mod = _.create_actions_mod()
-local Bookmark = require "core.bookmarks.Bookmark"
+local Bookmark = require "core.utils.Bookmark"
 
 function mod.delete(sel) 
   print('rm -r', sel[1])

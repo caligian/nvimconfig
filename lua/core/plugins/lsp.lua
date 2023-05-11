@@ -63,7 +63,7 @@ lsp.mappings = {
   { "gr", vim.lsp.buf.references, { desc = "Show buffer references" } }
 }
 
-lsp.on_attach = plugin.lsp:wrap(function (self, bufnr)
+lsp.on_attach = function (bufnr)
   buffer.setopt(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 
   if not dict.contains(Filetype.ft, vim.bo.filetype, "formatters") then
@@ -73,7 +73,7 @@ lsp.on_attach = plugin.lsp:wrap(function (self, bufnr)
   local mappings = utils.copy(self.mappings)
   mappings.bufnr = bufnr
   K.bind(mappings)
-end)
+end
 
 function lsp.setup_server(server, opts)
   opts = opts or {}

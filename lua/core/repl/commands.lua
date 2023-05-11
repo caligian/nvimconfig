@@ -1,4 +1,4 @@
-local REPL = require 'core.repl.REPL'
+local REPL = require 'core.utils.REPL'
 local command = utils.command
 
 local function wrap(f, is_shell)

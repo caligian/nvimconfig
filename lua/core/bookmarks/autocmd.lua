@@ -1,6 +1,4 @@
 Autocmd("QuitPre", {
-  callback = function()
-    Bookmarks.save()
-  end,
+  callback = function() require('core.utils.Bookmark').save() end,
   pattern = "*",
 })

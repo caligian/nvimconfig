@@ -1,4 +1,4 @@
-local Bufgroup = require 'core.bufgroups.Bufgroup'
+local Bufgroup = require 'core.utils.Bufgroup'
 
 local function get_bufgroups()
   return array.sort(dict.keys(user.bufgroup.BUFGROUP))

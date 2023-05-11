@@ -8,7 +8,7 @@ Plugin = class "Plugin"
 function Plugin.load_configs()
   if Plugin.loaded then return end
   Plugin.loaded = true
-  require "core.plugins.plugins"
+  require "core.plugins"
 end
 
 function Plugin.loadall()
@@ -63,10 +63,6 @@ function Plugin.create(name, conf)
   end
 end
 
-function Plugin:wrap(callback)
-  return function(...) callback(self, ...) end
-end
-
 function Plugin:todict()
   local out = dict.grep(self, function(key, _)
     if not Plugin[key] then return true end
@@ -90,12 +86,6 @@ function Plugin.create_template()
   vim.fn.system { "cp", "-r", src, dest }
 
   dest = path.join(dest, 'plugins')
-  vim.fn.system {
-    "rm",
-    path.join(dest, "plugins.lua"),
-    path.join(dest, "Plugin.lua"),
-    path.join(dest, "init.lua"),
-  }
 end
 
 plugin = setmetatable({}, {

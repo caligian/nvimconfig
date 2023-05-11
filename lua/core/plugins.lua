@@ -1,4 +1,4 @@
---------------------------------------------------------------------------------
+require 'core.utils.Plugin'
 
 plugin "statusline" {
   "nvim-lualine/lualine.nvim",

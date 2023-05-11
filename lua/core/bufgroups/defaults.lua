@@ -1,4 +1,4 @@
-local Bufgroup = require "core.bufgroups.Bufgroup"
+local Bufgroup = require "core.utils.Bufgroup"
 -- Bufgroup = loadfile('Bufgroup.lua')()
 
 local get_path = function(ws, p)

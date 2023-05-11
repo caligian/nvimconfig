@@ -14,14 +14,14 @@ end
 
 plug.methods = {
   get_linters = get_linters,
-  lint_buffer = plug:wrap(function(self, bufnr)
+  lint_buffer = function(bufnr)
     bufnr = bufnr or vim.fn.bufnr()
     buffer.call(bufnr, function() 
       if require('lint').linters_by_ft[vim.bo.filetype] then
-        require("lint").try_lint() 
+        require("lint").try_lint(bufnr)
       end
     end)
-  end)
+  end
 }
 
 plug.config = {
@@ -30,13 +30,6 @@ plug.config = {
 
 plug.kbd = {
   {'n', '<leader>ll', plug.methods.lint_buffer, 'Lint buffer'}
-}
-
-plug.autocmds = {
-  lint_buffer = {'BufWritePost', {
-    pattern = '*',
-    callback = plug.methods.lint_buffer,
-  }}
 }
 
 function plug:setup()

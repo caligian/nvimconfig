@@ -1,7 +1,7 @@
 local action_state = require "telescope.actions.state"
 local actions = require "telescope.actions"
 local mod = utils.telescope.create_actions_mod()
-local Bookmark = require 'core.bookmarks.Bookmark'
+local Bookmark = require 'core.utils.Bookmark'
 
 function mod.bwipeout(sel)
   print("Wiping out buffer " .. sel.bufnr)
