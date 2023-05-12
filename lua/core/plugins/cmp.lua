@@ -1,5 +1,6 @@
 local cmp = require "cmp"
 local cmp_zsh = require "cmp_zsh"
+local luasnip = require 'luasnip'
 
 plugin.cmp = {
   config = {

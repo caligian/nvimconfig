@@ -2,7 +2,7 @@ local buffer = require "core.utils.buffer"
 local Term = require "core.utils.Term"
 local REPL = class("REPL", Term)
 REPL.NoCommandException =
-  exception("NoCommandException", "No command given for filetype")
+  exception "No command given for filetype"
 user.repl = user.repl or { FILETYPE = {} }
 local state = user.repl.FILETYPE
 --------------------------------------------------------------------------------

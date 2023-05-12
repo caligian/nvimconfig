@@ -141,7 +141,7 @@ function Autocmd.bind(autocmds)
     if x.group then
       local augroup = Augroup(name)
       array.each(x, function(au)
-        augroup:add(unpack(x))
+        augroup:add(unpack(au))
       end)
     else
       x[2].name = name

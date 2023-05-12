@@ -10,7 +10,7 @@ local is_string_or_table = is { "string", "table" }
 
 --- Raised when buffer index is invalid for an operation
 buffer.InvalidBufferException =
-  exception("InvalidBufferException", "invalid buffer expr")
+  exception "invalid buffer expr"
 
 --- Add buffer by name or return existing buffer index. ':help bufadd()'
 -- @function buffer.bufadd

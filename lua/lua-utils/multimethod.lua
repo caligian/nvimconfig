@@ -14,21 +14,17 @@ multimethod = setmetatable({}, mt)
 
 --------------------------------------------------------------------------------
 --- Raised when parameters' type signature is not recognized by method
-multimethod.InvalidTypeSignatureException = exception(
-  "InvalidTypeSignatureException",
-  "no callable associated with type signature"
-)
+multimethod.InvalidTypeSignatureException =
+  exception "no callable associated with type signature"
 
 --- Raised when multiple type signatures match the param's signatures
 multimethod.MultipleSignaturesException =
-  exception("MultipleSignaturesException", "duplicate type signature found")
+  exception "duplicate type signature found"
 
 --- Set callable for type signature
 -- @tparam callable f
 -- @tparam any ... type specs
-function multimethod:set(f, ...)
-  self.sig[{ ... }] = f
-end
+function multimethod:set(f, ...) self.sig[{ ... }] = f end
 
 function multimethod.compare_sig(signature, params)
   local status_i = 0
@@ -36,9 +32,7 @@ function multimethod.compare_sig(signature, params)
   local sig_n = #signature
   local param_len = #params
 
-  if param_len > sig_n then
-    params = array.slice(params, 1, sig_n)
-  end
+  if param_len > sig_n then params = array.slice(params, 1, sig_n) end
 
   for i = 1, sig_n do
     status[status_i + 1] = is_a(params[i], signature[i])
@@ -53,20 +47,17 @@ function multimethod.compare_sig(signature, params)
 end
 
 function multimethod.get_matches(signatures, params)
-  return array.grep(signatures, function(sig)
-    return array.all(multimethod.compare_sig(sig, params))
-  end)
+  return array.grep(
+    signatures,
+    function(sig) return array.all(multimethod.compare_sig(sig, params)) end
+  )
 end
 
 function multimethod.get_best_match(signatures, params)
   local found = multimethod.get_matches(signatures, params)
-  array.sort(found, function(x, y)
-    return #x > #y
-  end)
+  array.sort(found, function(x, y) return #x > #y end)
 
-  if #found == 0 then
-    multimethod.InvalidTypeSignatureException:raise()
-  end
+  if #found == 0 then multimethod.InvalidTypeSignatureException:raise() end
 
   local dups = {}
   array.each(found, function(x)
@@ -105,14 +96,10 @@ function multimethod.new()
     set = multimethod.set,
     sig = {},
   }, {
-    __call = function(self, ...)
-      return self:get(...)(...)
-    end,
+    __call = function(self, ...) return self:get(...)(...) end,
   })
 end
 
-function mt:__call()
-  return self.new()
-end
+function mt:__call() return self.new() end
 
 return multimethod

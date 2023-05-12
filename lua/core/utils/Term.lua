@@ -15,22 +15,22 @@ Term.timeout = user.term.timeout
 
 --- Raised when command is invalid and cannot be run
 Term.InvalidCommandException =
-  exception("InvalidCommandException", "expected valid command")
+  exception "expected valid command"
 
 --- Raised when command cannot be run
 Term.ShellNotExecutableException =
-  exception("ShellNotExecutableException", "shell not executable")
+  exception "shell not executable"
 
 --- Raised when command exits with an error
 Term.ExitedWithErrorException =
-  exception("ExitedWithErrorException", "command exited with error")
+  exception "command exited with error"
 
 --- Raised when job is interrupted
-Term.InterruptedException = exception("InterruptedException", "interrupted")
+Term.InterruptedException = exception "interrupted"
 
 --- Raised when job id is invalid
 Term.InvalidIDException =
-  exception("InvalidCommandException", "valid id expected")
+  exception "valid id expected"
 
 local function get_status(id)
   if id == 0 then

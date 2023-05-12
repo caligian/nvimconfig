@@ -6,11 +6,11 @@ local Bookmark = class(
 
 --------------------------------------------------
 Bookmark.InvalidPathException =
-  exception("InvalidPathException", "expected valid buffer/path")
+  exception "expected valid buffer/path"
 Bookmark.CorruptedException =
-  exception("CorruptedException", "saved bookmarks could not be read")
+  exception "saved bookmarks could not be read"
 Bookmark.CannotSaveException =
-  exception("CannotSaveException", "could not save bookmarks")
+  exception "could not save bookmarks"
 
 --------------------------------------------------
 user.bookmark = user.bookmark or {}

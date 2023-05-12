@@ -31,7 +31,6 @@ local function __tostring(self, obj, reason)
     reason = self.reason or reason,
     obj = tostring(obj),
     traceback = traceback,
-    name = self.name,
   }, { __tostring = dump })
 
   return show
@@ -85,8 +84,8 @@ end
 --- Create a new object
 -- @usage
 -- exception = require 'exception'
--- local e = exception('1_is_not_2', '1 is not 2')
--- e:throw_unless(1 == 2) -- {name = '1_is_not_2', reason = '1 is not 2'}
+-- local e = exception('1 is not 2')
+-- e:throw_unless(1 == 2) -- {reason = '1 is not 2'}
 --
 -- var = 123
 -- local e = exception '123Error'
@@ -102,8 +101,7 @@ end
 -- @tparam string name name of the exception
 -- @tparam string reason reason to show
 -- @treturn self
-function exception:init(name, reason)
-  self.name = name
+function exception:init(reason)
   self.reason = reason
 end
 

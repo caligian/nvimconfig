@@ -17,22 +17,22 @@ Process.timeout = user.timeout
 
 --- Raised when command is invalid and cannot be run
 Process.InvalidCommandException =
-  exception("InvalidCommandException", "expected valid command")
+  exception "expected valid command"
 
 --- Raised when command cannot be run
 Process.ShellNotExecutableException =
-  exception("ShellNotExecutableException", "shell not executable")
+  exception "shell not executable"
 
 --- Raised when command exits with an error
 Process.ExitedWithErrorException =
-  exception("ExitedWithErrorException", "command exited with error")
+  exception "command exited with error"
 
 --- Raised when job is interrupted
-Process.InterruptedException = exception("InterruptedException", "interrupted")
+Process.InterruptedException = exception "interrupted"
 
 --- Raised when job id is invalid
 Process.InvalidIDException =
-  exception("InvalidCommandException", "valid id expected")
+  exception "valid id expected"
 
 local function get_status(id, cmd)
   if id == 0 then

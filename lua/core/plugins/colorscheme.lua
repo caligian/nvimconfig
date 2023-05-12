@@ -110,8 +110,13 @@ plugin.colorscheme = {
     local name = user.colorscheme
     if is_callable(name) then
       user.colorscheme(config)
-    elseif is_string(name) and self.config[name] then
-      self.config[name]:setup(config)
+    elseif is_string(name)  then
+      if self.config[name] then
+        self.config[name]:setup(config)
+      else
+        local ok = pcall(vim.cmd, 'color ' .. name)
+        if not ok then vim.cmd 'starry' end
+      end
     elseif is_table(name) then
       local color, config = name[1], name.config
       if not self.config[color] then return end

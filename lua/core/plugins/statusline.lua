@@ -1,6 +1,8 @@
-local colors = {
-  bg = "#202328",
-  fg = "#bbc2cf",
+local statusline = plugin.statusline
+
+statusline.colors = {
+  bg = "#000000",
+  fg = "#ffffff",
   yellow = "#ECBE7B",
   cyan = "#008080",
   darkblue = "#081633",
@@ -12,29 +14,36 @@ local colors = {
   red = "#ec5f67",
 }
 
-local function set_colors()
+function statusline:update_colors()
   local normal = utils.highlight "Normal"
-  colors.bg = normal.guibg or "#002b36"
-  colors.fg = normal.guifg or "#efefef"
-  colors.bg = utils.darken(colors.bg, 10)
-  colors.fg = utils.darken(colors.fg, 10)
+  local colors = self.colors
+
+  colors.bg = normal.guibg
+  colors.fg = normal.guifg
+
+  if utils.is_light(colors.bg) then
+    for key, value in pairs(colors) do
+      colors[key] = utils.darken(value, 10)
+    end
+  else
+    for key, value in pairs(colors) do
+      colors[key] = utils.lighten(value, 10)
+    end
+  end
+
+  return colors
 end
 
-local function setup_evilline()
+function statusline:setup_evil()
   -- Eviline config for lualine
   -- Author: shadmansaleh
   -- Credit: glepnir
   local lualine = require "lualine"
-
-  set_colors()
+  local colors = self:update_colors()
 
   local conditions = {
-    buffer_not_empty = function()
-      return vim.fn.empty(vim.fn.expand "%:t") ~= 1
-    end,
-    hide_in_width = function()
-      return vim.fn.winwidth(0) > 80
-    end,
+    buffer_not_empty = function() return vim.fn.empty(vim.fn.expand "%:t") ~= 1 end,
+    hide_in_width = function() return vim.fn.winwidth(0) > 80 end,
     check_git_workspace = function()
       local filepath = vim.fn.expand "%:p:h"
       local gitdir = vim.fn.finddir(".git", filepath .. ";")
@@ -88,9 +97,7 @@ local function setup_evilline()
   end
 
   ins_left {
-    function()
-      return "▊"
-    end,
+    function() return "▊" end,
     color = { fg = colors.red }, -- Sets highlighting of component
     padding = { left = 0, right = 1 }, -- We don't need space before this
   }
@@ -146,9 +153,7 @@ local function setup_evilline()
   }
 
   ins_left {
-    function()
-      return "(%c, %l/%L)"
-    end,
+    function() return "(%c, %l/%L)" end,
   }
 
   -- ins_left { "location" }
@@ -167,9 +172,7 @@ local function setup_evilline()
   -- Insert mid section. You can make any number of sections in neovim :)
   -- for lualine it's any number greater then 2
   ins_left {
-    function()
-      return "%="
-    end,
+    function() return "%=" end,
   }
 
   -- ins_left {
@@ -199,9 +202,7 @@ local function setup_evilline()
       local bufnr = vim.fn.bufnr()
       local groups = user.bufgroup.BUFFER[bufnr]
 
-      if not groups then
-        return ""
-      end
+      if not groups then return "" end
 
       groups = groups.groups
       return sprintf("<%s>", array.join(dict.keys(groups), ","))
@@ -235,9 +236,7 @@ local function setup_evilline()
   }
 
   ins_right {
-    function()
-      return "▊"
-    end,
+    function() return "▊" end,
     color = { fg = colors.red },
     padding = { left = 1 },
   }
@@ -246,54 +245,63 @@ local function setup_evilline()
   lualine.setup(config)
 end
 
-plugin.statusline = {
-  evil = true,
-  config = {
-    options = {
-      icons_enabled = true,
-      theme = "auto",
-      component_separators = { left = "", right = "" },
-      section_separators = { left = "", right = "" },
-      disabled_filetypes = {
-        statusline = {},
-        winbar = {},
-      },
-      ignore_focus = {},
-      always_divide_middle = true,
-      globalstatus = false,
-      refresh = {
-        statusline = 1000,
-        tabline = 1000,
-        winbar = 1000,
-      },
+statusline.config = {
+  options = {
+    icons_enabled = true,
+    theme = "auto",
+    component_separators = { left = "", right = "" },
+    section_separators = { left = "", right = "" },
+    disabled_filetypes = {
+      statusline = {},
+      winbar = {},
     },
-    sections = {
-      lualine_a = { "mode" },
-      lualine_b = { "branch", "diff", "diagnostics" },
-      lualine_c = { "filename" },
-      lualine_x = { "encoding", "fileformat", "filetype" },
-      lualine_y = { "progress" },
-      lualine_z = { "location" },
+    ignore_focus = {},
+    always_divide_middle = true,
+    globalstatus = false,
+    refresh = {
+      statusline = 1000,
+      tabline = 1000,
+      winbar = 1000,
     },
-    inactive_sections = {
-      lualine_a = {},
-      lualine_b = {},
-      lualine_c = { "filename" },
-      lualine_x = { "location" },
-      lualine_y = {},
-      lualine_z = {},
-    },
-    tabline = {},
-    winbar = {},
-    inactive_winbar = {},
-    extensions = {},
   },
-
-  setup = function(self)
-    if self.evil then
-      setup_evilline()
-    else
-      require("lualine").setup(self.config)
-    end
-  end,
+  sections = {
+    lualine_a = { "mode" },
+    lualine_b = { "branch", "diff", "diagnostics" },
+    lualine_c = { "filename" },
+    lualine_x = { "encoding", "fileformat", "filetype" },
+    lualine_y = { "progress" },
+    lualine_z = { "location" },
+  },
+  inactive_sections = {
+    lualine_a = {},
+    lualine_b = {},
+    lualine_c = { "filename" },
+    lualine_x = { "location" },
+    lualine_y = {},
+    lualine_z = {},
+  },
+  tabline = {},
+  winbar = {},
+  inactive_winbar = {},
+  extensions = {},
 }
+
+statusline.autocmds = {
+  update_statusline_colors = {
+    "ColorScheme",
+    {
+      pattern = "*",
+      callback = function() plugin.statusline:setup() end,
+    },
+  },
+}
+
+statusline.evil = true
+
+function statusline:setup()
+  if self.evil then
+    self:setup_evil()
+  else
+    require("lualine").setup(self.config)
+  end
+end

@@ -7,9 +7,9 @@ user.bufgroup = user.bufgroup
 
 Bufgroup = class "Bufgroup"
 Bufgroup.InvalidGroupException =
-  exception("InvalidGroupException", "valid group expected")
+  exception "valid group expected"
 Bufgroup.InvalidBufferException =
-  exception("InvalidBufferException", "valid buffer expected")
+  exception "valid buffer expected"
 
 function Bufgroup:init(name, event, pattern, pool)
   validate {

@@ -26,7 +26,7 @@ dict.merge(user, {
     help_files = { ft = "help" },
   },
 
-  colorscheme = 'starry'
+  colorscheme = 'OceanicNextLight'
 })
 
 if vim.fn.has "gui" == 1 then

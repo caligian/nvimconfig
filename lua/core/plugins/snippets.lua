@@ -7,6 +7,8 @@ plugin.snippets = {
     vim.cmd [[ 
 imap <silent> <C-_> <Plug>luasnip-expand-snippet
 
+imap <silent> <C-/> <Plug>luasnip-expand-snippet
+
 inoremap <silent> <S-Tab> <cmd>lua require'luasnip'.jump(-1)<Cr>
 
 snoremap <silent> <Tab> <cmd>lua require('luasnip').jump(1)<Cr>

@@ -1,8 +1,6 @@
 function utils.highlight(hi)
   local ok, out = pcall(vim.api.nvim_exec, "hi " .. hi, true)
-  if not ok then
-    return {}
-  end
+  if not ok then return {} end
 
   hi = {}
   out = vim.split(out, " +")
@@ -17,9 +15,7 @@ function utils.highlight(hi)
 
   array.each(out, function(i)
     local attrib, value = unpack(vim.split(i, "="))
-    if value then
-      hi[attrib] = value
-    end
+    if value then hi[attrib] = value end
   end)
 
   return hi
@@ -81,13 +77,9 @@ function utils.darken(hex, darker_n)
   for s in hex:gmatch "[a-fA-F0-9][a-fA-F0-9]" do
     local bg_numeric_value = tonumber("0x" .. s) - darker_n
 
-    if bg_numeric_value < 0 then
-      bg_numeric_value = 0
-    end
+    if bg_numeric_value < 0 then bg_numeric_value = 0 end
 
-    if bg_numeric_value > 255 then
-      bg_numeric_value = 255
-    end
+    if bg_numeric_value > 255 then bg_numeric_value = 255 end
 
     result = result .. string.format("%2.2x", bg_numeric_value)
   end
@@ -95,9 +87,7 @@ function utils.darken(hex, darker_n)
   return result
 end
 
-function utils.lighten(hex, lighten_n)
-  return utils.darken(hex, lighten_n * -1)
-end
+function utils.lighten(hex, lighten_n) return utils.darken(hex, lighten_n * -1) end
 
 function utils.luminance(hex)
   local r, g, b = hex2rgb(hex)
@@ -105,9 +95,12 @@ function utils.luminance(hex)
   return luminance < (255 / 2)
 end
 
+function utils.isdark() end
+
 function utils.highlightset(hi, set, defaults)
   local group = hi
   hi = utils.highlight(hi)
+
   if dict.isblank(hi) then
     if defaults then
       hi = defaults
@@ -117,11 +110,9 @@ function utils.highlightset(hi, set, defaults)
   end
 
   dict.each(set, function(attrib, transformer)
-    if not hi[attrib] then
-      return
-    end
+    if not hi[attrib] then return end
 
-    if is_a.f(transformer) then
+    if is_a.callable(transformer) then
       hi[attrib] = transformer(hi[attrib])
       vim.cmd(sprintf("hi %s %s=%s", group, attrib, hi[attrib]))
     else
@@ -131,4 +122,34 @@ function utils.highlightset(hi, set, defaults)
   end)
 
   return hi
+end
+
+utils.hi = multimethod()
+
+utils.hi:set(function(hi) return utils.highlight(hi) end, "string")
+
+utils.hi:set(
+  function(...) return utils.highlightset(...) end,
+  "string",
+  "table"
+)
+
+--- https://stackoverflow.com/questions/22603510/is-this-possible-to-detect-a-colour-is-a-light-or-dark-colour
+utils.is_dark = multimethod()
+
+utils.is_dark:set(function (hex)
+  local r, g, b = utils.hex2rgb(hex)
+  local hsp = 0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b)
+  if hsp > 127.5 then return false end
+  return true
+end, 'string')
+
+utils.is_dark:set(function (r, g, b)
+  local hsp = 0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b)
+  if hsp > 127.5 then return false end
+  return true
+end)
+
+function utils.is_light(...)
+  return not utils.is_dark(...)
 end
