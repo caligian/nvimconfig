@@ -58,9 +58,7 @@ function Autocmd:init(event, opts)
   local bufnr = opts.bufnr
   opts.name = nil
   opts.bufnr = nil
-  if bufnr then
-    opts.pattern = "<buffer=" .. bufnr .. ">"
-  end
+  if bufnr then opts.pattern = "<buffer=" .. bufnr .. ">" end
 
   if type(group) == "string" then
     augroup = vim.api.nvim_create_augroup(group, {})
@@ -106,18 +104,14 @@ function Autocmd:init(event, opts)
   dict.update(user.autocmd.ID, id, self)
   dict.update(user.autocmd.GROUP, { augroup, id }, self)
 
-  if name then
-    user.autocmd[name] = self
-  end
+  if name then user.autocmd[name] = self end
 
   return self
 end
 
 --- Disable autocommand
 function Autocmd:disable()
-  if not self.enabled then
-    return
-  end
+  if not self.enabled then return end
 
   vim.api.nvim_del_autocmd(self.id)
   self.enabled = false
@@ -140,14 +134,38 @@ function Autocmd.bind(autocmds)
   dict.each(autocmds, function(name, x)
     if x.group then
       local augroup = Augroup(name)
-      array.each(x, function(au)
-        augroup:add(unpack(au))
-      end)
+      array.each(x, function(au) augroup:add(unpack(au)) end)
     else
       x[2].name = name
       Autocmd(unpack(x))
     end
   end)
 end
+
+local init = Autocmd.init
+Autocmd.init = multimethod()
+
+Autocmd.init:set(
+  function(self, event, pattern, callback, opts)
+    local options = utils.copy(opts or {})
+    options.callback = callback
+    options.pattern = pattern
+
+    return init(self, event, options)
+  end,
+  Autocmd,
+  { "string", "table" },
+  { "string", "table" },
+  { "string", "callable" }
+)
+
+Autocmd.init:set(
+  function (self, event, opts)
+    return init(self, event, opts)
+  end,
+  Autocmd,
+  {'string', 'table'},
+  'table'
+)
 
 return Autocmd

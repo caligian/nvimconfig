@@ -35,7 +35,7 @@ function multimethod.compare_sig(signature, params)
   if param_len > sig_n then params = array.slice(params, 1, sig_n) end
 
   for i = 1, sig_n do
-    status[status_i + 1] = is_a(params[i], signature[i])
+    status[status_i + 1] = is(signature[i])(params[i])
     status_i = status_i + 1
   end
 

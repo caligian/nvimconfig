@@ -38,12 +38,10 @@ Autocmd("BufAdd", {
         local ft = pat.ft or pat.filetype
         if ft and vim.bo.filetype == ft then
           vim.keymap.set({ "n", "i" }, "q", ":hide<CR>", { buffer = bufnr })
-        elseif pat.bufname and pat.bufname:match(buffer.name(bufnr)) then
-          vim.keymap.set({ "n", "i" }, "q", ":hide<CR>", { buffer = bufnr })
-        elseif pat.bufnr and pat.bufnr == bufnr then
-          vim.keymap.set({ "n", "i" }, "q", ":hide<CR>", { buffer = bufnr })
         end
       end
     end)
   end,
 })
+
+if utils.req2path('user.autocmds') then require 'user.autocmds' end

@@ -17,8 +17,6 @@ dict.merge(user, {
 
   font = { family = "Liberation Mono", height = 13 },
 
-  bitmap_font = { family = "Terminus", height = 11 },
-
   temp_buffer_patterns = {
     qflist = { ft = "qf" },
     temp_buffers = "^__",
@@ -26,11 +24,9 @@ dict.merge(user, {
     help_files = { ft = "help" },
   },
 
-  colorscheme = 'OceanicNextLight'
+  colorscheme = 'starry',
 })
 
-if vim.fn.has "gui" == 1 then
-  utils.set_font(user.font.family, user.font.height)
-end
+utils.set_font(user.font.family, user.font.height)
 
 req "user.globals"
