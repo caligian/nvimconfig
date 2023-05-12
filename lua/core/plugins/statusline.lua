@@ -296,6 +296,11 @@ statusline.autocmds = {
   },
 }
 
+statusline.methods = {
+  update_colors = statusline.update_colors,
+  setup_evil = statusline.setup_evil,
+}
+
 statusline.evil = true
 
 function statusline:setup()
