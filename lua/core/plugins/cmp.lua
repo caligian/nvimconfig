@@ -66,8 +66,6 @@ plugin.cmp = {
       },
     })
 
-    require "user.plugins.cmp"
-
     cmp.setup(self.config)
   end,
 }

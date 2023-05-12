@@ -26,15 +26,11 @@ utils.require "user.bookmarks"
 local function resolve_path(p)
   validate { path = { is { "string", "number" }, p } }
 
-  if p == 0 then
-    p = vim.fn.bufnr()
-  end
+  if p == 0 then p = vim.fn.bufnr() end
   local is_buffer = vim.fn.bufexists(p) ~= 0
   local is_file = is_a.string(p) and path.exists(p)
 
-  if not is_buffer and not is_file then
-    return
-  end
+  if not is_buffer and not is_file then return end
 
   if is_buffer then
     local bufnr = vim.fn.bufnr()
@@ -400,13 +396,14 @@ end
 
 function Bookmark.create_main_picker(remover)
   local ls = Bookmark.list_all(true)
-  if not ls then
-    return
-  end
+  if not ls then return end
   local _ = utils.telescope.load()
   local mod = _.create_actions_mod()
+
   local function get_obj(k)
-    return user.bookmark.BOOKMARK[k]
+    local out = user.bookmark.BOOKMARK[k]
+    if not out or not is_class(out) then out = Bookmark(k) end
+    return out
   end
 
   local function remove(sel)
@@ -572,25 +569,22 @@ end
 
 function Bookmark.load()
   local ls = file.read(Bookmark.DEST)
-  if not ls then
-    return
-  end
+  if not ls then return end
 
   local ok, msg = pcall(loadstring, ls)
-  if not ok then
-    return
-  end
+  if not ok then return end
+
+  user.bookmark.BOOKMARK = {}
+  local bookmarks = user.bookmark.BOOKMARK
   ls = msg()
-  if not ls then
-    return
-  end
+  if not ls then return end
+
   dict.each(ls, function(k, obj)
     if resolve_path(k) then
-      ls[k] = Bookmark(k)
-      ls[k].lines = obj.lines
+      bookmarks[k] = Bookmark(k)
+      bookmarks[k].lines = obj.lines
     end
   end)
-  user.bookmark.BOOKMARK = ls
 
   return ls
 end

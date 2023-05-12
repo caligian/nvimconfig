@@ -69,20 +69,6 @@ function Plugin.create(name, conf)
   end
 end
 
-function Plugin:todict()
-  local out = dict.grep(self, function(key, _)
-    if not Plugin[key] then return true end
-    return false
-  end)
-
-  out.mappings = self.mappings
-  out.kbd = self.kbd
-  out.autocmds = self.autocmds
-  out.spec = self.spec
-
-  return out
-end
-
 function Plugin.create_template()
   local src = path.join(user.dir, "lua", "core", "plugins")
   local dest = path.join(user.user_dir, "lua", "user")

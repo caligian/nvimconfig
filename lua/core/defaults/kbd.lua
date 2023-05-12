@@ -67,11 +67,6 @@ K.bind(
 
   -- Lua eval anywhere like emacs eval-sexp, etc
   {
-    "<leader>",
-    "<cmd>NvimEvalLine<CR>",
-    { desc = "Lua source line", name = "eval_line" },
-  },
-  {
     "ee",
     "<cmd>NvimEvalLine<CR>",
     { desc = "Lua source line", name = "eval line" },

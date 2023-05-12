@@ -15,16 +15,6 @@ Autocmd("BufAdd", {
 })
 
 Autocmd("BufAdd", {
-  name = "i3config_extension",
-  pattern = "*i3",
-  callback = function()
-    vim.cmd "set ft=i3config"
-    vim.bo.shiftwidth = 2
-    vim.bo.tabstop = 2
-  end,
-})
-
-Autocmd("BufAdd", {
   name = "txt_is_help",
   pattern = "*txt",
   callback = "set ft=help",

@@ -2,6 +2,7 @@ Filetype = Filetype or class "Filetype"
 Filetype.ft = Filetype.ft or {}
 Filetype.AUTOCMD_ID = Filetype.AUTOCMD_ID or 1
 Filetype.loaded = Filetype.loaded == nil and false or Filetype.loaded
+local add_ft = vim.filetype.add
 
 function Filetype:init(ft, opts)
   validate {
@@ -19,6 +20,9 @@ function Filetype:init(ft, opts)
         ["?formatters"] = "table",
         ["?server"] = is { "string", "table" },
         ["?repl"] = is { "string", "table" },
+        opt_extension = is 'string',
+        opt_pattern = is 'string',
+        opt_filename = is 'string',
       },
       opts,
     },
@@ -36,14 +40,25 @@ function Filetype:init(ft, opts)
   if opts.bo then
     self:setbufopts(opts.bo)
   end
+
   if opts.kbd then
     self:map(opts.kbd)
   end
+
   if opts.linters then
     opts.linters = array.tolist(opts.linters)
   end
+
   if opts.server and is_a.string(opts.server) then
     opts.server = { name = opts.server }
+  end
+
+  if opts.extension then
+    add_ft {extension = {[opts.extension] = ft}}
+  elseif opts.pattern then
+    add_ft {pattern = {[opts.pattern] = ft}}
+  elseif opts.filename then
+    add_ft {filename = {[opts.filename] = ft}}
   end
 
   Filetype.ft[ft] = dict.merge(self, opts or {})

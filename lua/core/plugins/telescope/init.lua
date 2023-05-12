@@ -192,6 +192,11 @@ local mappings = {
     end,
     { desc = "Open file browser", name = "file_browser" },
   },
+  {
+    '<leader>',
+    ':Telescope resume<CR>',
+    'Resume picker'
+  },
 }
 
 plugin.telescope = {
