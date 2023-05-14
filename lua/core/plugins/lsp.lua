@@ -102,7 +102,7 @@ function lsp:on_attach()
   vim.diagnostic.config(lsp.diagnostic)
 
   -- Setup lsp servers
-  for _, conf in pairs(Filetype.ft) do
+  for _, conf in pairs(user.filetype) do
     if conf.server then
       if is_string(conf.server) then conf.server = { name = conf.server } end
       lsp.methods.setup_server(conf.server.name, conf.server.config or {})
