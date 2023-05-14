@@ -52,9 +52,7 @@ lsp.mappings = {
   },
   {
     "<leader>lwl",
-    function()
-      print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
-    end,
+    function() print(vim.inspect(vim.lsp.buf.list_workspace_folders())) end,
     { desc = "List workspace folders" },
   },
   {
@@ -67,34 +65,36 @@ lsp.mappings = {
   { "gr", vim.lsp.buf.references, { desc = "Show buffer references" } },
 }
 
-lsp._on_attach = function(bufnr)
-  if not bufnr then return end
-  buffer.setopt(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
+lsp.methods = {
+  on_attach = function(bufnr)
+    if not bufnr then return end
+    buffer.setopt(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 
-  if not dict.contains(Filetype.ft, vim.bo.filetype, "formatters") then
-    require("lsp-format").on_attach(client)
-  end
+    if not dict.contains(Filetype.ft, vim.bo.filetype, "formatters") then
+      require("lsp-format").on_attach(client)
+    end
 
-  local mappings = utils.copy(self.mappings)
-  mappings.bufnr = bufnr
+    local mappings = utils.copy(self.mappings)
+    mappings.bufnr = bufnr
 
-  K.bind(mappings)
-end
+    K.bind(mappings)
+  end,
 
-function lsp.setup_server(server, opts)
-  opts = opts or {}
-  local capabilities = opts.capabilities or lsp.capabilties
-  local on_attach = opts.on_attach or lsp._on_attach
-  local flags = opts.flags or lsp.flags
-  local default_conf =
-    { capabilities = capabilities, on_attach = on_attach, flags = flags }
+  setup_server = function(server, opts)
+    opts = opts or {}
+    local capabilities = opts.capabilities or lsp.capabilties
+    local on_attach = opts.on_attach or lsp.methods.on_attach
+    local flags = opts.flags or lsp.flags
+    local default_conf =
+      { capabilities = capabilities, on_attach = on_attach, flags = flags }
 
-  default_conf = dict.merge(default_conf, opts)
+    default_conf = dict.merge(default_conf, opts)
 
-  require("lspconfig")[server].setup(default_conf)
-end
+    require("lspconfig")[server].setup(default_conf)
+  end,
+}
 
-function lsp:setup(self)
+function lsp:on_attach()
   require("mason").setup()
   require("fidget").setup {}
 
@@ -104,8 +104,8 @@ function lsp:setup(self)
   -- Setup lsp servers
   for _, conf in pairs(Filetype.ft) do
     if conf.server then
-      if is_string(conf.server) then conf.server = {name = conf.server} end
-      lsp.setup_server(conf.server.name, conf.server.config or {})
+      if is_string(conf.server) then conf.server = { name = conf.server } end
+      lsp.methods.setup_server(conf.server.name, conf.server.config or {})
     end
   end
 end

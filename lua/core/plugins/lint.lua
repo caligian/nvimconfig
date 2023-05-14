@@ -2,23 +2,23 @@ local nvimlint = require "lint"
 local plug = plugin.lint
 
 local function get_linters()
-  local linters = {}
-  for lang, conf in pairs(Filetype.ft) do
-    if conf.linters and #conf.linters > 0 then
-      linters[lang] = array.tolist(conf.linters)
+  local out = {
+    linters = {},
+    linters_by_ft = {},
+  }
+
+  dict.each(Filetype.get 'linters', function (ft, lintconf)
+    if dict.isdict(lintconf) then
+      out.linters[ft] = lintconf
+      nvimlint.linters[ft] = lintconf
+    else
+      lintconf = array.tolist(lintconf)
+      out.linters_by_ft[ft] = lintconf
+      nvimlint.linters_by_ft[ft] = lintconf
     end
-  end
+  end)
 
-  return linters
-end
-
-local function load(self)
-  if not self.linters then return end
-  local spec = utils.copy(self.linters)
-
-  return dict.merge({
-    linters_by_ft = dict.delete(spec, "ft") or dict.delete(x, "filetype"),
-  }, spec)
+  return out
 end
 
 plug.methods = {
@@ -26,7 +26,7 @@ plug.methods = {
     bufnr = bufnr or vim.fn.bufnr()
     buffer.call(bufnr, function()
       if require("lint").linters_by_ft[vim.bo.filetype] then
-        require("lint").try_lint(bufnr)
+        require("lint").try_lint()
       end
     end)
   end,
@@ -40,4 +40,6 @@ plug.kbd = {
   { "n", "<leader>ll", plug.methods.lint_buffer, "Lint buffer" },
 }
 
-function plug:setup() nvimlint.linters_by_ft = self.config.linters_by_ft end
+function plug:on_attach() 
+  get_linters()
+end

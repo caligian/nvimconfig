@@ -43,7 +43,6 @@ function Autocmd:init(event, opts)
     event = { is { "string", "table" }, event },
     options = {
       {
-        __nonexistent = true,
         callback = is { "callable", "string" },
         pattern = is { "string", "table" },
         opt_bufnr = "number",
