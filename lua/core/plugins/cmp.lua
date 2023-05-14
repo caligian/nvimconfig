@@ -58,7 +58,7 @@ plugin.cmp = {
     },
   },
 
-  setup = function(self)
+  on_attach = function(self)
     cmp_zsh.setup { zshrc = true, filetypes = { "zsh" } }
 
     cmp.setup.cmdline("/", {

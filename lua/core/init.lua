@@ -3,8 +3,8 @@ require "core.option"
 Filetype.loadall()
 
 --------------------------------------------------------------------------------
-require "core.plugins"
-Plugin.loadall()
+require('core.utils.Plugin')
+Plugin.setup()
 
 --------------------------------------------------------------------------------
 require "core.bufgroups"

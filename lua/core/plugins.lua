@@ -1,14 +1,12 @@
-require "core.utils.Plugin"
-
-plugin "statusline" {
+plugin.statusline.spec = {
   "nvim-lualine/lualine.nvim",
 }
 
-plugin "plenary" {
+plugin.plenary.spec = {
   "nvim-lua/plenary.nvim",
 }
 
-plugin "telescope" {
+plugin.telescope.spec = {
   "nvim-telescope/telescope.nvim",
   dependencies = {
     "nvim-telescope/telescope-fzy-native.nvim",
@@ -16,46 +14,45 @@ plugin "telescope" {
   },
 }
 
-plugin "dispatch" {
+plugin.dispatch.spec = {
   "tpope/vim-dispatch",
   event = "BufReadPost",
 }
 
-plugin "hy" {
+plugin.hy.spec = {
   "hylang/vim-hy",
   ft = { "hy" },
 }
 
-plugin "notify" {
+plugin.notify.spec = {
   "rcarriga/nvim-notify",
 }
 
-plugin "gitsigns" {
+plugin.gitsigns.spec = {
   "lewis6991/gitsigns.nvim",
   event = "BufReadPost",
 }
 
-plugin "indentblankline" {
+plugin.indentblankline.spec = {
   "lukas-reineke/indent-blankline.nvim",
   event = "BufReadPost",
 }
 
-plugin "align" {
+plugin.align.spec = {
   "junegunn/vim-easy-align",
   event = "BufReadPost",
 }
 
-plugin "neorg" {
+plugin.neorg.spec = {
   "nvim-neorg/neorg",
   ft = "norg",
 }
 
-plugin "suda" {
+plugin.suda.spec = {
   "lambdalisue/suda.vim",
 }
 
--- Good opinionated themes
-plugin "colorscheme" {
+plugin.colorscheme.spec = {
   "sainnhe/everforest",
 
   dependencies = {
@@ -86,41 +83,41 @@ plugin "colorscheme" {
   priority = 300,
 }
 
-plugin "vimtex" {
+plugin.vimtex.spec = {
   "lervag/vimtex",
   ft = "tex",
 }
 
-plugin "devicons" {
+plugin.devicons.spec = {
   "nvim-tree/nvim-web-devicons",
 }
 
-plugin "netrw" {
+plugin.netrw.spec = {
   "prichrd/netrw.nvim",
   cmd = "Lexplore",
 }
 
-plugin "surround" {
+plugin.surround.spec = {
   "kylechui/nvim-surround",
   event = "InsertEnter",
 }
 
-plugin "autopairs" {
+plugin.autopairs.spec = {
   "windwp/nvim-autopairs",
   event = "InsertEnter",
 }
 
-plugin "lint" {
+plugin.lint.spec = {
   "mfussenegger/nvim-lint",
   event = "BufReadPost",
 }
 
-plugin "vim-wayland-clipboard" {
+plugin.clipboard.spec = {
   "jasonccox/vim-wayland-clipboard",
   keys = '"',
 }
 
-plugin "startuptime" {
+plugin.startuptime.spec = {
   "dstein64/vim-startuptime",
   cmd = "StartupTime",
   config = function()
@@ -128,42 +125,42 @@ plugin "startuptime" {
       pattern = "startuptime",
       callback = function()
         vim.keymap.set(
-          { "n", "i" },
-          "q",
-          ":bwipeout % <bar> :b# <CR>",
-          { buffer = vim.fn.bufnr() }
+        { "n", "i" },
+        "q",
+        ":bwipeout % <bar> :b# <CR>",
+        { buffer = vim.fn.bufnr() }
         )
       end,
     })
   end,
 }
 
-plugin "comment" {
+plugin.comment.spec = {
   "tpope/vim-commentary",
   event = "BufReadPost",
 }
 
-plugin "vimtex" {
+plugin.vimtex.spec = {
   "lervag/vimtex",
   ft = "tex",
 }
 
-plugin "fennel" {
+plugin.fennel.spec = {
   "jaawerth/fennel.vim",
   ft = "fennel",
 }
 
-plugin "ssr" {
+plugin.ssr.spec = {
   "cshuaimin/ssr.nvim",
   event = "BufReadPost",
 }
 
-plugin "hop" {
+plugin.hop.spec = {
   "phaazon/hop.nvim",
   event = "WinEnter",
 }
 
-plugin "treesitter" {
+plugin.treesitter.spec = {
   "nvim-treesitter/nvim-treesitter",
   event = "BufReadPost",
   dependencies = {
@@ -212,13 +209,13 @@ plugin "treesitter" {
   },
 }
 
-plugin "snippets" {
+plugin.snippets.spec = {
   "L3MON4D3/LuaSnip",
   dependencies = { "rafamadriz/friendly-snippets" },
   event = "InsertEnter",
 }
 
-plugin "cmp" {
+plugin.cmp.spec = {
   "hrsh7th/nvim-cmp",
   event = "InsertEnter",
   dependencies = {
@@ -234,7 +231,7 @@ plugin "cmp" {
   },
 }
 
-plugin "fugitive" {
+plugin.fugitive.spec = {
   "tpope/vim-fugitive",
   dependencies = { "tpope/vim-git" },
   keys = {
@@ -244,38 +241,38 @@ plugin "fugitive" {
   },
 }
 
-plugin "tagbar" {
+plugin.tagbar.spec = {
   "preservim/tagbar",
   keys = "<C-t>",
   event = "BufReadPost",
   config = function()
     Keybinding.noremap(
-      "n",
-      "<C-t>",
-      ":TagbarToggle<CR>",
-      { desc = "Toggle tagbar", name = "tagbar" }
+    "n",
+    "<C-t>",
+    ":TagbarToggle<CR>",
+    { desc = "Toggle tagbar", name = "tagbar" }
     )
     vim.g.tagbar_position = "leftabove vertical"
     req "user.plugins.tagbar"
   end,
 }
 
-plugin "whichkey" {
+plugin.whichkey.spec = {
   "folke/which-key.nvim",
 }
 
-plugin "markdownpreview" {
+plugin.markdownpreview.spec = {
   "iamcco/markdown-preview.nvim",
   build = "cd app && yarn install",
   ft = "markdown",
 }
 
-plugin "formatter" {
+plugin.formatter.spec = {
   "mhartington/formatter.nvim",
   event = "BufReadPost",
 }
 
-plugin "lsp" {
+plugin.lsp.spec = {
   "neovim/nvim-lspconfig",
   dependencies = {
     "j-hui/fidget.nvim",
@@ -285,7 +282,7 @@ plugin "lsp" {
   },
 }
 
-plugin "bbye" {
+plugin.bbye.spec = {
   "moll/vim-bbye",
   event = "BufReadPost",
 }

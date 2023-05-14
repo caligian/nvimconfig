@@ -1,4 +1,4 @@
-return {
+filetype.ruby = {
   compile = "ruby",
   repl = "irb --inf-ruby-mode",
   test = "rspec",

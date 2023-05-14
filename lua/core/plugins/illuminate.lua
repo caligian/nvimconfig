@@ -32,7 +32,7 @@ plugin.illuminate = {
     min_count_to_highlight = 1,
   },
 
-  setup = function(self)
+  on_attach = function(self)
     require("illuminate").configure(self.config)
   end,
 }

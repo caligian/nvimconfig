@@ -339,4 +339,14 @@ function dict.delete(x, ks)
   return obj
 end
 
+--- Get the dict part. This mutates the table passed
+-- @tparam table x Table to get dict from
+-- @treturn dict, array
+function dict.extract(x)
+  local array_part = array.extract(x)
+  local dict_part = x
+
+  return x, array_part
+end
+
 return dict

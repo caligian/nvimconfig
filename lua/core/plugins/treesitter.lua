@@ -134,7 +134,7 @@ plugin.treesitter = {
     },
   },
 
-  setup = function(self)
+  on_attach = function(self)
     require("nvim-treesitter.configs").setup(self.config)
   end,
 }

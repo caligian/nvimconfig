@@ -35,7 +35,7 @@ plugin.neorg = {
     },
   },
 
-  setup = function(self)
+  on_attach = function(self)
     require("neorg").setup(self.config)
   end,
 }

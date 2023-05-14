@@ -66,16 +66,15 @@ local function put_ref(jump)
   vim.api.nvim_buf_set_lines(bufnr, linenum - 1, linenum, false, new)
 end
 
-return {
+filetype.help = {
+  hooks = {'autocmd BufWrite <buffer> :TrimWhiteSpace'},
   bo = {
     formatoptions = "tqn",
     textwidth = 80,
     shiftwidth = 2,
     tabstop = 2,
   },
-  hooks = function()
-    vim.cmd [[ autocmd BufWrite <buffer> :TrimWhiteSpace ]]
-  end,
+  hooks = g,
   kbd = {
     noremap = true,
     prefix = "<leader>m",

@@ -25,7 +25,7 @@ plugin.ssr = {
     },
   },
 
-  setup = function(self)
+  on_attach = function(self)
     require("ssr").setup(self.config)
   end,
 }

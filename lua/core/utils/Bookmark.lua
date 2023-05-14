@@ -26,7 +26,9 @@ utils.require "user.bookmarks"
 local function resolve_path(p)
   validate { path = { is { "string", "number" }, p } }
 
+  if is_string(p) then p = vim.fs.normalize(p) end
   if p == 0 then p = vim.fn.bufnr() end
+
   local is_buffer = vim.fn.bufexists(p) ~= 0
   local is_file = is_a.string(p) and path.exists(p)
 

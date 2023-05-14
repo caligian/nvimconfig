@@ -67,7 +67,8 @@ lsp.mappings = {
   { "gr", vim.lsp.buf.references, { desc = "Show buffer references" } },
 }
 
-lsp.on_attach = function(bufnr)
+lsp._on_attach = function(bufnr)
+  if not bufnr then return end
   buffer.setopt(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 
   if not dict.contains(Filetype.ft, vim.bo.filetype, "formatters") then
@@ -76,13 +77,14 @@ lsp.on_attach = function(bufnr)
 
   local mappings = utils.copy(self.mappings)
   mappings.bufnr = bufnr
+
   K.bind(mappings)
 end
 
 function lsp.setup_server(server, opts)
   opts = opts or {}
   local capabilities = opts.capabilities or lsp.capabilties
-  local on_attach = opts.on_attach or lsp.on_attach
+  local on_attach = opts.on_attach or lsp._on_attach
   local flags = opts.flags or lsp.flags
   local default_conf =
     { capabilities = capabilities, on_attach = on_attach, flags = flags }
@@ -102,9 +104,8 @@ function lsp:setup(self)
   -- Setup lsp servers
   for _, conf in pairs(Filetype.ft) do
     if conf.server then
+      if is_string(conf.server) then conf.server = {name = conf.server} end
       lsp.setup_server(conf.server.name, conf.server.config or {})
     end
   end
 end
-
-lsp:setup()

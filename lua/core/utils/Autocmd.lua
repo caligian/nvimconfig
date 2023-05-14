@@ -6,6 +6,7 @@
 Autocmd = class "Autocmd"
 A = Autocmd
 user.autocmd = user.autocmd or { ID = {}, GROUP = {}, BUFFER = {} }
+user.augroup = user.augroup or {ID={}}
 
 --- Store autocommand instances
 -- @table user.autocmd
@@ -14,11 +15,10 @@ user.autocmd = user.autocmd or {}
 --- Contains instances hashed by id
 user.autocmd.ID = user.autocmd.ID or {}
 
---- Contains instances hashed by augroup
-user.autocmd.GROUP = user.autocmd.GROUP or {}
-
 --- Contains instances hashed by buffer
 user.autocmd.BUFFER = user.autocmd.BUFFER or {}
+
+user.autocmd.AUTOCMD_ID = user.autocmd.AUTOCMD_ID or 1
 
 --- Create an autocommand
 -- @usage
@@ -37,6 +37,8 @@ user.autocmd.BUFFER = user.autocmd.BUFFER or {}
 -- @param opts.bufnr Buffer index
 -- @return self
 function Autocmd:init(event, opts)
+  opts = utils.copy(opts)
+
   validate {
     event = { is { "string", "table" }, event },
     options = {
@@ -45,28 +47,21 @@ function Autocmd:init(event, opts)
         callback = is { "callable", "string" },
         pattern = is { "string", "table" },
         opt_bufnr = "number",
-        opt_name = "string",
       },
       opts,
     },
   }
 
-  opts = copy(opts or {})
-  local augroup
-  local group = copy(opts.group or {})
   local name = opts.name
-  local bufnr = opts.bufnr
   opts.name = nil
-  opts.bufnr = nil
-  if bufnr then opts.pattern = "<buffer=" .. bufnr .. ">" end
+  if not name then
+    name = user.autocmd.AUTOCMD_ID
+    user.autocmd.AUTOCMD_ID = user.autocmd.AUTOCMD_ID + 1
+  end
 
-  if type(group) == "string" then
-    augroup = vim.api.nvim_create_augroup(group, {})
-  else
-    group[1] = group[1] or "UserGlobal"
-    group[2] = group[2] or {}
-    augroup = vim.api.nvim_create_augroup(unpack(group))
-    group = group[1]
+  if opts.bufnr then
+    opts.pattern = sprintf('<buffer=%d>', opts.bufnr)
+    opts.bufnr = nil
   end
 
   local callback = opts.callback
@@ -87,24 +82,19 @@ function Autocmd:init(event, opts)
     end
   end
 
-  local id = vim.api.nvim_create_autocmd(event, opts)
-  self.id = id
-  self.gid = augroup
+  opts.group = opts.group or 'user_default'
+  local clear_group = opts.clear_group
+  opts.clear_group = nil
+  if clear_group == nil then clear_group = false end
+
+  self.gid = vim.api.nvim_create_augroup(opts.group, {clear=clear_group})
+  self.name = opts.group .. '.' .. name
+  self.id = vim.api.nvim_create_autocmd(event, opts)
   self.group = group
-  self.event = event
-  self.enabled = true
-  self.once = opts.once
-  self.nested = opts.nested
-  self.name = name
 
-  for key, value in pairs(opts) do
-    self[key] = value
-  end
-
-  dict.update(user.autocmd.ID, id, self)
-  dict.update(user.autocmd.GROUP, { augroup, id }, self)
-
-  if name then user.autocmd[name] = self end
+  dict.merge(self, opts)
+  dict.update(user.autocmd, self.name, self)
+  dict.update(user.autocmd.ID, self.id, self)
 
   return self
 end
@@ -125,7 +115,6 @@ function Autocmd:delete()
 
   dict.delete(user.autocmd, self.name)
   dict.delete(user.autocmd.ID, self.id)
-  dict.delete(user.autocmd.GROUP, { self.gid, self.id })
 
   return self
 end
@@ -133,39 +122,15 @@ end
 function Autocmd.bind(autocmds)
   dict.each(autocmds, function(name, x)
     if x.group then
-      local augroup = Augroup(name)
-      array.each(x, function(au) augroup:add(unpack(au)) end)
+      array.each(x, function(au) 
+        au.group = x.group
+        Autocmd(unpack(au))
+      end)
     else
       x[2].name = name
       Autocmd(unpack(x))
     end
   end)
 end
-
-local init = Autocmd.init
-Autocmd.init = multimethod()
-
-Autocmd.init:set(
-  function(self, event, pattern, callback, opts)
-    local options = utils.copy(opts or {})
-    options.callback = callback
-    options.pattern = pattern
-
-    return init(self, event, options)
-  end,
-  Autocmd,
-  { "string", "table" },
-  { "string", "table" },
-  { "string", "callable" }
-)
-
-Autocmd.init:set(
-  function (self, event, opts)
-    return init(self, event, opts)
-  end,
-  Autocmd,
-  {'string', 'table'},
-  'table'
-)
 
 return Autocmd

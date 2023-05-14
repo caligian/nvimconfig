@@ -2,127 +2,110 @@ Filetype = Filetype or class "Filetype"
 Filetype.ft = Filetype.ft or {}
 Filetype.AUTOCMD_ID = Filetype.AUTOCMD_ID or 1
 Filetype.loaded = Filetype.loaded == nil and false or Filetype.loaded
+user.filetype = Filetype.ft
 local add_ft = vim.filetype.add
 
-function Filetype:init(ft, opts)
+function Filetype.setupall()
+  dict.each(Filetype.ft, function(_, obj) obj:load() end)
+end
+
+function Filetype:setup(opts)
+  opts = opts or self:todict()
+
   validate {
-    filetype = { "string", ft },
-    ["?opts"] = {
+    spec = {
       {
-        ["?hooks"] = is { "callable", "table" },
-        ["?bo"] = "table",
-        ["?wo"] = "table",
-        ["?kbd"] = "table",
-        ["?compile"] = "string",
-        ["?build"] = "string",
-        ["?test"] = "string",
-        ["?linters"] = is { "string", "table" },
-        ["?formatters"] = "table",
-        ["?server"] = is { "string", "table" },
-        ["?repl"] = is { "string", "table" },
-        opt_extension = is 'string',
-        opt_pattern = is 'string',
-        opt_filename = is 'string',
+        opt_bo = "table",
+        opt_wo = "table",
+        opt_kbd = "table",
+        opt_compile = "string",
+        opt_build = "string",
+        opt_test = "string",
+        opt_linters = is { "string", "table" },
+        opt_formatters = "table",
+        opt_server = is { "string", "table" },
+        opt_repl = is { "string", "table" },
+        opt_extension = is "string",
+        opt_pattern = is "string",
+        opt_hooks = is 'table',
       },
       opts,
     },
   }
 
-  self.name = ft
-  self.autocmd = false
+  if opts.wo then
+    local exists = dict.get(self.augroup, { "autocmd", "window_options" })
+    if exists then exists:disable() end
 
-  if opts.hooks then
-    array.each(array.tolist(opts.hooks), function(cb)
-      self:hook(cb)
-    end)
+    self.augroup:add("Filetype", {
+      callback = function(au) buffer.setopts(au.bufnr, opts.window_options) end,
+      pattern = self.name,
+      name = 'window_options',
+    })
   end
 
-  if opts.bo then
-    self:setbufopts(opts.bo)
+  if opts.buffer_options then
+    local exists = dict.get(self.augroup, { "autocmd", "buffer_options" })
+    if exists then exists:disable() end
+
+    self.augroup:add("Filetype", {
+      callback = function(au) buffer.setopts(au.buf, opts.buffer_options) end,
+      pattern = self.name,
+    })
   end
 
-  if opts.kbd then
-    self:map(opts.kbd)
-  end
-
-  if opts.linters then
-    opts.linters = array.tolist(opts.linters)
-  end
+  if opts.kbd then self:map(opts.kbd) end
 
   if opts.server and is_a.string(opts.server) then
     opts.server = { name = opts.server }
   end
 
   if opts.extension then
-    add_ft {extension = {[opts.extension] = ft}}
+    add_ft { extension = { [opts.extension] = ft } }
   elseif opts.pattern then
-    add_ft {pattern = {[opts.pattern] = ft}}
-  elseif opts.filename then
-    add_ft {filename = {[opts.filename] = ft}}
+    add_ft { pattern = { [opts.pattern] = ft } }
   end
 
-  Filetype.ft[ft] = dict.merge(self, opts or {})
-end
-
-function Filetype:hook(callback, opts)
-  self.autocmd = self.autocmd or {}
-  opts = opts or {}
-  opts.pattern = self.name
-  opts.callback = callback
-  local au = Autocmd("FileType", opts)
-  self.autocmd[Filetype.AUTOCMD_ID] = au
-  Filetype.AUTOCMD_ID = Filetype.AUTOCMD_ID + 1
-
-  return au
-end
-
-function Filetype:unhook(id)
-  if self.autocmd[id] then
-    self.autocmd[id]:delete()
+  if opts.hooks then
+    self:hook(self.hooks)
   end
 end
 
-function Filetype:setbufopts(bo)
-  self:hook(function()
-    local bufnr = vim.fn.bufnr()
-    for key, value in pairs(bo) do
-      vim.api.nvim_buf_set_option(bufnr, key, value)
-    end
-  end)
+function Filetype.create(ft)
+  if not user.filetype[ft] then return Filetype(ft) end
+  return user.filetype[ft]
 end
 
-function Filetype:setwinopts(wo)
-  self:hook(function()
-    local winid = vim.fn.bufwinid(0)
-    if winid == -1 then
-      return
-    end
+function Filetype:init(ft, opts)
+  self.name = ft
+  self.augroup = Augroup.create("filetype_" .. ft)
 
-    for name, val in pairs(wo) do
-      vim.api.nvim_win_set_option(winid, name, val)
-    end
-  end)
+  if opts then
+    dict.merge(self, opts)
+    self:load()
+  end
+
+  Filetype.ft[ft] = self
 end
 
 function Filetype:map(opts)
+  opts = utils.copy(opts)
   opts.event = "FileType"
   opts.pattern = self.name
+
   K.bind(opts)
 end
 
-function Filetype.load(ft, opts)
-  local builtin = 'core.ft.' .. ft
-  local override = 'user.ft.' .. ft
+function Filetype:bind(opts) self:map(opts) end
 
-  if not utils.req2path(builtin) and not utils.req2path(override) then
-    return 
-  elseif not opts then
-    builtin = utils.copy(require(builtin))
-    override = utils.require(override) or {}
-    opts = dict.merge(builtin, override)
-  end
+function Filetype:load()
+  local builtin = "core.ft." .. self.name
+  local override = "user.ft." .. self.name
 
-  return Filetype(ft, opts)
+  if utils.req2path(builtin) then require(builtin) end
+  if utils.req2path(override) then require(override) end
+
+  self:setup()
 end
 
 function Filetype.loadall()
@@ -132,27 +115,64 @@ function Filetype.loadall()
   array.each(configured, function(fname)
     fname = path.basename(fname)
     fname = fname:gsub(".lua$", "")
-    Filetype.load(fname)
+    local ft = Filetype.create(fname)
+    ft:load()
   end)
 
   Filetype.loaded = true
 end
 
-Filetype.get = multimethod()
+function Filetype:hook(name, callback)
+  if is_callable(name) then
+    self.augroup:add('FileType', {
+      pattern = self.name,
+      callback = name,
+    })
+  else
+    self.augroup:add('FileType', {
+      pattern = self.name,
+      callback = callback,
+      name = name,
+    })
+  end
+end
 
-Filetype.get:set(function(name, attrib)
+--------------------------------------------------------------------------------
+local function get_by_name(name, attrib)
   return dict.get(Filetype.ft, { name, attrib })
-end, "string", "string")
+end
 
-Filetype.get:set(function(attrib)
+local function get(attrib)
   local has = {}
+
   dict.each(Filetype.ft, function(ft, config)
-    if config[attrib] then
-      has[ft] = config[attrib]
-    end
+    if config[attrib] then has[ft] = config[attrib] end
   end)
 
   return has
-end, "string")
+end
 
+Filetype.get = multimethod()
+Filetype.get:set(get_by_name, "string", "string")
+Filetype.get:set(get, "string")
+
+--------------------------------------------------------------------------------
+filetype = setmetatable({}, {
+  __call = function(self, ft, spec) return Filetype(ft, spec) end,
+
+  __index = function(self, ft)
+    if user.filetype[ft] then return user.filetype[ft] end
+
+    return Filetype(ft)
+  end,
+
+  __newindex = function(self, ft, spec)
+    ft = Filetype.create(ft)
+    dict.merge(ft, spec)
+
+    return ft
+  end,
+})
+
+--------------------------------------------------------------------------------
 return Filetype

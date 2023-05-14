@@ -106,7 +106,7 @@ plugin.colorscheme = {
       end,
     },
   },
-  setup = function(self, config)
+  on_attach = function(self, config)
     local name = user.colorscheme
     if is_callable(name) then
       user.colorscheme(config)

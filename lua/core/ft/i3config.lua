@@ -1,1 +1,1 @@
-return { extension = 'i3config' }
+filetype.i3config = { extension = 'i3config' }

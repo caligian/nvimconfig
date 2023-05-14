@@ -3,6 +3,7 @@
 -- user.augroup.
 -- @classmod Augroup
 require "core.utils.Autocmd"
+
 Augroup = class "Augroup"
 
 --- Store augroup instances
@@ -11,6 +12,9 @@ user.augroup = user.augroup or {}
 
 --- Contains augroup indexed by ID [number|string]
 user.augroup.ID = user.augroup.ID or {}
+
+--- Unique index for anonymous autocmds
+user.augroup.AUTOCMD_ID = user.augroup.AUTOCMD_ID or 1
 
 --- Create an augroup
 -- @usage
@@ -44,16 +48,15 @@ end
 -- @see Autocmd.init
 -- @return self
 function Augroup:add(event, opts)
-  opts = opts or {}
+  opts = utils.copy(opts)
+
+  if not opts.name then
+    opts.name = user.augroup.AUTOCMD_ID or 1
+    user.augroup.AUTOCMD_ID  = user.augroup.AUTOCMD_ID or 1
+  end
+
   opts.group = self.name
-
-  assert(opts.name, "No autocmd name supplied")
-
-  local au = Autocmd(event, opts)
-  self.autocmd[opts.name] = au
-  self.autocmd[au.id] = au
-  user.augroup.ID[self.id] = self
-  user.augroup[self.name] = self
+  self.autocmd[opts.name] = Autocmd(event, opts)
 
   return self
 end
@@ -63,9 +66,7 @@ end
 -- @return deleted autocommand
 function Augroup:remove(name)
   local exists = self.autocmd[name]
-  if not exists then
-    return
-  end
+  if not exists then return end
 
   exists:delete()
   self.autocmd[name] = nil
@@ -76,15 +77,16 @@ end
 --- Delete all autocommands
 -- @return augroup id
 function Augroup:disable()
-  if not self.id then
-    return
-  end
-  array.each(dict.keys(self.autocmd), function(au_name)
-    self:remove(au_name)
-  end)
+  if not self.id then return end
+
+  array.each(
+    dict.keys(self.autocmd),
+    function(au_name) self:remove(au_name) end
+  )
+
   local id = self.id
   vim.api.nvim_del_augroup_by_id(id)
-  self.id = false
+  self.id = nil
 
   return id
 end
@@ -93,13 +95,20 @@ end
 -- @return augroup id
 function Augroup:delete()
   local id = self:disable()
-  if not id then
-    return
-  end
+  if not id then return end
+
   user.augroup[self.name] = nil
   user.augroup.ID[id] = nil
 
   return id
+end
+
+function Augroup.create(name)
+  if user.augroup[name] or user.augroup.ID[name] then
+    return user.augroup[name]
+  end
+
+  return Augroup(name)
 end
 
 return Augroup

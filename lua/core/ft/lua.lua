@@ -1,8 +1,10 @@
 local package_path = vim.split(package.path, ";")
 
-return {
+filetype.lua = {
   compile = "lua5.1",
+
   repl = "lua5.1",
+
   server = {
     name = "lua_ls",
     config = {
@@ -26,6 +28,7 @@ return {
       },
     },
   },
+
   formatters = {
     {
       exe = "stylua",
@@ -43,7 +46,7 @@ return {
     },
   },
 
-  bo = {
+  buffer_options = {
     shiftwidth = 2,
     tabstop = 2,
   },

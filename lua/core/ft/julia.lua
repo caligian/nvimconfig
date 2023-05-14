@@ -1,4 +1,4 @@
-return {
+filetype.julia = {
   compile = "julia",
   repl = "julia",
   server = {

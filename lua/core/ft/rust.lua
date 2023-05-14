@@ -1,4 +1,4 @@
-return {
+filetype.rust = {
   repl = {
     "evcxr",
     on_input = function(s)

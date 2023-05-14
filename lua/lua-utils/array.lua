@@ -779,4 +779,19 @@ function array.some(t)
   return is_true > 0
 end
 
+--- Get the array part. This mutates the array
+-- @tparam table x Table to get array from
+-- @treturn array
+function array.extract(x)
+  local out = {}
+  local j = 1
+  for i = 1, #x do
+    out[j] = x[i]
+    x[i] = nil
+    j = j + 1
+  end
+
+  return out
+end
+
 return array

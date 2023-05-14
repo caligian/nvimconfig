@@ -1,4 +1,4 @@
-return {
+filetype.ocaml = {
   repl = {
     "utop",
     on_input = function(s)

@@ -202,10 +202,11 @@ local mappings = {
 plugin.telescope = {
   config = T,
   kbd = mappings,
-  setup = function(self)
+  on_attach = function(self)
     local telescope = require "telescope"
     telescope.setup(self.config)
     telescope.load_extension "fzy_native"
     telescope.load_extension "file_browser"
+    K.bind(self.kbd)
   end,
 }

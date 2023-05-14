@@ -1,4 +1,4 @@
-plugin "align" {
+plugin.align = {
   kbd = {
     leader = true,
     noremap = true,
@@ -10,9 +10,9 @@ plugin "align" {
     },
   },
 
-  setup = function(self, opts)
+  on_attach = function(self, opts)
     dict.merge(self, opts or {})
-    dict.each(self.config, function(key, value)
+    dict.each(self.config or {}, function(key, value)
       vim.g[key] = value
     end)
   end,

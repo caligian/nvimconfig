@@ -1,6 +1,6 @@
 plugin.devicon = {
   config = {},
-  setup = function(self, opts)
+  on_attach = function(self, opts)
     opts = dict.merge(utils.copy(opts), self.config)
     local web = require "nvim-web-devicons"
     if web then

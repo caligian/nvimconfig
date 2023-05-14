@@ -68,7 +68,7 @@ plugin.whichkey = {
     },
   },
 
-  setup = function(self)
+  on_attach = function(self)
     wk.setup(plugin.whichkey.config)
     wk.register({
       f = { name = "File" },

@@ -1,4 +1,4 @@
-return {
+filetype.python = {
   compile = "python",
   test = "pytest",
   repl = "python -q",

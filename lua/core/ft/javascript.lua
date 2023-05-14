@@ -1,4 +1,4 @@
-return {
+filetype.javascript = {
   compile = "node",
   repl = "node",
   server = { name = "tsserver" },

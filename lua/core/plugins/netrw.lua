@@ -9,7 +9,7 @@ plugin.netrw = {
     mappings = {},
   },
 
-  setup = function(self)
+  on_attach = function(self)
     require("netrw").setup(self.config)
   end,
 }

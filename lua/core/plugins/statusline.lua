@@ -261,7 +261,7 @@ statusline.config = {
     refresh = {
       statusline = 1000,
       tabline = 1000,
-      winbar = 1000,
+      winbar = 10,
     },
   },
   sections = {
@@ -291,7 +291,9 @@ statusline.autocmds = {
     "ColorScheme",
     {
       pattern = "*",
-      callback = function() plugin.statusline:setup() end,
+      callback = function() 
+        plugin.statusline:on_attach()
+      end,
     },
   },
 }
@@ -300,10 +302,10 @@ statusline.methods = {
   update_colors = statusline.update_colors,
   setup_evil = statusline.setup_evil,
 }
-
+  
 statusline.evil = true
 
-function statusline:setup()
+function statusline:on_attach()
   if self.evil then
     self:setup_evil()
   else

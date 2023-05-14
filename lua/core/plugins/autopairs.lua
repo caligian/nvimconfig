@@ -33,7 +33,7 @@ plugin.autopairs = {
     },
   },
 
-  setup = function(self, opts)
+  on_attach = function(self, opts)
     dict.merge(self, opts or {})
     require("nvim-autopairs").setup(self.config)
   end,

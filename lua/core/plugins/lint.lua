@@ -12,9 +12,17 @@ local function get_linters()
   return linters
 end
 
+local function load(self)
+  if not self.linters then return end
+  local spec = utils.copy(self.linters)
+
+  return dict.merge({
+    linters_by_ft = dict.delete(spec, "ft") or dict.delete(x, "filetype"),
+  }, spec)
+end
+
 plug.methods = {
-  get_linters = get_linters,
-  lint_buffer = function(bufnr)
+  lint_buffer = function(self, bufnr)
     bufnr = bufnr or vim.fn.bufnr()
     buffer.call(bufnr, function()
       if require("lint").linters_by_ft[vim.bo.filetype] then
@@ -32,6 +40,4 @@ plug.kbd = {
   { "n", "<leader>ll", plug.methods.lint_buffer, "Lint buffer" },
 }
 
-function plug:setup()
-  nvimlint.linters_by_ft = self.config.linters_by_ft
-end
+function plug:setup() nvimlint.linters_by_ft = self.config.linters_by_ft end

@@ -25,7 +25,7 @@ plugin.indentblankline = {
     },
   },
 
-  setup = function(self)
+  on_attach = function(self)
     set_highlight()
     indent.setup(self.config)
   end,

@@ -3,7 +3,7 @@ plugin.snippets = {
     history = true,
     enable_autosnippets = true,
   },
-  setup = function(self)
+  on_attach = function(self)
     vim.cmd [[ 
 imap <silent> <C-_> <Plug>luasnip-expand-snippet
 
