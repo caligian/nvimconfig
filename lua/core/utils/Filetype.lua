@@ -27,7 +27,7 @@ function Filetype:setup(opts)
         opt_repl = is { "string", "table" },
         opt_extension = is "string",
         opt_pattern = is "string",
-        opt_hooks = is 'table',
+        opt_hooks = is {'table', 'string', 'callable'},
       },
       opts,
     },
@@ -44,12 +44,12 @@ function Filetype:setup(opts)
     })
   end
 
-  if opts.buffer_options then
+  if opts.bo then
     local exists = dict.get(self.augroup, { "autocmd", "buffer_options" })
     if exists then exists:disable() end
 
     self.augroup:add("Filetype", {
-      callback = function(au) buffer.setopts(au.buf, opts.buffer_options) end,
+      callback = function(au) buffer.setopts(au.buf, opts.bo) end,
       pattern = self.name,
     })
   end
@@ -67,7 +67,9 @@ function Filetype:setup(opts)
   end
 
   if opts.hooks then
-    self:hook(self.hooks)
+    array.each(array.tolist(opts.hooks), function (hook)
+      self:hook(hook)
+    end)
   end
 end
 
@@ -123,7 +125,7 @@ function Filetype.loadall()
 end
 
 function Filetype:hook(name, callback)
-  if is_callable(name) then
+  if not callback then
     self.augroup:add('FileType', {
       pattern = self.name,
       callback = name,

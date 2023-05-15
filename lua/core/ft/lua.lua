@@ -46,7 +46,7 @@ filetype.lua = {
     },
   },
 
-  buffer_options = {
+  bo = {
     shiftwidth = 2,
     tabstop = 2,
   },
