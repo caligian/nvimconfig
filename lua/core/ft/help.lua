@@ -1,73 +1,103 @@
-local function put_sep(respect_tw)
-  local bufnr = vim.fn.bufnr()
+local function putstring(s, align)
+  s = string.trim(array.tolist(s)[1])
   local linenum = vim.fn.line "."
-  local line = vim.fn.getline(linenum)
-  local w = vim.bo.textwidth
+  local line = vim.fn.getline(linenum):gsub(" *$", "")
+  local len = #line
+  local put = vim.api.nvim_put
+  local slen = #s
+  local bufnr = vim.fn.bufnr()
+  local tw = vim.bo.textwidth
 
-  if not respect_tw then
-    local wininfo = vim.fn.getwininfo(vim.fn.win_getid())[1]
-    w = vim.o.columns - wininfo.textoff
-  end
-  local sep = string.rep("=", w < 5 and 5 or w)
-
-  if line:match "^==" then
-    vim.api.nvim_buf_set_lines(bufnr, linenum - 1, linenum, false, { sep })
-  else
-    vim.api.nvim_put({ sep }, "c", true, true)
+  if not align or (len >= tw or len + slen > tw) then
+    buffer.setlines(bufnr, linenum - 1, linenum, array.concat { line, " ", s })
+  elseif align then
+    local spaceslen = tw - (len + slen)
+    local spaces = string.rep(" ", spaceslen)
+    s = array.concat { line, spaces, s }
+    buffer.setlines(bufnr, linenum - 1, linenum, s)
   end
 end
 
-local function put_ref(jump)
-  local bufnr = vim.fn.bufnr()
-  local linenum = vim.fn.line "."
-  local line = trim(vim.fn.getline(linenum))
+local function getprefix(prefix)
+  prefix = prefix or buffer.getvar(buffer.bufnr(), 'help_prefix')
+  buffer.setvar(vim.fn.bufnr(), "help_prefix", prefix)
+  return prefix
+end
 
-  if #line == 0 or line:match "^====" then
-    nvimerr "Cannot put a tag on an empty line or a separator line"
-    return
+local function gettag() return input({ "tag", "Tag > " }).tag end
+
+local function getstring(tag, ref, prefix, heading)
+  prefix = prefix or getprefix(prefix) or ''
+
+  if tag and ref then
+    local ref = getstring(nil, tag)
+    tag = getstring(tag)
+    local tw = vim.bo.textwidth
+    local spaceslen = tw - (#tag + #ref)
+    local spaces = string.rep(' ', spaceslen - 1)
+
+    return array.concat {tag, spaces, ref}
+  elseif tag and not heading then
+    return array.concat { "*", tag, "*" }
+  elseif tag then
+    return array.concat { "*", prefix, ".", tag, "*" }
+  elseif ref then
+    return array.concat { "|", prefix, ".", ref, "|" }
   end
+end
 
-  if line:match "[|*][^|*]+[|*]" then
-    line = line:gsub(" *[|*][^|*]+[|*]", "")
-  end
+local function getsep()
+  return string.rep("=", vim.bo.textwidth - 1) 
+end
 
-  local ok, prefix = pcall(vim.api.nvim_buf_get_var, bufnr, "_tag_prefix")
-  prefix = ok and prefix or false
-  local tag = vim.fn.input "Tag name: "
-  if prefix then
-    tag = prefix .. "_" .. tag
-  end
+local function putsep()
+  local line = buffer.getrow()
 
-  local l = #tag
-  if l == 0 then
-    return
-  end
+  buffer.setlines(
+    buffer.bufnr(),
+    line - 1,
+    line,
+    { getsep() }
+  )
+end
 
-  local tw = vim.bo.textwidth
-  local pos = tw - l
-  if pos < 5 then
-    pos = 5
-  end
+local function putjump(s) 
+  putstring(getstring(s or gettag())) 
+end
 
-  local line_l = #line
-  if line_l > pos then
-    return
-  end
+local function putref(s)
+  putstring(getstring(nil, s or gettag()))
+end
 
-  local spaces_l = pos - line_l
-  local new = { line, string.rep(" ", spaces_l) }
-  if jump then
-    array.append(new, "|" .. tag .. "|")
-  else
-    array.append(new, "*" .. tag .. "*")
-  end
-  new = { concat(new, "") }
+local function putheading()
+  local s = input(
+    { "heading", "Heading" },
+    { "ref", "Reference" }
+  )
 
-  vim.api.nvim_buf_set_lines(bufnr, linenum - 1, linenum, false, new)
+  local heading, ref = s.heading, s.ref
+  heading = string.upper(heading)
+  local cmd = vim.cmd
+
+  s = {
+    getsep(),
+    getstring(s.heading:upper(), ref, nil, true),
+    ""
+  }
+
+  local row = buffer.getrow()
+
+  buffer.setlines(
+    vim.fn.bufnr(), 
+    row-1,
+    row,
+    s
+  )
 end
 
 filetype.help = {
-  hooks = {'autocmd BufWrite <buffer> :TrimWhiteSpace'},
+  extension = ".txt",
+  hooks = { "autocmd BufWrite <buffer> :TrimWhiteSpace" },
   bo = {
     formatoptions = "tqn",
     textwidth = 80,
@@ -80,19 +110,13 @@ filetype.help = {
     prefix = "<leader>m",
 
     -- If line already dict.contains == then, reformat it
-    { "+", put_sep, "Put seperator: =" },
-    { "=", partial(put_sep, true), "Put seperator (tw): =" },
-    { "|", partial(put_ref, true), "Put reference" },
-    { "*", put_ref, "Put jump reference" },
+    { "-", putsep, "Put seperator" },
+    { "|", putref, "Put reference" },
+    { "*", putjump, "Put jump reference" },
+    { "=", putheading, "Put heading" },
     {
       "p",
-      function()
-        local prefix = vim.fn.input "Tag prefix: "
-        if #prefix == 0 then
-          return
-        end
-        vim.api.nvim_buf_set_var(vim.fn.bufnr(), "_tag_prefix", prefix)
-      end,
+      function() getprefix(input({ "prefix", "Tag prefix" }).prefix) end,
       "Set tag prefix",
     },
   },

@@ -207,6 +207,5 @@ plugin.telescope = {
     telescope.setup(self.config)
     telescope.load_extension "fzy_native"
     telescope.load_extension "file_browser"
-    K.bind(self.kbd)
   end,
 }

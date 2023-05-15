@@ -256,8 +256,8 @@ end
 -- @tparam string var Name of the variable
 -- @treturn any
 function buffer.getvar(bufnr, var)
-  local _, out = pcall(vim.api.nvim_buf_get_var, bufnr, var)
-  if out ~= nil then
+  local ok, out = pcall(vim.api.nvim_buf_get_var, bufnr, var)
+  if ok then
     return out
   end
 end
@@ -902,6 +902,14 @@ function buffer.get_node_text_at_pos(bufnr, row, col)
     return
   end
   return table.concat(buffer.text(bufnr, node:range()), "\n")
+end
+
+function buffer.getrow(bufnr)
+  return buffer.getpos(bufnr)[1]
+end
+
+function buffer.getcol(bufnr)
+  return buffer.getpos(bufnr)[2]
 end
 
 return buffer

@@ -106,9 +106,10 @@ function input(...)
       is_a.table(form) and #form >= 1,
       "form: {var, [rest vim.fn.input args]}"
     )
+
     local name = form[1]
     local s = vim.fn.input(
-      form[2] or name .. " % ",
+      (form[2] or name) .. " % ",
       unpack(array.rest(array.rest(form)))
     )
 
@@ -116,6 +117,7 @@ function input(...)
       pp("\nexpected string for param " .. name)
       return
     end
+
     out[name] = s
   end
 
