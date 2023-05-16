@@ -231,15 +231,19 @@ plugin.cmp.spec = {
   },
 }
 
-plugin.fugitive.spec = {
-  "tpope/vim-fugitive",
-  dependencies = { "tpope/vim-git" },
-  keys = {
-    { "<leader>gs", ":Git stage %<CR>", "n", { desc = "Stage buffer" } },
-    { "<leader>gc", ":Git commit <CR>", "n", { desc = "Commit buffer" } },
-    { "<leader>gg", ":tab Git<CR>", "n", { desc = "Open Fugitive" } },
+plugin.fugitive = {
+  spec = {
+    "tpope/vim-fugitive",
+    dependencies = { "tpope/vim-git" },
   },
+  kbd = {
+    leader = true,
+    { "gs", ":Git stage %<CR>", { desc = "Stage buffer" } },
+    { "gc", ":Git commit <CR>", { desc = "Commit buffer" } },
+    { "gg", ":tab Git<CR>", { desc = "Open Fugitive" } },
+  }
 }
+
 
 plugin.tagbar.spec = {
   "preservim/tagbar",

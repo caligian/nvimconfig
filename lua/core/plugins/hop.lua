@@ -1,4 +1,4 @@
-function plugin.hop:setup()
+function plugin.hop:on_attach()
   local hop = require "hop"
   local directions = require("hop.hint").HintDirection
   hop.setup()

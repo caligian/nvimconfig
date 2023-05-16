@@ -109,6 +109,6 @@ plug.config = {
   end,
 }
 
-function plug:setup()
+function plug:on_attach()
   require("gitsigns").setup(self.config)
 end

@@ -79,8 +79,7 @@ end
 filetype.help = {
   extension = ".txt",
 
-  hooks = { 
-    ":TrimWhiteSpace", 
+  hooks = {
     function (au)
       if buffer.name(au.buf):match(user.dir) then
         buffer.setvar(au.buf, 'help_prefix', 'postmodern')
