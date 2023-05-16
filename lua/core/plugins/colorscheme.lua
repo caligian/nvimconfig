@@ -106,6 +106,26 @@ plugin.colorscheme = {
       end,
     },
   },
+  autocmds = {
+    update_cursorline_colors = {'ColorScheme', {
+      pattern = '*',
+      callback = function ()
+        local cursorline = utils.hi 'cursorline'
+        local normal = utils.hi 'normal'
+        local dark = utils.isdark(normal.guibg)
+
+        if dark then
+          cursorline.guibg = utils.lighten(normal.guibg, 22)
+          cursorline.guifg = utils.darken(normal.guifg, 22)
+        else
+          cursorline.guibg = utils.darken(normal.guibg, 22)
+          cursorline.guifg = utils.lighten(normal.guifg, 22)
+        end
+
+        utils.highlightset('CursorLine', cursorline)
+      end,
+    }}
+  },
   on_attach = function(self, config)
     local name = user.colorscheme
     if is_callable(name) then

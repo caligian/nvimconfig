@@ -95,8 +95,6 @@ function utils.luminance(hex)
   return luminance < (255 / 2)
 end
 
-function utils.isdark() end
-
 function utils.highlightset(hi, set, defaults)
   local group = hi
   hi = utils.highlight(hi)
@@ -135,21 +133,21 @@ utils.hi:set(
 )
 
 --- https://stackoverflow.com/questions/22603510/is-this-possible-to-detect-a-colour-is-a-light-or-dark-colour
-utils.is_dark = multimethod()
+utils.isdark = multimethod()
 
-utils.is_dark:set(function (hex)
+utils.isdark:set(function (hex)
   local r, g, b = utils.hex2rgb(hex)
   local hsp = 0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b)
   if hsp > 127.5 then return false end
   return true
 end, 'string')
 
-utils.is_dark:set(function (r, g, b)
+utils.isdark:set(function (r, g, b)
   local hsp = 0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b)
   if hsp > 127.5 then return false end
   return true
 end)
 
-function utils.is_light(...)
-  return not utils.is_dark(...)
+function utils.islight(...)
+  return not utils.isdark(...)
 end

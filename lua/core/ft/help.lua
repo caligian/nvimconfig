@@ -34,7 +34,7 @@ local function getstring(tag, ref, prefix, heading)
     tag = getstring(tag)
     local tw = vim.bo.textwidth
     local spaceslen = tw - (#tag + #ref)
-    local spaces = string.rep(" ", spaceslen - 1)
+    local spaces = string.rep(" ", spaceslen)
 
     return array.concat { tag, spaces, ref }
   elseif tag and not heading then
@@ -79,7 +79,14 @@ end
 filetype.help = {
   extension = ".txt",
 
-  hooks = { ":TrimWhiteSpace" },
+  hooks = { 
+    ":TrimWhiteSpace", 
+    function (au)
+      if buffer.name(au.buf):match(user.dir) then
+        buffer.setvar(au.buf, 'help_prefix', 'postmodern')
+      end
+    end
+  },
 
   bo = {
     formatoptions = "tqn",

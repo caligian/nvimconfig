@@ -21,7 +21,7 @@ function statusline:update_colors()
   colors.bg = normal.guibg
   colors.fg = normal.guifg
 
-  if utils.is_light(colors.bg) then
+  if utils.islight(colors.bg) then
     for key, value in pairs(colors) do
       colors[key] = utils.darken(value, 10)
     end
