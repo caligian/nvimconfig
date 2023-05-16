@@ -125,10 +125,10 @@ plugin.startuptime.spec = {
       pattern = "startuptime",
       callback = function()
         vim.keymap.set(
-        { "n", "i" },
-        "q",
-        ":bwipeout % <bar> :b# <CR>",
-        { buffer = vim.fn.bufnr() }
+          { "n", "i" },
+          "q",
+          ":bwipeout % <bar> :b# <CR>",
+          { buffer = vim.fn.bufnr() }
         )
       end,
     })
@@ -241,9 +241,8 @@ plugin.fugitive = {
     { "gs", ":Git stage %<CR>", { desc = "Stage buffer" } },
     { "gc", ":Git commit <CR>", { desc = "Commit buffer" } },
     { "gg", ":tab Git<CR>", { desc = "Open Fugitive" } },
-  }
+  },
 }
-
 
 plugin.tagbar.spec = {
   "preservim/tagbar",
@@ -251,10 +250,10 @@ plugin.tagbar.spec = {
   event = "BufReadPost",
   config = function()
     Keybinding.noremap(
-    "n",
-    "<C-t>",
-    ":TagbarToggle<CR>",
-    { desc = "Toggle tagbar", name = "tagbar" }
+      "n",
+      "<C-t>",
+      ":TagbarToggle<CR>",
+      { desc = "Toggle tagbar", name = "tagbar" }
     )
     vim.g.tagbar_position = "leftabove vertical"
     req "user.plugins.tagbar"

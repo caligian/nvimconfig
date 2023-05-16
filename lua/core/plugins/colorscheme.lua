@@ -107,6 +107,24 @@ plugin.colorscheme = {
     },
   },
   autocmds = {
+    update_colorcolumn_bg = {'ColorScheme', {
+      pattern = '*',
+      callback = function ()
+        local colorcol = utils.hi 'ColorColumn'
+        local normal = utils.hi 'normal'
+        local dark = utils.isdark(normal.guibg)
+
+        if dark then
+          colorcol.guibg = utils.lighten(normal.guibg, 15)
+          colorcol.guifg = colorcol.guibg
+        else
+          colorcol.guibg = utils.darken(normal.guibg, 15)
+          colorcol.guibg = colorcol.guifg
+        end
+
+        utils.highlightset('ColorColumn', colorcol)
+      end,
+    }},
     update_cursorline_colors = {'ColorScheme', {
       pattern = '*',
       callback = function ()
