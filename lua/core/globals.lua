@@ -24,7 +24,7 @@ dict.merge(user, {
     help_files = { ft = "help" },
   },
 
-  colorscheme = 'starry',
+  colorscheme = 'ayu',
 })
 
 utils.set_font(user.font.family, user.font.height)

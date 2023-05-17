@@ -9,8 +9,7 @@ buffer = {}
 local is_string_or_table = is { "string", "table" }
 
 --- Raised when buffer index is invalid for an operation
-buffer.InvalidBufferException =
-  exception "invalid buffer expr"
+buffer.InvalidBufferException = exception "invalid buffer expr"
 
 --- Add buffer by name or return existing buffer index. ':help bufadd()'
 -- @function buffer.bufadd
@@ -25,13 +24,9 @@ buffer.bufadd = vim.fn.bufadd
 -- @treturn false if invalid buffer is provided
 function buffer.feedkeys(bufnr, keys, flags)
   bufnr = bufnr or vim.fn.bufnr()
-  if not buffer.exists(bufnr) then
-    return false
-  end
+  if not buffer.exists(bufnr) then return false end
 
-  buffer.call(bufnr, function()
-    vim.cmd("normal! " .. keys)
-  end)
+  buffer.call(bufnr, function() vim.cmd("normal! " .. keys) end)
 
   return true
 end
@@ -43,9 +38,7 @@ end
 -- @treturn false on invalid bufnr
 function buffer.scroll(bufnr, direction, lines)
   bufnr = bufnr or vim.fn.bufnr()
-  if not buffer.exists(bufnr) then
-    return false
-  end
+  if not buffer.exists(bufnr) then return false end
   local keys
 
   if direction == "+" then
@@ -54,9 +47,10 @@ function buffer.scroll(bufnr, direction, lines)
     keys = lines .. "\\<C-y>"
   end
 
-  buffer.call(bufnr, function()
-    vim.cmd(sprintf(':call feedkeys("%s")', keys))
-  end)
+  buffer.call(
+    bufnr,
+    function() vim.cmd(sprintf(':call feedkeys("%s")', keys)) end
+  )
 
   return true
 end
@@ -64,17 +58,13 @@ end
 --- Does buffer exists?
 -- @tparam number bufnr buffer index
 -- @treturn boolean success status
-function buffer.exists(bufnr)
-  return vim.fn.bufexists(bufnr) ~= 0
-end
+function buffer.exists(bufnr) return vim.fn.bufexists(bufnr) ~= 0 end
 
 --- Unload and delete buffer
 -- @tparam number bufnr buffer index
 -- @treturn boolean success status
 function buffer.wipeout(bufnr)
-  if not buffer.exists(bufnr) then
-    return false
-  end
+  if not buffer.exists(bufnr) then return false end
   vim.api.nvim_buf_delete(bufnr, { force = true })
   return true
 end
@@ -86,9 +76,7 @@ end
 buffer.delete = buffer.wipeout
 
 function buffer.unload(bufnr)
-  if not buffer.exists(bufnr) then
-    return false
-  end
+  if not buffer.exists(bufnr) then return false end
   vim.api.nvim_buf_delete(bufnr, { unload = true })
   return true
 end
@@ -116,9 +104,7 @@ local function from_percent(current, width, min)
     min = math.floor(min)
   end
 
-  if required < min then
-    required = min
-  end
+  if required < min then required = min end
 
   return required
 end
@@ -194,9 +180,7 @@ function buffer.float(bufnr, opts)
     opts.col = 1
     opts.width = from_percent(current_width, panel, 5)
     opts.height = current_height
-    if reverse then
-      opts.col = current_width - opts.width
-    end
+    if reverse then opts.col = current_width - opts.width end
   elseif dock then
     if opts.relative == "editor" then
       current_width = editor_size[1]
@@ -206,50 +190,36 @@ function buffer.float(bufnr, opts)
     opts.row = opts.height - dock
     opts.height = from_percent(current_height, dock, 5)
     opts.width = current_width > 5 and current_width - 2 or current_width
-    if reverse then
-      opts.row = opts.height
-    end
+    if reverse then opts.row = opts.height end
   end
 
   local winid = vim.api.nvim_open_win(bufnr, focus, opts)
-  if winid == 0 then
-    return false
-  end
+  if winid == 0 then return false end
   return winid
 end
 
 function buffer.winnr(bufnr)
   local winnr = vim.fn.bufwinnr(bufnr)
-  if winnr == -1 then
-    return false
-  end
+  if winnr == -1 then return false end
   return winnr
 end
 
 function buffer.winid(bufnr)
   local winid = vim.fn.bufwinid(bufnr)
-  if winid == -1 then
-    return false
-  end
+  if winid == -1 then return false end
   return winid
 end
 
-function buffer.getwidth(bufnr)
-  return vim.fn.winwidth(buffer.winnr(bufnr))
-end
+function buffer.getwidth(bufnr) return vim.fn.winwidth(buffer.winnr(bufnr)) end
 
-function buffer.getheight(bufnr)
-  return vim.fn.winheight(buffer.winnr(bufnr))
-end
+function buffer.getheight(bufnr) return vim.fn.winheight(buffer.winnr(bufnr)) end
 
 --- Get buffer option
 -- @tparam string opt Name of the option
 -- @treturn any
 function buffer.getopt(bufnr, opt)
   local _, out = pcall(vim.api.nvim_buf_get_option, bufnr, opt)
-  if out ~= nil then
-    return out
-  end
+  if out ~= nil then return out end
 end
 
 --- Get buffer option
@@ -257,26 +227,20 @@ end
 -- @treturn any
 function buffer.getvar(bufnr, var)
   local ok, out = pcall(vim.api.nvim_buf_get_var, bufnr, var)
-  if ok then
-    return out
-  end
+  if ok then return out end
 end
 
 --- Set buffer variable
 -- @tparam number bufnr
 -- @tparam any k variable name
 -- @tparam any v value
-function buffer.setvar(bufnr, k, v)
-  vim.api.nvim_buf_set_var(bufnr, k, v)
-end
+function buffer.setvar(bufnr, k, v) vim.api.nvim_buf_set_var(bufnr, k, v) end
 
 --- Set buffer variables
 -- @tparam number bufnr
 -- @tparam dict vars
 function buffer.setvars(bufnr, vars)
-  dict.each(vars, function(k, v)
-    buffer.setvar(bufnr, k, v)
-  end)
+  dict.each(vars, function(k, v) buffer.setvar(bufnr, k, v) end)
 end
 
 --- Get buffer window option
@@ -284,9 +248,7 @@ end
 -- @treturn any
 function buffer.getwinopt(bufnr, opt)
   local _, out = pcall(vim.api.nvim_win_get_option, buffer.winid(bufnr), opt)
-  if out ~= nil then
-    return out
-  end
+  if ok then return out end
 end
 
 --- Get buffer window variable
@@ -295,9 +257,7 @@ end
 -- @treturn any
 function buffer.getwinvar(bufnr, var)
   local _, out = pcall(vim.api.nvim_win_get_var, buffer.winid(bufnr), var)
-  if out then
-    return out
-  end
+  if out then return out end
 end
 
 --- Set buffer window variable
@@ -313,18 +273,14 @@ end
 -- @tparam number bufnr
 -- @tparam dict vars
 function buffer.setwinvars(bufnr, vars)
-  dict.each(vars, function(k, v)
-    buffer.setwinvar(k, v)
-  end)
+  dict.each(vars, function(k, v) buffer.setwinvar(k, v) end)
 end
 
 --- Set buffer option
 -- @tparam number bufnr
 -- @tparam string k option name
 -- @tparam any v value
-function buffer.setopt(bufnr, k, v)
-  vim.api.nvim_buf_set_option(bufnr, k, v)
-end
+function buffer.setopt(bufnr, k, v) vim.api.nvim_buf_set_option(bufnr, k, v) end
 
 --- Set buffer options
 -- @tparam number bufnr
@@ -359,9 +315,7 @@ end
 -- @tparam number bufnr
 -- @tparam dict opts Dict of options
 function buffer.setwinopts(bufnr, opts)
-  dict.each(opts, function(k, v)
-    buffer.setwinopt(bufnr, k, v)
-  end)
+  dict.each(opts, function(k, v) buffer.setwinopt(bufnr, k, v) end)
   return opts
 end
 
@@ -387,9 +341,7 @@ end
 function buffer.noremap(bufnr, mode, lhs, callback, opts)
   assert_exists(bufnr)
   opts = opts or {}
-  if is_a.s(opts) then
-    opts = { desc = opts }
-  end
+  if is_a.s(opts) then opts = { desc = opts } end
   opts.buffer = bufnr
   opts.noremap = true
   buffer.map(bufnr, mode, lhs, callback, opts)
@@ -494,6 +446,8 @@ function buffer.hook(bufnr, event, callback, opts)
   )
 end
 
+function buffer.autocmd(...) return buffer.hook(...) end
+
 --- Hide current buffer if visible
 function buffer.hide(bufnr)
   local winid = vim.fn.bufwinid(bufnr)
@@ -510,9 +464,9 @@ end
 
 ---  Is buffer visible?
 --  @return boolean
-function buffer.is_visible(bufnr)
-  return vim.fn.bufwinid(bufnr) ~= -1
-end
+function buffer.is_visible(bufnr) return vim.fn.bufwinid(bufnr) ~= -1 end
+
+function buffer.isvisible(bufnr) return buffer.is_visible(bufnr) end
 
 --- Get buffer lines
 -- @param startrow Starting row
@@ -553,6 +507,11 @@ function buffer.bind(bufnr, opts, ...)
   return Keybinding.bind(opts, ...)
 end
 
+function buffer.kbd(bufnr, opts, ...)
+  opts.buffer = bufnr
+  return Keybinding.bind(opts, ...)
+end
+
 --- Set buffer lines
 -- @param startrow Starting row
 -- @param endrow Ending row
@@ -561,9 +520,7 @@ function buffer.setlines(bufnr, startrow, endrow, repl)
   assert(startrow)
   assert(endrow)
 
-  if is_a(repl, "string") then
-    repl = vim.split(repl, "[\n\r]")
-  end
+  if is_a(repl, "string") then repl = vim.split(repl, "[\n\r]") end
 
   vim.api.nvim_buf_set_lines(bufnr, startrow, endrow, false, repl)
 end
@@ -572,9 +529,9 @@ end
 -- @tparam table start Should be table containing start row and col
 -- @tparam table till Should be table containing end row and col
 -- @tparam string|table repl Replacement text
-function buffer.set(bufnr, start, till, repl)
-  assert(is_a(start, "table"))
-  assert(is_a(till, "table"))
+function buffer.settext(bufnr, start, till, repl)
+  validate.startind("table", start)
+  validate.endind("table", till)
 
   vim.api.nvim_buf_set_text(
     self.bufnr,
@@ -587,10 +544,7 @@ function buffer.set(bufnr, start, till, repl)
 end
 
 --- Switch to this buffer
-function buffer.switch(bufnr)
-  assert_exists(bufnr)
-  vim.cmd("b " .. bufnr)
-end
+function buffer.switch(bufnr) vim.cmd("b " .. bufnr) end
 
 --- Load buffer
 function buffer.load(bufnr)
@@ -604,9 +558,7 @@ end
 --- Call callback on buffer and return result
 -- @param cb Function to call in this buffer
 -- @return self
-function buffer.call(bufnr, cb)
-  return vim.api.nvim_buf_call(bufnr, cb)
-end
+function buffer.call(bufnr, cb) return vim.api.nvim_buf_call(bufnr, cb) end
 
 --- Return visually highlighted array range in this buffer
 -- @tparam number bufnr
@@ -617,12 +569,8 @@ function buffer.range(bufnr)
     local _, cerow, cecol, _ = unpack(vim.fn.getpos "'>")
     local last_line = vim.fn.getline(cerow)
 
-    if cecol >= #last_line then
-      cecol = 0
-    end
-    if csrow > cerow then
-      return
-    end
+    if cecol >= #last_line then cecol = 0 end
+    if csrow > cerow then return end
 
     if csrow < cerow or (csrow == cerow and cscol <= cecol) then
       return vim.api.nvim_buf_get_text(
@@ -646,30 +594,20 @@ function buffer.range(bufnr)
   end)
 end
 
-function buffer.linecount(bufnr)
-  return vim.api.nvim_buf_line_count(bufnr)
-end
+function buffer.linecount(bufnr) return vim.api.nvim_buf_line_count(bufnr) end
 
 --- Return current linenumber
 -- @return number
 function buffer.linenum(bufnr)
-  return buffer.call(bufnr, function()
-    return vim.fn.getpos(".")[2]
-  end)
+  return buffer.call(bufnr, function() return vim.fn.getpos(".")[2] end)
 end
 
-function buffer.listed(bufnr)
-  return vim.fn.buflisted(bufnr) ~= 0
-end
+function buffer.listed(bufnr) return vim.fn.buflisted(bufnr) ~= 0 end
 
-function buffer.info(bufnr)
-  return vim.fn.getbufinfo(bufnr)[1]
-end
+function buffer.info(bufnr) return vim.fn.getbufinfo(bufnr)[1] end
 
 function buffer.wininfo(bufnr)
-  if not buffer.is_visible(bufnr) then
-    return
-  end
+  if not buffer.is_visible(bufnr) then return end
   return vim.fn.getwininfo(buffer.winid(bufnr))
 end
 
@@ -677,19 +615,17 @@ function buffer.string(bufnr)
   return table.concat(buffer.lines(bufnr, 0, -1), "\n")
 end
 
-function buffer.getbuffer(bufnr)
-  return buffer.lines(bufnr, 0, -1)
-end
+function buffer.getbuffer(bufnr) return buffer.lines(bufnr, 0, -1) end
 
 function buffer.setbuffer(bufnr, lines)
   return buffer.setlines(bufnr, 0, -1, lines)
 end
 
 function buffer.current_line(bufnr)
-  return buffer.call(bufnr, function()
-    return vim.fn.getline "."
-  end)
+  return buffer.call(bufnr, function() return vim.fn.getline "." end)
 end
+
+function buffer.currentline(bufnr) return buffer.current_line(bufnr) end
 
 function buffer.lines_till_point(bufnr)
   return buffer.call(bufnr, function()
@@ -698,30 +634,29 @@ function buffer.lines_till_point(bufnr)
   end)
 end
 
+function buffer.tillpoint(bufnr) return buffer.lines_till_point(bufnr) end
+
 function buffer.append(bufnr, lines)
   return buffer.setlines(bufnr, -1, -1, lines)
 end
 
-function buffer.prepend(bufnr, lines)
-  return buffer.setlines(bufnr, 0, 0, lines)
-end
+function buffer.prepend(bufnr, lines) return buffer.setlines(bufnr, 0, 0, lines) end
 
 function buffer.maplines(bufnr, f)
   return array.map(buffer.lines(bufnr, 0, -1), f)
 end
 
-function buffer.grep(bufnr, f)
-  return array.grep(buffer.lines(bufnr, 0, -1), f)
-end
+function buffer.grep(bufnr, f) return array.grep(buffer.lines(bufnr, 0, -1), f) end
 
 function buffer.filter(bufnr, f)
   return array.filter(buffer.lines(bufnr, 0, -1), f)
 end
 
 function buffer.match(bufnr, pat)
-  return array.grep(buffer.lines(bufnr, 0, -1), function(s)
-    return s:match(pat)
-  end)
+  return array.grep(
+    buffer.lines(bufnr, 0, -1),
+    function(s) return s:match(pat) end
+  )
 end
 
 function buffer.readfile(bufnr, fname)
@@ -735,30 +670,23 @@ function buffer.insertfile(bufnr, fname)
 end
 
 function buffer.save(bufnr)
-  buffer.call(bufnr, function()
-    vim.cmd "w! %:p"
-  end)
+  buffer.call(bufnr, function() vim.cmd "w! %:p" end)
 end
 
 function buffer.shell(bufnr, command)
-  buffer.call(bufnr, function()
-    vim.cmd(":%! " .. command)
-  end)
+  buffer.call(bufnr, function() vim.cmd(":%! " .. command) end)
+
   return buffer.lines(bufnr)
 end
 
 function buffer.bufnr(bufnr)
   bufnr = bufnr or vim.fn.bufnr()
   bufnr = vim.fn.bufnr(bufnr)
-  if bufnr == -1 then
-    return false
-  end
+  if bufnr == -1 then return false end
   return bufnr
 end
 
-function buffer.name(bufnr)
-  return vim.api.nvim_buf_get_name(bufnr)
-end
+function buffer.name(bufnr) return vim.api.nvim_buf_get_name(bufnr) end
 
 function buffer.create_empty(listed, scratch)
   return vim.api.nvim_create_buf(listed, scratch)
@@ -769,13 +697,9 @@ function buffer.create(name)
 end
 
 function buffer.mkscratch(name, filetype)
-  if not name then
-    return buffer.create_empty(listed, true)
-  end
+  if not name then return buffer.create_empty(listed, true) end
   local bufnr = buffer.bufadd(name)
-  if bufnr == 0 then
-    return false
-  end
+  if bufnr == 0 then return false end
   buffer.setopts(
     bufnr,
     { buflisted = false, buftype = "nofile", filetype = filetype }
@@ -798,39 +722,27 @@ function buffer.menu(desc, items, formatter, callback)
     ["?formatter"] = { "callable", formatter },
   }
 
-  if is_a.s(dict.items) then
-    dict.items = vim.split(items, "\n")
-  end
-  if is_a.s(desc) then
-    desc = vim.split(desc, "\n")
-  end
+  if is_a.s(dict.items) then dict.items = vim.split(items, "\n") end
+  if is_a.s(desc) then desc = vim.split(desc, "\n") end
   local b = buffer.mkscratch()
   local desc_n = #desc
   local s = array.extend(desc, items)
   local lines = copy(s)
-  if formatter then
-    s = array.map(s, formatter)
-  end
+  if formatter then s = array.map(s, formatter) end
   local _callback = callback
 
   callback = function()
     local idx = vim.fn.line "."
-    if idx <= desc_n then
-      return
-    end
+    if idx <= desc_n then return end
     _callback(lines[idx])
   end
 
   buffer.setbuffer(b, s)
   buffer.setopt(b, "modifiable", false)
-  buffer.hook(b, "WinLeave", function()
-    buffer.delete(b)
-  end)
+  buffer.hook(b, "WinLeave", function() buffer.delete(b) end)
   buffer.bind(b, { noremap = true, event = "BufEnter" }, {
     "q",
-    function()
-      buffer.hide(b)
-    end,
+    function() buffer.hide(b) end,
   }, { "<CR>", callback, "Run callback" })
 
   return b
@@ -849,19 +761,13 @@ function buffer.input(text, cb, opts)
   local trigger = opts.keys or "gx"
   local comment = opts.comment or "#"
 
-  if is_a(text, "string") then
-    text = vim.split(text, "\n")
-  end
+  if is_a(text, "string") then text = vim.split(text, "\n") end
 
   local buf = buffer.mkscratch()
-  buffer.hook(buf, "WinLeave", function()
-    buffer.wipeout(buf)
-  end)
+  buffer.hook(buf, "WinLeave", function() buffer.wipeout(buf) end)
   buffer.setlines(buf, 0, -1, text)
   buffer.split(buf, split, { reverse = opts.reverse, resize = opts.resize })
-  buffer.noremap(buf, "n", "q", function()
-    buffer.hide(buf)
-  end, "Close buffer")
+  buffer.noremap(buf, "n", "q", function() buffer.hide(buf) end, "Close buffer")
   buffer.noremap(buf, "n", trigger, function()
     local lines = buffer.lines(buffer.bufnr(), 0, -1)
     local sanitized = {}
@@ -886,9 +792,10 @@ end
 -- @treturn number offset
 function buffer.getpos(bufnr, expr)
   bufnr = bufnr or vim.fn.bufnr()
-  return buffer.call(bufnr, function()
-    return array.slice(vim.fn.getpos(expr or "."), 2, -1)
-  end)
+  return buffer.call(
+    bufnr,
+    function() return array.slice(vim.fn.getpos(expr or "."), 2, -1) end
+  )
 end
 
 --- Get treesitter node text at position
@@ -898,18 +805,12 @@ end
 -- @treturn string
 function buffer.get_node_text_at_pos(bufnr, row, col)
   local node = vim.treesitter.get_node_at_pos(bufnr, row, col)
-  if not node then
-    return
-  end
+  if not node then return end
   return table.concat(buffer.text(bufnr, node:range()), "\n")
 end
 
-function buffer.getrow(bufnr)
-  return buffer.getpos(bufnr)[1]
-end
+function buffer.getrow(bufnr) return buffer.getpos(bufnr)[1] end
 
-function buffer.getcol(bufnr)
-  return buffer.getpos(bufnr)[2]
-end
+function buffer.getcol(bufnr) return buffer.getpos(bufnr)[2] end
 
 return buffer
