@@ -7,7 +7,7 @@ local function get_linters()
     linters_by_ft = {},
   }
 
-  dict.each(Filetype.get 'linters', function (ft, lintconf)
+  dict.each(Filetype.get "linters", function(ft, lintconf)
     if dict.isdict(lintconf) then
       out.linters[ft] = lintconf
       nvimlint.linters[ft] = lintconf
@@ -40,6 +40,6 @@ plug.kbd = {
   { "n", "<leader>ll", plug.methods.lint_buffer, "Lint buffer" },
 }
 
-function plug:on_attach() 
-  get_linters()
-end
+function plug:on_attach() get_linters() end
+
+K.bind(plug.kbd)

@@ -1,3 +1,11 @@
+local function nextheading()
+  vim.cmd("normal! /^=\\{1,\\}$/")
+end
+
+local function prevheading()
+  vim.cmd("normal! ?^=\\{1,\\}$/")
+end
+
 local function putstring(s, align)
   s = string.trim(array.tolist(s)[1])
   local linenum = vim.fn.line "."

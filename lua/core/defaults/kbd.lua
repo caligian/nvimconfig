@@ -4,22 +4,19 @@ local function _toggle_option(option)
   local winid = vim.fn.bufwinid(bufnr)
   local ok, out = pcall(vim.api.nvim_buf_get_option, bufnr, option)
 
-  if ok then
-    vim.api.nvim_buf_set_option(bufnr, option, not out)
-  end
+  if ok then vim.api.nvim_buf_set_option(bufnr, option, not out) end
 
   if not ok then
     ok, out = pcall(vim.api.nvim_win_get_option, winid, option)
-    if ok then
-      vim.api.nvim_win_set_option(winid, option, not out)
-    end
+    if ok then vim.api.nvim_win_set_option(winid, option, not out) end
   end
 end
 
 --------------------------------------------------------------------------------
 --
-K.bind(
-  { noremap = true, leader = true },
+K.bind {
+  noremap = true,
+  leader = true,
 
   -- File and buffer operations
   {
@@ -97,7 +94,11 @@ K.bind(
   },
 
   -- Named tab switching (optional)
-  { "tf", ":tabedit ", { desc = "Tab find file", name = "edit_buffer_in_tab" } },
+  {
+    "tf",
+    ":tabedit ",
+    { desc = "Tab find file", name = "edit_buffer_in_tab" },
+  },
   { "tt", ":tabnew<CR>", { desc = "New tab", name = "new_tab" } },
   { "tk", ":tabclose<CR>", { desc = "Close tab", name = "close_tab" } },
   { "tn", ":tabnext<CR>", { desc = "Next tab", name = "next_tab" } },
@@ -164,8 +165,8 @@ K.bind(
       vim.api.nvim_put({ comment }, "l", true, true)
     end,
     "Add separator line",
-  }
-)
+  },
+}
 
 --------------------------------------------------------------------------------
 
@@ -187,14 +188,16 @@ K.noremap(
 
 --------------------------------------------------------------------------------
 
-K.bind(
-  { prefix = "<C-x>", noremap = true, silent = true },
+K.bind {
+  prefix = "<C-x>",
+  noremap = true,
+  silent = true,
   { "<C-->", ":FontSize -1<CR>", "Decrease font size by 1pt" },
-  { "<C-=>", ":FontSize +1<CR>", "Increase font size by 1pt" }
-)
+  { "<C-=>", ":FontSize +1<CR>", "Increase font size by 1pt" },
+}
 
-K.bind(
-  { mode = "in" },
+K.bind {
+  mode = "in",
   { "<C-ScrollWheelUp>", "<cmd>FontSize +1<CR>" },
-  { "<C-ScrollWheelDown>", "<cmd>FontSize -1<CR>" }
-)
+  { "<C-ScrollWheelDown>", "<cmd>FontSize -1<CR>" },
+}

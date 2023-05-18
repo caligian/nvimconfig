@@ -4,6 +4,7 @@
 
 Keybinding = class "Keybinding"
 K = Keybinding
+K.InvalidSpecException = exception "invalid keybinding spec provided"
 
 --- Contains instances hashed by name
 user.kbd = user.kbd or {}
@@ -47,9 +48,7 @@ end
 function Keybinding:update()
   dict.update(user.kbd.ID, self.id, self)
 
-  if self.name then
-    user.kbd[self.name] = self
-  end
+  if self.name then user.kbd[self.name] = self end
 
   return self
 end
@@ -79,13 +78,9 @@ function Keybinding:init(mode, lhs, cb, rest)
   rest = rest or {}
   mode = mode or rest.mode or "n"
 
-  if is_a.string(mode) then
-    mode = vim.split(mode, "")
-  end
+  if is_a.string(mode) then mode = vim.split(mode, "") end
 
-  if is_a.string(rest) then
-    rest = { desc = rest }
-  end
+  if is_a.string(rest) then rest = { desc = rest } end
 
   rest = rest or {}
   rest = K._parse_opts(rest)
@@ -155,9 +150,7 @@ end
 
 --- Disable keybinding
 function Keybinding:disable()
-  if not self.enabled then
-    return
-  end
+  if not self.enabled then return end
 
   if self.autocmd then
     self.autocmd:delete()
@@ -180,16 +173,12 @@ end
 
 --- Delete keybinding
 function Keybinding:delete()
-  if not self.enabled then
-    return
-  end
+  if not self.enabled then return end
 
   self:disable()
   user.kbd.ID[self.id] = nil
 
-  if self.name then
-    user.kbd[self.name] = nil
-  end
+  if self.name then user.kbd[self.name] = nil end
 
   return self
 end
@@ -225,9 +214,7 @@ end
 -- @return self
 function Keybinding.noremap(mode, lhs, cb, opts)
   opts = opts or {}
-  if is_a.string(opts) then
-    opts = { desc = opts }
-  end
+  if is_a.string(opts) then opts = { desc = opts } end
   opts.noremap = true
   opts.remap = false
 
@@ -241,9 +228,7 @@ end
 -- @param lhs Lhs to remove
 -- @param opts optional options
 function Keybinding.unmap(modes, lhs, opts)
-  if is_a.string(modes) then
-    modes = modes:split ""
-  end
+  if is_a.string(modes) then modes = modes:split "" end
   vim.keymap.del(modes, lhs, opts)
 end
 
@@ -280,109 +265,63 @@ function mt:__newindex(name, spec)
 end
 
 --------------------------------------------------------------------------------
-function K.apply()
-  if not K.queue or array.isblank(K.queue) then
-    return
-  end
+local function ismultiple(spec)
+  local i = 0
 
-  for i = #K.queue, 1, -1 do
-    K.map(unpack(K.queue[i]))
-    K.queue[i] = nil
-  end
-end
-
-local function bind1(opts, ...)
-  local args = { ... }
-  opts = opts or {}
-  local bind = function(kbd)
-    validate { kbd_spec = { "table", kbd } }
-    assert(#kbd >= 2)
-
-    local lhs, cb, o = unpack(kbd)
-
-    validate {
-      lhs = { "string", lhs },
-      cb = { is { "string", "callable" }, cb },
-      ["?o"] = { is { "table", "string" }, o },
-    }
-
-    o = o or {}
-    if is_a.string(o) then
-      o = { desc = o }
-    end
-    validate { kbd_opts = { "table", o } }
-
-    for key, value in pairs(opts) do
-      if not o[key] then
-        o[key] = value
-      end
-    end
-
-    local mode = o.mode or "n"
-    kbd[3] = o
-
-    return Keybinding(mode, unpack(kbd))
-  end
-
-  if #args == 1 then
-    return bind(args[1])
-  else
-    array.each(args, bind)
-  end
-end
-
-local function bind2(kbd)
-  local function bind(opts, bindings)
-    K.bind(opts, unpack(bindings))
-  end
-  local ks = dict.keys(kbd)
-  local single
-
-  for i = 1, #ks do
-    if not tostring(ks[i]):match "^[0-9]+$" then
-      single = true
-      break
+  for key, _ in pairs(spec) do
+    if is_string(key) then
+      i = i + 1
     end
   end
-
-  if single then
-    bind2 { kbd }
-  else
-    dict.each(kbd, function(key, value)
-      validate.binding("table", value)
-
-      local has_opts
-      local opts = {}
-      local bindings = {}
-      local i = 1
-
-      dict.grep(value, function(key, args)
-        key = tostring(key)
-        if not key:match "^[0-9]+$" then
-          has_opts = true
-          opts[key] = args
-        else
-          bindings[i] = args
-          i = i + 1
-        end
-      end)
-
-      if has_opts then
-        bind1(opts, unpack(bindings))
-      else
-        K.map(unpack(bindings))
-      end
-    end)
-  end
+  
+  return i > 0
 end
 
---- Set multiple keybindings
--- @function Keybinding.bind
--- @param opts table Default options
--- @param ... Keybinding spec
--- @see Keybinding.init
-K.bind = multimethod()
-K.bind:set(bind1, "table", "table")
-K.bind:set(bind2, "table")
+K._ismultiple = ismultiple
+  
+local function applymultiple(spec)
+  if not ismultiple(spec) then
+    return 
+  end
+
+  spec = vim.deepcopy(spec)
+  local kbd = array.extract(spec)
+  local opts = dict.extract(spec)
+
+  for i = 1, #kbd do
+    local k = kbd[i]
+    if #k < 2 then K.InvalidSpecException:throw(kbd) end
+
+    local ks, exec, options = unpack(k)
+    if not options then
+      options = {}
+    elseif is_string(options) then
+      options = {desc = options}
+    elseif is_callable(options) then
+    end
+
+    dict.merge(options, opts)
+    local mode = options.mode or "n"
+    options.mode = mode
+
+    K.map(mode, ks, exec, options)
+  end
+
+  return true
+end
+
+K._applymultiple = applymultiple
+
+function K.bind(spec)
+  if applymultiple(spec) then return end
+
+  for i = 1, #spec do
+    local kbd = spec[i]
+    if #kbd < 3 then K.InvalidSpecException:throw(kbd) end
+    if not applymultiple(kbd) then 
+      K.map(unpack(kbd)) 
+    end
+  end
+end
 
 return Keybinding
