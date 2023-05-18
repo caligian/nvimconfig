@@ -1,8 +1,7 @@
 require "core.repl.commands"
 
-Keybinding.bind(
-  { leader = true, noremap = true },
-
+Keybinding.bind {
+  leader = true, noremap = true,
   {
     "xe",
     "<esc>:ShellSendRange<CR>",
@@ -43,4 +42,4 @@ Keybinding.bind(
   { "r.", ":REPLSendTextSubject<CR>", { name = "repl_send_textsubject" } },
   { "rf", "<cmd>REPLFloat<CR>", { name = "shell_float" } },
   { "rF", "<cmd>REPLFloatEditor<CR>", { name = "shell_float_editor" } }
-)
+}
