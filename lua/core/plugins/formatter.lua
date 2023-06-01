@@ -1,11 +1,22 @@
-local function get_formatters() return Filetype.get "formatters" end
+local function get_formatters() 
+  local fmt = Filetype.get "formatters" 
+  dict.each(fmt, function (ft, conf)
+    if is_a.string(conf) then
+      return require('formatter.filetypes.' .. ft)[conf]
+    else
+      return conf
+    end
+  end)
+
+  return fmt
+end
 
 plugin.formatter = {
   kbd = {
     {
       "n",
       "<leader>bf",
-      ":FormatWriteLock<CR>",
+      ":FormatWrite<CR>",
       {
         desc = "Format buffer",
         name = "format_buffer",

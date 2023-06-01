@@ -34,19 +34,19 @@ Term.InvalidIDException =
 
 local function get_status(id)
   if id == 0 then
-    return false, "invalid_command"
+    return false, "InvalidCommandException"
   elseif id == -1 then
-    return false, "not_executable"
+    return false, "ShellNotExecutableException"
   end
 
   local status = vim.fn.jobwait({ id }, Term.timeout)[1]
   if status ~= -1 and status ~= 0 then
     if status >= 126 then
-      return false, "invalid_command"
+      return false, "InvalidCommandException"
     elseif status == -2 then
-      return false, "interrupted"
+      return false, "InterruptedException"
     elseif status == -3 then
-      return false, "invalid_id"
+      return false, "InvalidIDException"
     end
   end
 
@@ -214,6 +214,7 @@ function Term:send(s)
   if is_a.string(s) then
     s = str.split(s, "[\n\r]+")
   end
+
   if self.on_input then
     s = self.on_input(s)
   end

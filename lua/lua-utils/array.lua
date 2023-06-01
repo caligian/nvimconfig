@@ -20,10 +20,6 @@ function array.reverse(x)
   return out
 end
 
-function array.get_array(x)
-  local out = {}
-end
-
 --- Pop N items from an array
 -- @tparam array t
 -- @tparam number n of items to pop
@@ -195,7 +191,7 @@ end
 -- @treturn key|array[keys]
 function array.index(t, item, test, depth)
   depth = depth or -1
-  test = test or function(x, y, ks)
+  test = test or function(x, y)
     return x == y
   end
   local cache = {}

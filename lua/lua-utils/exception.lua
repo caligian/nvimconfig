@@ -29,7 +29,7 @@ local function __tostring(self, obj, reason)
 
   local show = setmetatable({
     reason = self.reason or reason,
-    obj = tostring(obj),
+    obj = obj,
     traceback = traceback,
   }, { __tostring = dump })
 

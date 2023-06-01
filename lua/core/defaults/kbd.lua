@@ -18,6 +18,13 @@ K.bind {
   noremap = true,
   leader = true,
 
+  --- Toggle zenmode
+  {
+    'oz',
+    ':ToggleZenMode<CR>',
+    'Toggle Zen mode',
+  },
+
   -- File and buffer operations
   {
     "fb",

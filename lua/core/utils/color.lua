@@ -1,3 +1,8 @@
+local RED = 0.2126
+local GREEN = 0.7152
+local BLUE = 0.0722
+local GAMMA = 2.4
+
 function utils.highlight(hi)
   local ok, out = pcall(vim.api.nvim_exec, "hi " .. hi, true)
   if not ok then return {} end
@@ -89,12 +94,6 @@ end
 
 function utils.lighten(hex, lighten_n) return utils.darken(hex, lighten_n * -1) end
 
-function utils.luminance(hex)
-  local r, g, b = hex2rgb(hex)
-  local luminance = (r * 0.2126) + (g * 0.7152) + (b * 0.0722)
-  return luminance < (255 / 2)
-end
-
 function utils.highlightset(hi, set, defaults)
   local group = hi
   hi = utils.highlight(hi)
@@ -135,19 +134,46 @@ utils.hi:set(
 --- https://stackoverflow.com/questions/22603510/is-this-possible-to-detect-a-colour-is-a-light-or-dark-colour
 utils.isdark = multimethod()
 
-utils.isdark:set(function (hex)
+utils.isdark:set(function(hex)
   local r, g, b = utils.hex2rgb(hex)
   local hsp = 0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b)
   if hsp > 127.5 then return false end
   return true
-end, 'string')
+end, "string")
 
-utils.isdark:set(function (r, g, b)
+utils.isdark:set(function(r, g, b)
   local hsp = 0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b)
   if hsp > 127.5 then return false end
   return true
 end)
 
-function utils.islight(...)
-  return not utils.isdark(...)
+function utils.islight(...) return not utils.isdark(...) end
+
+function utils.luminance(red_or_hex, green, blue)
+  if is_a.string(red_or_hex) then
+    return utils.luminance(utils.hex2rgb(red_or_hex))
+  end
+
+  local function lum(c)
+    c = c / 255
+    if c <= 0.03928 then
+      return c / 12.92
+    else
+      return math.pow((c + 0.055) / 1.055, GAMMA)
+    end
+  end
+
+  local r = lum(red_or_hex)
+  local g = lum(green)
+  local b = lum(blue)
+
+  return (r * RED) + (g * GREEN) + (b * BLUE)
+end
+
+function utils.contrast(hex_or_rgb1, hex_or_rgb2)
+  local lum1 = utils.luminance(hex_or_rgb1)
+  local lum2 = utils.luminance(hex_or_rgb2)
+  local brightest = math.max(lum1, lum2)
+  local darkest = math.min(lum1, lum2)
+  return (brightest + 0.05) / (darkest + 0.05)
 end

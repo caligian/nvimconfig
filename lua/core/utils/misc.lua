@@ -6,15 +6,11 @@ function utils.whereis(bin, regex)
   out = string.trim(out)
   out = string.split(out, " ")
 
-  if dict.isblank(out) then
-    return false
-  end
+  if dict.isblank(out) then return false end
 
   if regex then
     for _, value in ipairs(out) do
-      if value:match(regex) then
-        return value
-      end
+      if value:match(regex) then return value end
     end
   end
   return out[1]
@@ -45,9 +41,7 @@ function utils.with_open(fname, mode, callback)
   return out
 end
 
-function utils.joinpath(...)
-  return table.concat({ ... }, "/")
-end
+function utils.joinpath(...) return table.concat({ ... }, "/") end
 
 function utils.basename(s)
   s = vim.split(s, "/")
@@ -79,17 +73,11 @@ function utils.req2path(s, is_file)
 end
 
 function utils.reqmodule(s)
-  if not s:match_any "^core" then
-    return
-  end
-  if s:match "^core%.utils" then
-    return
-  end
+  if not s:match_any "^core" then return end
+  if s:match "^core%.utils" then return end
 
   local p = s:gsub("^core", "user")
-  if not utils.req2path(s) then
-    return
-  end
+  if not utils.req2path(s) then return end
 
   local builtin, builtin_tp = utils.req2path(s)
   local _user, user_tp = utils.req2path(p)
@@ -113,4 +101,24 @@ function utils.reqmodule(s)
   end
 
   return builtin
+end
+
+function mtget(t, key, default)
+  local mt = getmetatable(t)
+  if not mt then return end
+  if not key then return mt end
+
+  local found = mt[key]
+  if found ~= nil then return found end
+  return default
+end
+
+function mtset(t, key, value)
+  local mt = getmetatable(t) or {}
+  if not value then return setmetatable(t, key) end
+
+  mt[key] = value
+  setmetatable(t, mt)
+
+  return value
 end

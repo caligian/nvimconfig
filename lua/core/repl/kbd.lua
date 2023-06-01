@@ -18,7 +18,7 @@ Keybinding.bind {
   { "x;", "<cmd>ShellSendNode<CR>", { name = "shell_send_node" } },
   { "x.", ":ShellSendTextSubject<CR>", { name = "repl_send_textsubject" } },
   { "xb", "<cmd>ShellSendBuffer<CR>", { name = "shell_send_buffer" } },
-  { "x.", "<cmd>ShellSendTillPoint<CR>", { name = "shell_send_till_point" } },
+  { "x~", "<cmd>ShellSendTillPoint<CR>", { name = "shell_send_till_point" } },
   { "xf", "<cmd>ShellFloat<CR>", { name = "shell_float" } },
   { "xF", "<cmd>ShellFloatEditor<CR>", { name = "shell_float_editor" } },
 
@@ -36,7 +36,7 @@ Keybinding.bind {
   { "re", "<cmd>REPLSendLine<CR>", { name = "repl_send_line" } },
   { "r;", "<cmd>REPLSendNode<CR>", { name = "repl_send_node" } },
   { "rb", "<cmd>REPLSendBuffer<CR>", { name = "repl_send_buffer" } },
-  { "r.", "<cmd>REPLSendTillPoint<CR>", { name = "repl_send_till_point" } },
+  { "r~", "<cmd>REPLSendTillPoint<CR>", { name = "repl_send_till_point" } },
   { "rc", "<cmd>REPLTerminateInput<CR>", { name = "repl_terminate_input" } },
   { "re", "<esc>:REPLSendRange<CR>", { name = "repl_send_range", mode = "v" } },
   { "r.", ":REPLSendTextSubject<CR>", { name = "repl_send_textsubject" } },

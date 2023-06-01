@@ -51,4 +51,8 @@ function utils.copy(obj)
   return out
 end
 
+function deepcopy(x)
+  return vim.deepcopy(x)
+end
+
 return utils

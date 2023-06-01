@@ -21,13 +21,27 @@ function statusline:update_colors()
   colors.bg = normal.guibg
   colors.fg = normal.guifg
 
-  if utils.islight(colors.bg) then
+  local bg = colors.bg
+  local fg = colors.fg
+
+  if utils.islight(bg) then
+    local contrast = utils.contrast(bg, fg)
     for key, value in pairs(colors) do
-      colors[key] = utils.darken(value, 10)
+      if contrast < 4 then
+        colors[key] = utils.darken(value, 30)
+      else
+        colors[key] = utils.darken(value, 5)
+      end
     end
+    colors.bg = utils.darken(bg, 5)
   else
+    local contrast = utils.contrast(bg, fg)
     for key, value in pairs(colors) do
-      colors[key] = utils.lighten(value, 10)
+      if contrast < 4 then
+        colors[key] = utils.lighten(value, 20)
+      else
+        colors[key] = utils.lighten(value, 5)
+      end
     end
   end
 

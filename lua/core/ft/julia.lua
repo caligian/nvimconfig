@@ -6,7 +6,7 @@ filetype.julia = {
     config = {
       autostart = true,
       single_file_support = true,
-      cmd = { "julia-lsp", "-e", "using LanguageServer; runserver()" },
+      cmd = { "julia", "-e", "using LanguageServer; runserver()" },
     },
   },
 }

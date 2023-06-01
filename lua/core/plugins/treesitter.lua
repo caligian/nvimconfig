@@ -26,19 +26,7 @@ plugin.treesitter = {
 
     matchup = { enable = true },
 
-    ensure_installed = {
-      "lua",
-      "python",
-      "ruby",
-      "bash",
-      "perl",
-      "gitcommit",
-      "git_rebase",
-      "gitattributes",
-      "gitignore",
-    },
-
-    auto_install = false,
+    ensure_installed = {},
 
     textsubjects = {
       enable = true,

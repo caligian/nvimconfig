@@ -53,9 +53,11 @@ plugin.suda.spec = {
 }
 
 plugin.colorscheme.spec = {
-  "sainnhe/everforest",
+  "maxmx03/solarized.nvim",
 
   dependencies = {
+    "RRethy/nvim-base16",
+    "sainnhe/everforest",
     "maxmx03/solarized.nvim",
     "rktjmp/lush.nvim",
     "rose-pine/neovim",
@@ -94,7 +96,6 @@ plugin.devicons.spec = {
 
 plugin.netrw.spec = {
   "prichrd/netrw.nvim",
-  cmd = "Lexplore",
 }
 
 plugin.surround.spec = {
@@ -104,7 +105,7 @@ plugin.surround.spec = {
 
 plugin.autopairs.spec = {
   "windwp/nvim-autopairs",
-  event = "InsertEnter",
+  event = 'InsertEnter',
 }
 
 plugin.lint.spec = {
@@ -164,6 +165,7 @@ plugin.treesitter.spec = {
   "nvim-treesitter/nvim-treesitter",
   event = "BufReadPost",
   dependencies = {
+    "windwp/nvim-autopairs",
     "RRethy/vim-illuminate",
     "RRethy/nvim-treesitter-textsubjects",
     "nvim-treesitter/nvim-treesitter-textobjects",
@@ -202,11 +204,46 @@ plugin.treesitter.spec = {
       dependencies = { "phaazon/hop.nvim" },
     },
     "kiyoon/treesitter-indent-object.nvim",
-    "andymass/vim-matchup",
     "cshuaimin/ssr.nvim",
     "nvim-treesitter/nvim-treesitter-refactor",
     "MunifTanjim/nui.nvim",
   },
+}
+
+plugin["treesitter-indent-object.nvim"].spec = {
+  "kiyoon/treesitter-indent-object.nvim",
+  keys = {
+    {
+      "ai",
+      "<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_outer()<CR>",
+      mode = { "x", "o" },
+      desc = "Select indent (outer)",
+    },
+    {
+      "aI",
+      "<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_outer(true)<CR>",
+      mode = { "x", "o" },
+      desc = "Select indent (outer, line-wise)",
+    },
+    {
+      "ii",
+      "<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_inner()<CR>",
+      mode = { "x", "o" },
+      desc = "Select indent (inner, partial range)",
+    },
+    {
+      "iI",
+      "<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_inner(true)<CR>",
+      mode = { "x", "o" },
+      desc = "Select indent (inner, entire range)",
+    },
+  },
+}
+
+plugin.treehopper.spec = {
+  "mfussenegger/nvim-treehopper",
+  dependencies = { "phaazon/hop.nvim" },
+  event = {'BufReadPost'}
 }
 
 plugin.snippets.spec = {
@@ -278,9 +315,9 @@ plugin.formatter.spec = {
 plugin.lsp.spec = {
   "neovim/nvim-lspconfig",
   dependencies = {
+    "ionide/Ionide-vim",
     "j-hui/fidget.nvim",
     "lukas-reineke/lsp-format.nvim",
-    "williamboman/mason.nvim",
     "mfussenegger/nvim-dap",
   },
 }
@@ -288,4 +325,24 @@ plugin.lsp.spec = {
 plugin.bbye.spec = {
   "moll/vim-bbye",
   event = "BufReadPost",
+}
+
+plugin.undotree.spec = {
+  "mbbill/undotree",
+  event = "InsertEnter",
+}
+
+plugin.scope.spec = {
+  "tiagovla/scope.nvim",
+}
+
+plugin.bufferline.spec = {
+  "akinsho/bufferline.nvim",
+  version = "*",
+  dependencies = { "tiagovla/scope.nvim" },
+}
+
+plugin.ionide.spec = {
+  "ionide/Ionide-vim",
+  ft = 'fsharp',
 }

@@ -35,7 +35,14 @@ function multimethod.compare_sig(signature, params)
   if param_len > sig_n then params = array.slice(params, 1, sig_n) end
 
   for i = 1, sig_n do
-    status[status_i + 1] = is(signature[i])(params[i])
+    local sig, param = signature[i], params[i]
+    if sig == "*" and param ~= nil then
+      status[status_i + 1] = true
+    else
+      local ok, _ = is(signature[i])(params[i])
+      status[status_i + 1] = ok
+    end
+
     status_i = status_i + 1
   end
 

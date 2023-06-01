@@ -4,6 +4,7 @@ Filetype.AUTOCMD_ID = Filetype.AUTOCMD_ID or 1
 Filetype.loaded = Filetype.loaded == nil and false or Filetype.loaded
 user.filetype = Filetype.ft
 local add_ft = vim.filetype.add
+local string_or_callable = is {'string', 'callable'}
 
 function Filetype.setupall()
   dict.each(Filetype.ft, function(_, obj) obj:load() end)
@@ -18,9 +19,9 @@ function Filetype:setup(opts)
         opt_bo = "table",
         opt_wo = "table",
         opt_kbd = "table",
-        opt_compile = "string",
-        opt_build = "string",
-        opt_test = "string",
+        opt_compile = string_or_callable,
+        opt_build = string_or_callable,
+        opt_test = string_or_callable,
         opt_linters = is { "string", "table" },
         opt_formatters = "table",
         opt_server = is { "string", "table" },

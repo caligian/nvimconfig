@@ -22,10 +22,6 @@ T.extensions = {
       },
     },
   },
-  fzy = {
-    override_generic_sorter = true,
-    override_file_sorter = true,
-  },
 }
 
 T.pickers = {
@@ -205,7 +201,6 @@ plugin.telescope = {
   on_attach = function(self)
     local telescope = require "telescope"
     telescope.setup(self.config)
-    telescope.load_extension "fzy_native"
     telescope.load_extension "file_browser"
   end,
 }

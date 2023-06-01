@@ -13,9 +13,9 @@ dict.merge(user, {
 
   plugins = user.plugins or {},
 
-  shell = "/usr/bin/zsh",
+  shell = "/bin/bash",
 
-  font = { family = "Liberation Mono", height = 13 },
+  fonts = { {"Liberation Mono", h=14}, {"Noto Mono", h=13} },
 
   temp_buffer_patterns = {
     qflist = { ft = "qf" },
@@ -24,9 +24,7 @@ dict.merge(user, {
     help_files = { ft = "help" },
   },
 
-  colorscheme = 'ayu',
+  colorscheme = 'base16-windows-highcontrast',
 })
-
-utils.set_font(user.font.family, user.font.height)
 
 req "user.globals"

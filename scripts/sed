@@ -1,6 +1,0 @@
-#!/bin/bash
-
-[[ -z $1 ]] && echo 'pattern not supplied' && exit 1
-[[ -z $2 ]] && echo 'replacement string not supplied' && exit 1
-
-fd --type f 'lua$' $HOME/.config/nvim/lua -X sed -i.bak 's/$1/$2/'

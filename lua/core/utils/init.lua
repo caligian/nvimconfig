@@ -23,6 +23,7 @@ require "core.utils.aliased"
 require "core.utils.module"
 require "core.utils.nvim"
 require "core.utils.misc"
+require 'core.utils.module'
 require "core.utils.telescope"
 require "core.utils.color"
 
@@ -34,6 +35,7 @@ require "core.utils.Keybinding"
 require "core.utils.Buffer"
 require "core.utils.Term"
 require "core.utils.Process"
+require 'core.utils.Font'
 
 --------------------------------------------------------------------------------
 -- Framework utils

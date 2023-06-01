@@ -1,4 +1,5 @@
 local Bookmark = require "core.utils.Bookmark"
+
 local list_buffers = Bookmark.list_buffers
 local list_bookmarks = function()
   return dict.keys(Bookmark.list_all())

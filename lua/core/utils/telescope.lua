@@ -6,20 +6,24 @@ local load_telescope = function(override)
     action_state = require "telescope.actions.state",
     sorters = require "telescope.sorters",
     finders = require "telescope.finders",
-    conf = utils.try_require("telescope.config", function(M)
-      return M.values
-    end),
-    ivy = utils.try_require("telescope.themes", function(M)
-      return dict.merge(M.get_dropdown(), {
-        disable_devicons = true,
-        previewer = false,
-        extensions = {},
-        layout_config = {
-          height = 0.8,
-          width = 0.9,
-        },
-      })
-    end),
+    conf = utils.try_require(
+      "telescope.config",
+      function(M) return M.values end
+    ),
+    ivy = utils.try_require(
+      "telescope.themes",
+      function(M)
+        return dict.merge(M.get_dropdown(), {
+          disable_devicons = true,
+          previewer = false,
+          extensions = {},
+          layout_config = {
+            height = 0.8,
+            width = 0.9,
+          },
+        })
+      end
+    ),
   }, override or {})
 
   return opts
@@ -37,19 +41,18 @@ function M.load(override)
 end
 
 function M.get_selected(bufnr, close)
-  close = close == nil and true or close
+  if close == nil then close = true end
+
   local _ = load_telescope()
   local picker = _.action_state.get_current_picker(bufnr)
-  if close then
-    _.actions.close(bufnr)
-  end
+  if close then _.actions.close(bufnr) end
   local nargs = picker:get_multi_selection()
-  if #nargs > 0 then
-    return nargs
-  end
 
+  if #nargs > 0 then return nargs end
   return { _.action_state.get_selected_entry() }
 end
+
+M.selected = M.get_selected
 
 function M.new(items, mappings, opts)
   local _ = load_telescope()
@@ -57,9 +60,7 @@ function M.new(items, mappings, opts)
   opts = opts or {}
 
   -- If opts.finder is missing, then only items will be used
-  if not opts.finder and items then
-    opts.finder = _.finders.new_table(items)
-  end
+  if not opts.finder and items then opts.finder = _.finders.new_table(items) end
 
   opts.sorter = opts.sorter or _.sorters.get_fzy_sorter()
 
@@ -70,17 +71,11 @@ function M.new(items, mappings, opts)
       if mappings then
         local default = mappings[1]
         if default then
-          _.actions.select_default:replace(function()
-            default(prompt_bufnr)
-          end)
+          _.actions.select_default:replace(function() default(prompt_bufnr) end)
         end
-        array.each(array.rest(mappings), function(x)
-          map(unpack(x))
-        end)
+        array.each(array.rest(mappings), function(x) map(unpack(x)) end)
       end
-      if attach_mappings then
-        attach_mappings(prompt_bufnr, map)
-      end
+      if attach_mappings then attach_mappings(prompt_bufnr, map) end
       return true
     end
   end
@@ -89,18 +84,17 @@ end
 
 M.new_picker = M.new
 M.create_picker = M.new
-M.run_picker = function(...)
-  return M.create_picker(...):find()
-end
+M.run_picker = function(...) return M.create_picker(...):find() end
 
 function M.create_actions_mod(no_close)
   return setmetatable({}, {
     __newindex = function(self, name, f)
       local _ = load_telescope()
       rawset(self, name, function(bufnr)
-        array.each(M.get_selected(bufnr, no_close), function(sel)
-          return f(sel, bufnr)
-        end)
+        array.each(
+          M.get_selected(bufnr, no_close),
+          function(sel) return f(sel, bufnr) end
+        )
       end)
     end,
   })
@@ -131,3 +125,7 @@ function M.create_menu(title, spec)
     prompt_title = title,
   })
 end
+
+M.menu = M.create_menu
+
+return M

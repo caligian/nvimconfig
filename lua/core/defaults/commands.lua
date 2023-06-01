@@ -11,23 +11,23 @@ command("ShowLogs", function()
 end, {})
 
 -- Open scratch buffer
-command("OpenScratch", function()
-  buffer.open_scratch(false, "s")
-end, {})
+command("OpenScratch", function() buffer.open_scratch(false, "s") end, {})
 
-command("OpenScratchVertically", function()
-  buffer.open_scratch(false, "v")
-end, {})
+command(
+  "OpenScratchVertically",
+  function() buffer.open_scratch(false, "v") end,
+  {}
+)
 
-command("OpenScratchFloat", function()
-  buffer.open_scratch(false, "f", { center = { 0.8, 0.8 } })
-end, {})
+command(
+  "OpenScratchFloat",
+  function() buffer.open_scratch(false, "f", { center = { 0.8, 0.8 } }) end,
+  {}
+)
 
 -- Compile neovim lua
 local function compile_and_run(lines)
-  if is_a(lines, "table") then
-    lines = table.concat(lines, "\n")
-  end
+  if is_a(lines, "table") then lines = table.concat(lines, "\n") end
 
   local compiled, err = loadstring(lines)
   if err then
@@ -67,9 +67,7 @@ command("Darken", function(args)
   local what, by = unpack(args)
   local hi = utils.highlight "Normal"
 
-  if isblank(hi) then
-    return
-  end
+  if isblank(hi) then return end
 
   local set = {}
   if what == "fg" then
@@ -86,7 +84,6 @@ end, { nargs = "+" })
 command("FontSize", function(args)
   args = vim.split(args.args, " +")
   args = args[1]
-  local font, height = utils.get_font()
   local inc = args:match "^([-+])"
   args = args:gsub("^[-+]", "")
   args = tonumber(args)
@@ -100,7 +97,7 @@ command("FontSize", function(args)
   end
   height = args == "" and 12 or height
 
-  utils.set_font(font, height)
+  utils.setfont(font .. ':h' .. height)
 end, { nargs = "+" })
 
 command("TrimWhiteSpace", function()
@@ -108,3 +105,16 @@ command("TrimWhiteSpace", function()
   vim.cmd "keeppatterns %s/\\s\\+$//e"
   vim.fn.winrestview(layout)
 end, {})
+
+command("EnableZenMode", function() vim.o.laststatus = 0 end, {})
+
+command("ToggleZenMode", function()
+  user.zenmode_toggled = vim.o.laststatus == 0
+  if user.zenmode_toggled then
+    user.zenmode_toggled = false
+    vim.o.laststatus = 3
+  else
+    user.zenmode_toggled = true
+    vim.o.laststatus = 0
+  end
+end)

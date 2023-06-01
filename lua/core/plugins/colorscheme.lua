@@ -23,7 +23,7 @@ plugin.colorscheme = {
         opts = opts or {}
         opts = dict.merge(utils.copy(self.config), opts)
         dict.each(opts, function (key, value) vim.g[key] = value end)
-        vim.cmd ':color starry'
+        vim.cmd ':colorscheme starry'
       end
     },
     rosepine = {
@@ -153,7 +153,7 @@ plugin.colorscheme = {
         self.config[name]:setup(config)
       else
         local ok = pcall(vim.cmd, 'color ' .. name)
-        if not ok then vim.cmd 'starry' end
+        if not ok then vim.cmd 'color carbonfox' end
       end
     elseif is_table(name) then
       local color, config = name[1], name.config

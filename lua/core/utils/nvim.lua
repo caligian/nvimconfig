@@ -1,3 +1,6 @@
+user.InvalidFontSpecException =
+  exception "expected font spec: `font_family:h[0-9]+[,...]`"
+
 function utils.nvimerr(...)
   for _, s in ipairs { ... } do
     vim.api.nvim_err_writeln(s)
@@ -13,15 +16,11 @@ end
 user.logs = user.logs or {}
 function req(require_string, do_assert)
   local ok, out = pcall(require, require_string)
-  if ok then
-    return out
-  end
+  if ok then return out end
   array.append(user.logs, out)
   logger:debug(out)
 
-  if do_assert then
-    error(out)
-  end
+  if do_assert then error(out) end
 end
 
 function utils.glob(d, expr, nosuf, alllinks)
@@ -39,32 +38,21 @@ function utils.get_font()
   return font, height
 end
 
-function utils.set_font(font, height)
-  local current_font, current_height = utils.get_font()
-  font = font or current_font
-  height = height or current_height
-  font = font:gsub(" ", "\\ ")
-  vim.cmd("set guifont=" .. sprintf("%s:h%d", font, height))
-end
-
 function utils.log_pcall(f, ...)
   local ok, out = pcall(f, ...)
   if ok then
     return out
   else
+    out = debug.traceback()
     logger:debug(out)
   end
 end
 
 function utils.log_pcall_wrap(f)
-  return function(...)
-    return utils.log_pcall(f, ...)
-  end
+  return function(...) return utils.log_pcall(f, ...) end
 end
 
-function throw_error(desc)
-  error(dump(desc))
-end
+function throw_error(desc) error(dump(desc)) end
 
 function utils.try_require(s, success, failure)
   local M = require(s)
@@ -150,11 +138,71 @@ end
 
 function utils.require(s)
   local p, tp = utils.req2path(s)
-  if not p then 
+  if not p then
     return
-  elseif tp == 'dir' and path.exists(p .. '/init.lua') then
+  elseif tp == "dir" and path.exists(p .. "/init.lua") then
     require(s)
   else
     require(s)
   end
+end
+
+--- Form:
+user.InvalidInputException = exception "invalid input passed"
+
+function input(spec)
+  local out = {}
+
+  array.each(spec, function(value)
+    local key = value[1]
+
+    validate[key]({
+      opt_validate = "callable",
+      opt_prompt = "string",
+      opt_completion = "string",
+      opt_post = "callable",
+    }, value)
+
+    local check = value.validate
+    local prompt = value.prompt or key
+    local default = value.default
+    local required = value.required
+    local post = value.post or function (x)
+      if x:match '^[0-9]+$' then return tonumber(x) end
+      return x
+    end
+    prompt = prompt .. " > "
+
+    local userint
+    if not default then
+      userint = vim.fn.input(prompt)  
+    else
+      userint = vim.fn.input(prompt)  
+    end
+    
+    userint = #userint == 0 and false or str.trim(userint)
+
+    if #userint == 0 then userint = false end
+
+    if not userint and default then userint = default end
+
+    if required == nil then required = true end
+
+    if required and not userint then
+      user.InvalidInputException:throw(value)
+    end
+
+    if check then
+      local ok, msg = check(userint)
+      if not ok then
+        user.InvalidInputException:throw(msg or "callable failed", value)
+      end
+    end
+
+    if post then userint = post(userint) end
+
+    out[key] = userint
+  end)
+
+  return out
 end

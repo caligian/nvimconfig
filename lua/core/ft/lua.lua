@@ -8,6 +8,14 @@ filetype.lua = {
   server = {
     name = "lua_ls",
     config = {
+      cmd = {
+        path.join(
+          vim.fn.stdpath "data",
+          "lua-language-server",
+          "bin",
+          "lua-language-server"
+        ),
+      },
       settings = {
         Lua = {
           path = package_path,
@@ -31,7 +39,7 @@ filetype.lua = {
 
   formatters = {
     {
-      exe = "stylua",
+      exe = path.join(os.getenv "HOME", ".cargo", "bin", "stylua"),
       args = {
         "--call-parentheses None",
         "--collapse-simple-statement Always",

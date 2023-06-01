@@ -686,7 +686,9 @@ function buffer.bufnr(bufnr)
   return bufnr
 end
 
-function buffer.name(bufnr) return vim.api.nvim_buf_get_name(bufnr) end
+function buffer.name(bufnr)
+  return vim.api.nvim_buf_get_name(bufnr or vim.fn.bufnr())
+end
 
 function buffer.create_empty(listed, scratch)
   return vim.api.nvim_create_buf(listed, scratch)
