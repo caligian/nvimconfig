@@ -16,7 +16,7 @@ plugin.formatter = {
     {
       "n",
       "<leader>bf",
-      ":FormatWrite<CR>",
+      ":w <bar> FormatWrite <bar> :e!<CR>",
       {
         desc = "Format buffer",
         name = "format_buffer",

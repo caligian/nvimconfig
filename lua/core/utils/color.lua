@@ -135,6 +135,7 @@ utils.hi:set(
 utils.isdark = multimethod()
 
 utils.isdark:set(function(hex)
+  hex = hex or '#000000'
   local r, g, b = utils.hex2rgb(hex)
   local hsp = 0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b)
   if hsp > 127.5 then return false end

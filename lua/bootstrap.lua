@@ -43,27 +43,8 @@ dir = require "pl.dir"
 path = require "pl.path"
 file = require "pl.file"
 regex = require "rex_pcre2"
-utils = require "lua-utils.utils"
-array = require "lua-utils.array"
-dict = require "lua-utils.dict"
-class = require "lua-utils.class"
-multimethod = require "lua-utils.multimethod"
-exception = require "lua-utils.exception"
-str = require "lua-utils.str"
 
-local validate = require "lua-utils.validate"
-local fn = require "lua-utils.fn"
-local types = require "lua-utils.types"
-
-dict.each(validate, function(key, value)
-  _G[key] = value
-end)
-dict.each(fn, function(key, value)
-  _G[key] = value
-end)
-dict.each(types, function(key, value)
-  _G[key] = value
-end)
+require 'lua-utils'
 
 -- Delete the old log
 if path.exists(log_path) then

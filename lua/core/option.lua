@@ -25,7 +25,7 @@ user.option = {
     termguicolors = true,
     laststatus = 3,
     mousefocus = true,
-    shell = "/usr/bin/zsh",
+    shell = "/bin/bash",
     backspace = "indent,eol,start",
     tabstop = 4,
     shiftwidth = 4,
@@ -34,7 +34,6 @@ user.option = {
     inccommand = "split",
     background = "dark",
     guifont = "Liberation Mono:h12",
-    textwidth = 80,
   },
   g = {
     mapleader = " ",

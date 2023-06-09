@@ -199,8 +199,8 @@ K.bind {
   prefix = "<C-x>",
   noremap = true,
   silent = true,
-  { "<C-->", ":FontSize -1<CR>", "Decrease font size by 1pt" },
-  { "<C-=>", ":FontSize +1<CR>", "Increase font size by 1pt" },
+  { "<C-=>", function () user.currentfont:inc(1) end, "Decrease font size by 1pt" },
+  { "<C-->", function () user.currentfont:dec(1) end, "Decrease font size by 1pt" },
 }
 
 K.bind {

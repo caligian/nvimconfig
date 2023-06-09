@@ -119,6 +119,8 @@ function buffer.vimsize()
     vim.cmd("tabclose " .. tabpage)
   end)
 
+  vim.cmd(':bwipeout! ' .. scratch)
+
   return { width, height }
 end
 
@@ -814,5 +816,10 @@ end
 function buffer.getrow(bufnr) return buffer.getpos(bufnr)[1] end
 
 function buffer.getcol(bufnr) return buffer.getpos(bufnr)[2] end
+
+function buffer.windows(bufnr)
+  local out = vim.fn.win_findbuf(bufnr or buffer.bufnr())
+  if #out == 0 then return else return out end
+end
 
 return buffer
