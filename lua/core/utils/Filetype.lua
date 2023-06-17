@@ -39,7 +39,7 @@ function Filetype:setup(opts)
     if exists then exists:disable() end
 
     self.augroup:add("Filetype", {
-      callback = function(au) buffer.setopts(au.bufnr, opts.window_options) end,
+      callback = function(au) buffer.setoption(au.bufnr, opts.window_options) end,
       pattern = self.name,
       name = 'window_options',
     })
@@ -50,7 +50,7 @@ function Filetype:setup(opts)
     if exists then exists:disable() end
 
     self.augroup:add("Filetype", {
-      callback = function(au) buffer.setopts(au.buf, opts.bo) end,
+      callback = function(au) buffer.setoption(au.buf, opts.bo) end,
       pattern = self.name,
     })
   end

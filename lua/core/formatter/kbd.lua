@@ -1,0 +1,14 @@
+K.noremap("n", "<leader>bf", function()
+  local ft = vim.bo.filetype
+  if #ft == 0 then return end
+
+  local spec = Filetype.get(ft, "formatter")
+  if not spec then return end
+
+  if dict.isblank(spec) then
+    pp "No formatter defined for current buffer"
+    return
+  end
+
+  formatter.format(nil, spec)
+end, { desc = "format buffer" })

@@ -35,10 +35,10 @@ lsp.kbd = {
 lsp.mappings = {
   silent = true,
   noremap = true,
-  { "gD", vim.lsp.buf.declaration, { desc = "Buffer declarations" } },
-  { "gd", vim.lsp.buf.definition, { desc = "Buffer definitions" } },
-  { "K", vim.lsp.buf.hover, { desc = "Show float UI" } },
-  { "gi", vim.lsp.buf.implementation, { desc = "Show implementations" } },
+  { "gD",    vim.lsp.buf.declaration,    { desc = "Buffer declarations" } },
+  { "gd",    vim.lsp.buf.definition,     { desc = "Buffer definitions" } },
+  { "K",     vim.lsp.buf.hover,          { desc = "Show float UI" } },
+  { "gi",    vim.lsp.buf.implementation, { desc = "Show implementations" } },
   { "<C-k>", vim.lsp.buf.signature_help, { desc = "Signatures" } },
   {
     "<leader>lwa",
@@ -60,8 +60,8 @@ lsp.mappings = {
     vim.lsp.buf.type_definition,
     { desc = "Show type definitions" },
   },
-  { "<leader>lR", vim.lsp.buf.rename, { desc = "Rename buffer" } },
-  { "leaderla", vim.lsp.buf.code_action, { desc = "Show code actions" } },
+  { "<leader>lR", vim.lsp.buf.rename,      { desc = "Rename buffer" } },
+  { "leaderla",   vim.lsp.buf.code_action, { desc = "Show code actions" } },
   {
     "gr",
     vim.lsp.buf.references,
@@ -151,12 +151,12 @@ lsp.methods = {
     if client.name == "omnisharp" then
       lsp.methods.fix_omnisharp(client, bufnr)
     else
-      buffer.setopt(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
+      buffer.setoption(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
       if
-        not Filetype.get(
-          buffer.call(bufnr, function() return vim.bo.filetype end),
-          "formatters"
-        )
+          not Filetype.get(
+            buffer.call(bufnr, function() return vim.bo.filetype end),
+            "formatter"
+          )
       then
         require("lsp-format").on_attach(client)
       end
@@ -175,7 +175,7 @@ lsp.methods = {
     local on_attach = opts.on_attach or lsp.methods.on_attach
     local flags = opts.flags or lsp.flags
     local default_conf =
-      { capabilities = capabilities, on_attach = on_attach, flags = flags }
+    { capabilities = capabilities, on_attach = on_attach, flags = flags }
 
     default_conf = dict.merge(default_conf, opts)
     if default_conf.cmd then

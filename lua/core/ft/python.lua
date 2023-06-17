@@ -1,9 +1,9 @@
 filetype.python = {
-  compile = "python",
+  compile = "python3",
   test = "pytest",
-  repl = "python -q",
-  server = "jedi_language_server",
+  repl = "ipython3",
+  server = "pyright",
   linters = "pylint",
-  formatters = { { exe = "black", args = { "-q", "-" }, stdin = true } },
+  formatter = { 'black -q -', stdin = true },
   bo = { shiftwidth = 4, tabstop = 4 },
 }

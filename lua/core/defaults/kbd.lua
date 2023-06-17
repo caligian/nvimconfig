@@ -195,16 +195,24 @@ K.noremap(
 
 --------------------------------------------------------------------------------
 
+local function dec_fontsize()
+  user.currentfont:dec(1)
+end
+
+local function inc_fontsize()
+  user.currentfont:inc(1)
+end
+
+K.bind {
+  mode = 'in',
+  { "<C-ScrollWheelUp>", inc_fontsize, "Increase font size by 1pt" },
+  { "<C-ScrollWheelDown>", dec_fontsize, "Decrease font size by 1pt" },
+}
+
 K.bind {
   prefix = "<C-x>",
   noremap = true,
   silent = true,
-  { "<C-=>", function () user.currentfont:inc(1) end, "Decrease font size by 1pt" },
-  { "<C-->", function () user.currentfont:dec(1) end, "Decrease font size by 1pt" },
-}
-
-K.bind {
-  mode = "in",
-  { "<C-ScrollWheelUp>", "<cmd>FontSize +1<CR>" },
-  { "<C-ScrollWheelDown>", "<cmd>FontSize -1<CR>" },
+  { "<C-=>", inc_fontsize, "Increase font size by 1pt" },
+  { "<C-->", dec_fontsize, "Decrease font size by 1pt" },
 }

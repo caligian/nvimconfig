@@ -1,16 +1,16 @@
 local buffer = require "core.utils.buffer"
 local Term = require "core.utils.Term"
-local REPL = class("REPL", Term)
+REPL = class("REPL", Term)
 REPL.NoCommandException =
   exception "No command given for filetype"
-user.repl = user.repl or { FILETYPE = {} }
-local state = user.repl.FILETYPE
+user.REPL = user.REPL or { FILETYPE = {} }
+local state = user.REPL.FILETYPE
 --------------------------------------------------------------------------------
 
 function REPL.get(ft, bufnr)
   if ft == "sh" then
     local exists = state.sh
-    if exists and exists:is_running() then
+    if exists and exists:isrunning() then
       return exists
     end
   end
@@ -18,7 +18,7 @@ function REPL.get(ft, bufnr)
   ft = ft or vim.bo.filetype
   bufnr = bufnr or vim.fn.bufnr()
   local exists = dict.get(state, { ft, bufnr })
-  if exists and exists:is_running() then
+  if exists and exists:isrunning() then
     return exists
   end
 end
@@ -47,7 +47,7 @@ function REPL:init(ft)
 
   if is_shell then
     self.shell = true
-    user.repl.FILETYPE.sh = self
+    user.REPL.FILETYPE.sh = self
   else
     dict.update(state, { ft, bufnr }, self)
   end
@@ -73,7 +73,7 @@ end
 
 function REPL.create(ft, bufnr)
   local exists = REPL.get(ft, bufnr)
-  if exists and exists:is_running() then
+  if exists and exists:isrunning() then
     return exists
   end
   if ft then

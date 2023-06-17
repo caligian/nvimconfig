@@ -3,5 +3,5 @@ filetype.sh = {
   compile = user.shell,
   server = "bashls",
   linters = "shellcheck",
-  formatters = { {exe='shfmt', stdin=true, args={'-i 2'} } }
+  formatter = { 'shfmt -i 2', stdin=true }
 }

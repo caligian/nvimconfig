@@ -121,7 +121,7 @@ function BufferGroup:enable(clear)
 
       if self:excluded(bufnr) or not self:add(bufnr) then return end
 
-      local state = buffer.getvar(bufnr, "BufferGroup") or {}
+      local state = buffer.var(bufnr, "BufferGroup") or {}
       dict.update(
         state,
         { self.pool, self.name },
@@ -233,7 +233,7 @@ end
 
 function BufferGroup.getbufinfo(bufnr)
   bufnr = bufnr or buffer.bufnr()
-  return buffer.getvar(bufnr, "BufferGroup")
+  return buffer.var(bufnr, "BufferGroup")
 end
 
 function BufferGroup.getstatusline(bufnr)
@@ -327,7 +327,7 @@ end
 function BufferGroup.getbufpicker(bufnr)
   local T = utils.telescope.load()
   bufnr = bufnr or buffer.bufnr()
-  local state = buffer.getvar(bufnr, "BufferGroup")
+  local state = buffer.var(bufnr, "BufferGroup")
   if not state then return end
   local pools = dict.keys(state)
   local n = #pools
@@ -399,7 +399,7 @@ function BufferGroup.setmappings() K.bind(BufferGroup.mappings) end
 
 --- Return buffer state
 function BufferGroup.getbuffer(bufnr)
-  return buffer.getvar(bufnr, 'BufferGroup')
+  return buffer.var(bufnr, 'BufferGroup')
 end
 
 function BufferGroup.listpools(bufnr)

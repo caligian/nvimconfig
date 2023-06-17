@@ -122,3 +122,8 @@ function mtset(t, key, value)
 
   return value
 end
+
+function getoption(value, default)
+  if value == nil then return default end
+  return value
+end

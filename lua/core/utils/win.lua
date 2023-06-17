@@ -1,26 +1,4 @@
-win = setmetatable({float={}}, {
-  __index = function (self, key)
-    local ignore = {
-      exists = true,
-      id2nr = true,
-      float = true,
-      vimsize = true,
-      layouts = true,
-      id = true,
-      size = true,
-    }
-
-    local exists = rawget(self, key)
-    if exists then return exists end
-    if not key:match '^id_' or ignore[key] then return end
-
-    return function (winnr, ...)
-      winnr = winnr or win.current()
-      return exists(win.id(winnr), ...)
-    end
-  end
-})
-
+win = {float={}}
 local floatmt = {}
 local float = setmetatable(win.float, floatmt)
 
@@ -48,15 +26,9 @@ local function default_winnr()
 end
 
 function win.exists(winnr)
-  local ok = vim.api.nvim_win_is_valid(winnr)
+  local ok = vim.api.nvim_win_is_valid(win.id(winnr) or -1)
   if not ok then return end
   return winnr
-end
-
-function win.bufnr(winnr)
-  local bufnr = vim.fn.winbufnr(winnr)
-  if bufnr == -1 then return end
-  return bufnr
 end
 
 function win.id(winnr)
@@ -87,17 +59,20 @@ end
 function win.height(winnr)
   winnr = winnr or win.current()
   if not win.exists(winnr) then return end
-  return vim.fn.winheight(win.current())
+  return vim.fn.winheight(winnr)
 end
 
 function win.width(winnr)
   winnr = winnr or win.current()
   if not win.exists(winnr) then return end
-  return vim.fn.winwidth(win.current())
+  return vim.fn.winwidth(winnr)
 end
 
 function win.size(winnr)
   local width, height = win.width(winnr), win.height(wi)
+  if not width or not height then return end
+
+  return {width, height}
 end
 
 function win.var(winnr, var)
@@ -128,26 +103,6 @@ function win.delvar(winnr, var)
   if not ok then return end
 
   return true
-end
-
-function win.setoption(winnr, var, value)
-  winnr = winnr or win.current()
-  if not win.exists(winnr) then return end
-
-  local ok, msg = pcall(vim.api.nvim_win_set_option, winnr, var, value)
-  if not ok then return end
-
-  return value
-end
-
-function win.setvar(winnr, var, value)
-  winnr = winnr or win.current()
-  if not win.exists(winnr) then return end
-
-  local ok, msg = pcall(vim.api.nvim_win_set_var, winnr, var, value)
-  if not ok then return end
-
-  return value
 end
 
 function win.tabnr(winnr)
@@ -273,12 +228,16 @@ function win.goto(winnr)
   return win.gotoid(win.id(winnr))
 end
 
-function win.split(winnr, direction, bufnr)
+function win.split(winnr, direction)
   direction = direction or 's'
-  bufnr = bufnr or ''
+  local bufnr = vim.fn.bufwinnr(winnr)
+  if bufnr == -1 then return end
 
   return win.call(winnr, function ()
-    local function cmd(s) vim.cmd(s .. ' ' .. bufnr) end
+    local function cmd(s) 
+      local cmd = s .. ' | ' .. bufnr
+      vim.cmd(cmd) 
+    end
 
     if direction == 'vert' or direction == 'vertical' or direction == 'v' then
       cmd ':vsplit'
@@ -495,8 +454,8 @@ function floatmt:__call(winnr, opts)
   opts.style = opts.style or "minimal"
   opts.border = opts.border or "single"
   local editor_size = win.vimsize()
-  local current_width = win.width(winnr)
-  local current_height = win.height(winnr)
+  local current_width = win.width()
+  local current_height = win.height()
   opts.width = opts.width or current_width
   opts.height = opts.height or current_height
   opts.relative = opts.relative or "editor"
@@ -562,18 +521,145 @@ function float.getconfig(winnr)
   return ok
 end
 
+function win.info(winnr)
+  if not win.exists(bufnr) then return end
+  return vim.fn.getwininfo(win.id(winnr))
+end
+
+function win.setvar(winnr, k, v) 
+  validate {
+    key = {is {'string', 'table'}, k},
+  }
+
+  winnr = winnr or win.winnr()
+  if not win.exists(winnr) then return end
+
+  if is_a.string(k) then
+    vim.api.nvim_win_set_var(winnr, k, v) 
+  else
+    dict.each(k, function (key, value)
+      win.setvar(winnr, key, value)
+    end)
+  end
+
+  return true
+end
+
+function win.setoption(winnr, k, v) 
+  validate {
+    key = {is {'string', 'table'}, k},
+  }
+
+  winnr = winnr or win.winnr()
+  if not win.isvisible(winnr) then return end
+
+  if is_a.string(k) then
+    vim.api.nvim_win_set_option(win.id(winnr), k, v) 
+  else
+    dict.each(k, function (key, value)
+      win.setoption(winnr, key, value)
+    end)
+  end
+
+  return true
+end
+
+function win.scroll(winnr, direction, lines)
+  winnr = winnr or win.current()
+  if not win.exists(winnr) then return false end
+
+  if direction == "+" then
+    keys = lines .. "\\<C-e>"
+  else
+    keys = lines .. "\\<C-y>"
+  end
+
+  winnr.call(
+    winnr,
+    function() vim.cmd(sprintf(':call feedkeys("%s")', keys)) end
+  )
+
+  return true
+end
+
 --------------------------------------------------
 -- winid api
-win.id_float = setmetatable({}, {
-  __call = function (_, winnr, ...)
-    return win.float(winnr, ...)
+local id = win.id
+win.id = setmetatable({
+  exists = function (winnr)
+    return id(winnr) ~= nil and winnr
   end,
-  __index = function (_, key)
-    if not win.float[key] then return end
-    return function (winnr)
-      return win.float[key](win.id(winnr))
-    end
+
+  move = function (from_winid, to_winid, opts)
+    from_winid = from_winid or win.currentid()
+    to_winid = to_winid or -1
+    local from_winnr = win.id2nr(from_winid)
+    local to_winnr = win.id2nr(to_winid)
+
+    if not win.exists(from_winnr) then return end
+    if not win.exists(to_winnr) then return end
+
+    vim.fn.win_splitmove(from_winnr, to_winnr, opts or {right=true})
+
+    return true
+  end,
+  float = function (...)
+    win.float(...)
   end
+}, {
+  __call = function (self, winnr)
+    return id(winnr)
+  end,
 })
+
+array.each({
+  'scroll',
+  'info',
+  'bufnr',
+  'winnr', 
+  'height',
+  'width',
+  'size',
+  'var',
+  'option',
+  'setvar',
+  'setoption',
+  'delvar',
+  'tabnr',
+  'call',
+  'restoreview',
+  'restorecmd',
+  'saveview',
+  'currentline',
+  'virtualcol',
+  'setheight',
+  'setwidth',
+  'close',
+  'hide',
+  'range',
+  'rangetext',
+  'cursorpos',
+  'type',
+  'vsplit',
+  'split',
+  'tabnew',
+  'row',
+  'col',
+  'botright',
+  'belowright',
+  'rightbelow',
+  'leftabove',
+  'aboveleft',
+  'goto',
+  'tabwin',
+  'move_statusline',
+  'move_separator',
+  'screenpos',
+  'pos',
+}, function (name)
+  win.id[name] = function (self, winid, ...)
+    return win[name](win.id2nr(winid) or -1, ...)
+  end
+end)
 
 return win

@@ -27,8 +27,8 @@ local function putstring(s, align)
 end
 
 local function getprefix(prefix)
-  prefix = prefix or buffer.getvar(buffer.bufnr(), "help_prefix")
-  buffer.setvar(vim.fn.bufnr(), "help_prefix", prefix)
+  prefix = prefix or buffer.var(buffer.bufnr(), "help_prefix")
+  buffer.var(vim.fn.bufnr(), "help_prefix", prefix)
   return prefix
 end
 
@@ -57,7 +57,7 @@ end
 local function getsep() return string.rep("=", vim.bo.textwidth - 1) end
 
 local function putsep()
-  local line = buffer.getrow()
+  local line = buffer.row()
 
   buffer.setlines(buffer.bufnr(), line - 1, line, { getsep() })
 end
@@ -79,7 +79,7 @@ local function putheading()
     "",
   }
 
-  local row = buffer.getrow()
+  local row = buffer.row()
 
   buffer.setlines(vim.fn.bufnr(), row - 1, row, s)
 end

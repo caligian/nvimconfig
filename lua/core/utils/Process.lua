@@ -96,12 +96,8 @@ function Process:_on_stdout(cb)
   self.stdout = self.stdout or {}
   local stdout = self.stdout
   return vim.schedule_wrap(function(_, d)
-    if d then
-      parse(d, self.stdout)
-    end
-    if cb then
-      cb(self, d)
-    end
+    if d then parse(d, self.stdout) end
+    if cb then cb(self, d) end
   end)
 end
 

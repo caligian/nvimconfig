@@ -243,7 +243,7 @@ plugin["treesitter-indent-object.nvim"].spec = {
 plugin.treehopper.spec = {
   "mfussenegger/nvim-treehopper",
   dependencies = { "phaazon/hop.nvim" },
-  event = {'BufReadPost'}
+  event = { 'BufReadPost' }
 }
 
 plugin.snippets.spec = {
@@ -277,7 +277,7 @@ plugin.fugitive = {
     leader = true,
     { "gs", ":Git stage %<CR>", { desc = "Stage buffer" } },
     { "gc", ":Git commit <CR>", { desc = "Commit buffer" } },
-    { "gg", ":tab Git<CR>", { desc = "Open Fugitive" } },
+    { "gg", ":tab Git<CR>",     { desc = "Open Fugitive" } },
   },
 }
 
@@ -307,15 +307,9 @@ plugin.markdownpreview.spec = {
   ft = "markdown",
 }
 
-plugin.formatter.spec = {
-  "mhartington/formatter.nvim",
-  event = "BufReadPost",
-}
-
 plugin.lsp.spec = {
   "neovim/nvim-lspconfig",
   dependencies = {
-    "ionide/Ionide-vim",
     "j-hui/fidget.nvim",
     "lukas-reineke/lsp-format.nvim",
     "mfussenegger/nvim-dap",
@@ -340,9 +334,4 @@ plugin.bufferline.spec = {
   "akinsho/bufferline.nvim",
   version = "*",
   dependencies = { "tiagovla/scope.nvim" },
-}
-
-plugin.ionide.spec = {
-  "ionide/Ionide-vim",
-  ft = 'fsharp',
 }

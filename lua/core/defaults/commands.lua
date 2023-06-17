@@ -11,17 +11,11 @@ command("ShowLogs", function()
 end, {})
 
 -- Open scratch buffer
-command("OpenScratch", function() buffer.open_scratch(false, "s") end, {})
+command("OpenScratch", function() buffer.split(buffer.scratch(false, "s"), 's') end, {})
 
 command(
   "OpenScratchVertically",
-  function() buffer.open_scratch(false, "v") end,
-  {}
-)
-
-command(
-  "OpenScratchFloat",
-  function() buffer.open_scratch(false, "f", { center = { 0.8, 0.8 } }) end,
+  function() buffer.split(buffer.scratch(false, "s"), 'v')  end,
   {}
 )
 
@@ -77,27 +71,6 @@ command("Darken", function(args)
   end
 
   utils.highlightset("Normal", set)
-end, { nargs = "+" })
-
--- Only works with guifont
--- :FontSize points
-command("FontSize", function(args)
-  args = vim.split(args.args, " +")
-  args = args[1]
-  local inc = args:match "^([-+])"
-  args = args:gsub("^[-+]", "")
-  args = tonumber(args)
-
-  if inc == "+" then
-    height = height + args
-  elseif inc == "-" then
-    height = height - args
-  else
-    height = args
-  end
-  height = args == "" and 12 or height
-
-  utils.setfont(font .. ':h' .. height)
 end, { nargs = "+" })
 
 command("TrimWhiteSpace", function()

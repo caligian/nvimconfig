@@ -1,4 +1,16 @@
 local package_path = vim.split(package.path, ";")
+local formatter_path = path.join(os.getenv "HOME", ".cargo", "bin", "stylua")
+local formatter_args = array.join({
+  "--call-parentheses None",
+  "--collapse-simple-statement Always",
+  "--line-endings Unix",
+  "--column-width 80",
+  "--quote-style AutoPreferDouble",
+  "--indent-type Spaces",
+  "--indent-width 2",
+  "-",
+}, " ")
+local formatter_cmd = formatter_path .. ' ' .. formatter_args
 
 filetype.lua = {
   compile = "lua5.1",
@@ -6,7 +18,7 @@ filetype.lua = {
   repl = "lua5.1",
 
   server = {
-    name = "lua_ls",
+    "lua_ls",
     config = {
       cmd = {
         path.join(
@@ -37,21 +49,9 @@ filetype.lua = {
     },
   },
 
-  formatters = {
-    {
-      exe = path.join(os.getenv "HOME", ".cargo", "bin", "stylua"),
-      args = {
-        "--call-parentheses None",
-        "--collapse-simple-statement Always",
-        "--line-endings Unix",
-        "--column-width 80",
-        "--quote-style AutoPreferDouble",
-        "--indent-type Spaces",
-        "--indent-width 2",
-        "-",
-      },
-      stdin = true,
-    },
+  formatter = {
+    formatter_cmd,
+    stdin = true
   },
 
   bo = {

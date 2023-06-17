@@ -14,6 +14,7 @@ local function getcommand(action, bufnr)
       cmd = cmd:gsub('%%%%', name)
     end
   else
+    pp('no command specified for filetype ' .. cmd)
     return
   end
 

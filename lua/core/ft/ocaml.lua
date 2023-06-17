@@ -9,8 +9,9 @@ filetype.ocaml = {
     end,
   },
   server = "ocamllsp",
-  formatters = {
-    { exe = "ocamlformat", args = { "-" } },
+  formatter = {
+     "ocamlformat - ",
+     stdin = true,
   },
   bo = { tabstop = 2, shiftwidth = 2 },
 }

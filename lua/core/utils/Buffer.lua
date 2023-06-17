@@ -62,10 +62,10 @@ function Buffer:init(name, scratch)
   self.wvar = {}
 
   if scratch then
-    self:setopts { modified = false, buflisted = false }
+    self:setoption { modified = false, buflisted = false }
 
-    if self:getopt "buftype" ~= "terminal" then
-      self:setopt("buftype", "nofile")
+    if self:option "buftype" ~= "terminal" then
+      self:setoption("buftype", "nofile")
     else
       self.terminal = true
       self.scratch = nil
@@ -74,7 +74,7 @@ function Buffer:init(name, scratch)
 
   setmetatable(self.var, {
     __index = function(_, k)
-      return self:getvar(k)
+      return self:var(k)
     end,
     __newindex = function(_, k, v)
       return self:setvar(k, v)
@@ -83,7 +83,7 @@ function Buffer:init(name, scratch)
 
   setmetatable(self.o, {
     __index = function(_, k)
-      return self:getopt(k)
+      return self:option(k)
     end,
     __newindex = function(_, k, v)
       return self:setopt(k, v)
@@ -92,33 +92,25 @@ function Buffer:init(name, scratch)
 
   setmetatable(self.wvar, {
     __index = function(_, k)
-      if not self:is_visible() then
-        return
-      end
-      return self:getwinvar(k)
+      if not self:isvisible() then return end
+      return win.var(buffer.winnr(self.bufnr))
     end,
 
     __newindex = function(_, k, v)
-      if not self:is_visible() then
-        return
-      end
-      return self:setwinvar(k, v)
+      if not self:isvisible() then return end
+      return win.setvar(buffer.winnr(self.bufnr), k, v)
     end,
   })
 
   setmetatable(self.wo, {
     __index = function(_, k)
-      if not self:is_visible() then
-        return
-      end
-      return self:getwinopt(k)
+      if not self:isvisible() then return end
+      return win.option(buffer.winnr(self.bufnr))
     end,
 
     __newindex = function(_, k, v)
-      if not self:is_visible() then
-        return
-      end
-      return self:setwinopt(k, v)
+      if not self:isvisible() then return end
+      return win.setoption(buffer.winnr(self.bufnr), k, v)
     end,
   })
 

@@ -10,7 +10,7 @@ Autocmd("BufAdd", {
   name = "textwidth_colorcolumn",
   pattern = "*",
   callback = function()
-    buffer.setwinopt(vim.fn.bufnr(), "colorcolumn", "+2")
+    win.setoption(vim.fn.bufnr(), "colorcolumn", "+2")
   end,
 })
 
