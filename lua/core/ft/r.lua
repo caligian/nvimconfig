@@ -1,4 +1,4 @@
 filetype.r = {
   repl = "R",
-  server = { name = "r_language_server" },
+  server =  "r_language_server" ,
 }

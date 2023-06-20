@@ -1,7 +1,7 @@
 filetype.javascript = {
   compile = "node",
   repl = "node",
-  server = { name = "tsserver" },
+  server =  "tsserver",
   linters = { "eslint" },
   bo = {
     shiftwidth = 2,

@@ -326,12 +326,14 @@ plugin.undotree.spec = {
   event = "InsertEnter",
 }
 
-plugin.scope.spec = {
-  "tiagovla/scope.nvim",
-}
-
 plugin.bufferline.spec = {
   "akinsho/bufferline.nvim",
   version = "*",
   dependencies = { "tiagovla/scope.nvim" },
+}
+
+plugin.scala_ls.spec = {
+  'scalameta/nvim-metals',
+  requires = {'nvim-lua/plenary.nvim'},
+  ft = {'scala'}
 }

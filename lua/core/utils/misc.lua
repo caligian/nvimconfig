@@ -103,26 +103,6 @@ function utils.reqmodule(s)
   return builtin
 end
 
-function mtget(t, key, default)
-  local mt = getmetatable(t)
-  if not mt then return end
-  if not key then return mt end
-
-  local found = mt[key]
-  if found ~= nil then return found end
-  return default
-end
-
-function mtset(t, key, value)
-  local mt = getmetatable(t) or {}
-  if not value then return setmetatable(t, key) end
-
-  mt[key] = value
-  setmetatable(t, mt)
-
-  return value
-end
-
 function getoption(value, default)
   if value == nil then return default end
   return value

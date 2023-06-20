@@ -2,7 +2,7 @@ filetype.julia = {
   compile = "julia",
   repl = "julia",
   server = {
-    name = "julials",
+    "julials",
     config = {
       autostart = true,
       single_file_support = true,

@@ -13,5 +13,7 @@ require "core.netrw"
 Plugin.setup()
 if user.zenmode then vim.cmd ":EnableZenMod" end
 
-require 'core.utils.Font'
+require "core.utils.Font"
 Font.loaduser()
+
+require "core.formatter"

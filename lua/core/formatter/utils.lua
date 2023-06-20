@@ -59,7 +59,7 @@ function formatter.format(bufnr, opts)
   local exists = formatter.PROCESS[bufname]
   if exists then
     local userint =
-        input { "userint", "Stop existing process for " .. bufname .. "?" }
+        input { "userint", "Stop existing process for " .. bufname .. "? (y for yes)" }
     if userint.userint:match "y" then exists:stop() end
   end
 

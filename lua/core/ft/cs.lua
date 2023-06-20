@@ -7,7 +7,7 @@ filetype.cs = {
   end,
   build = "csc %%",
   server = {
-    name = "omnisharp",
+    "omnisharp",
     config = {
       cmd = { path.join(os.getenv "HOME", "Downloads", "omnisharp", "run") },
       settings = {
