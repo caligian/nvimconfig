@@ -147,7 +147,7 @@ lsp.methods = {
     }
   end,
 
-  on_attach = function(client, bufnr)
+  on_attach = function(self, client, bufnr)
     if client.name == "omnisharp" then
       lsp.methods.fix_omnisharp(client, bufnr)
     else

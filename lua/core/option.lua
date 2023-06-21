@@ -37,8 +37,9 @@ user.option = {
   },
   g = {
     mapleader = " ",
-    maplocalleader = ",",
+    maplocalleader = "-",
     neovide_cursor_vfx_mode = "sonicboom",
+    netrw_keepdir = 0,
   },
 }
 
