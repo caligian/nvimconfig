@@ -310,9 +310,7 @@ plugin.markdownpreview.spec = {
 plugin.lsp.spec = {
   "neovim/nvim-lspconfig",
   dependencies = {
-    "j-hui/fidget.nvim",
     "lukas-reineke/lsp-format.nvim",
-    "mfussenegger/nvim-dap",
   },
 }
 

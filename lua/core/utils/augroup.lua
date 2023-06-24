@@ -1,10 +1,18 @@
-augroup = {STATE={}}
-autocmd = {STATE={}}
+augroup = {augroups={}, augroups_by_name={}}
+autocmd = {autocmds={}, autocmds_by_name={}}
 
 local disable_autocmd = vim.api.nvim_del_autocmd
 local enable_autocmd = vim.api.nvim_create_autocmd
 local enable_augroup = vim.api.nvim_create_augroup
 local disable_augroup = vim.api.nvim_del_augroup_by_id
+
+augroup.exception = {
+  duplicate_name = exception 'augroup by this name already exists'
+}
+
+autocmd.exception = {
+  duplicate_name = exception 'autocmd by this name already exists'
+}
 
 function autocmd.new(event, opts)
   validate {
@@ -18,10 +26,10 @@ function autocmd.new(event, opts)
   }
 
   local name = opts.name
+  local exists = autocmd.autocmds_by_name[name]
+  if exists then autocmd.exception.duplicate_name:throw(name) end
 
-  if autocmd.STATE[name] then error('autocmd ' .. name .. ' already exists') end
-
-  autocmd.STATE[name] = {
+  local self = {
     name = name,
     event = event,
     pattern = opts.pattern,
@@ -33,10 +41,11 @@ function autocmd.new(event, opts)
     disable = function (self)
       if not self.id then return end
 
+      local id = self.id
       self.id = false
       disable_autocmd(self.id)
 
-      return true
+      return id
     end,
     enable = function (self)
       if self.id then return false end
@@ -49,17 +58,37 @@ function autocmd.new(event, opts)
         nested = self.nested,
       })
 
-      return self.id
+      autocmd.autocmds_by_name[self.name] = self
+      autocmd.autocmds[self.id] = self
+
+      return self
+    end,
+    is_enabled = function (self)
+      if not self.id then return end
+      return true
+    end,
+    is_disabled = function (self)
+      if not self.id then return true end
+      return
+    end,
+    delete = function (self)
+      if not autocmd.autocmds_by_name[self.name] then return end
+
+      autocmd.autocmds_by_name[self.name] = nil
+      autocmd.autocmds[self.id] = nil
+
+      return self
     end,
   }
 
-  return autocmd.STATE[name]
+  return self
 end
 
 function augroup.new(name)
-  if augroup.STATE[name] then error('augroup ' .. name .. ' already exists') end
+  local exists = augroup.augroups_by_name[name]
+  if exists then augroup.exception.duplicate_name:throw(name) end
   
-  augroup.STATE[name] = {
+  local self = {
     name = name,
     autocmds = {},
     id = false,
@@ -67,19 +96,32 @@ function augroup.new(name)
       if self.id then return end
 
       self.id = enable_augroup(self.name, {clear=clear})
+      augroup.augroups[self.id] = self
+      augroup.augroups_by_name[self.name] = self
+
       return self.id
     end,
     disable = function (self)
       if not self.id then return end
 
+      local id = self.id
       self.id = false
       disable_augroup(self.id)
+      dict.each(self.autocmds, function (_, obj) obj:disable() end)
 
-      return self.id
+      return id
+    end,
+    delete = function (self)
+      if not augroup.augroups_by_name[self.name] then return end
+
+      augroup.augroups_by_name[self.name] = nil
+      augroup.augroups[self.id] = nil
+
+      return self
     end,
     add_autocmd = function (self, event, opts)
       opts = opts or {}
-      opts = array.deepcopy(opts)
+      opts = vim.deepcopy(opts)
       opts.group = self.name
       self.autocmds[opts.name] = autocmd.new(event, opts)
       self.autocmds[opts.name]:enable()
@@ -106,7 +148,7 @@ function augroup.new(name)
     end,
   }
 
-  return augroup.STATE[name]
+  return self
 end
 
 function autocmd.with_opts(opts, callback)
@@ -115,8 +157,9 @@ function autocmd.with_opts(opts, callback)
     names_with_callbacks = {'table', callback},
   }
 
-  dict.each(callback, function (au_name, callback)
-    local _opts = dict.merge({ callback = callback }, opts)
+  dict.each(callback, function (au_name, cb)
+    local _opts = dict.merge({ callback = cb, name = au_name  }, opts)
+    _opts.name = au_name
     autocmd.new(au_name, _opts)
   end)
 end

@@ -33,10 +33,9 @@ require "core.utils.Autocmd"
 require "core.utils.Augroup"
 require "core.utils.Keybinding"
 require "core.utils.Buffer"
-require "core.utils.Term"
 require "core.utils.Process"
-require 'core.utils.Font'
 
 --------------------------------------------------------------------------------
--- Framework utils
-require "core.utils.Filetype"
+require 'core.utils.filetype'
+require 'core.utils.font'
+require 'core.utils.Plugin'

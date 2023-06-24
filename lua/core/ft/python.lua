@@ -1,9 +1,15 @@
-filetype.python = {
-  compile = "python3",
-  test = "pytest",
-  repl = "ipython3",
-  server = "pyright",
-  linters = "pylint",
-  formatter = { 'black -q -', stdin = true },
-  bo = { shiftwidth = 4, tabstop = 4 },
+local python = filetype.new 'python'
+
+python.linters = 'pylint'
+python.formatter = {'black -q -', stdin = true}
+python.test = 'pytest'
+python.repl = 'ipython3'
+python.lsp_server = 'pyright'
+python:add_autocmd {
+  name = 'python.whitespace',
+  callback = function(au)
+    buffer.setoption(au.buf, {shiftwidth=4, tabstop=4})
+  end
 }
+
+return true

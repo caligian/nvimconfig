@@ -1,4 +1,4 @@
-formatter = formatter or { PROCESS = {} }
+formatter = formatter or { formatter_processes = {} }
 local Process = require "core.utils.Process"
 
 function formatter.format(bufnr, opts)
@@ -9,7 +9,10 @@ function formatter.format(bufnr, opts)
   opts = opts or {}
   local cmd = opts.cmd or opts[1]
   cmd = is_a.string(cmd) and cmd or cmd[1]
-  if not cmd or dict.isdict(cmd) and dict.isblank(cmd) then return end
+  if not cmd or dict.isdict(cmd) and dict.isblank(cmd) then 
+    pp('no formatter found for buffer')
+    return 
+  end
 
   bufnr = bufnr or buffer.bufnr()
   local stdin = opts.stdin
@@ -56,7 +59,7 @@ function formatter.format(bufnr, opts)
     end,
   })
 
-  local exists = formatter.PROCESS[bufname]
+  local exists = formatter.formatter_processes[bufname]
   if exists then
     local userint =
         input { "userint", "Stop existing process for " .. bufname .. "? (y for yes)" }
