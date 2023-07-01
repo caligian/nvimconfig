@@ -5,3 +5,5 @@ for ft, obj in pairs(filetype.filetypes) do
     obj:setup_lsp()
   end
 end
+
+require('mason').setup()

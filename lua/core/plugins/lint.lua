@@ -1,45 +1,40 @@
 local nvimlint = require "lint"
-local plug = plugin.lint
+local lint = plugin.get 'lint'
 
-local function get_linters()
-  local out = {
-    linters = {},
-    linters_by_ft = {},
-  }
+function lint.load_linters()
+  dict.each(filetype.filetypes, function (ft, conf)
+    if not conf.linters then return end
 
-  dict.each(Filetype.get "linters", function(ft, lintconf)
-    if dict.isdict(lintconf) then
-      out.linters[ft] = lintconf
-      nvimlint.linters[ft] = lintconf
-    else
-      lintconf = array.tolist(lintconf)
-      out.linters_by_ft[ft] = lintconf
-      nvimlint.linters_by_ft[ft] = lintconf
-    end
-  end)
-
-  return out
-end
-
-plug.methods = {
-  lint_buffer = function(self, bufnr)
-    bufnr = bufnr or vim.fn.bufnr()
-    buffer.call(bufnr, function()
-      if require("lint").linters_by_ft[vim.bo.filetype] then
-        require("lint").try_lint()
+    local specs = array.toarray(conf.linters)
+    array.each(specs, function (obj)
+      if is_a.string(obj) then
+        nvimlint.linters_by_ft[ft] = {obj}
+      elseif is_a.table(obj) then
+        if obj.config then
+          nvimlint.linters[ft] = obj.config
+        else
+          nvimlint.linters_by_ft[ft] = obj
+        end
       end
     end)
-  end,
-}
+  end)
+  
+  return {linters=nvimlint.linters, linters_by_ft=nvimlint.linters_by_ft}
+end
 
-plug.config = {
-  linters_by_ft = get_linters(),
-}
+function lint.lint_buffer(self, bufnr)
+  bufnr = bufnr or vim.fn.bufnr()
+  buffer.call(bufnr, function()
+    if nvimlint.linters_by_ft[vim.bo.filetype] then
+      nvimlint.try_lint()
+    end
+  end)
+end
 
-plug.kbd = {
-  { "n", "<leader>ll", plug.methods.lint_buffer, "Lint buffer" },
-}
+lint.config = lint.load_linters()
 
-function plug:on_attach() get_linters() end
-
-K.bind(plug.kbd)
+lint.mappings ={
+  lint = {
+    lint_buffer = { "n", "<leader>ll", lint.lint_buffer, "Lint buffer" },
+  }
+} 

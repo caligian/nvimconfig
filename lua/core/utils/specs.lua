@@ -54,10 +54,12 @@ return {
   },
 
   colorscheme = {
-    "RRethy/nvim-base16",
+    "maxmx03/solarized.nvim",
+
     dependencies = {
-      "maxmx03/solarized.nvim",
+      "RRethy/nvim-base16",
       "sainnhe/everforest",
+      "maxmx03/solarized.nvim",
       "rktjmp/lush.nvim",
       "rose-pine/neovim",
       "navarasu/onedark.nvim",
@@ -147,8 +149,6 @@ return {
     event = "WinEnter",
   },
 
-  illuminate = { "RRethy/vim-illuminate", event = 'BufReadPost' },
-
   treesitter = {
     "nvim-treesitter/nvim-treesitter",
     event = "BufReadPost",
@@ -235,6 +235,16 @@ return {
     "preservim/tagbar",
     keys = "<C-t>",
     event = "BufReadPost",
+    config = function()
+      Keybinding.noremap(
+      "n",
+      "<C-t>",
+      ":TagbarToggle<CR>",
+      { desc = "Toggle tagbar", name = "tagbar" }
+      )
+      vim.g.tagbar_position = "leftabove vertical"
+      req "user.plugins.tagbar"
+    end,
   },
 
   whichkey = {
@@ -251,7 +261,6 @@ return {
     "neovim/nvim-lspconfig",
     dependencies = {
       "lukas-reineke/lsp-format.nvim",
-      "williamboman/mason.nvim",
     },
   },
 

@@ -1,4 +1,4 @@
-Autocmd("TextYankPost", {
+autocmd.map("TextYankPost", {
   name = "highlight_on_yank",
   pattern = "*",
   callback = function()
@@ -6,7 +6,7 @@ Autocmd("TextYankPost", {
   end,
 })
 
-Autocmd("BufAdd", {
+autocmd.map("BufAdd", {
   name = "textwidth_colorcolumn",
   pattern = "*",
   callback = function()
@@ -14,16 +14,16 @@ Autocmd("BufAdd", {
   end,
 })
 
-Autocmd("BufAdd", {
+autocmd.map("BufAdd", {
   name = "txt_is_help",
   pattern = "*txt",
   callback = "set ft=help",
 })
 
-Autocmd("BufAdd", {
+autocmd.map("BufAdd", {
   name = "quit_temp_buffer_with_q",
   pattern = "*",
-  callback = function()
+  callback = function(au)
     local bufnr = vim.fn.bufnr()
     array.each(dict.values(user.temp_buffer_patterns), function(pat)
       if is_callable(pat) then

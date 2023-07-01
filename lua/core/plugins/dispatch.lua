@@ -1,6 +1,6 @@
-local plug = plugin.dispatch
+local dispatch = plugin.get 'dispatch'
 
-local function getcommand(action, bufnr)
+function dispatch.getcommand(action, bufnr)
   bufnr = bufnr or vim.fn.bufnr()
   local name = buffer.name(bufnr)
   local cmd = Filetype.get(vim.bo.filetype, action)
@@ -21,19 +21,19 @@ local function getcommand(action, bufnr)
   return ('Dispatch ' .. cmd)
 end
 
-local function getcompiler(bufnr)
+function dispatch.getcompiler(bufnr)
   return getcommand('compile', bufnr)
 end
 
-local function getbuild(bufnr)
+function dispatch.getbuild(bufnr)
   return getcommand('build', bufnr)
 end
 
-local function gettest(bufnr)
+function dispatch.gettest(bufnr)
   return getcommand('test', bufnr)
 end
 
-local function run(action, bufnr)
+function dispatch.run(action, bufnr)
   bufnr = bufnr or buffer.bufnr()
   local cmd = getcommand(action, bufnr)
   if not cmd then return end
@@ -46,54 +46,42 @@ local function run(action, bufnr)
   vim.cmd(':chdir ' .. currentdir)
 end
 
-local function build(bufnr)
+function dispatch.build(bufnr)
   run('build', bufnr)
 end
 
-local function test(bufnr)
+function dispatch.test(bufnr)
   run('test', bufnr)
 end
 
-local function compile(bufnr)
+function dispatch.compile(bufnr)
   run('compile', bufnr)
 end
 
-plug.methods = {
-  getcommand = getcommand,
-  getcompiler = getcompiler,
-  getbuild = getbuild,
-  gettest = gettest,
-  run = run,
-  compile = compile,
-  build = build,
-  test = test,
-}
-
-plug.kbd = {
-  noremap = true,
-  leader = true,
-  {
+dispatch.mappings = {dispatch = {
+  opts = {  noremap = true, leader = true },
+  build = {
     "cb",
-    plug.methods.build,
+    dispatch.build,
     "n",
     { noremap = true, desc = "Build file" },
   },
-  {
+  open_qflist = {
     "cq",
     ":Copen<CR>",
     "n",
     { desc = "Open qflist", noremap = true },
   },
-  {
+  test = {
     "ct",
-    plug.methods.test,
+    dispatch.test,
     "n",
     { noremap = true, desc = "Test file" },
   },
-  {
+  compile = {
     "cc",
-    plug.methods.compile,
+    dispatch.compile,
     "n",
     { noremap = true, desc = "Compile file" },
   },
-}
+}}

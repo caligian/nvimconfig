@@ -1,4 +1,4 @@
-require 'core.utils.augroup'
+require 'core.utils.autocmd'
 
 kbd = {
   kbds = {},
@@ -22,7 +22,6 @@ function kbd.new(mode, ks, callback, opts)
         opt_event = is {'string', 'table'},
         opt_pattern = is {'string', 'table'},
         opt_prefix = 'string',
-        opt_apply = 'callable',
         name = 'string',
       },
       opts
@@ -32,12 +31,11 @@ function kbd.new(mode, ks, callback, opts)
   opts = vim.deepcopy(opts)
   local group
   local name = opts.name
-  local apply = opts.apply
 
-  if kbd.kbds[name] then kbd.exception.duplicate_name:throw(name) end
+  -- if kbd.kbds[name] then kbd.exception.duplicate_name:throw(name) end
 
   local other_opts = dict.grep(opts, function (key, _)
-    local unrequired = {mode=true, keys=true, callback=true, event=true, pattern=true, name=true,  once=true, leader=true, localleader=true, prefix=true, apply=true}
+    local unrequired = {mode=true, keys=true, callback=true, event=true, pattern=true, name=true,  once=true, leader=true, localleader=true, prefix=true}
     return not unrequired[key]
   end)
 
@@ -110,6 +108,7 @@ function kbd.map_with_opts(opts, callback)
     names_with_callbacks = {'table', callback},
   }
 
+  opts = deepcopy(opts)
   local apply = opts.apply
   opts.apply = nil
 
@@ -142,16 +141,20 @@ function kbd.noremap(mode, keys, cb, opts)
   return kbd.map(mode, keys, cb, opts)
 end
 
-function kbd.flatten_groups(groups)
+function kbd.flatten_groups(groups, map)
   if groups.__flattened then return groups end
 
   local all_opts = deepcopy(groups.opts or {})
-  local all_apply = all_opts.apply
-  all_opts.apply = nil
+  local all_apply = groups.apply
+  groups.apply = nil
   groups.opts = nil
-  local new = {}
+  local new = {__flattened = true}
 
   dict.each(groups, function(group_name, group_spec)
+    if group_name == 'opts' or group_name == 'inherit' or group_name == 'apply' then
+      return
+    end
+
     local opts = group_spec.opts and deepcopy(group_spec.opts)
     local inherit = group_spec.inherit
     local apply = group_spec.apply
@@ -165,7 +168,7 @@ function kbd.flatten_groups(groups)
       elseif not opts then
         opts = all_opts
       end
-
+      
       opts.apply = function(mode, ks, cb, rest)
         if apply and all_apply then
           return all_apply(apply(mode, ks, cb, rest))
@@ -181,6 +184,9 @@ function kbd.flatten_groups(groups)
         if is_a.string(rest) then rest = {desc=rest} end
 
         rest = rest or {}
+        if opts then dict.merge(rest, opts) end
+        rest.apply = nil
+
         rest.name = group_name .. '.' .. kbd_name
         local mode = rest.mode or 'n'
         new[rest.name] = {mode, ks, cb, rest}
@@ -193,16 +199,14 @@ function kbd.flatten_groups(groups)
         options.name = group_name .. '.' .. kbd_name
         kbd_spec[4] = options
         local mode, ks, cb, rest = unpack(kbd_spec)
-        local apply = rest.apply
 
-        function rest.apply(mode, ks, cb, rest)
-          if apply and all_apply then
-            return all_apply(apply(mode, ks, cb, rest))
-          elseif apply then
-            return apply(mode, ks, cb, rest)
-          else
-            return mode, ks, cb, rest
-          end
+        if opts then dict.merge(rest, opts) end
+        rest.apply = nil
+
+        if apply and all_apply then
+          mode, ks, cb, rest =  all_apply(apply(mode, ks, cb, rest))
+        elseif apply then
+          mode, ks, cb, rest =  apply(mode, ks, cb, rest)
         end
 
         new[rest.name] = {mode, ks, cb, rest}
@@ -211,5 +215,21 @@ function kbd.flatten_groups(groups)
   end)
 
   groups.__flattened = true
+
+  if map then 
+    dict.each(new, function (_, spec)
+      if _ == '__flattened' then return end
+      kbd.map(unpack(spec))
+    end)
+  end
   return new
+end
+
+function kbd.map_dict(tbl)
+  if not tbl.__flattened then tbl = kbd.flatten_groups(tbl) end
+
+  dict.each(tbl, function(_, kbd_spec)
+    if _ == '__flattened' or _ == 'apply' then return end
+    kbd.map(unpack(kbd_spec))
+  end)
 end

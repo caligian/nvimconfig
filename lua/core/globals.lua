@@ -1,7 +1,7 @@
 local data_dir = vim.fn.stdpath "data"
 
 dict.merge(user, {
-  colorscheme = 'base16-vice',
+  colorscheme = 'base16-da-one-black',
   lsp = user.lsp or {},
   dir = vim.fn.stdpath "config",
   user_dir = path.join(os.getenv "HOME", ".nvim"),

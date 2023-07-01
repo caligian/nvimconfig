@@ -1,4 +1,4 @@
-local statusline = plugin.statusline
+local statusline = plugin.get 'statusline'
 
 statusline.colors = {
   bg = "#000000",
@@ -300,27 +300,23 @@ statusline.config = {
   extensions = {},
 }
 
+statusline.evil = true
+
 statusline.autocmds = {
-  update_statusline_colors = {
-    "ColorScheme",
-    {
-      pattern = "*",
-      callback = function() 
-        plugin.statusline:on_attach()
-      end,
+  statusline = {
+    update_statusline_colors = {
+      "ColorScheme",
+      {
+        pattern = "*",
+        callback = function() statusline:setup() end,
+      },
     },
   },
 }
 
-statusline.methods = {
-  update_colors = statusline.update_colors,
-  setup_evil = statusline.setup_evil,
-}
-  
-statusline.evil = true
-
-function statusline:on_attach()
+function statusline:setup()
   if self.evil then
+    self:setup_evil()
     self:setup_evil()
   else
     require("lualine").setup(self.config)

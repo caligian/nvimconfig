@@ -1,5 +1,4 @@
 formatter = formatter or { formatter_processes = {} }
-local Process = require "core.utils.Process"
 
 function formatter.format(bufnr, opts)
   validate.opt_bufnr("number", bufnr)
@@ -30,7 +29,7 @@ function formatter.format(bufnr, opts)
 
   local winnr = buffer.winnr(bufnr)
   local view = winnr and win.saveview(winnr)
-  local proc = Process(cmd, {
+  local proc = process.new(cmd, {
     on_exit = function(proc)
       local bufnr = bufnr
       local name = bufname

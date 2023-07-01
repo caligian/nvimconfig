@@ -1,4 +1,6 @@
-local function delete_and_hide(wipeout)
+local bbye = plugin.get 'bbye'
+
+function bbye.delete_and_hide(wipeout)
   local bufname = vim.fn.bufname(vim.fn.bufnr())
   if wipeout then
     vim.cmd(":Bwipeout " .. bufname)
@@ -10,18 +12,14 @@ local function delete_and_hide(wipeout)
   if n_wins > 1 then vim.cmd ":hide" end
 end
 
-plugin.bbye.methods = {
-  delete = delete_and_hide,
-  wipeout = function() delete_and_hide(true) end,
-}
-
-plugin.bbye.kbd = {
-  noremap = true,
-  leader = true,
-  { "bq", delete_and_hide, { desc = "Delete buffer", name = "delete_buffer" } },
-  {
-    "bQ",
-    function() delete_and_hide(true) end,
-    { desc = "Wipeout buffer", name = "Wipeout buffer" },
-  },
+bbye.mappings = {
+  bbye = {
+    opts = {noremap=true, leader=true},
+    delete_buffer = { "bq", bbye.delete_and_hide, { desc = "Delete buffer" } },
+    wipeout_buffer = {
+      "bQ",
+      function() bbye.delete_and_hide(true) end,
+      { desc = "Wipeout buffer" },
+    }
+  }
 }

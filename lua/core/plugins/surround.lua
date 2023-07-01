@@ -1,6 +1,5 @@
-plugin.surround = {
-  config = {},
-  on_attach = function(self)
-    require("nvim-surround").setup(self.config)
-  end,
-}
+local surround = plugin.get 'surround' 
+
+function surround:setup()
+  require("nvim-surround").setup(self.config or {})
+end

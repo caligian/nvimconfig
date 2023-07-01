@@ -1,5 +1,5 @@
-filetype.zsh =  {
-  repl = "/usr/bin/zsh",
-  compile = "/usr/bin/zsh",
-  linters = "shellcheck",
-}
+local zsh = filetype.get 'zsh'
+
+zsh.repl = "/usr/bin/zsh"
+zsh.compile = "/usr/bin/zsh"
+zsh.linters = "shellcheck" 

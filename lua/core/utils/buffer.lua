@@ -1,9 +1,9 @@
 --- Common buffer operations. Many of them are simply aliases to their vim equivalents
 -- requires: Autocmd, Keybinding
 -- @module buffer
-require "core.utils.Autocmd"
-require "core.utils.Keybinding"
 require 'core.utils.win'
+require 'core.utils.autocmd'
+require 'core.utils.kbd'
 
 buffer = {float={}}
 local floatmt = {}
@@ -171,7 +171,7 @@ function buffer.map(bufnr, mode, lhs, callback, opts)
   opts = opts or {}
   opts.buffer = bufnr
 
-  return Keybinding.map(mode, lhs, callback, opts)
+  return kbd.map(mode, lhs, callback, opts)
 end
 
 --- Make a new buffer local nonrecursive mapping.
@@ -198,7 +198,7 @@ function buffer.hook(bufnr, event, callback, opts)
 
   opts = opts or {}
 
-  return Autocmd(
+  return autocmd.map(
     event,
     dict.merge(opts, {
       pattern = sprintf("<buffer=%d>", bufnr),
@@ -611,31 +611,28 @@ function buffer.split(bufnr, direction)
   local bufnr = bufnr or buffer.current()
   if not buffer.exists(bufnr) then return end
 
-  return buffer.call(bufnr, function ()
-    local function cmd(s) 
-      local cmd = s .. ' | ' .. bufnr
-      vim.cmd(cmd) 
+    local function cmd(s)
+      local s = s .. ' | b ' .. bufnr
+      vim.cmd(s)
     end
 
     if direction == 'vert' or direction == 'vertical' or direction == 'v' then
-      cmd ':vsplit'
+        cmd ':vsplit'
     elseif direction == 'split' or direction == 'horizontal' or direction == "s" then
-      cmd ':split'
+        cmd ':split'
     elseif direction == 'botright'  then
-      cmd ':botright'
+        cmd ':botright'
     elseif direction == 'topleft' then
-      cmd ':topleft'
+        cmd ':topleft'
     elseif direction == 'aboveleft' or direction == 'leftabove' then
-      cmd ':aboveleft'
+        cmd ':aboveleft'
     elseif direction == 'belowright' or direction == 'rightbelow' then
-      cmd ':belowright'
+        cmd ':belowright'
     elseif direction == 'tabnew' or direction == 't' or direction == 'tab' then
-      vim.cmd 'tabnew'
-      if bufnr then vim.cmd(':b ' .. bufnr) end
+        cmd ':tabnew'
     end
 
     return true
-  end)
 end
 
 function buffer.botright(bufnr)

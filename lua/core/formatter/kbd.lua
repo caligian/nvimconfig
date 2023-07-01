@@ -1,8 +1,8 @@
-K.noremap("n", "<leader>bf", function()
+kbd.noremap("n", "<leader>bf", function()
   local ft = vim.bo.filetype
   if #ft == 0 then return end
 
-  local spec = Filetype.get(ft, "formatter")
+  local spec = filetype.get(ft, "formatter")
   if not spec then return end
 
   if dict.isblank(spec) then
@@ -11,4 +11,4 @@ K.noremap("n", "<leader>bf", function()
   end
 
   formatter.format(nil, spec)
-end, { desc = "format buffer" })
+end, { desc = "format buffer", name = 'format_buffer1' })

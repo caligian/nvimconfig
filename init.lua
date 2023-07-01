@@ -8,8 +8,8 @@ vim.keymap.set("n", "<space>fp", ":e ~/nvimconfig<CR>", { noremap = true })
 vim.api.nvim_create_autocmd("BufEnter", {
   pattern = "*.lua",
   callback = function()
-    vim.bo.tabstop = 2
-    vim.bo.shiftwidth = 2
+    vim.bo.tabstop = 4
+    vim.bo.shiftwidth = 4
   end,
 })
 

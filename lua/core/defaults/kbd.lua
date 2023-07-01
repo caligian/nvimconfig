@@ -1,5 +1,3 @@
-require 'core.utils.kbd'
-
 -- Only works for toggleable options
 local function _toggle_option(option)
   local bufnr = vim.fn.bufnr()
@@ -221,4 +219,8 @@ user.mappings = {
   }
 }
 
-user.mappings = kbd.flatten_groups(user.mappings)
+if utils.req2path('user.kbd') then
+    require('user.kbd')
+end
+
+kbd.map_dict(user.mappings)

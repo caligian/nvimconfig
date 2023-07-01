@@ -18,33 +18,32 @@ lua.repl = 'lua'
 lua.compile = 'lua'
 lua.lsp_server = {
   "lua_ls",
-  config = {
-    cmd = {
+  cmd = {
       path.join(
       vim.fn.stdpath "data",
+      'lsp-servers',
       "lua-language-server",
       "bin",
       "lua-language-server"
       ),
-    },
-    settings = {
+  },
+  settings = {
       Lua = {
-        path = package_path,
-        runtime = {
-          version = "Lua 5.1",
-        },
-        workspace = {
-          library = package_path,
-        },
-        telemetry = {
-          enable = false,
-        },
-        diagnostics = {
-          severity = { { ["undefined-global"] = false } },
-          disable = { "lowercase-global", "undefined-global" },
-        },
+          path = package_path,
+          runtime = {
+              version = "Lua 5.1",
+          },
+          workspace = {
+              library = package_path,
+          },
+          telemetry = {
+              enable = false,
+          },
+          diagnostics = {
+              severity = { { ["undefined-global"] = false } },
+              disable = { "lowercase-global", "undefined-global" },
+          },
       },
-    },
   },
 }
 

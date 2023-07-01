@@ -1,68 +1,68 @@
 local ivy = utils.telescope.load().ivy
-local buffer_actions = require "core.plugins.telescope.actions.buffer"
-local git_status_actions = require "core.plugins.telescope.actions.git-status"
-local git_files_actions = require "core.plugins.telescope.actions.git-files"
-local find_files_actions = require "core.plugins.telescope.actions.find-files"
-local file_browser_actions =
-  require "core.plugins.telescope.actions.file-browser"
+-- local buffer_actions = require "core.plugins.telescope.actions.buffer"
+-- local git_status_actions = require "core.plugins.telescope.actions.git-status"
+-- local git_files_actions = require "core.plugins.telescope.actions.git-files"
+-- local find_files_actions = require "core.plugins.telescope.actions.find-files"
+-- local file_browser_actions = require "core.plugins.telescope.actions.file-browser"
 local T = utils.copy(ivy)
+local telescope = plugin.get 'telescope'
 
 --------------------------------------------------------------------------------
 -- Some default overrides
-T.extensions = {
-  file_browser = {
-    hijack_netrw = true,
-    mappings = {
-      n = {
-        x = file_browser_actions.delete,
-        X = file_browser_actions.force_delete,
-        ["%"] = file_browser_actions.touch,
-        ["b"] = file_browser_actions.add_bookmark,
-        ["B"] = file_browser_actions.remove_bookmark,
-      },
-    },
-  },
-}
+-- T.extensions = {
+--   file_browser = {
+--     hijack_netrw = true,
+--     mappings = {
+--       n = {
+--         x = file_browser_actions.delete,
+--         X = file_browser_actions.force_delete,
+--         ["%"] = file_browser_actions.touch,
+--         ["b"] = file_browser_actions.add_bookmark,
+--         ["B"] = file_browser_actions.remove_bookmark,
+--       },
+--     },
+--   },
+-- }
 
-T.pickers = {
-  buffers = {
-    show_all_buffers = true,
-    mappings = {
-      n = {
-        x = buffer_actions.bwipeout,
-        ["!"] = buffer_actions.nomodified,
-        w = buffer_actions.save,
-        r = buffer_actions.readonly,
-        b = buffer_actions.add_bookmark,
-        B = buffer_actions.remove_bookmark,
-      },
-    },
-  },
-  find_files = {
-    mappings = {
-      n = {
-        b = find_files_actions.add_bookmark,
-        B = find_files_actions.remove_bookmark,
-        x = find_files_actions.delete,
-      },
-    },
-  },
-  git_status = {
-    mappings = {
-      n = {
-        s = git_status_actions.stage,
-      },
-    },
-  },
-  git_files = {
-    mappings = {
-      n = {
-        b = git_files_actions.add_bookmark,
-        B = git_files_actions.remove_bookmark,
-      },
-    },
-  },
-}
+-- T.pickers = {
+--   buffers = {
+--     show_all_buffers = true,
+--     mappings = {
+--       n = {
+--         x = buffer_actions.bwipeout,
+--         ["!"] = buffer_actions.nomodified,
+--         w = buffer_actions.save,
+--         r = buffer_actions.readonly,
+--         b = buffer_actions.add_bookmark,
+--         B = buffer_actions.remove_bookmark,
+--       },
+--     },
+--   },
+--   find_files = {
+--     mappings = {
+--       n = {
+--         b = find_files_actions.add_bookmark,
+--         B = find_files_actions.remove_bookmark,
+--         x = find_files_actions.delete,
+--       },
+--     },
+--   },
+--   git_status = {
+--     mappings = {
+--       n = {
+--         s = git_status_actions.stage,
+--       },
+--     },
+--   },
+--   git_files = {
+--     mappings = {
+--       n = {
+--         b = git_files_actions.add_bookmark,
+--         B = git_files_actions.remove_bookmark,
+--       },
+--     },
+--   },
+-- }
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -73,134 +73,126 @@ local function picker(p, conf)
   end
 end
 
-local mappings = {
-  noremap = true,
-  leader = true,
-  mode = "n",
-  {
+telescope.mappings = {telescope = {
+  opts = {
+    noremap = true,
+    leader = true,
+  },
+  grep = {
     "/",
     function()
       picker("live_grep", { search_dirs = { vim.fn.expand "%:p" } })()
     end,
-    { desc = "Grep string in workspace", name = "ts_grep" },
+    { desc = "Grep string in workspace" },
   },
-  {
+  live_grep = {
     "?",
     picker "live_grep",
-    { desc = "Live grep in workspace", name = "ts_live_grep" },
+    { desc = "Live grep in workspace" },
   },
-  { "'", picker "marks", { desc = "Show marks", name = "ts_marks" } },
-  {
+  marks = { "'", picker "marks", { desc = "Show marks" } },
+  registers = {
     '"',
     picker "registers",
-    { desc = "Show registers", name = "ts_registers" },
+    { desc = "Show registers" },
   },
-  {
+  resume = {
     "<leader>",
     picker "resume",
-    { desc = "Resume telescope", name = "ts_resume" },
+    { desc = "Resume telescope" },
   },
-  {
-    "hv",
+  options = {
+    "ho",
     picker "vim_options",
-    { desc = "Show vim options", name = "ts_options" },
+    { desc = "Show vim options" },
   },
-  {
+  find_files = {
     "ff",
     function()
       picker("find_files", { cwd = vim.fn.expand "%:p:h" })()
     end,
-    { desc = "Find files in workspace", name = "ts_ff" },
+    { desc = "Find files in workspace" },
   },
-  {
+  git_files = {
     "gf",
     picker "git_files",
-    { desc = "Do git ls-files", name = "ts_git_ls" },
+    { desc = "Do git ls-files" },
   },
-  { "bb", picker "buffers", { desc = "Show buffers", name = "ts_buffers" } },
-  {
+  buffers = { "bb", picker "buffers", { desc = "Show buffers" } },
+  oldfiles = {
     "fr",
     picker "oldfiles",
-    { desc = "Show recently opened files", name = "ts_mru" },
+    { desc = "Show recently opened files" },
   },
-  { "hm", picker "man_pages", { desc = "Show man pages", name = "ts_man" } },
-  {
+  man = { "hm", picker "man_pages", { desc = "Show man pages" } },
+  treesitter = {
     "lt",
     picker "treesitter",
-    { desc = "Telescope treesitter", name = "ts_treesitter" },
+    { desc = "Telescope treesitter" },
   },
-  {
+  lsp_references = {
     "lr",
     picker "lsp_references",
-    { desc = "Show references", name = "ts_ref" },
+    { desc = "Show references"},
   },
-  {
+  lsp_document_symbols = {
     "ls",
     picker "lsp_document_symbols",
-    { desc = "Buffer symbols", name = "ts_document_symbols" },
+    { desc = "Buffer symbols" },
   },
-  {
+  lsp_workspace_symbols = {
     "lS",
     picker "lsp_workspace_symbols",
-    { desc = "Workspace symbols", name = "ts_workspace_symbols" },
+    { desc = "Workspace symbols" },
   },
-  {
+  lsp_buffer_diagnostics = {
     "ld",
     function()
       picker("diagnostics", { bufnr = 0 })()
     end,
-    { desc = "Show buffer LSP diagnostics", name = "ts_diagnostics" },
+    { desc = "Show buffer LSP diagnostics"},
   },
-  {
+  lsp_diagnostics = {
     "l`",
     picker "diagnostics",
-    { desc = "Show LSP diagnostics", name = "ts_diagnostics" },
+    { desc = "Show LSP diagnostics"},
   },
-  {
+  git_commits = {
     "gC",
     picker "git_commits",
-    { desc = "Show commits", name = "ts_git_commits" },
+    { desc = "Show commits" },
   },
-  {
+  git_bcommits = {
     "gB",
     picker "git_bcommits",
-    { desc = "Show branch commits", name = "ts_branch_commits" },
+    { desc = "Show branch commits" },
   },
-  {
+  git_status = {
     "g?",
     picker "git_status",
-    { desc = "Git status", name = "ts_git_status" },
+    { desc = "Git status" },
   },
-  {
+  command_history = {
     "h;",
     picker "command_history",
-    { desc = "Command history", name = "ts_git_status" },
+    { desc = "Command history" },
   },
-  {
+  colorschemes = {
     "hc",
     picker "colorscheme",
-    { desc = "Colorscheme picker", name = "ts_colorscheme" },
+    { desc = "Colorscheme picker" },
   },
-  {
+  file_browser = {
     "\\",
     function()
       require("telescope").extensions.file_browser.file_browser(ivy)
     end,
-    { desc = "Open file browser", name = "file_browser" },
+    { desc = "Open file browser" },
   },
-  {
-    '<leader>',
-    ':Telescope resume<CR>',
-    'Resume picker'
-  },
-}
+}}
 
-plugin.telescope = {
-  config = T,
-  kbd = mappings,
-  on_attach = function(self)
-    local telescope = require "telescope"
-    telescope.setup(self.config)
-    telescope.load_extension "file_browser"
-  end,
-}
+function telescope:setup()
+  local telescope = require "telescope"
+  telescope.setup(self.config)
+  telescope.load_extension "file_browser"
+end
