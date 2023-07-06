@@ -167,10 +167,9 @@ function autocmd.map_with_opts(opts, callback)
   end)
 end
 
-function autocmd.flatten_groups(groups, map)
-  if groups.__flattened then return end
+function autocmd.map_groups(groups)
+  local out = {}
 
-  local out = {__flattened = true}
   dict.each(deepcopy(groups), function (group_name, group_spec)
     if group_name == 'apply' or group_name == 'opts' then return end
 
@@ -185,21 +184,9 @@ function autocmd.flatten_groups(groups, map)
     end)
   end)
 
-  if map then
-    dict.each(out, function (_, spec)
-      if _ == '__flattened' then return end
+  dict.each(out, function (_, spec)
       autocmd.map(unpack(spec))
-    end)
-  end
+  end)
 
   return out
-end
-
-function autocmd.map_dict(tbl)
-  if not tbl.__flattened then tbl = autocmd.flatten_groups(tbl) end
-
-  dict.each(tbl, function(_, kbd_spec)
-    if _ == '__flattened' then return end
-    autocmd.map(unpack(kbd_spec))
-  end)
 end

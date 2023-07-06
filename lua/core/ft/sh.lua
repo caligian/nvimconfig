@@ -1,7 +1,7 @@
-filetype.sh = {
-  repl = user.shell,
-  compile = user.shell,
-  server = "bashls",
-  linters = "shellcheck",
-  formatter = { 'shfmt -i 2', stdin=true }
-}
+local sh = filetype.new('sh')
+
+sh.repl = '/bin/bash'
+sh.compile = '/bin/bash'
+sh.server = 'bashls'
+sh.linters = 'shellcheck'
+sh.formatter = { 'shfmt -i 2', stdin=true }

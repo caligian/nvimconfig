@@ -71,12 +71,16 @@ cs.server = {
         },
     },
 }
+
 cs.mappings = {
-    cs = {
-        format_buffer = {
-            "<leader>bf",
-            ":! dotnet format --include %<CR>",
-            { desc = "Format buffer (C#)", noremap = true },
-        },
+    format_buffer = {
+        'n',
+        "<leader>bf",
+        ":! dotnet format --include %<CR>",
+        { desc = "Format buffer (C#)", noremap = true },
     },
 }
+
+return function ()
+    cs:load_mappings()
+end

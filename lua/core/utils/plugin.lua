@@ -14,7 +14,7 @@ function plugin.new(name, spec)
     user_config_require_path = 'user.plugins.' .. name,
     config_require_path = 'core.plugins.' .. name,
     set_autocmds = function (self, apply)
-      if not self.autocmds or self.autocmds.__flattened then return end
+      if not self.autocmds then return end
 
       local autocmds = deepcopy(self.autocmds)
       local current_apply = autocmds.apply
@@ -24,21 +24,12 @@ function plugin.new(name, spec)
         apply(event, opts)
       end
 
-      self.autocmds = autocmd.flatten_groups(autocmds, true)
+      self.autocmds = autocmd.map_groups(autocmds)
       return self.autocmds
     end,
-    set_mappings = function (self, apply)
-      if not self.mappings or self.mappings.__flattened then return end
-
-      self.mappings = deepcopy(self.mappings)
-
-      self.mappings.apply = function (mode, ks, cb, rest)
-        return mode, ks, cb, rest
-      end
-
-      self.mappings = kbd.flatten_groups(self.mappings, true)
-
-      return self.mappings
+    load_mappings = function (self)
+      if not self.mappings then return end
+      kbd.map_groups {[self.name] = self.mappings}
     end,
     config_exists = function (self, is_user)
       if is_user then return utils.req2path(self.user_config_require_path) end
@@ -103,7 +94,7 @@ function plugin.new(name, spec)
     end
 
     if self.autocmds then self:set_autocmds() end
-    if self.mappings then self:set_mappings() end
+    if self.mappings then self:load_mappings() end
     if self.setup then self:setup() end
   end
 

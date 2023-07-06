@@ -1,12 +1,10 @@
 local tagbar = plugins.get 'tagbar'
 tagbar.mappings = {
     tagbar = {
-        tagbar = {
-            "n",
-            "<C-t>",
-            ":TagbarToggle<CR>",
-            { desc = "Toggle tagbar" }
-        }
+        "n",
+        "<C-t>",
+        ":TagbarToggle<CR>",
+        { desc = "Toggle tagbar" }
     }
 }
 

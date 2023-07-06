@@ -1,17 +1,15 @@
 require 'core.utils.plugin'
 
-local align = plugin.new('align', {})
+local align = plugin.get('align', {})
 
 align.mappings = {
-  defaults = {
     opts = { leader = true, noremap = true },
     align = { "=", ":EasyAlign ", { desc = "Align by regexp" } },
     align_region = {
-      "=",
-      ":'<,'>EasyAlign ",
-      { mode = "v", desc = "Align by regexp" },
+        "=",
+        ":'<,'>EasyAlign ",
+        { mode = "v", desc = "Align by regexp" },
     },
-  }
 }
 
 align.config = {}

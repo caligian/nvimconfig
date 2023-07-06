@@ -2,22 +2,25 @@ command_group = {command_groups = {}}
 
 local function validate_name(s)
     local ok = s:match '^[a-zA-Z][a-zA-Z0-9]+$'
-    if not ok then return nil, 'invalid_name' end
+
+    if not ok then error 'invalid_name' end
 
     return s:gsub('^([a-z])', string.upper)
 end
 
 local function create_name(group, s)
-    local ok, err = validate_name(s)
-    if not s then return ok, err end 
-
-    return group .. ok
+    local s = validate_name(s)
+    return group .. s
 end
 
 function command_group.new(group_name)
     local exists = command_group.command_groups[group_name]
+    local command_name, err = validate_name(group_name)
+
+    if not command_group and err then error(err) end
+
     return exists or {
-        name = validate_name(group_name),
+        name = command_name,
         commands = {},
         mappings = {},
         add = function (self, name, callback, opts)
@@ -67,9 +70,34 @@ function command_group.new(group_name)
             local cb = self:get_command(cmd)
             if not cb then return end
 
-            cb = cb.callback
             opts = deepcopy(opts or {})
             opts.name = 'command.' .. opts.name .. '.' .. opts.name
+
+            --- see input()
+            local required = opts.required
+            opts.required = nil
+
+            local callback = cb.callback
+            cb = function () 
+                if required then
+                    local inp = {}
+                    local input = vim.fn.input
+
+                    array.each(required, function (spec)
+                        local name = spec[1]
+                        local prompt = spec[1] .. ' % '
+                        local default = spec[2]
+                        local completion = spec[3]
+
+                        spec = {prompt, default, completion}
+                        inp[spec[1]] = input(unpack(spec))
+                    end)
+                    callback(inp) 
+                else
+                    callback(buffer.bufnr())
+                end
+            end
+
             self.mappings[opts.name] = kbd.map(mode, ks, cb, opts)
 
             return self.mappings[opts.name]

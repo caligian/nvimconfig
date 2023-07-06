@@ -1,8 +1,6 @@
 require "core.globals"
 require "core.option"
--- require "core.BufferGroup"
 require "core.defaults"
--- require "core.bookmarks"
 require "core.netrw"
 
 filetype.load_specs()

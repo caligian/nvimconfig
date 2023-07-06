@@ -15,16 +15,14 @@ ssr.config = {
 }
 
 ssr.mappings = {
-  ssr = {
     ssr = {
-      "nx",
-      "<leader>%",
-      function()
-        require("ssr").open()
-      end,
-      { desc = "Structural editing", name = "ssr" },
+        "nx",
+        "<leader>%",
+        function()
+            require("ssr").open()
+        end,
+        { desc = "Structural editing", name = "ssr" },
     },
-  }
 }
 
 function ssr:setup()

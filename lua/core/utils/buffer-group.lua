@@ -1,8 +1,31 @@
+require "core.utils.command-group"
+
+local home = os.getenv "HOME"
+
 buffer_group = {
     buffer_groups = {},
     buffers = {},
     command_group = command_group.new "BufferGroup",
 }
+
+function buffer_group.load_defaults(defaults)
+    defaults = deepcopy(defaults or buffer_group.defaults)
+    local event = defaults.event or "BufEnter"
+    defaults.event = nil
+
+    dict.each(defaults, function(name, spec)
+        local pattern
+
+        if is_a.string(spec) then
+            pattern = spec
+        else
+            event = spec.event or event
+            pattern = spec.pattern
+        end
+
+        buffer_group.new(name, event, pattern):enable()
+    end)
+end
 
 buffer_group.add_command = function(name, callback, opts)
     local map = opts.map
@@ -28,9 +51,9 @@ buffer_group.command_map = function(...)
     return buffer_group.command_group:map(...)
 end
 
-buffer_group.map_commands = function()
+buffer_group.map_commands = function(commands)
     dict.each(
-        buffer_group.commands,
+        commands or buffer_group.commands,
         function(name, spec) buffer_group.command_group:add(name, unpack(spec)) end
     )
 end
@@ -64,7 +87,7 @@ function buffer_group.new(name, event, pattern)
                 if found then break end
             end
 
-            return true
+            return found
         end,
         exclude_buffer = function(self, ...)
             local success = {}
@@ -185,14 +208,6 @@ function buffer_group.new(name, event, pattern)
 
                 self.buffers[buf] = true
                 self.exclude[buf] = nil
-            end)
-        end,
-        exclude_buffer = function(self, ...)
-            array.each({ ... }, function(buf)
-                if not self.exclude[buf] then return end
-
-                self.exclude[buf] = true
-                self.buffers[buf] = nil
             end)
         end,
         get_excluded_buffers = function(self)
@@ -352,9 +367,10 @@ function buffer_group.create_picker(bufnr)
                 bufname = bufname,
                 value = entry,
                 display = sprintf(
-                    "%s :: %s",
-                    array.join(groups[entry].event, ","),
-                    array.join(groups[entry].pattern, ",")
+                    "%-15s = %s :: %s",
+                    entry,
+                    array.join(groups[entry].event, ", "),
+                    array.join(groups[entry].pattern, ", ")
                 ),
                 ordinal = bufnr,
             }
@@ -404,12 +420,14 @@ function buffer_group.create_picker(bufnr)
 end
 
 function buffer_group.is_excluded_buffer(bufnr)
-    return array.all(
-        array.grep(
-            dict.values(buffer_group.buffer_groups),
-            function(obj) return obj.exclude[bufnr] end
-        )
+    local found = array.grep(
+        dict.values(buffer_group.buffer_groups),
+        function(obj) return obj.exclude[bufnr] end
     )
+
+    if #found == 0 then return false end
+
+    return array.all(found)
 end
 
 function buffer_group.run_picker(bufnr)
@@ -430,7 +448,7 @@ function buffer_group.get_statusline_string(bufnr)
 end
 
 local function get_group(bufnr, group)
-    local group = buffer_group.buffers[bufnr]
+    group = buffer_group.buffers[bufnr]
     if not group then return nil, "buffer_not_captured" end
 
     group = group[group]
@@ -440,33 +458,65 @@ local function get_group(bufnr, group)
 end
 
 function buffer_group.add_buffer(bufnr, group)
-    local group, err = get_group(bufnr, group)
+    group, err = get_group(bufnr, group)
     if not group then return nil, err end
 
     return group:add_buffer(bufnr)
 end
 
 function buffer_group.remove_buffer(bufnr, group)
-    local group, err = get_group(bufnr, group)
+    group, err = get_group(bufnr, group)
     if not group then return nil, err end
 
     return group:remove_buffer(bufnr)
 end
 
 function buffer_group.exclude_buffer(bufnr, group)
-    local group, err = get_group(bufnr, group)
+    group, err = get_group(bufnr, group)
     if not group then return nil, err end
 
     return group:exclude_buffer(bufnr)
 end
 
--- doom = buffer_group.new('doom', 'BufEnter', user.dir)
--- doom:enable()
+function buffer_group.get(name, callback)
+    local group = buffer_group.buffer_groups[name]
+    if not group then return end
 
--- pp(doom:list_buffers())
+    if callback then
+        return callback(group)
+    else
+        return group
+    end
+end
 
-buffer_group.commands = {
-    sayHello = { ':echo "hello_world"', { map = { "n", "<leader>z" } } },
-}
+function buffer_group.load_mappings(mappings)
+    mappings = mappings or buffer_group.mappings
 
+    if not mappings then return end
 
+    local out = {}
+    local opts = mappings.opts
+
+    dict.each(mappings, function(name, spec)
+        if name == "opts" then return end
+
+        if opts then
+            local mode, ks, cb, rest
+            ks, cb, rest = unpack(spec)
+            rest = dict.merge(rest or {}, opts)
+            rest.name = "buffer_group." .. name
+            mode = rest.mode or "n"
+            spec = { mode, ks, cb, rest }
+
+            apply(kbd.map, spec)
+        else
+            spec = deepcopy(spec)
+            local mode, ks, cb, rest = unpack(spec)
+            rest = rest or {}
+            rest.name = "buffer_group." .. name
+            spec[4] = rest
+
+            apply(kbd.map, spec)
+        end
+    end)
+end
