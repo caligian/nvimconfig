@@ -1,10 +1,10 @@
-require 'core.utils.module'
-require 'core.utils.exception'
+require "core.utils.module"
+require "core.utils.exception"
 
-struct = module.new 'struct'
+struct = module.new "struct"
 
 struct.exception = exception.new {
-    invalid_attribute = 'undefined attribute passed'
+    invalid_attribute = "undefined attribute passed",
 }
 
 function struct.is_struct(st)
@@ -20,8 +20,8 @@ end
 function struct.name(st) return struct.is_struct(st) end
 
 function struct.equals(st1, st2, opts)
-    assert(struct.is_struct(st1), 'invalid_struct1')
-    assert(struct.is_struct(st2), 'invalid_struct2')
+    assert(struct.is_struct(st1), "invalid_struct1")
+    assert(struct.is_struct(st2), "invalid_struct2")
 
     opts = opts or {}
     local absolute = opts.compare_tables
@@ -57,42 +57,58 @@ function struct.equals(st1, st2, opts)
     return true
 end
 
-function struct.not_equals(...)
-    return not struct.equals(...)
-end
+function struct.not_equals(...) return not struct.equals(...) end
 
 function struct.new(name, valid_attribs)
-    assert(valid_attribs, 'no_valid_attribs')
+    if not valid_attribs then
+        error 'no_valid_attribs'
+    end
 
-    local mt = {name = name, type = 'struct', valid_attribs = array.todict(valid_attribs)}
+    valid_attribs = array.todict(valid_attribs)
+
+    local mt = {
+        name = name,
+        type = "struct",
+        valid_attribs = valid_attribs,
+        __newindex = function(self, key, value)
+            struct.exception.invalid_attribute:assert(key)
+            rawset(self, key, value)
+
+            return value
+        end,
+    }
 
     return function(attribs)
         attribs = copy(attribs or {})
 
-        dict.each(attribs, function (key, value)
-            struct.exception.invalid_attribute:assert(mt.valid_attribs[key], key)
-        end)
+        dict.each(
+            attribs,
+            function(key, value)
+                struct.exception.invalid_attribute:assert(
+                    mt.valid_attribs[key],
+                    key
+                )
+            end
+        )
 
         return setmetatable(attribs, mt)
     end
 end
 
 function struct.include(dst, src, opts)
-    assert(struct.is_struct(dst), 'invalid_dst_struct')
-    assert(struct.is_struct(src), 'invalid_src_struct')
+    assert(struct.is_struct(dst), "invalid_dst_struct")
+    assert(struct.is_struct(src), "invalid_src_struct")
 
     opts = opts or {}
     local overwrite = opts.overwrite
-    local missing = opts.missing 
+    local missing = opts.missing
 
     if overwrite == nil then overwrite = true end
     if missing == nil then missing = true end
 
-    dict.each(src, function (key, value)
-        if not dst[key] then 
-            if missing then
-                dst[key] = value
-            end
+    dict.each(src, function(key, value)
+        if not dst[key] then
+            if missing then dst[key] = value end
         elseif overwrite then
             dst[key] = value
         end
@@ -102,3 +118,5 @@ function struct.include(dst, src, opts)
 end
 
 types.is_struct = struct.is_struct
+
+
