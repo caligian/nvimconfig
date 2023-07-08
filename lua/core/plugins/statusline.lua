@@ -214,11 +214,9 @@ function statusline:setup_evil()
   ins_right {
     function()
       local bufnr = vim.fn.bufnr()
-      local groups = user.bufgroup.BUFFER[bufnr]
+      local groups = buffer_group.buffers[bufnr]
+      if not groups then return "<!>" end
 
-      if not groups then return "" end
-
-      groups = groups.groups
       return sprintf("<%s>", array.join(dict.keys(groups), ","))
     end,
   }

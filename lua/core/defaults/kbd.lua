@@ -229,8 +229,6 @@ dict.merge(user.mappings, {
     }
 })
 
-if utils.req2path('user.kbd') then
-    require('user.kbd')
+return function ()
+    kbd.map_groups(user.mappings)
 end
-
-kbd.map_groups(user.mappings)

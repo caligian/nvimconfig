@@ -455,7 +455,15 @@ repl.mappings = {
     },
 }
 
+repl.autocmds = {
+    stop_all = {
+        'QuitPre',
+        {callback = repl.stop_all, pattern = '*'}
+    }
+}
+
 return function()
     repl.map_commands()
     repl.load_mappings()
+    repl.load_autocmds()
 end

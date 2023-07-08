@@ -159,3 +159,8 @@ function repl.load_mappings(mappings)
     mappings = mappings or repl.mappings
     kbd.map_group('repl', repl.mappings)
 end
+
+function repl.load_autocmds(autocmds)
+    autocmds = autocmds or repl.autocmds
+    return autocmd.map_group(repl.autocmds)
+end

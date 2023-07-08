@@ -190,3 +190,7 @@ function autocmd.map_groups(groups)
 
   return out
 end
+
+function autocmd.map_group(name, spec)
+    return autocmd.map_groups({[name] = spec})
+end
