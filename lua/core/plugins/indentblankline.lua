@@ -2,16 +2,16 @@ local indent = require "indent_blankline"
 local indentblankline = plugin.get 'indentblankline'
 
 function indentblankline.set_highlight()
-  local normal = utils.highlight "Normal"
+  local normal = highlight "Normal"
   normal.guibg = normal.guibg or '#000000'
 
-  if utils.islight(normal.guibg) then
-    normal.guifg = utils.darken(normal.guibg, 20)
+  if is_light(normal.guibg) then
+    normal.guifg = darken(normal.guibg, 20)
   else
-    normal.guifg = utils.lighten(normal.guibg, 20)
+    normal.guifg = lighten(normal.guibg, 20)
   end
 
-  utils.hi("IndentBlankLineChar", { guifg = normal.guifg, })
+  hi("IndentBlankLineChar", { guifg = normal.guifg, })
 end
 
 indentblankline.autocmds = {

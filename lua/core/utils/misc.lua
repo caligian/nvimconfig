@@ -1,12 +1,12 @@
 -- Will not work with userdata
-function utils.whereis(bin, regex)
+function whereis(bin, regex)
   local out = vim.fn.system(
     "whereis " .. bin .. [[ | cut -d : -f 2- | sed -r "s/(^ *| *$)//mg"]]
   )
   out = string.trim(out)
   out = string.split(out, " ")
 
-  if dict.isblank(out) then return false end
+  if dict.is_empty(out) then return false end
 
   if regex then
     for _, value in ipairs(out) do
@@ -30,7 +30,7 @@ function global(vars)
   end
 end
 
-function utils.with_open(fname, mode, callback)
+function with_open(fname, mode, callback)
   local fh = io.open(fname, mode)
   local out = nil
   if fh then
@@ -41,15 +41,15 @@ function utils.with_open(fname, mode, callback)
   return out
 end
 
-function utils.joinpath(...) return table.concat({ ... }, "/") end
+function joinpath(...) return table.concat({ ... }, "/") end
 
-function utils.basename(s)
+function basename(s)
   s = vim.split(s, "/")
   return s[#s]
 end
 
-function utils.req2path(s, is_file)
-  local p = str.split(s, "[./]") or { s }
+function req2path(s, is_file)
+  local p = string.split(s, "[./]") or { s }
   local test
   user.user_dir = user.user_dir or path.join(os.getenv "HOME", ".nvim")
   user.dir = user.dir or vim.fn.stdpath "config"
@@ -72,15 +72,15 @@ function utils.req2path(s, is_file)
   end
 end
 
-function utils.reqmodule(s)
+function reqmodule(s)
   if not s:match_any "^core" then return end
   if s:match "^core%.utils" then return end
 
   local p = s:gsub("^core", "user")
-  if not utils.req2path(s) then return end
+  if not req2path(s) then return end
 
-  local builtin, builtin_tp = utils.req2path(s)
-  local _user, user_tp = utils.req2path(p)
+  local builtin, builtin_tp = req2path(s)
+  local _user, user_tp = req2path(p)
 
   if not builtin then
     return
@@ -97,7 +97,7 @@ function utils.reqmodule(s)
   end
 
   if is_table(builtin) and is_table(_user) then
-    return dict.merge(utils.copy(builtin), _user)
+    return dict.merge(copy(builtin), _user)
   end
 
   return builtin

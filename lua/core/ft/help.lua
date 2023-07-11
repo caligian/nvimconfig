@@ -7,7 +7,7 @@ local function prevheading()
 end
 
 local function putstring(s, align)
-  s = string.trim(array.tolist(s)[1])
+  s = string.trim(array.to_array(s)[1])
   local linenum = vim.fn.line "."
   local line = vim.fn.getline(linenum):gsub(" *$", "")
   local len = #line

@@ -1,4 +1,4 @@
-require "core.utils.repl"
+require "core.repl"
 --------------------------------------------------
 local function parse_args(args)
     return array.map(vim.split(args.args, " +"), function(x)
@@ -41,13 +41,11 @@ repl.commands = {
                 local x = repl.new(args[1])
                 if not x then return end
 
-                if is_a.string(args[1]) then
-                    args[2] = args[2] or buffer.getbuffer(args[1])
+                if is_a.number(args[1]) then
+                    x:send_buffer(args[1])
                 else
-                    args[2] = args[2] or buffer.getbuffer(args[1])
+                    x:send_buffer(buffer.bufnr())
                 end
-
-                x:send(args[2])
             end)
         end,
         { nargs = "?" },
@@ -58,13 +56,11 @@ repl.commands = {
                 local x = repl.new(args[1])
                 if not x then return end
 
-                if is_a.string(args[1]) then
-                    args[2] = args[2] or buffer.rangetext(args[1])
+                if is_a.number(args[1]) then
+                    x:send_range(args[1])
                 else
-                    args[2] = args[2] or buffer.rangetext(args[1])
+                    x:send_range(buffer.bufnr())
                 end
-
-                x:send(args[2])
             end)
         end,
         { nargs = "?" },
@@ -253,7 +249,7 @@ repl.mappings = {
     opts = { noremap = true },
     buffer_send_range = {
         "<leader>re",
-        function() vim.cmd(":ReplSendRange " .. buffer.bufnr()) end,
+        sprintf("<esc>:ReplSendRange %d<CR>", buffer.bufnr()),
         { desc = "send range", mode = "v" },
     },
     buffer_send_line = {
@@ -308,11 +304,7 @@ repl.mappings = {
     },
     filetype_send_range = {
         "<localleader>re",
-        function()
-            vim.cmd(
-                ":ReplSendRange " .. buffer.option(buffer.bufnr(), "filetype")
-            )
-        end,
+        sprintf("<esc>:ReplSendRange %d<CR>", buffer.bufnr()),
         { desc = "send range", mode = "v" },
     },
     filetype_send_line = {
@@ -395,7 +387,7 @@ repl.mappings = {
     },
     shell_send_range = {
         "<leader>xe",
-        function() vim.cmd(":ReplSendRange " .. 'sh') end,
+        sprintf("<esc>:ReplSendRange %d<CR>", buffer.bufnr()),
         { desc = "send range", mode = "v" },
     },
     shell_send_line = {

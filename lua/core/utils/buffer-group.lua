@@ -61,14 +61,14 @@ end
 function buffer_group.new(name, event, pattern)
     validate {
         name = { "string", name },
-        pattern = { is { "table", "string" }, pattern },
-        opt_event = { is { "table", "string" }, event },
+        pattern = { is { "array", "string" }, pattern },
+        opt_event = { is { "array", "string" }, event },
     }
 
     local self = {
         name = name,
-        event = array.toarray(event or "BufAdd"),
-        pattern = array.toarray(pattern),
+        event = array.to_array(event or "BufAdd"),
+        pattern = array.to_array(pattern),
         autocmds = {},
         buffers = {},
         callbacks = {},
@@ -128,7 +128,7 @@ function buffer_group.new(name, event, pattern)
                 self.exclude[bufnr] = true
             end)
 
-            if array.isblank(removed) then
+            if array.is_empty(removed) then
                 return
             else
                 return removed
@@ -145,7 +145,7 @@ function buffer_group.new(name, event, pattern)
             end)
 
             local bufs = dict.keys(self.buffers)
-            if dict.isblank(bufs) then
+            if dict.is_empty(bufs) then
                 return
             else
                 return bufs
@@ -212,7 +212,7 @@ function buffer_group.new(name, event, pattern)
         end,
         get_excluded_buffers = function(self)
             local ks = dict.keys(self.exclude)
-            if dict.isblank(ks) then return end
+            if dict.is_empty(ks) then return end
             return ks
         end,
         create_picker = function(self, tp)
@@ -220,7 +220,7 @@ function buffer_group.new(name, event, pattern)
                 local bufs = self:get_excluded_buffers()
                 if not bufs then return end
 
-                local _ = utils.telescope.load()
+                local _ = telescope.load()
                 local mod = {}
 
                 function mod.include_buffer(prompt_bufnr)
@@ -278,7 +278,7 @@ function buffer_group.new(name, event, pattern)
                     end,
                 }
 
-                local _ = utils.telescope.load()
+                local _ = telescope.load()
                 local mod = {}
 
                 function mod.remove_buffer(prompt_bufnr)
@@ -354,7 +354,7 @@ function buffer_group.create_picker(bufnr)
     if not buffer.exists(bufnr) then return end
 
     local groups = buffer_group.buffers[bufnr]
-    if not groups or dict.isblank(groups) then return end
+    if not groups or dict.is_empty(groups) then return end
 
     items = dict.keys(groups)
     items = {
@@ -378,7 +378,7 @@ function buffer_group.create_picker(bufnr)
     }
 
     local mod = {}
-    local _ = utils.telescope.load()
+    local _ = telescope.load()
 
     function mod.default_action(prompt_bufnr)
         local sel = _:get_selected(prompt_bufnr)[1]
@@ -401,7 +401,7 @@ function buffer_group.create_picker(bufnr)
         local pattern = group.pattern
         group.previous_pattern = pattern
         group.pattern =
-            array.toarray(vim.split(vim.fn.input "new pattern % ", " *:: *"))
+            array.to_array(vim.split(vim.fn.input "new pattern % ", " *:: *"))
         printf(
             "pattern changed to  %s for buffer_group %s",
             dump(group.pattern),
@@ -442,7 +442,7 @@ end
 
 function buffer_group.get_statusline_string(bufnr)
     local state = buffer_group.buffers[bufnr]
-    if not state or dict.isblank(state) then return end
+    if not state or dict.is_empty(state) then return end
 
     return "<" .. array.join(dict.keys(state), " ") .. ">"
 end

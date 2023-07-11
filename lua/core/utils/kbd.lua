@@ -19,8 +19,8 @@ function kbd.new(mode, ks, callback, opts)
         callback = { is { "callable", "string" }, callback },
         opts = {
             {
-                opt_event = is { "string", "table" },
-                opt_pattern = is { "string", "table" },
+                opt_event = is { "string", "array" },
+                opt_pattern = is { "string", "array" },
                 opt_prefix = "string",
                 name = "string",
             },
@@ -123,8 +123,8 @@ end
 
 function kbd.map_with_opts(opts, callback)
     validate {
-        preset_opts = { "table", opts },
-        names_with_callbacks = { "table", callback },
+        preset_opts = { "dict", opts },
+        names_with_callbacks = { "dict", callback },
     }
 
     opts = deepcopy(opts)
@@ -238,9 +238,6 @@ function kbd.map_groups(groups)
     end)
 
     dict.each(new, function(_, spec)
-        if not is_a.table(spec) then
-            print(_, spec)
-        end
         kbd.map(unpack(spec))
     end)
 

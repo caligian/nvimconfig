@@ -22,7 +22,7 @@ colorscheme.config = {
     },
     setup = function (self, opts)
       opts = opts or {}
-      opts = dict.merge(utils.copy(self.config), opts)
+      opts = dict.merge(copy(self.config), opts)
       dict.each(opts, function (key, value) vim.g[key] = value end)
       vim.cmd ':colorscheme starry'
     end
@@ -64,7 +64,7 @@ colorscheme.config = {
     },
     setup = function(self, opts)
       opts = opts or {}
-      opts = dict.merge(utils.copy(self.config), opts)
+      opts = dict.merge(copy(self.config), opts)
       require("rose-pine").setup(opts)
     end,
   },
@@ -72,7 +72,7 @@ colorscheme.config = {
     config = { theme = "neovim" },
     setup = function(self, opts)
       opts = opts or {}
-      opts = dict.merge(utils.copy(self.config), opts)
+      opts = dict.merge(copy(self.config), opts)
       vim.o.background = "dark"
       require("solarized"):setup(opts)
     end,
@@ -101,7 +101,7 @@ colorscheme.config = {
     },
     setup = function(self, opts)
       opts = opts or {}
-      opts = dict.merge(utils.copy(self.config), opts)
+      opts = dict.merge(copy(self.config), opts)
       require("tokyonight").setup(opts)
       vim.cmd ":color tokyonight"
     end,
@@ -113,37 +113,37 @@ colorscheme.autocmds = {
     update_colorcolumn_bg = {'ColorScheme', {
       pattern = '*',
       callback = function ()
-        local colorcol = utils.hi 'ColorColumn'
-        local normal = utils.hi 'normal'
-        local dark = utils.isdark(normal.guibg)
+        local colorcol = hi 'ColorColumn'
+        local normal = hi 'normal'
+        local dark = is_dark(normal.guibg)
 
         if dark then
-          colorcol.guibg = utils.lighten(normal.guibg, 15)
+          colorcol.guibg = lighten(normal.guibg, 15)
           colorcol.guifg = colorcol.guibg
         else
-          colorcol.guibg = utils.darken(normal.guibg, 15)
+          colorcol.guibg = darken(normal.guibg, 15)
           colorcol.guibg = colorcol.guifg
         end
 
-        utils.highlightset('ColorColumn', colorcol)
+        highlightset('ColorColumn', colorcol)
       end,
     }},
     update_cursorline_colors = {'ColorScheme', {
       pattern = '*',
       callback = function ()
-        local cursorline = utils.hi 'cursorline'
-        local normal = utils.hi 'normal'
-        local dark = utils.isdark(normal.guibg)
+        local cursorline = hi 'cursorline'
+        local normal = hi 'normal'
+        local dark = is_dark(normal.guibg)
 
         if dark then
-          cursorline.guibg = utils.lighten(normal.guibg, 22)
-          cursorline.guifg = utils.darken(normal.guifg, 22)
+          cursorline.guibg = lighten(normal.guibg, 22)
+          cursorline.guifg = darken(normal.guifg, 22)
         else
-          cursorline.guibg = utils.darken(normal.guibg, 22)
-          cursorline.guifg = utils.lighten(normal.guifg, 22)
+          cursorline.guibg = darken(normal.guibg, 22)
+          cursorline.guifg = lighten(normal.guifg, 22)
         end
 
-        utils.highlightset('CursorLine', cursorline)
+        highlightset('CursorLine', cursorline)
       end,
     }}
   }

@@ -30,19 +30,18 @@ function filetype.new(name)
         setup_lsp = function(self)
             if not self.lsp_server then return end
 
-            local server = self.lsp_server
-            local name, config
-
-            if is_a.string(server) then
+            local server, config
+            if is_a.string(self.lsp_server) then
+                server = self.lsp_server
                 config = {}
-                name = server
             else
-                config = server
-                name = server[1]
-                server[1] = nil
+                local lsp_server = copy(self.lsp_server)
+                server = lsp_server[1]
+                lsp_server[1] = nil
+                config = lsp_server
             end
 
-            lsp.setup_server(name, config)
+           lsp.setup_server(server, config)
 
             return true
         end,
@@ -65,9 +64,9 @@ function filetype.new(name)
         end,
         reload_config = function(self, is_user)
             if is_user then
-                return self:load_config(utils.req2path(self.user_config_require_path))
+                return self:load_config(req2path(self.user_config_require_path))
             else
-                return self:load_config(utils.req2path(self.config_require_path))
+                return self:load_config(req2path(self.config_require_path))
             end
         end,
         add_autocmd = function(self, opts)

@@ -1,6 +1,6 @@
 local function load_with_user(name)
     local ok, msg = pcall(require, 'core.defaults.' .. name)
-    utils.require('user.' .. name)
+    req('user.' .. name)
 
     if ok and is_a.callable(msg) then
         msg()

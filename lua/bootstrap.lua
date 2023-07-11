@@ -43,7 +43,6 @@ dir = require "pl.dir"
 path = require "pl.path"
 file = require "pl.file"
 regex = require "rex_pcre2"
-deepcopy = vim.deepcopy
 
 require 'lua-utils'
 
@@ -51,4 +50,3 @@ require 'lua-utils'
 if path.exists(log_path) then
   vim.fn.system("rm " .. log_path)
 end
-

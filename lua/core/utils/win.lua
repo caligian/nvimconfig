@@ -410,7 +410,7 @@ function floatmt:__call(winnr, opts)
     win_options = {
       {
         __nonexistent = true,
-        ["?center"] = "table",
+        ["?center"] = "dict",
         ["?panel"] = "number",
         ["?dock"] = "number",
       },
@@ -528,7 +528,7 @@ end
 
 function win.setvar(winnr, k, v) 
   validate {
-    key = {is {'string', 'table'}, k},
+    key = {is {'string', 'dict'}, k},
   }
 
   winnr = winnr or win.winnr()
@@ -547,7 +547,7 @@ end
 
 function win.setoption(winnr, k, v) 
   validate {
-    key = {is {'string', 'table'}, k},
+    key = {is {'string', 'dict'}, k},
   }
 
   winnr = winnr or win.winnr()

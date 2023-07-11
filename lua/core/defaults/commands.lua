@@ -1,4 +1,4 @@
-local command = utils.command
+local command = command
 
 -- Open logs
 command("ShowLogs", function()
@@ -25,7 +25,7 @@ local function compile_and_run(lines)
 
   local compiled, err = loadstring(lines)
   if err then
-    utils.nvimerr(err)
+    nvimerr(err)
   elseif compiled then
     compiled()
   end
@@ -59,18 +59,18 @@ command("Darken", function(args)
   assert(#args == 2)
 
   local what, by = unpack(args)
-  local hi = utils.highlight "Normal"
+  local hi = highlight "Normal"
 
-  if isblank(hi) then return end
+  if is_empty(hi) then return end
 
   local set = {}
   if what == "fg" then
-    set["guifg"] = utils.darken(hi["guifg"], tonumber(by))
+    set["guifg"] = darken(hi["guifg"], tonumber(by))
   else
-    set["guibg"] = utils.darken(hi["guibg"], tonumber(by))
+    set["guibg"] = darken(hi["guibg"], tonumber(by))
   end
 
-  utils.highlightset("Normal", set)
+  highlightset("Normal", set)
 end, { nargs = "+" })
 
 command("TrimWhiteSpace", function()

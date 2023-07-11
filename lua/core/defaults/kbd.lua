@@ -229,6 +229,6 @@ dict.merge(user.mappings, {
     }
 })
 
-return function ()
+-- return function ()
     kbd.map_groups(user.mappings)
-end
+-- end

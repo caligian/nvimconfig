@@ -1,4 +1,4 @@
-require 'core.utils.plugin'
+require 'core.plugin'
 
 local align = plugin.get('align', {})
 

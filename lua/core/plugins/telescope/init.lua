@@ -1,68 +1,49 @@
-local ivy = utils.telescope.load().ivy
--- local buffer_actions = require "core.plugins.telescope.actions.buffer"
--- local git_status_actions = require "core.plugins.telescope.actions.git-status"
--- local git_files_actions = require "core.plugins.telescope.actions.git-files"
--- local find_files_actions = require "core.plugins.telescope.actions.find-files"
--- local file_browser_actions = require "core.plugins.telescope.actions.file-browser"
-local T = utils.copy(ivy)
+local ivy = telescope.load().ivy
+local buffer_actions = require "core.plugins.telescope.actions.buffer"
+local find_files_actions = require "core.plugins.telescope.actions.find-files"
+local file_browser_actions =
+    require "core.plugins.telescope.actions.file-browser"
+
+local T = copy(ivy)
 local telescope = plugin.get "telescope"
 
 --------------------------------------------------------------------------------
 -- Some default overrides
--- T.extensions = {
---   file_browser = {
---     hijack_netrw = true,
---     mappings = {
---       n = {
---         x = file_browser_actions.delete,
---         X = file_browser_actions.force_delete,
---         ["%"] = file_browser_actions.touch,
---         ["b"] = file_browser_actions.add_bookmark,
---         ["B"] = file_browser_actions.remove_bookmark,
---       },
---     },
---   },
--- }
+T.extensions = {
+    file_browser = {
+        hijack_netrw = true,
+        mappings = {
+            n = {
+                x = file_browser_actions.delete,
+                X = file_browser_actions.force_delete,
+                ["%"] = file_browser_actions.touch,
+            },
+        },
+    },
+}
 
--- T.pickers = {
---   buffers = {
---     show_all_buffers = true,
---     mappings = {
---       n = {
---         x = buffer_actions.bwipeout,
---         ["!"] = buffer_actions.nomodified,
---         w = buffer_actions.save,
---         r = buffer_actions.readonly,
---         b = buffer_actions.add_bookmark,
---         B = buffer_actions.remove_bookmark,
---       },
---     },
---   },
---   find_files = {
---     mappings = {
---       n = {
---         b = find_files_actions.add_bookmark,
---         B = find_files_actions.remove_bookmark,
---         x = find_files_actions.delete,
---       },
---     },
---   },
---   git_status = {
---     mappings = {
---       n = {
---         s = git_status_actions.stage,
---       },
---     },
---   },
---   git_files = {
---     mappings = {
---       n = {
---         b = git_files_actions.add_bookmark,
---         B = git_files_actions.remove_bookmark,
---       },
---     },
---   },
--- }
+T.pickers = {
+    buffers = {
+        show_all_buffers = true,
+        mappings = {
+            n = {
+                x = buffer_actions.bwipeout,
+                ["!"] = buffer_actions.nomodified,
+                w = buffer_actions.save,
+                r = buffer_actions.readonly,
+            },
+        },
+    },
+    find_files = {
+        mappings = {
+            n = {
+                n = find_files_actions.touch_and_open,
+                ["%"] = find_files_actions.touch,
+                x = find_files_actions.delete,
+            },
+        },
+    },
+}
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -187,10 +168,8 @@ telescope.mappings = {
     },
 }
 
-function telescope:setup()
-    local telescope = require "telescope"
-    telescope.setup(self.config)
-    telescope.load_extension "file_browser"
-end
-
-
+--function telescope:setup()
+    local ts = require "telescope"
+    ts.setup(T)
+    ts.load_extension "file_browser"
+--end

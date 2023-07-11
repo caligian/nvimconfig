@@ -18,7 +18,7 @@ function terminal.new(cmd, opts)
 
     validate {
         cmd = { "string", cmd },
-        opts = { "table", opts },
+        opts = { "dict", opts },
     }
 
     local on_input = opts.on_input
@@ -96,9 +96,8 @@ function terminal.new(cmd, opts)
             if not self:is_running() then return end
 
             local id = self.id
-            if is_a.string(s) then s = vim.split(s, "[\n\r]+") end
+            if is_a.string(s) then s = vim.split(s, "[\n\r]*") end
             if self.on_input then s = self.on_input(s) end
-            pp(s)
 
             s[#s + 1] = "\n"
             s = array.map(s, string.trim)
@@ -147,7 +146,7 @@ function terminal.new(cmd, opts)
             buffer.call(scratch, function()
                 opts = opts or self.opts or {}
 
-                if dict.isblank(opts) then
+                if dict.is_empty(opts) then
                     id = vim.fn.termopen(self.cmd)
                 else
                     id = vim.fn.termopen(self.cmd, opts)

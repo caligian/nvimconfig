@@ -32,12 +32,12 @@ function plugin.new(name, spec)
       kbd.map_groups {[self.name] = self.mappings}
     end,
     config_exists = function (self, is_user)
-      if is_user then return utils.req2path(self.user_config_require_path) end
-      return utils.req2path(self.config_require_path)
+      if is_user then return req2path(self.user_config_require_path) end
+      return req2path(self.config_require_path)
     end,
     load_config = function (self, is_user)
-      local user_path = utils.req2path(self.user_config_require_path)
-      local builtin_path = utils.req2path(self.config_require_path)
+      local user_path = req2path(self.user_config_require_path)
+      local builtin_path = req2path(self.config_require_path)
       local ok, msg
 
       if builtin_path then ok, msg = pcall(require, self.config_require_path) end
@@ -120,7 +120,7 @@ function plugin.get(name, callback)
 end
 
 function plugin.to_lazy_spec()
-  if dict.isblank(plugin.plugins) then plugin.load_specs() end
+  if dict.is_empty(plugin.plugins) then plugin.load_specs() end
   return array.map(dict.values(plugin.plugins), function (obj)
     return obj.spec
   end)

@@ -43,7 +43,7 @@ user.option = {
   },
 }
 
-utils.require "user.option"
+req "user.option"
 
 for t, opts in pairs(user.option) do
   for k, v in pairs(opts) do

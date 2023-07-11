@@ -1,5 +1,5 @@
-utils.telescope = {}
-local telescope = utils.telescope
+telescope = {}
+local telescope = telescope
 
 telescope.load = function(override)
     local opts = dict.merge({
@@ -9,11 +9,11 @@ telescope.load = function(override)
         action_state = require "telescope.actions.state",
         sorters = require "telescope.sorters",
         finders = require "telescope.finders",
-        conf = utils.try_require(
+        conf = try_require(
             "telescope.config",
             function(M) return M.values end
         ),
-        ivy = utils.try_require(
+        ivy = try_require(
             "telescope.themes",
             function(M)
                 return dict.merge(M.get_dropdown(), {
@@ -52,7 +52,7 @@ telescope.load = function(override)
             opts.sorter = opts.sorter or self.sorters.get_fzy_sorter()
 
             if mappings then
-                mappings = array.tolist(mappings)
+                mappings = array.to_array(mappings)
                 local attach_mappings = opts.attach_mappings
                 opts.attach_mappings = function(prompt_bufnr, map)
                     if mappings then

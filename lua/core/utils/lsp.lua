@@ -205,8 +205,9 @@ function lsp.setup_server(server, opts)
         { capabilities = capabilities, on_attach = on_attach, flags = flags }
 
     default_conf = dict.merge(default_conf, opts)
+
     if default_conf.cmd then
-        default_conf.cmd = array.toarray(default_conf.cmd)
+        default_conf.cmd = array.to_array(default_conf.cmd)
     end
 
     require("lspconfig")[server].setup(default_conf)

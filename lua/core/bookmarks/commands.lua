@@ -1,4 +1,4 @@
-local Bookmark = require "core.utils.Bookmark"
+local Bookmark = require "core.Bookmark"
 
 local list_buffers = Bookmark.list_buffers
 local list_bookmarks = function()
@@ -9,7 +9,7 @@ local function args2number(args)
   return array.map(args, tonumber)
 end
 
-utils.command("BookmarkRemovePicker", function(args)
+command("BookmarkRemovePicker", function(args)
   local arg = args.fargs[1]
   if not arg then
     local picker = Bookmark.create_main_picker(true)
@@ -27,7 +27,7 @@ utils.command("BookmarkRemovePicker", function(args)
   end
 end, { complete = list_bookmarks, nargs = "?" })
 
-utils.command("BookmarkPicker", function(args)
+command("BookmarkPicker", function(args)
   local arg = args.fargs[1]
   if not arg then
     local picker = Bookmark.create_main_picker()
@@ -45,21 +45,21 @@ utils.command("BookmarkPicker", function(args)
   end
 end, { complete = list_bookmarks, nargs = "?" })
 
-utils.command("BookmarkCurrentBufferPicker", function()
+command("BookmarkCurrentBufferPicker", function()
   local picker = Bookmark.create_current_buffer_picker()
   if picker then
     picker:find()
   end
 end, {})
 
-utils.command("BookmarkRemoveCurrentBufferPicker", function()
+command("BookmarkRemoveCurrentBufferPicker", function()
   local picker = Bookmark.create_current_buffer_picker(true)
   if picker then
     picker:find()
   end
 end, {})
 
-utils.command("BookmarkToggleLine", function(args)
+command("BookmarkToggleLine", function(args)
   local line = tonumber(args.fargs[1]) or vim.fn.line "."
   local bufnr = vim.fn.bufnr()
   if not Bookmark.get(bufnr, line) then
@@ -69,7 +69,7 @@ utils.command("BookmarkToggleLine", function(args)
   end
 end)
 
-utils.command("BookmarkRemoveLine", function(args)
+command("BookmarkRemoveLine", function(args)
   args = args.fargs
   if #args == 0 then
     Bookmark.add_current_buffer(vim.fn.line ".")
@@ -78,7 +78,7 @@ utils.command("BookmarkRemoveLine", function(args)
   end
 end)
 
-utils.command("BookmarkLine", function(args)
+command("BookmarkLine", function(args)
   args = args.fargs
   if #args == 0 then
     Bookmark.add_current_buffer(vim.fn.line ".")
@@ -87,7 +87,7 @@ utils.command("BookmarkLine", function(args)
   end
 end)
 
-utils.command("BookmarkCurrentBuffer", function(args)
+command("BookmarkCurrentBuffer", function(args)
   local line = args.args[1]
   line = line or "."
   if line ~= "." then
@@ -96,7 +96,7 @@ utils.command("BookmarkCurrentBuffer", function(args)
   Bookmark.add_current_buffer(line)
 end, { nargs = "?" })
 
-utils.command("BookmarkRemoveCurrentBuffer", function(args)
+command("BookmarkRemoveCurrentBuffer", function(args)
   local line = args.args[1]
   line = line or "."
   if line ~= "." then
@@ -114,7 +114,7 @@ end, {
   end,
 })
 
-utils.command("BookmarkRemove", function(args)
+command("BookmarkRemove", function(args)
   local fname = args.fargs[1]
   local rest = array.rest(args.fargs)
   if #rest == 0 then
@@ -127,7 +127,7 @@ utils.command("BookmarkRemove", function(args)
   end
 end, { nargs = "+", complete = list_bookmarks })
 
-utils.command("BookmarkAdd", function(args)
+command("BookmarkAdd", function(args)
   local fname = args.fargs[1]
   local rest = array.rest(args.fargs)
   if #rest == 0 then
@@ -140,11 +140,11 @@ utils.command("BookmarkAdd", function(args)
   end
 end, { nargs = "+", complete = list_buffers })
 
-utils.command("BookmarkOpen", function(args)
+command("BookmarkOpen", function(args)
   Bookmark.jump_to_line(unpack(args.fargs))
 end, { nargs = "+", complete = list_bookmarks })
 
-utils.command("BookmarkShow", function(args)
+command("BookmarkShow", function(args)
   local p = args.fargs[1]
   if not p then
     Bookmark.print_all()
@@ -156,6 +156,6 @@ utils.command("BookmarkShow", function(args)
   end
 end, { nargs = "?", complete = list_bookmarks })
 
-utils.command("BookmarkSave", Bookmark.save, {})
-utils.command("BookmarkLoad", Bookmark.load, {})
-utils.command("BookmarkReset", Bookmark.reset, {})
+command("BookmarkSave", Bookmark.save, {})
+command("BookmarkLoad", Bookmark.load, {})
+command("BookmarkReset", Bookmark.reset, {})

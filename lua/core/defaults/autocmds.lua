@@ -44,4 +44,4 @@ autocmd.map("BufAdd", {
   end,
 })
 
-if utils.req2path('user.autocmds') then require 'user.autocmds' end
+if req2path('user.autocmds') then require 'user.autocmds' end

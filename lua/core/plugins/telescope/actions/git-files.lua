@@ -1,5 +1,5 @@
-local M = utils.telescope.create_actions_mod()
-local B = require "core.utils.Bookmark"
+local M = telescope.create_actions_mod()
+local B = require "core.Bookmark"
 
 local function get_fname(sel)
   return sel.cwd .. "/" .. sel[1]

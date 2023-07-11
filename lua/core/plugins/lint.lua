@@ -5,7 +5,7 @@ function lint.load_linters()
     dict.each(filetype.filetypes, function(ft, conf)
         if not conf.linters then return end
 
-        local specs = array.toarray(conf.linters)
+        local specs = array.to_array(conf.linters)
         array.each(specs, function(obj)
             if is_a.string(obj) then
                 nvimlint.linters_by_ft[ft] = { obj }

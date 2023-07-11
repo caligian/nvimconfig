@@ -1,6 +1,6 @@
 utils = utils or {}
-utils.command = vim.api.nvim_create_user_command
-utils.autocmd = vim.api.nvim_create_autocmd
-utils.augroup = vim.api.nvim_create_augroup
-utils.bindkeys = vim.keymap.set
-utils.remkeys = vim.keymap.del
+command = vim.api.nvim_create_user_command
+autocmd = vim.api.nvim_create_autocmd
+augroup = vim.api.nvim_create_augroup
+bindkeys = vim.keymap.set
+remkeys = vim.keymap.del

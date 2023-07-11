@@ -6,7 +6,7 @@ local enable_augroup = vim.api.nvim_create_augroup
 local disable_augroup = vim.api.nvim_del_augroup_by_id
 
 autocmd.exception = {
-  duplicate_name = exception 'autocmd by this name already exists'
+  duplicate_name = exception.new 'autocmd by this name already exists'
 }
 
 function autocmd.create_augroup(name, clear)
@@ -65,9 +65,9 @@ end
 
 function autocmd.new(event, opts)
   validate {
-    event = {is {'table', 'string'}, opts},
+    event = {is {'array', 'string'}, event},
     opts = {{
-      pattern = is {'table', 'string'},
+      pattern = is {'array', 'string'},
       callback = is {'string', 'callable'},
       name = 'string',
       opt_group = 'string',
@@ -156,8 +156,8 @@ end
 
 function autocmd.map_with_opts(opts, callback)
   validate {
-    preset_opts = {'table', opts},
-    names_with_callbacks = {'table', callback},
+    preset_opts = {'dict', opts},
+    names_with_callbacks = {'dict', callback},
   }
 
   dict.each(callback, function (au_name, cb)

@@ -1,25 +1,42 @@
-local M = utils.telescope.create_actions_mod()
-local Bookmark = require "core.utils.Bookmark"
+local _ = telescope.load()
 
-local function get_fname(sel)
-  return sel.cwd .. "/" .. sel[1]
-end
+local function get_fname(sel) return sel.cwd .. "/" .. sel[1] end
 
-function M.add_bookmark(sel)
-  sel = get_fname(sel)
-  if not Bookmark.get(sel) then
-    Bookmark(sel)
-  end
-end
+local mod = {
+    delete = function(prompt_bufnr)
+        local sel = _:get_selected(prompt_bufnr, true)
+        array.each(sel, function(x)
+            x = get_fname(x)
+            print("rm -r " .. x)
+            print(vim.fn.system { "rm", "-r", x })
+        end)
+    end,
+    touch_and_open = function(prompt_bufnr)
+        _.actions.close(prompt_bufnr)
 
-function M.remove_bookmark(sel)
-  Bookmark.remove_path(get_fname(sel))
-end
+        local filename = vim.fn.input "touch file % "
+        if #filename == 0 then return end
 
-function M.delete(sel)
-  local fname = get_fname(sel)
-  print("rm -r " .. fname)
-  print(vim.fn.system { "rm", "-r", fname })
-end
+        if filename:match "/$" then
+            vim.fn.system { "mkdir", "-p", filename }
+        else
+            vim.fn.system { "touch", filename }
+        end
 
-return M
+        vim.cmd(":e " .. filename)
+    end,
+    touch = function(prompt_bufnr)
+        _.actions.close(prompt_bufnr)
+
+        local filename = vim.fn.input "touch file % "
+        if #filename == 0 then return end
+
+        if filename:match "/$" then
+            vim.fn.system { "mkdir", "-p", filename }
+        else
+            vim.fn.system { "touch", filename }
+        end
+    end,
+}
+
+return mod

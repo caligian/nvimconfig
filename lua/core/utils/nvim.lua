@@ -1,13 +1,12 @@
-user.InvalidFontSpecException =
-    exception "expected font spec: `font_family:h[0-9]+[,...]`"
+require 'core.utils.misc'
 
-function utils.nvimerr(...)
+function nvimerr(...)
     for _, s in ipairs { ... } do
         vim.api.nvim_err_writeln(s)
     end
 end
 
-function utils.nvimexec(s, output)
+function nvimexec(s, output)
     output = output == nil and true or output
     return vim.api.nvim_exec(s, output)
 end
@@ -23,12 +22,12 @@ function req(require_string, do_assert)
     if do_assert then error(out) end
 end
 
-function utils.glob(d, expr, nosuf, alllinks)
+function glob(d, expr, nosuf, alllinks)
     nosuf = nosuf == nil and true or false
     return vim.fn.globpath(d, expr, nosuf, true, alllinks) or {}
 end
 
-function utils.get_font()
+function get_font()
     local font, height
     font = user and user.font.family
     height = user and user.font.height
@@ -38,7 +37,7 @@ function utils.get_font()
     return font, height
 end
 
-function utils.log_pcall(f, ...)
+function log_pcall(f, ...)
     local ok, out = pcall(f, ...)
     if ok then
         return out
@@ -48,13 +47,13 @@ function utils.log_pcall(f, ...)
     end
 end
 
-function utils.log_pcall_wrap(f)
-    return function(...) return utils.log_pcall(f, ...) end
+function log_pcall_wrap(f)
+    return function(...) return log_pcall(f, ...) end
 end
 
 function throw_error(desc) error(dump(desc)) end
 
-function utils.try_require(s, success, failure)
+function try_require(s, success, failure)
     local M = require(s)
     if M and success then
         return success(M)
@@ -79,12 +78,12 @@ function copy(obj, deep)
     return out
 end
 
-function utils.command(name, callback, opts)
+function command(name, callback, opts)
     opts = opts or {}
     return vim.api.nvim_create_user_command(name, callback, opts or {})
 end
 
-utils.del_command = vim.api.nvim_del_user_command
+del_command = vim.api.nvim_del_user_command
 
 -- form: {var, <input-option> ...}
 function input(...)
@@ -116,7 +115,7 @@ function input(...)
 end
 
 --- Only works for user and doom dirs
-function utils.reqloadfile(s)
+function reqloadfile(s)
     s = s:split "%."
     local fname
 
@@ -139,8 +138,8 @@ function utils.reqloadfile(s)
     end
 end
 
-function utils.require(s)
-    local p, tp = utils.req2path(s)
+function req(s)
+    local p, tp = req2path(s)
     if not p then
         return
     elseif tp == "dir" and path.exists(p .. "/init.lua") then
@@ -149,9 +148,6 @@ function utils.require(s)
         require(s)
     end
 end
-
---- Form:
-user.InvalidInputException = exception "invalid input passed"
 
 function input(spec)
     local out = {}
@@ -184,7 +180,7 @@ function input(spec)
             userint = vim.fn.input(prompt)
         end
 
-        userint = #userint == 0 and false or str.trim(userint)
+        userint = #userint == 0 and false or stringtrim(userint)
 
         if #userint == 0 then userint = false end
 
@@ -193,16 +189,13 @@ function input(spec)
         if required == nil then required = true end
 
         if required and not userint then
-            user.InvalidInputException:throw(value)
+			error('invalid input passed :' .. dump(value))
         end
 
         if check then
             local ok, msg = check(userint)
             if not ok then
-                user.InvalidInputException:throw(
-                    msg or "callable failed",
-                    value
-                )
+				error('invalid input passed :' .. msg)
             end
         end
 

@@ -60,7 +60,7 @@ whichkey.config = {
     i = { "j", "k" },
     v = { "j", "k" },
   },
-  -- disable the WhichKey popup for certain buf types and file types.
+  -- disable the WhichKey popup for certain buf types and file 
   -- Disabled by default for Telescope
   disable = {
     buftypes = {},

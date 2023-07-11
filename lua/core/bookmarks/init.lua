@@ -1,4 +1,4 @@
-require "core.utils.Bookmark"
+require "core.Bookmark"
 require "core.bookmarks.kbd"
 
 if user.bookmark.load_on_open then

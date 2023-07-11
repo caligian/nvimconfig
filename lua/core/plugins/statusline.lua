@@ -15,7 +15,7 @@ statusline.colors = {
 }
 
 function statusline:update_colors()
-  local normal = utils.highlight "Normal"
+  local normal = highlight "Normal"
   local colors = self.colors
 
   colors.bg = normal.guibg
@@ -24,23 +24,23 @@ function statusline:update_colors()
   local bg = colors.bg
   local fg = colors.fg
 
-  if utils.islight(bg) then
-    local contrast = utils.contrast(bg, fg)
+  if is_light(bg) then
+    local contrast = contrast(bg, fg)
     for key, value in pairs(colors) do
       if contrast < 4 then
-        colors[key] = utils.darken(value, 30)
+        colors[key] = darken(value, 30)
       else
-        colors[key] = utils.darken(value, 5)
+        colors[key] = darken(value, 5)
       end
     end
-    colors.bg = utils.darken(bg, 5)
+    colors.bg = darken(bg, 5)
   else
-    local contrast = utils.contrast(bg, fg)
+    local contrast = contrast(bg, fg)
     for key, value in pairs(colors) do
       if contrast < 4 then
-        colors[key] = utils.lighten(value, 20)
+        colors[key] = lighten(value, 20)
       else
-        colors[key] = utils.lighten(value, 5)
+        colors[key] = lighten(value, 5)
       end
     end
   end

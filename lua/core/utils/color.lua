@@ -3,7 +3,7 @@ local GREEN = 0.7152
 local BLUE = 0.0722
 local GAMMA = 2.4
 
-function utils.highlight(hi)
+function highlight(hi)
   local ok, out = pcall(vim.api.nvim_exec, "hi " .. hi, true)
   if not ok then return {} end
 
@@ -26,7 +26,7 @@ function utils.highlight(hi)
   return hi
 end
 
-function utils.hex2rgb(hex)
+function hex2rgb(hex)
   hex = hex:gsub("#", "")
   return tonumber("0x" .. hex:sub(1, 2)),
     tonumber("0x" .. hex:sub(3, 4)),
@@ -34,7 +34,7 @@ function utils.hex2rgb(hex)
 end
 
 -- Taken from https://github.com/iskolbin/lhsx/blob/master/hsx.lua
-function utils.rgb2hsv(r, g, b)
+function rgb2hsv(r, g, b)
   local M, m = math.max(r, g, b), math.min(r, g, b)
   local C = M - m
   local K = 1.0 / (6.0 * C)
@@ -51,7 +51,7 @@ function utils.rgb2hsv(r, g, b)
   return h, M == 0.0 and 0.0 or C / M, M
 end
 
-function utils.hsv2rgb(h, s, v)
+function hsv2rgb(h, s, v)
   local C = v * s
   local m = v - C
   local r, g, b = m, m, m
@@ -76,7 +76,7 @@ function utils.hsv2rgb(h, s, v)
   return r, g, b
 end
 
-function utils.darken(hex, darker_n)
+function darken(hex, darker_n)
   local result = "#"
 
   for s in hex:gmatch "[a-fA-F0-9][a-fA-F0-9]" do
@@ -92,13 +92,13 @@ function utils.darken(hex, darker_n)
   return result
 end
 
-function utils.lighten(hex, lighten_n) return utils.darken(hex, lighten_n * -1) end
+function lighten(hex, lighten_n) return darken(hex, lighten_n * -1) end
 
-function utils.highlightset(hi, set, defaults)
+function highlightset(hi, set, defaults)
   local group = hi
-  hi = utils.highlight(hi)
+  hi = highlight(hi)
 
-  if dict.isblank(hi) then
+  if dict.is_empty(hi) then
     if defaults then
       hi = defaults
     else
@@ -121,38 +121,32 @@ function utils.highlightset(hi, set, defaults)
   return hi
 end
 
-utils.hi = multimethod()
+hi = multimethod.new {
+	string = function(hi) return highlight(hi) end,
+	[{'string', 'dict'}] = function(...) return highlightset(...) end,
+}
 
-utils.hi:set(function(hi) return utils.highlight(hi) end, "string")
-
-utils.hi:set(
-  function(...) return utils.highlightset(...) end,
-  "string",
-  "table"
-)
-
---- https://stackoverflow.com/questions/22603510/is-this-possible-to-detect-a-colour-is-a-light-or-dark-colour
-utils.isdark = multimethod()
-
-utils.isdark:set(function(hex)
+--- ttps://stackoverflow.com/questions/22603510/is-this-possible-to-detect-a-colour-is-a-light-or-dark-colour
+is_dark = multimethod.new {
+	string = function(hex)
   hex = hex or '#000000'
-  local r, g, b = utils.hex2rgb(hex)
+  local r, g, b = hex2rgb(hex)
   local hsp = 0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b)
   if hsp > 127.5 then return false end
   return true
-end, "string")
-
-utils.isdark:set(function(r, g, b)
+end,
+	[{'string', 'string', 'string'}] = function(r, g, b)
   local hsp = 0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b)
   if hsp > 127.5 then return false end
   return true
-end)
+end,
+}
 
-function utils.islight(...) return not utils.isdark(...) end
+function is_light(...) return not is_dark(...) end
 
-function utils.luminance(red_or_hex, green, blue)
+function luminance(red_or_hex, green, blue)
   if is_a.string(red_or_hex) then
-    return utils.luminance(utils.hex2rgb(red_or_hex))
+    return luminance(hex2rgb(red_or_hex))
   end
 
   local function lum(c)
@@ -171,9 +165,9 @@ function utils.luminance(red_or_hex, green, blue)
   return (r * RED) + (g * GREEN) + (b * BLUE)
 end
 
-function utils.contrast(hex_or_rgb1, hex_or_rgb2)
-  local lum1 = utils.luminance(hex_or_rgb1)
-  local lum2 = utils.luminance(hex_or_rgb2)
+function contrast(hex_or_rgb1, hex_or_rgb2)
+  local lum1 = luminance(hex_or_rgb1)
+  local lum2 = luminance(hex_or_rgb2)
   local brightest = math.max(lum1, lum2)
   local darkest = math.min(lum1, lum2)
   return (brightest + 0.05) / (darkest + 0.05)

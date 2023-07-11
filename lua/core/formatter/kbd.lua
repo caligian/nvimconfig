@@ -5,7 +5,7 @@ kbd.noremap("n", "<leader>bf", function()
   local spec = filetype.get(ft, "formatter")
   if not spec then return end
 
-  if dict.isblank(spec) then
+  if dict.is_empty(spec) then
     pp "No formatter defined for current buffer"
     return
   end

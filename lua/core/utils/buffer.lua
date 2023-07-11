@@ -8,7 +8,7 @@ require "core.utils.kbd"
 buffer = { float = {} }
 local floatmt = {}
 local float = setmetatable(buffer.float, floatmt)
-local is_string_or_table = is { "string", "table" }
+local is_string_or_table = is { "string", "array" }
 
 --- Raised when buffer index is invalid for an operation
 buffer.InvalidBufferException = exception "invalid buffer expr"
@@ -119,7 +119,7 @@ end
 
 function buffer.setvar(bufnr, k, v)
     validate {
-        key = { is { "string", "table" }, k },
+        key = { is { "string", "dict" }, k },
     }
 
     bufnr = bufnr or buffer.bufnr()
@@ -140,7 +140,7 @@ end
 -- @tparam any v value
 function buffer.setoption(bufnr, k, v)
     validate {
-        key = { is { "string", "table" }, k },
+        key = { is { "string", "dict" }, k },
     }
 
     bufnr = bufnr or buffer.bufnr()
@@ -286,8 +286,8 @@ function buffer.settext(bufnr, start, till, repl)
     bufnr = bufnr or vim.fn.bufnr()
     if not buffer.exists(bufnr) then return end
 
-    validate.startind("table", start)
-    validate.endind("table", till)
+    validate.startind("array", start)
+    validate.endind("array", till)
 
     vim.api.nvim_buf_set_text(
         self.bufnr,
@@ -365,7 +365,7 @@ function buffer.info(bufnr, all)
         return new, info
     end
 
-    if is_a.table(bufnr) then return to_dict(vim.fn.getbufinfo(bufnr)) end
+    if is_a.dict(bufnr) then return to_dict(vim.fn.getbufinfo(bufnr)) end
 
     bufnr = bufnr or vim.fn.bufnr()
     if not buffer.exists(bufnr) then return end
@@ -603,7 +603,7 @@ function buffer.input(text, cb, opts)
     validate {
         text = { is_string_or_table, text },
         cb = { "callable", cb },
-        ["?opts"] = { "table", opts },
+        ["?opts"] = { "dict", opts },
     }
 
     opts = opts or {}
@@ -724,7 +724,7 @@ function floatmt:__call(bufnr, opts)
         win_options = {
             {
                 __nonexistent = true,
-                ["?center"] = "table",
+                ["?center"] = "array",
                 ["?panel"] = "number",
                 ["?dock"] = "number",
             },
