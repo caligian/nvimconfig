@@ -9,7 +9,4 @@ plugin.setup_lazy()
 
 if user.zenmode then vim.cmd ":EnableZenMod" end
 
-require "core.formatter"
-
---
 font.set_default()

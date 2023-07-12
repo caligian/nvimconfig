@@ -2,19 +2,33 @@ require "core.utils.autocmd"
 require "core.utils.kbd"
 require "core.utils.lsp"
 
-local mt = {}
-filetype = setmetatable({ filetypes = {}, id = 1 }, mt)
+filetype = filetype or setmetatable({ filetypes = {}, id = 1, processes = {} }, { type = "module", name = "filetype" })
+
+local function formatter_config_path_exists(p)
+    p = array.to_array(p)
+    for i = 1, #p do
+        if path.exists(p[i]) then
+            return true
+        end
+    end
+
+    return false
+end
 
 function filetype.new(name)
     validate.filetype("string", name)
 
-    local self = {
+    local self = {}
+
+    dict.merge(self, {
         name = name,
         augroup = "filetype_" .. name,
         user_config_require_path = "user.ft." .. name,
         config_require_path = "core.ft." .. name,
         load_path = function(p)
-            if not path.exists(p) then return end
+            if not path.exists(p) then
+                return
+            end
 
             local out
             local ok, msg = pcall(loadfile, p)
@@ -28,7 +42,9 @@ function filetype.new(name)
             return out or true
         end,
         setup_lsp = function(self)
-            if not self.lsp_server then return end
+            if not self.lsp_server then
+                return
+            end
 
             local server, config
             if is_a.string(self.lsp_server) then
@@ -41,7 +57,7 @@ function filetype.new(name)
                 config = lsp_server
             end
 
-           lsp.setup_server(server, config)
+            lsp.setup_server(server, config)
 
             return true
         end,
@@ -85,15 +101,9 @@ function filetype.new(name)
 
             autocmds = deepcopy(autocmds)
 
-            dict.each(
-                autocmds,
-                function(_, au_spec)
-                    au_spec.name = "filetype."
-                        .. self.name
-                        .. "."
-                        .. au_spec.name
-                end
-            )
+            dict.each(autocmds, function(_, au_spec)
+                au_spec.name = "filetype." .. self.name .. "." .. au_spec.name
+            end)
 
             autocmd.map_with_opts(opts, autocmds)
         end,
@@ -108,7 +118,9 @@ function filetype.new(name)
             kbd.map_with_opts(opts, mappings)
         end,
         map = function(self, mode, ks, cb, rest)
-            if is_a.string(rest) then rest = { desc = rest } end
+            if is_a.string(rest) then
+                rest = { desc = rest }
+            end
             rest = deepcopy(rest)
             rest.name = "filetype." .. self.name .. "." .. rest.name
             rest.event = "FileType"
@@ -118,19 +130,23 @@ function filetype.new(name)
         load_mappings = function(self, mappings)
             mappings = mappings or self.mappings
 
-            if not mappings then return end
+            if not mappings then
+                return
+            end
 
             local out = {}
             local opts = mappings.opts
 
             dict.each(mappings, function(name, spec)
-                if name == "opts" then return end
+                if name == "opts" then
+                    return
+                end
 
                 if opts then
                     local mode, ks, cb, rest
                     ks, cb, rest = unpack(spec)
                     rest = dict.merge(rest or {}, opts)
-                    rest.name = "filetype." .. self.name .. '.' .. name
+                    rest.name = "filetype." .. self.name .. "." .. name
                     mode = rest.mode or "n"
                     spec = { mode, ks, cb, rest }
 
@@ -139,43 +155,228 @@ function filetype.new(name)
                     spec = deepcopy(spec)
                     local mode, ks, cb, rest = unpack(spec)
                     rest = rest or {}
-                    rest.name = "filetype." .. self.name .. '.' .. name
+                    rest.name = "filetype." .. self.name .. "." .. name
                     spec[4] = rest
 
                     apply(kbd.map, spec)
                 end
             end)
         end,
-    }
+        format_dir = function(self, p, opts)
+            local exists = filetype.processes[p]
+            if exists and exists:is_running() then
+                local userint = vim.fn.input("stop process for " .. p .. " (y for yes) % ")
+                if userint == "y" then
+                    exists:stop()
+                else
+                    return exists
+                end
+            end
+
+            opts = opts or self.dir_formatter or {}
+
+            if is_empty(opts) then
+                return nil, "no directory formatter for filetype " .. self.name
+            end
+
+            if not path.isdir(p) then
+                return nil, "invalid directory " .. p
+            end
+
+            local cmd = opts[1]
+            local args = opts.args
+
+            if not cmd then
+                return nil, "no command given for " .. self.name
+            end
+
+            if is_a.array(args) and not formatter_config_path_exists(self.formatter_local_config_path) then
+                cmd = cmd .. " " .. array.join(args, " ")
+            end
+
+            local append_dirname = opts.append_dirname
+
+            if append_dirname then
+                p = p:gsub("~", os.getenv "HOME")
+                p = p:gsub("%$HOME", os.getenv "HOME")
+                p = p:gsub("%$XDG_CONFIG", path.join(os.getenv "HOME", ".config"))
+                cmd = cmd .. " " .. path.abspath(p)
+            end
+
+            local proc = process.new(cmd, {
+                on_exit = function(j)
+                    local err = j.stderr
+                    local out = j.stdout
+
+                    if not ((#err == 1 and #err[1] == 0) or #err == 0) then
+                        nvimerr(array.join(err, "\n"))
+                        return
+                    end
+
+                    if #out == 0 then
+                        vim.notify("successfully ran command " .. cmd)
+                        return
+                    else
+                        vim.notify("successfully ran command " .. cmd .. "\n" .. array.join(j.stdout, "\n"))
+                    end
+                end,
+            })
+
+            proc:start()
+
+            filetype.processes[p] = proc
+
+            return proc
+        end,
+        format_buffer = function(self, bufnr, opts)
+            opts = opts or self.formatter
+            if not opts or is_empty(opts) then
+                return nil, "no formatter for filetype " .. self.name
+            end
+
+            bufnr = bufnr or buffer.bufnr()
+            local cmd = opts.cmd or opts[1]
+            local args = opts.args
+
+            if formatter_config_path_exists(self.formatter_local_config_path) then
+                args = {}
+            end
+
+            if is_a.array(args) then
+                cmd = cmd .. " " .. array.join(args, " ")
+            end
+
+            bufnr = bufnr or buffer.bufnr()
+
+            local stdin = opts.stdin
+            local write = opts.write
+            local append_filename = opts.append_filename
+            local bufname = buffer.name(bufnr)
+
+            if stdin then
+                cmd = "cat " .. buffer.name(bufnr) .. " | " .. cmd
+            elseif append_filename then
+                cmd = cmd .. " " .. bufname
+            end
+
+            vim.cmd(":w! " .. bufname)
+            buffer.setoption(bufnr, "modifiable", false)
+
+            local winnr = buffer.winnr(bufnr)
+            local view = winnr and win.saveview(winnr)
+            local proc = process.new(cmd, {
+                on_exit = function(proc)
+                    local bufnr = bufnr
+                    local name = bufname
+
+                    buffer.setoption(bufnr, "modifiable", true)
+
+                    if write then
+                        buffer.call(bufnr, function()
+                            vim.cmd(":e! " .. bufname)
+                            if view then
+                                win.restoreview(winnr, view)
+                            end
+                        end)
+
+                        return
+                    end
+
+                    local err = proc.stderr
+                    if not ((#err == 1 and #err[1] == 0) or #err == 0) then
+                        nvimerr(array.join(err, "\n"))
+                        return
+                    end
+
+                    local out = proc.stdout
+                    if #out == 0 then
+                        return
+                    end
+
+                    local bufnr = bufnr
+                    buffer.setlines(bufnr, 0, -1, out)
+
+                    if view then
+                        win.restoreview(winnr, view)
+                    end
+                end,
+            })
+
+            local exists = filetype.processes[bufname]
+            if exists and exists:is_running() then
+                local userint = input {
+                    "userint",
+                    "Stop existing process for " .. bufname .. "? (y for yes)",
+                }
+                if userint.userint:match "y" then
+                    exists:stop()
+                end
+            end
+
+            filetype.processes[bufname] = proc
+            proc:start()
+
+            return proc
+        end,
+    })
 
     filetype.filetypes[name] = self
     return self
 end
 
-function filetype.get(ft, attrib)
-    if not filetype.filetypes[ft] then
-        filetype.filetypes[ft] = filetype.new(ft)
+filetype.get = multimethod.new {
+    string = function(ft)
+        if not filetype.filetypes[ft] then
+            filetype.filetypes[ft] = filetype.new(ft)
+        end
+        return filetype.filetypes[ft]
+    end,
+    [{ "string", "string" }] = function(ft, attrib)
+        return filetype.get(ft)[attrib]
+    end,
+    [{ "string", "string", "callable" }] = function(ft, attrib, callback)
+        ft = filetype.get(ft)
+        attrib = ft[attrib]
+
+        if attrib ~= nil then
+            return callback(attrib, ft)
+        end
+    end,
+    [{ "string", "callback" }] = function(ft, callback)
+        return callback(filetype.get(ft))
+    end,
+}
+
+function filetype.format_buffer(ft, bufnr, opts)
+    return filetype.get(ft, "formatter", function(config, ft_obj)
+        if opts then
+            config = dict.merge(copy(config), opts)
+        end
+        return ft_obj:format_buffer(bufnr, config)
+    end)
+end
+
+function filetype.format_dir(ft, p, opts)
+    return filetype.get(ft, "dir_formatter", function(_, ft_obj)
+        return ft_obj:format_dir(p)
+    end)
+end
+
+function filetype.load_defaults(ft)
+    local p = "core.ft." .. ft
+    if req2path(p) then
+        return require(p)
     end
-    if attrib then return filetype.filetypes[ft][attrib] end
-    return filetype.filetypes[ft]
 end
 
 function filetype.load_specs(is_user)
     if not is_user then
-        array.each(
-            dir.getallfiles(user.dir .. "/lua/core/ft/"),
-            function(f)
-                require("core.ft." .. path.basename(f:gsub("%.lua$", "")))
-            end
-        )
+        array.each(dir.getallfiles(user.dir .. "/lua/core/ft/"), function(f)
+            require("core.ft." .. path.basename(f:gsub("%.lua$", "")))
+        end)
     else
-        array.each(
-            dir.getallfiles(user.user_dir .. "/lua/user/ft/"),
-            function(f)
-                require("core.ft." .. path.basename(f:gsub("%.lua$", "")))
-            end
-        )
+        array.each(dir.getallfiles(user.user_dir .. "/lua/user/ft/"), function(f)
+            require("core.ft." .. path.basename(f:gsub("%.lua$", "")))
+        end)
     end
 end
-
-return filetype

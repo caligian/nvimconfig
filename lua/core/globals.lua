@@ -1,7 +1,7 @@
 local data_dir = vim.fn.stdpath "data"
 
 dict.merge(user, {
-  colorscheme = 'base16-da-one-black',
+  colorscheme = 'base16-zenburn',
   lsp = user.lsp or {},
   dir = vim.fn.stdpath "config",
   user_dir = path.join(os.getenv "HOME", ".nvim"),
@@ -19,8 +19,8 @@ dict.merge(user, {
   },
 })
 
-user.userdir = user.user_dir
-user.datadir = user.data_dir
-user.pluginsdir = user.plugins
+user.user_dir = user.user_dir
+user.data_dir = user.data_dir
+user.plugins_dir = user.plugins_dir
 
 req "user.globals"
