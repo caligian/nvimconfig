@@ -23,7 +23,9 @@ colorscheme.config = {
         setup = function(self, opts)
             opts = opts or {}
             opts = dict.merge(copy(self.config), opts)
-            dict.each(opts, function(key, value) vim.g[key] = value end)
+            dict.each(opts, function(key, value)
+                vim.g[key] = value
+            end)
             vim.cmd ":colorscheme starry"
         end,
     },
@@ -163,11 +165,15 @@ function colorscheme:setup(name, config)
             self.config[name]:setup(config)
         else
             local ok = pcall(vim.cmd, "color " .. name)
-            if not ok then vim.cmd "color carbonfox" end
+            if not ok then
+                vim.cmd "color carbonfox"
+            end
         end
     elseif is_table(name) then
         local color, config = name[1], name.config
-        if not self.config[color] then return end
+        if not self.config[color] then
+            return
+        end
         color = self.config[color]
         color:setup(config)
     else
@@ -176,5 +182,3 @@ function colorscheme:setup(name, config)
 end
 
 colorscheme:setup()
-
-

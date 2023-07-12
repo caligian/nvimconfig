@@ -1,4 +1,4 @@
-local sh = filetype.new("sh")
+local sh = filetype.new "sh"
 
 sh.repl = "/bin/bash"
 sh.compile = "/bin/bash"

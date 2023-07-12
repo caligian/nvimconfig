@@ -61,7 +61,9 @@ function statusline:setup_evil()
         buffer_not_empty = function()
             return vim.fn.empty(vim.fn.expand "%:t") ~= 1
         end,
-        hide_in_width = function() return vim.fn.winwidth(0) > 80 end,
+        hide_in_width = function()
+            return vim.fn.winwidth(0) > 80
+        end,
         check_git_workspace = function()
             local filepath = vim.fn.expand "%:p:h"
             local gitdir = vim.fn.finddir(".git", filepath .. ";")
@@ -115,7 +117,9 @@ function statusline:setup_evil()
     end
 
     ins_left {
-        function() return "▊" end,
+        function()
+            return "▊"
+        end,
         color = { fg = colors.red }, -- Sets highlighting of component
         padding = { left = 0, right = 1 }, -- We don't need space before this
     }
@@ -171,7 +175,9 @@ function statusline:setup_evil()
     }
 
     ins_left {
-        function() return "(%c, %l/%L)" end,
+        function()
+            return "(%c, %l/%L)"
+        end,
     }
 
     -- ins_left { "location" }
@@ -190,7 +196,9 @@ function statusline:setup_evil()
     -- Insert mid section. You can make any number of sections in neovim :)
     -- for lualine it's any number greater then 2
     ins_left {
-        function() return "%=" end,
+        function()
+            return "%="
+        end,
     }
 
     -- ins_left {
@@ -219,7 +227,9 @@ function statusline:setup_evil()
         function()
             local bufnr = vim.fn.bufnr()
             local groups = buffer_group.buffers[bufnr]
-            if not groups then return "<!>" end
+            if not groups then
+                return "<!>"
+            end
 
             return sprintf("<%s>", array.join(dict.keys(groups), ","))
         end,
@@ -252,7 +262,9 @@ function statusline:setup_evil()
     }
 
     ins_right {
-        function() return "▊" end,
+        function()
+            return "▊"
+        end,
         color = { fg = colors.red },
         padding = { left = 1 },
     }
@@ -309,7 +321,9 @@ statusline.autocmds = {
         "ColorScheme",
         {
             pattern = "*",
-            callback = function() statusline:setup() end,
+            callback = function()
+                statusline:setup()
+            end,
         },
     },
 }

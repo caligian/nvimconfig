@@ -1,11 +1,11 @@
-local tagbar = plugins.get 'tagbar'
+local tagbar = plugins.get "tagbar"
 tagbar.mappings = {
     tagbar = {
         "n",
         "<C-t>",
         ":TagbarToggle<CR>",
-        { desc = "Toggle tagbar" }
-    }
+        { desc = "Toggle tagbar" },
+    },
 }
 
 vim.g.tagbar_position = "leftabove vertical"

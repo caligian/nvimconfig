@@ -1,8 +1,7 @@
 local ivy = telescope.load().ivy
 local buffer_actions = require "core.plugins.telescope.actions.buffer"
 local find_files_actions = require "core.plugins.telescope.actions.find-files"
-local file_browser_actions =
-    require "core.plugins.telescope.actions.file-browser"
+local file_browser_actions = require "core.plugins.telescope.actions.file-browser"
 
 local T = copy(ivy)
 local telescope = plugin.get "telescope"
@@ -89,7 +88,9 @@ telescope.mappings = {
     },
     find_files = {
         "ff",
-        function() picker("find_files", { cwd = vim.fn.expand "%:p:h" })() end,
+        function()
+            picker("find_files", { cwd = vim.fn.expand "%:p:h" })()
+        end,
         { desc = "Find files in workspace" },
     },
     git_files = {
@@ -126,7 +127,9 @@ telescope.mappings = {
     },
     lsp_buffer_diagnostics = {
         "ld",
-        function() picker("diagnostics", { bufnr = 0 })() end,
+        function()
+            picker("diagnostics", { bufnr = 0 })()
+        end,
         { desc = "Show buffer LSP diagnostics" },
     },
     lsp_diagnostics = {
@@ -169,7 +172,7 @@ telescope.mappings = {
 }
 
 --function telescope:setup()
-    local ts = require "telescope"
-    ts.setup(T)
-    ts.load_extension "file_browser"
+local ts = require "telescope"
+ts.setup(T)
+ts.load_extension "file_browser"
 --end

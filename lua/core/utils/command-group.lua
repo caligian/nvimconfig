@@ -1,158 +1,158 @@
 command_group = { command_groups = {} }
 
 local function validate_name(s)
-	local ok = s:match("^[a-zA-Z][a-zA-Z0-9]+$")
+    local ok = s:match "^[a-zA-Z][a-zA-Z0-9]+$"
 
-	if not ok then
-		error("invalid_name")
-	end
+    if not ok then
+        error "invalid_name"
+    end
 
-	return s:gsub("^([a-z])", string.upper)
+    return s:gsub("^([a-z])", string.upper)
 end
 
 local function create_name(group, s)
-	local s = validate_name(s)
-	return group .. s
+    local s = validate_name(s)
+    return group .. s
 end
 
 function command_group.new(group_name)
-	local exists = command_group.command_groups[group_name]
-	local command_name, err = validate_name(group_name)
+    local exists = command_group.command_groups[group_name]
+    local command_name, err = validate_name(group_name)
 
-	if not command_group and err then
-		error(err)
-	end
+    if not command_group and err then
+        error(err)
+    end
 
-	return exists
-		or {
-			name = command_name,
-			commands = {},
-			mappings = {},
-			add = function(self, name, callback, opts)
-				opts = deepcopy(opts or { nargs = 0 })
-				name = create_name(self.name, name)
-				local map = opts.map
-				opts.map = nil
+    return exists
+        or {
+            name = command_name,
+            commands = {},
+            mappings = {},
+            add = function(self, name, callback, opts)
+                opts = deepcopy(opts or { nargs = 0 })
+                name = create_name(self.name, name)
+                local map = opts.map
+                opts.map = nil
 
-				if is_a.string(callback) then
-					local current = callback
-					callback = function()
-						vim.cmd(current)
-					end
-				end
+                if is_a.string(callback) then
+                    local current = callback
+                    callback = function()
+                        vim.cmd(current)
+                    end
+                end
 
-				vim.api.nvim_create_user_command(name, callback, opts)
-				local cmd = { name = name, callback = callback, opts = opts }
-				self.commands[name] = cmd
+                vim.api.nvim_create_user_command(name, callback, opts)
+                local cmd = { name = name, callback = callback, opts = opts }
+                self.commands[name] = cmd
 
-				if not map then
-					return cmd
-				end
+                if not map then
+                    return cmd
+                end
 
-				local rest = deepcopy(map[3] or {})
-				rest.name = name
-				map[3] = rest
+                local rest = deepcopy(map[3] or {})
+                rest.name = name
+                map[3] = rest
 
-				return cmd, self:map(name, unpack(map))
-			end,
-			remove = function(self, name)
-				name = create_name(name)
-				local cmd = self.commands[name]
-				if not cmd then
-					return
-				end
-				self.commands[name] = nil
+                return cmd, self:map(name, unpack(map))
+            end,
+            remove = function(self, name)
+                name = create_name(name)
+                local cmd = self.commands[name]
+                if not cmd then
+                    return
+                end
+                self.commands[name] = nil
 
-				return cmd
-			end,
-			list = function(self)
-				local ks = dict.keys(self.commands)
-				return #ks == 0 and nil or ks
-			end,
-			get_command = function(self, cmd)
-				local exists = self.commands[cmd]
-				if exists then
-					return exists
-				end
+                return cmd
+            end,
+            list = function(self)
+                local ks = dict.keys(self.commands)
+                return #ks == 0 and nil or ks
+            end,
+            get_command = function(self, cmd)
+                local exists = self.commands[cmd]
+                if exists then
+                    return exists
+                end
 
-				cmd = create_name(self.name, cmd)
-				return self.commands[cmd]
-			end,
-			map = function(self, cmd, mode, ks, opts)
-				local cb = self:get_command(cmd)
-				if not cb then
-					return
-				end
+                cmd = create_name(self.name, cmd)
+                return self.commands[cmd]
+            end,
+            map = function(self, cmd, mode, ks, opts)
+                local cb = self:get_command(cmd)
+                if not cb then
+                    return
+                end
 
-				opts = deepcopy(opts or {})
-				opts.name = "command." .. opts.name .. "." .. opts.name
+                opts = deepcopy(opts or {})
+                opts.name = "command." .. opts.name .. "." .. opts.name
 
-				--- see input()
-				local required = opts.required
-				opts.required = nil
+                --- see input()
+                local required = opts.required
+                opts.required = nil
 
-				local callback = cb.callback
-				cb = function()
-					if required then
-						local inp = {}
-						local input = vim.fn.input
+                local callback = cb.callback
+                cb = function()
+                    if required then
+                        local inp = {}
+                        local input = vim.fn.input
 
-						array.each(required, function(spec)
-							local name = spec[1]
-							local prompt = spec[1] .. " % "
-							local default = spec[2]
-							local completion = spec[3]
+                        array.each(required, function(spec)
+                            local name = spec[1]
+                            local prompt = spec[1] .. " % "
+                            local default = spec[2]
+                            local completion = spec[3]
 
-							spec = { prompt, default, completion }
-							inp[spec[1]] = input(unpack(spec))
-						end)
-						callback(inp)
-					else
-						callback(buffer.bufnr())
-					end
-				end
+                            spec = { prompt, default, completion }
+                            inp[spec[1]] = input(unpack(spec))
+                        end)
+                        callback(inp)
+                    else
+                        callback(buffer.bufnr())
+                    end
+                end
 
-				self.mappings[opts.name] = kbd.map(mode, ks, cb, opts)
+                self.mappings[opts.name] = kbd.map(mode, ks, cb, opts)
 
-				return self.mappings[opts.name]
-			end,
-		}
+                return self.mappings[opts.name]
+            end,
+        }
 end
 
 function command_group.map(spec)
-	dict.each(spec, function(name, command)
-		local group = command_group.new(name)
-		dict.each(command, function(command_name, command_spec)
-			local callback = command_spec.callback
-			local opts = command_spec.opts
-			local cmd = group:add(command_name, callback, opts)
-			local mappings = command_spec.mappings
+    dict.each(spec, function(name, command)
+        local group = command_group.new(name)
+        dict.each(command, function(command_name, command_spec)
+            local callback = command_spec.callback
+            local opts = command_spec.opts
+            local cmd = group:add(command_name, callback, opts)
+            local mappings = command_spec.mappings
 
-			if not mappings then
-				return
-			end
+            if not mappings then
+                return
+            end
 
-			local mappings = deepcopy(command_spec.mappings)
-			local opts = mappings.opts
-			mappings.opts = nil
+            local mappings = deepcopy(command_spec.mappings)
+            local opts = mappings.opts
+            mappings.opts = nil
 
-			if opts then
-				dict.each(mappings, function(kbd_name, kbd_spec)
-					local _opts = kbd_spec[2] or {}
-					_opts = dict.merge(deepcopy(_opts), opts)
-					_opts.mode = _opts.mode or "n"
-					_opts.name = kbd_name
-					kbd_spec[2] = _opts
-				end)
-			else
-				dict.each(mappings, function(kbd_name, kbd_spec)
-					local _opts = deepcopy(kbd_spec[2] or {})
-					_opts.mode = _opts.mode or "n"
-					_opts.name = kbd_name
-					kbd_spec[3] = _opts
-					group:map(cmd.name, unpack(kbd_spec))
-				end)
-			end
-		end)
-	end)
+            if opts then
+                dict.each(mappings, function(kbd_name, kbd_spec)
+                    local _opts = kbd_spec[2] or {}
+                    _opts = dict.merge(deepcopy(_opts), opts)
+                    _opts.mode = _opts.mode or "n"
+                    _opts.name = kbd_name
+                    kbd_spec[2] = _opts
+                end)
+            else
+                dict.each(mappings, function(kbd_name, kbd_spec)
+                    local _opts = deepcopy(kbd_spec[2] or {})
+                    _opts.mode = _opts.mode or "n"
+                    _opts.name = kbd_name
+                    kbd_spec[3] = _opts
+                    group:map(cmd.name, unpack(kbd_spec))
+                end)
+            end
+        end)
+    end)
 end

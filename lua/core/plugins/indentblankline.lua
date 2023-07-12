@@ -25,5 +25,3 @@ function indentblankline:setup()
     indentblankline.set_highlight()
     indent.setup(self.config or {})
 end
-
-

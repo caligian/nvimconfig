@@ -2,14 +2,22 @@ local gs = require "gitsigns"
 local gitsigns = plugin.get "gitsigns"
 
 gitsigns.next_hunk = function()
-    if vim.wo.diff then return "]c" end
-    vim.schedule(function() gs.next_hunk() end)
+    if vim.wo.diff then
+        return "]c"
+    end
+    vim.schedule(function()
+        gs.next_hunk()
+    end)
     return "<Ignore>"
 end
 
 gitsigns.previous_hunk = function()
-    if vim.wo.diff then return "[c" end
-    vim.schedule(function() gs.prev_hunk() end)
+    if vim.wo.diff then
+        return "[c"
+    end
+    vim.schedule(function()
+        gs.prev_hunk()
+    end)
     return "<Ignore>"
 end
 
@@ -68,7 +76,9 @@ gitsigns.mappings = {
     blame_line = {
         "n",
         "<leader>ghb",
-        function() gs.blame_line { full = true } end,
+        function()
+            gs.blame_line { full = true }
+        end,
         "Blame line",
     },
     toggle_current_line_blame = {
@@ -86,7 +96,9 @@ gitsigns.mappings = {
     diffthis1 = {
         "n",
         "<leader>ghD",
-        function() gs.diffthis "~" end,
+        function()
+            gs.diffthis "~"
+        end,
         "Diff this (~)",
     },
     toggled_deleted = { "n", "<leader>gtd", gs.toggle_deleted, {} },

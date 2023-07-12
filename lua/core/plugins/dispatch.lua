@@ -21,16 +21,24 @@ function dispatch.get_command(action, bufnr)
     return ("Dispatch " .. cmd)
 end
 
-function dispatch.get_compiler(bufnr) return dispatch.get_command("compile", bufnr) end
+function dispatch.get_compiler(bufnr)
+    return dispatch.get_command("compile", bufnr)
+end
 
-function dispatch.get_build(bufnr) return dispatch.get_command("build", bufnr) end
+function dispatch.get_build(bufnr)
+    return dispatch.get_command("build", bufnr)
+end
 
-function dispatch.get_test(bufnr) return dispatch.get_command("test", bufnr) end
+function dispatch.get_test(bufnr)
+    return dispatch.get_command("test", bufnr)
+end
 
 function dispatch.run(action, bufnr)
     bufnr = bufnr or buffer.bufnr()
     local cmd = dispatch.get_command(action, bufnr)
-    if not cmd then return end
+    if not cmd then
+        return
+    end
 
     local base = path.dirname(buffer.name(bufnr))
     local currentdir = path.currentdir()
@@ -40,11 +48,17 @@ function dispatch.run(action, bufnr)
     vim.cmd(":chdir " .. currentdir)
 end
 
-function dispatch.build(bufnr) dispatch.run("build", bufnr) end
+function dispatch.build(bufnr)
+    dispatch.run("build", bufnr)
+end
 
-function dispatch.test(bufnr) dispatch.run("test", bufnr) end
+function dispatch.test(bufnr)
+    dispatch.run("test", bufnr)
+end
 
-function dispatch.compile(bufnr) dispatch.run("compile", bufnr) end
+function dispatch.compile(bufnr)
+    dispatch.run("compile", bufnr)
+end
 
 dispatch.mappings = {
     opts = { noremap = true, leader = true },
@@ -73,4 +87,3 @@ dispatch.mappings = {
         { noremap = true, desc = "Compile file" },
     },
 }
-

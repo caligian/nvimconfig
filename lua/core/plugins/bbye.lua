@@ -9,7 +9,9 @@ function bbye.delete_and_hide(wipeout)
     end
     local tab = vim.fn.tabpagenr()
     local n_wins = #(vim.fn.tabpagebuflist(tab))
-    if n_wins > 1 then vim.cmd ":hide" end
+    if n_wins > 1 then
+        vim.cmd ":hide"
+    end
 end
 
 bbye.mappings = {
@@ -17,9 +19,9 @@ bbye.mappings = {
     delete_buffer = { "bq", bbye.delete_and_hide, { desc = "Delete buffer" } },
     wipeout_buffer = {
         "bQ",
-        function() bbye.delete_and_hide(true) end,
+        function()
+            bbye.delete_and_hide(true)
+        end,
         { desc = "Wipeout buffer" },
     },
 }
-
-

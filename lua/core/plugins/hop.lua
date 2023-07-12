@@ -6,12 +6,16 @@ plug.mappings = {
     opts = { mode = "nvx" },
     hint_patterns = {
         "g/",
-        function() hop.hint_patterns {} end,
+        function()
+            hop.hint_patterns {}
+        end,
         "Hop to pattern",
     },
     skip_whitespace = {
         "gl",
-        function() hop.hint_lines_skip_whitespace {} end,
+        function()
+            hop.hint_lines_skip_whitespace {}
+        end,
     },
     after_cursor = {
         "gJ",
@@ -29,12 +33,18 @@ plug.mappings = {
     },
     hint_char2_after_cursor = {
         "s",
-        function() hop.hint_char2 { direction = directions.AFTER_CURSOR } end,
+        function()
+            hop.hint_char2 { direction = directions.AFTER_CURSOR }
+        end,
     },
     hint_char2_before_cursor = {
         "<A-s>",
-        function() hop.hint_char2 { direction = directions.BEFORE_CURSOR } end,
+        function()
+            hop.hint_char2 { direction = directions.BEFORE_CURSOR }
+        end,
     },
 }
 
-function plug:setup() hop.setup() end
+function plug:setup()
+    hop.setup()
+end

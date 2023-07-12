@@ -125,5 +125,3 @@ treesitter.mappings = {
 function treesitter:setup()
     require("nvim-treesitter.configs").setup(self.config)
 end
-
-

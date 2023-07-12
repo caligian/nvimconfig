@@ -32,4 +32,6 @@ neorg.config = {
     },
 }
 
-function neorg:setup() require("neorg").setup(self.config) end
+function neorg:setup()
+    require("neorg").setup(self.config)
+end

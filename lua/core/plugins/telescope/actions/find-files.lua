@@ -1,6 +1,8 @@
 local _ = telescope.load()
 
-local function get_fname(sel) return sel.cwd .. "/" .. sel[1] end
+local function get_fname(sel)
+    return sel.cwd .. "/" .. sel[1]
+end
 
 local mod = {
     delete = function(prompt_bufnr)
@@ -15,7 +17,9 @@ local mod = {
         _.actions.close(prompt_bufnr)
 
         local filename = vim.fn.input "touch file % "
-        if #filename == 0 then return end
+        if #filename == 0 then
+            return
+        end
 
         if filename:match "/$" then
             vim.fn.system { "mkdir", "-p", filename }
@@ -29,7 +33,9 @@ local mod = {
         _.actions.close(prompt_bufnr)
 
         local filename = vim.fn.input "touch file % "
-        if #filename == 0 then return end
+        if #filename == 0 then
+            return
+        end
 
         if filename:match "/$" then
             vim.fn.system { "mkdir", "-p", filename }

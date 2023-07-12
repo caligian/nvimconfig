@@ -15,7 +15,7 @@ end
 function mod.force_delete(bufnr)
     local sels = _:get_selected(bufnr)
 
-    array.each(sels, function (sel)
+    array.each(sels, function(sel)
         print("rm -rf", sel[1])
         vim.fn.system { "rm", "-rf", sel[1] }
     end)
@@ -25,7 +25,9 @@ function mod.touch(bufnr)
     local sel = _:get_selected(bufnr, true)
     local cwd = sel.Path._cwd
     local fname = vim.fn.input "Filename % "
-    if #fname == 0 then return end
+    if #fname == 0 then
+        return
+    end
     local is_dir = fname:match "/$"
     fname = path.join(cwd, fname)
 
