@@ -10,9 +10,6 @@ local floatmt = {}
 local float = setmetatable(buffer.float, floatmt)
 local is_string_or_table = is { "string", "array" }
 
---- Raised when buffer index is invalid for an operation
-buffer.InvalidBufferException = exception "invalid buffer expr"
-
 --- Add buffer by name or return existing buffer index. ':help bufadd()'
 -- @function buffer.bufadd
 -- @tparam number|string expr buffer index or name
@@ -85,7 +82,7 @@ function buffer.unload(bufnr)
     return true
 end
 
-function buffer.getmap(bufnr, mode)
+function buffer.get_keymap(bufnr, mode)
     bufnr = bufnr or vim.fn.bufnr()
     if not buffer.exists(bufnr) then
         return
@@ -168,7 +165,7 @@ end
 -- @tparam number bufnr
 -- @tparam string k option name
 -- @tparam any v value
-function buffer.setoption(bufnr, k, v)
+function buffer.set_option(bufnr, k, v)
     validate {
         key = { is { "string", "dict" }, k },
     }
@@ -182,7 +179,7 @@ function buffer.setoption(bufnr, k, v)
         vim.api.nvim_buf_set_option(bufnr, k, v)
     else
         dict.each(k, function(key, value)
-            buffer.setoption(bufnr, key, value)
+            buffer.set_option(bufnr, key, value)
         end)
     end
 
@@ -251,7 +248,7 @@ end
 --- Hide current buffer if visible
 ---  Is buffer visible?
 --  @return boolean
-function buffer.isvisible(bufnr)
+function buffer.is_visible(bufnr)
     return vim.fn.bufwinid(bufnr) ~= -1
 end
 
@@ -292,21 +289,11 @@ function buffer.text(bufnr, start_row, start_col, end_row, end_col, opts)
     return vim.api.nvim_buf_get_text(bufnr, start_row, start_col, end_row, end_col, opts or {})
 end
 
-function buffer.kbd(bufnr, opts)
-    bufnr = bufnr or vim.fn.bufnr()
-    if not buffer.exists(bufnr) then
-        return
-    end
-
-    opts.buffer = bufnr
-    return Keybinding.bind(opts)
-end
-
 --- Set buffer lines
 -- @param startrow Starting row
 -- @param endrow Ending row
 -- @param repl Replacement line[s]
-function buffer.setlines(bufnr, startrow, endrow, repl)
+function buffer.set_lines(bufnr, startrow, endrow, repl)
     bufnr = bufnr or vim.fn.bufnr()
     if not buffer.exists(bufnr) then
         return
@@ -514,10 +501,10 @@ function buffer.setbuffer(bufnr, lines)
         return
     end
 
-    return buffer.setlines(bufnr, 0, -1, lines)
+    return buffer.set_lines(bufnr, 0, -1, lines)
 end
 
-function buffer.currentline(bufnr)
+function buffer.current_line(bufnr)
     bufnr = bufnr or vim.fn.bufnr()
     if not buffer.exists(bufnr) then
         return
@@ -528,7 +515,7 @@ function buffer.currentline(bufnr)
     end)
 end
 
-function buffer.tillcursor(bufnr)
+function buffer.till_cursor(bufnr)
     bufnr = bufnr or vim.fn.bufnr()
     if not buffer.exists(bufnr) then
         return
@@ -544,14 +531,14 @@ function buffer.tillcursor(bufnr)
 end
 
 function buffer.append(bufnr, lines)
-    return buffer.setlines(bufnr, -1, -1, lines)
+    return buffer.set_lines(bufnr, -1, -1, lines)
 end
 
 function buffer.prepend(bufnr, lines)
-    return buffer.setlines(bufnr, 0, 0, lines)
+    return buffer.set_lines(bufnr, 0, 0, lines)
 end
 
-function buffer.maplines(bufnr, f)
+function buffer.map_lines(bufnr, f)
     bufnr = bufnr or vim.fn.bufnr()
     if not buffer.exists(bufnr) then
         return
@@ -589,17 +576,17 @@ function buffer.match(bufnr, pat)
     end)
 end
 
-function buffer.readfile(bufnr, fname)
+function buffer.read_file(bufnr, fname)
     bufnr = bufnr or vim.fn.bufnr()
     if not buffer.exists(bufnr) then
         return
     end
 
     local s = file.read(fname)
-    return buffer.setlines(bufnr, -1, s)
+    return buffer.set_lines(bufnr, -1, s)
 end
 
-function buffer.insertfile(bufnr, fname)
+function buffer.insert_file(bufnr, fname)
     bufnr = bufnr or vim.fn.bufnr()
     if not buffer.exists(bufnr) then
         return
@@ -675,7 +662,7 @@ function buffer.scratch(name, filetype)
         return
     end
 
-    buffer.setoption(bufnr, { buflisted = false, buftype = "nofile", filetype = filetype })
+    buffer.set_option(bufnr, { buflisted = false, buftype = "nofile", filetype = filetype })
 
     return bufnr
 end
@@ -747,7 +734,7 @@ function buffer.input(text, cb, opts)
     buffer.hook(buf, "WinLeave", function()
         buffer.wipeout(buf)
     end)
-    buffer.setlines(buf, 0, -1, text)
+    buffer.set_lines(buf, 0, -1, text)
     buffer.split(buf, split, { reverse = opts.reverse, resize = opts.resize })
     buffer.noremap(buf, "n", "q", function()
         buffer.hide(buf)
@@ -966,6 +953,7 @@ function floatmt:__call(bufnr, opts)
     end
 
     local winid = vim.api.nvim_open_win(bufnr, focus, opts)
+
     if winid == 0 then
         return false
     end
@@ -973,7 +961,7 @@ function floatmt:__call(bufnr, opts)
     return bufnr
 end
 
-function float.setconfig(winnr, config)
+function float.set_config(winnr, config)
     config = config or {}
     local ok, msg = pcall(vim.api.nvim_win_set_config, win.id(winnr), config)
     if not ok then
@@ -983,7 +971,7 @@ function float.setconfig(winnr, config)
     return true
 end
 
-function float.getconfig(winnr)
+function float.get_config(winnr)
     if not win.exists(winnr) then
         return
     end
@@ -1003,24 +991,24 @@ local copy_methods = {
     "height",
     "width",
     "size",
-    "restoreview",
-    "restorecmd",
-    "saveview",
-    "currentline",
+    "restore_view",
+    "restore_cmd",
+    "save_view",
+    "current_line",
     "virtualcol",
-    "setheight",
-    "setwidth",
+    "set_height",
+    "set_width",
     "close",
     "hide",
     "range",
-    "rangetext",
-    "cursorpos",
+    "range_text",
+    "cursor_pos",
     "tabnew",
     "row",
     "col",
     "move_statusline",
     "move_separator",
-    "screenpos",
+    "screen_pos",
     "pos",
 }
 

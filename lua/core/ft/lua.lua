@@ -2,6 +2,7 @@ local lua = filetype.new "lua"
 local package_path = vim.split(package.path, ";")
 local formatter_path = path.join(os.getenv "HOME", ".cargo", "bin", "stylua")
 local formatter_cmd = formatter_path
+
 local default_args = {
     "--call-parentheses None",
     "--collapse-simple-statement Never",
@@ -28,9 +29,9 @@ lua.dir_formatter = {
     append_dirname = true,
 }
 
-lua.repl = "lua"
+lua.repl = "luajit"
 
-lua.compile = "lua"
+lua.compile = "luajit"
 
 lua.lsp_server = {
     "lua_ls",
@@ -60,6 +61,6 @@ lua.lsp_server = {
 lua:add_autocmd {
     name = "lua.whitespace",
     callback = function(au)
-        buffer.setoption(au.buf, { shiftwidth = 2, tabstop = 2 })
+        buffer.set_option(au.buf, { shiftwidth = 2, tabstop = 2 })
     end,
 }

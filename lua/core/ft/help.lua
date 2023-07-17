@@ -17,12 +17,12 @@ local function putstring(s, align)
     local tw = vim.bo.textwidth
 
     if not align or (len >= tw or len + slen > tw) then
-        buffer.setlines(bufnr, linenum - 1, linenum, array.concat { line, " ", s })
+        buffer.set_lines(bufnr, linenum - 1, linenum, array.concat { line, " ", s })
     elseif align then
         local spaceslen = tw - (len + slen)
         local spaces = string.rep(" ", spaceslen)
         s = array.concat { line, spaces, s }
-        buffer.setlines(bufnr, linenum - 1, linenum, s)
+        buffer.set_lines(bufnr, linenum - 1, linenum, s)
     end
 end
 
@@ -63,7 +63,7 @@ end
 local function putsep()
     local line = buffer.row()
 
-    buffer.setlines(buffer.bufnr(), line - 1, line, { getsep() })
+    buffer.set_lines(buffer.bufnr(), line - 1, line, { getsep() })
 end
 
 local function putjump(s)
@@ -89,7 +89,7 @@ local function putheading()
 
     local row = buffer.row()
 
-    buffer.setlines(vim.fn.bufnr(), row - 1, row, s)
+    buffer.set_lines(vim.fn.bufnr(), row - 1, row, s)
 end
 
 filetype.help = {
@@ -98,7 +98,7 @@ filetype.help = {
     hooks = {
         function(au)
             if buffer.name(au.buf):match(user.dir) then
-                buffer.setvar(au.buf, "help_prefix", "postmodern")
+                buffer.set_var(au.buf, "help_prefix", "postmodern")
             end
         end,
     },

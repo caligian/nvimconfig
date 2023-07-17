@@ -25,6 +25,16 @@ function filetype.new(name)
         augroup = "filetype_" .. name,
         user_config_require_path = "user.ft." .. name,
         config_require_path = "core.ft." .. name,
+        autocmds = {},
+        load_autocmds = function (autocmds)
+            local out = {}
+            dict.each(autocmds or self.autocmds, function (au_name, callback)
+                au_name = 'filetype.' .. name .. '.' .. au_name
+                out[au_name] = autocmd.map('FileType', {callback = callback, pattern = name, name = au_name})
+            end)
+
+            return out
+        end,
         load_path = function(p)
             if not path.exists(p) then
                 return
@@ -209,7 +219,7 @@ function filetype.new(name)
                     local out = j.stdout
 
                     if not ((#err == 1 and #err[1] == 0) or #err == 0) then
-                        nvimerr(array.join(err, "\n"))
+                        to_stderr(array.join(err, "\n"))
                         return
                     end
 
@@ -260,22 +270,22 @@ function filetype.new(name)
             end
 
             vim.cmd(":w! " .. bufname)
-            buffer.setoption(bufnr, "modifiable", false)
+            buffer.set_option(bufnr, "modifiable", false)
 
             local winnr = buffer.winnr(bufnr)
-            local view = winnr and win.saveview(winnr)
+            local view = winnr and win.save_view(winnr)
             local proc = process.new(cmd, {
                 on_exit = function(proc)
                     local bufnr = bufnr
                     local name = bufname
 
-                    buffer.setoption(bufnr, "modifiable", true)
+                    buffer.set_option(bufnr, "modifiable", true)
 
                     if write then
                         buffer.call(bufnr, function()
                             vim.cmd(":e! " .. bufname)
                             if view then
-                                win.restoreview(winnr, view)
+                                win.restore_view(winnr, view)
                             end
                         end)
 
@@ -284,7 +294,7 @@ function filetype.new(name)
 
                     local err = proc.stderr
                     if not ((#err == 1 and #err[1] == 0) or #err == 0) then
-                        nvimerr(array.join(err, "\n"))
+                        to_stderr(array.join(err, "\n"))
                         return
                     end
 
@@ -294,10 +304,10 @@ function filetype.new(name)
                     end
 
                     local bufnr = bufnr
-                    buffer.setlines(bufnr, 0, -1, out)
+                    buffer.set_lines(bufnr, 0, -1, out)
 
                     if view then
-                        win.restoreview(winnr, view)
+                        win.restore_view(winnr, view)
                     end
                 end,
             })

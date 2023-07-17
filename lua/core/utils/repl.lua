@@ -118,9 +118,7 @@ function repl.new(bufnr, opts)
             return exists
         end
 
-        local rest = opts.opts
-        local x = terminal.new(cmd, rest)
-
+        local x = terminal.new(cmd, opts)
         x.filetype = ft
         x.buffer = bufnr
 

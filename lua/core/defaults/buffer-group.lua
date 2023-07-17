@@ -35,7 +35,7 @@ buffer_group.commands = {
             complete = function()
                 return buffer.list({ listed = true }, { name = true })
             end,
-            map = { "n", "<leader>." },
+            map = { "n", "<leader>.", {desc = "run buffer buffer_group picker"} },
             nargs = "?",
         },
     },

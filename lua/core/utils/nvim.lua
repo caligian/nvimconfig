@@ -1,14 +1,18 @@
 require "core.utils.misc"
 
-function nvimerr(...)
+function to_stderr(...)
     for _, s in ipairs { ... } do
         vim.api.nvim_err_writeln(s)
     end
 end
 
-function nvimexec(s, output)
-    output = output == nil and true or output
+function exec(s, output)
+    if output == nil then output = true end
     return vim.api.nvim_exec(s, output)
+end
+
+function system(...)
+    return vim.fn.systemlist(...)
 end
 
 -- If multiple dict.keys are supplied, the table is going to be assumed to be nested
@@ -47,6 +51,7 @@ function log_pcall(f, ...)
         return out
     else
         out = debug.traceback()
+        user.logs[#user.logs+1] = out
         logger:debug(out)
     end
 end
@@ -216,4 +221,21 @@ function input(spec)
     end)
 
     return out
+end
+
+function whereis(bin, match)
+    local fh = io.popen("whereis " .. bin .. " | cut -d : -f 2")
+    local out = fh:read "*a"
+    fh:close()
+
+    out = out:trim()
+    if #out == 0 then
+        return
+    end
+
+    out = out:split " +"
+    return array.grep(out, function(x)
+        if not match then return not x:match "man.*%.gz$" and not path.isdir(x) end
+        return x:match(match) and not x:match "man.*%.gz$" and not path.isdir(x)
+    end)
 end

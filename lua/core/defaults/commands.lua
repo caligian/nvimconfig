@@ -27,7 +27,7 @@ local function compile_and_run(lines)
 
     local compiled, err = loadstring(lines)
     if err then
-        nvimerr(err)
+        to_stderr(err)
     elseif compiled then
         compiled()
     end
@@ -78,7 +78,7 @@ command("Darken", function(args)
 end, { nargs = "+" })
 
 command("TrimWhiteSpace", function()
-    local layout = vim.fn.winsaveview()
+    local layout = vim.fn.winsave_view()
     vim.cmd "keeppatterns %s/\\s\\+$//e"
     vim.fn.winrestview(layout)
 end, {})

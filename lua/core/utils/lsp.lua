@@ -1,4 +1,5 @@
 lsp = {}
+
 lsp.diagnostic = { virtual_text = false, underline = false, update_in_insert = false }
 
 vim.diagnostic.config(lsp.diagnostic)
@@ -187,7 +188,7 @@ function lsp.on_attach(client, bufnr)
     if client.name == "omnisharp" then
         lsp.fix_omnisharp(client)
     else
-        buffer.setoption(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
+        buffer.set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 
         local ft = vim.bo.filetype
         local has_formatter = filetype[ft].formatter

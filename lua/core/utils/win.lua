@@ -60,7 +60,7 @@ function win.current()
     return default_winnr()
 end
 
-function win.currentid()
+function win.current_id()
     return win.id(win.current())
 end
 
@@ -165,13 +165,13 @@ function win.pos(winnr, expr)
     end)
 end
 
-function win.restorecmd(winnr)
+function win.restore_cmd(winnr)
     return win.call(winnr, function()
         return vim.fn.winrestcmd()
     end)
 end
 
-function win.restoreview(winnr, view)
+function win.restore_view(winnr, view)
     return win.call(winnr, function()
         if is_a.string(view) then
             vim.cmd(view)
@@ -183,13 +183,13 @@ function win.restoreview(winnr, view)
     end)
 end
 
-function win.saveview(winnr)
+function win.save_view(winnr)
     return win.call(winnr, function()
         return vim.fn.winsaveview()
     end)
 end
 
-function win.currentline(winnr)
+function win.current_line(winnr)
     return win.call(winnr, function()
         return vim.fn.winline()
     end)
@@ -237,12 +237,12 @@ function win.move(from_winnr, to_winnr, opts)
     return true
 end
 
-function win.screenpos(winnr)
+function win.screen_pos(winnr)
     winnr = winnr or win.current()
     if not win.exists(winnr) then
         return
     end
-    return vim.fn.win_screenpos(winnr)
+    return vim.fn.win_screen_pos(winnr)
 end
 
 function win.move_statusline(winnr, offset)
@@ -361,7 +361,7 @@ function win.row(winnr, expr)
     end)
 end
 
-function win.cursorpos(winnr)
+function win.cursor_pos(winnr)
     local row = win.row(winnr)
     local col = win.col(winnr)
     if not row or not col then
@@ -380,7 +380,7 @@ function win.range(winnr)
     end)
 end
 
-function win.rangetext(winnr)
+function win.range_text(winnr)
     return win.call(winnr, function()
         local _, csrow, cscol, _ = unpack(vim.fn.getpos "'<")
         local _, cerow, cecol, _ = unpack(vim.fn.getpos "'>")
@@ -402,7 +402,7 @@ function win.rangetext(winnr)
     end)
 end
 
-function win.isvisible(winnr)
+function win.is_visible(winnr)
     return win.id(winnr)
 end
 
@@ -419,7 +419,7 @@ end
 
 function win.close(winnr, force)
     winnr = winnr or win.current()
-    if not win.isvisible(winnr) then
+    if not win.is_visible(winnr) then
         return
     end
 
@@ -433,7 +433,7 @@ function win.close(winnr, force)
     return true
 end
 
-function win.setheight(winnr, height)
+function win.set_height(winnr, height)
     winnr = winnr or win.current()
     if not win.exists(winnr) then
         return
@@ -443,7 +443,7 @@ function win.setheight(winnr, height)
     return true
 end
 
-function win.setwidth(winnr, width)
+function win.set_width(winnr, width)
     winnr = winnr or win.current()
     if not win.exists(winnr) then
         return
@@ -560,7 +560,7 @@ function floatmt:__call(winnr, opts)
     return winnr
 end
 
-function float.setconfig(winnr, config)
+function float.set_config(winnr, config)
     config = config or {}
     local ok, msg = pcall(vim.api.nvim_win_set_config, win.id(winnr), config)
     if not ok then
@@ -570,7 +570,7 @@ function float.setconfig(winnr, config)
     return true
 end
 
-function float.getconfig(winnr)
+function float.get_config(winnr)
     if not win.exists(winnr) then
         return
     end
@@ -590,7 +590,7 @@ function win.info(winnr)
     return vim.fn.getwininfo(win.id(winnr))
 end
 
-function win.setvar(winnr, k, v)
+function win.set_var(winnr, k, v)
     validate {
         key = { is { "string", "dict" }, k },
     }
@@ -604,20 +604,20 @@ function win.setvar(winnr, k, v)
         vim.api.nvim_win_set_var(winnr, k, v)
     else
         dict.each(k, function(key, value)
-            win.setvar(winnr, key, value)
+            win.set_var(winnr, key, value)
         end)
     end
 
     return true
 end
 
-function win.setoption(winnr, k, v)
+function win.set_option(winnr, k, v)
     validate {
         key = { is { "string", "dict" }, k },
     }
 
     winnr = winnr or win.winnr()
-    if not win.isvisible(winnr) then
+    if not win.is_visible(winnr) then
         return
     end
 
@@ -625,7 +625,7 @@ function win.setoption(winnr, k, v)
         vim.api.nvim_win_set_option(win.id(winnr), k, v)
     else
         dict.each(k, function(key, value)
-            win.setoption(winnr, key, value)
+            win.set_option(winnr, key, value)
         end)
     end
 
@@ -660,7 +660,7 @@ win.id = setmetatable({
     end,
 
     move = function(from_winid, to_winid, opts)
-        from_winid = from_winid or win.currentid()
+        from_winid = from_winid or win.current_id()
         to_winid = to_winid or -1
         local from_winnr = win.id2nr(from_winid)
         local to_winnr = win.id2nr(to_winid)
@@ -695,23 +695,23 @@ array.each({
     "size",
     "var",
     "option",
-    "setvar",
-    "setoption",
+    "set_var",
+    "set_option",
     "delvar",
     "tabnr",
     "call",
-    "restoreview",
-    "restorecmd",
-    "saveview",
-    "currentline",
+    "restore_view",
+    "restore_cmd",
+    "save_view",
+    "current_line",
     "virtualcol",
-    "setheight",
-    "setwidth",
+    "set_height",
+    "set_width",
     "close",
     "hide",
     "range",
-    "rangetext",
-    "cursorpos",
+    "range_text",
+    "cursor_pos",
     "type",
     "vsplit",
     "split",
@@ -727,7 +727,7 @@ array.each({
     "tabwin",
     "move_statusline",
     "move_separator",
-    "screenpos",
+    "screen_pos",
     "pos",
 }, function(name)
     win.id[name] = function(self, winid, ...)

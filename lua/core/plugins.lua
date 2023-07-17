@@ -269,4 +269,9 @@ return {
         version = "*",
         dependencies = { "tiagovla/scope.nvim" },
     },
+
+    elixir = {
+        "elixir-editors/vim-elixir",
+        ft = "elixir",
+    }
 }

@@ -123,7 +123,11 @@ repl.commands = {
             with_args(opts, function(args)
                 local x = repl.new(args[1])
                 local bufnr = x.bufnr
-                x:center_float { center = { args[2], args[2] } or { 0.8, 0.8 } }
+                if args[2] then
+                    x:center_float {center = {args[2], args[2]}, relative='editor'}   
+                else
+                    x:center_float {center = {0.8, 0.8}, relative='editor'}   
+                end
             end)
         end,
         { nargs = "?" },
@@ -133,10 +137,11 @@ repl.commands = {
             with_args(opts, function(args)
                 local x = repl.new(args[1])
                 local bufnr = x.bufnr
-                x:center_float {
-                    center = { args[2], args[2] } or { 0.8, 0.8 },
-                    relative = "win",
-                }
+                if args[2] then
+                    x:center_float {center = {args[2], args[2]}, relative='win'}   
+                else
+                    x:center_float {center = {0.8, 0.8}, relative='win'}   
+                end
             end)
         end,
         { nargs = "?" },
@@ -261,10 +266,10 @@ repl.commands = {
 --------------------------------------------------
 
 repl.mappings = {
-    opts = { noremap = true },
+    opts = { noremap = true, silent = true },
     buffer_send_range = {
         "<leader>re",
-        sprintf("<esc>:ReplSendRange %d<CR>", buffer.bufnr()),
+        ':<C-U>call execute("ReplSendRange " . bufnr())<CR>',
         { desc = "send range", mode = "v" },
     },
     buffer_send_line = {
@@ -339,7 +344,7 @@ repl.mappings = {
     },
     filetype_send_range = {
         "<localleader>re",
-        sprintf("<esc>:ReplSendRange %d<CR>", buffer.bufnr()),
+        ':<C-U>call execute("ReplSendRange " . &filetype)<CR>',
         { desc = "send range", mode = "v" },
     },
     filetype_send_line = {
@@ -414,7 +419,7 @@ repl.mappings = {
     },
     shell_send_range = {
         "<leader>xe",
-        sprintf("<esc>:ReplSendRange %d<CR>", buffer.bufnr()),
+        ':<C-U>call execute("ReplSendRange " . "sh")<CR>',
         { desc = "send range", mode = "v" },
     },
     shell_send_line = {

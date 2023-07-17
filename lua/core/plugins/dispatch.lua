@@ -5,7 +5,9 @@ function dispatch.get_command(action, bufnr)
     local name = buffer.name(bufnr)
     local cmd = filetype.get(vim.bo.filetype, action)
 
-    if is_callable(cmd) then
+    if not cmd then
+        return nil, 'no command found for ' .. bufnr
+    elseif is_callable(cmd) then
         cmd = cmd(bufnr)
     elseif is_string(cmd) then
         if not cmd:match "%%%%" then

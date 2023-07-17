@@ -78,19 +78,22 @@ function terminal.new(cmd, opts)
             if not self:is_running() then
                 return
             end
+
             src_bufnr = src_bufnr or buffer.bufnr()
 
             return self:send(buffer.call(src_bufnr, function()
                 vim.cmd "normal! v."
-                return buffer.rangetext(src_bufnr)
+                return buffer.range_text(src_bufnr)
             end))
         end,
         send_range = function(self, src_bufnr)
-            if not self:is_running() then
-                return
-            end
+            if not self:is_running() then return end
+
             src_bufnr = src_bufnr or vim.fn.bufnr()
-            return self:send(buffer.rangetext(src_bufnr))
+            local out = buffer.range_text(src_bufnr)
+            if not out then return false end
+
+            return self:send(out)
         end,
         terminate_input = function(self)
             if not self:is_running() then
@@ -105,14 +108,11 @@ function terminal.new(cmd, opts)
 
             local id = self.id
             if is_a.string(s) then
-                s = vim.split(s, "[\n\r]*")
-            end
-            if self.on_input then
-                s = self.on_input(s)
+                s = vim.split(s, "[\n\r]+")
             end
 
-            s[#s + 1] = "\n"
-            s = array.map(s, string.trim)
+            if self.on_input then s = self.on_input(s) end
+            s[#s + 1] = ""
 
             vim.api.nvim_chan_send(id, table.concat(s, "\n"))
 
@@ -157,7 +157,7 @@ function terminal.new(cmd, opts)
         end,
         is_visible = function(self)
             if self.bufnr then
-                return buffer.isvisible(self.bufnr)
+                return buffer.is_visible(self.bufnr)
             end
             return false
         end,
