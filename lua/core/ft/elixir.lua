@@ -1,6 +1,11 @@
-local elixir = filetype.new "elixir"
+local elixir = filetype.get "elixir"
 
-elixir.repl = "iex"
+elixir.repl = {"iex", load_file = function (fname, make_file)
+    fname = fname .. '.exs'
+    make_file(fname)
+
+    return sprintf("c(\"%s\")", fname)
+end}
 
 elixir.formatter = {
     "mix format - ",

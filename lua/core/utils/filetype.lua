@@ -2,7 +2,7 @@ require "core.utils.autocmd"
 require "core.utils.kbd"
 require "core.utils.lsp"
 
-filetype = filetype or setmetatable({ filetypes = {}, id = 1, processes = {} }, { type = "module", name = "filetype" })
+filetype = setmetatable({ filetypes = {}, id = 1, processes = {} }, { type = "module", name = "filetype" })
 
 local function formatter_config_path_exists(p)
     p = array.to_array(p)
@@ -26,7 +26,8 @@ function filetype.new(name)
         user_config_require_path = "user.ft." .. name,
         config_require_path = "core.ft." .. name,
         autocmds = {},
-        load_autocmds = function (autocmds)
+        mappings = {},
+        load_autocmds = function (self, autocmds)
             local out = {}
             dict.each(autocmds or self.autocmds, function (au_name, callback)
                 au_name = 'filetype.' .. name .. '.' .. au_name
@@ -35,7 +36,9 @@ function filetype.new(name)
 
             return out
         end,
-        load_path = function(p)
+        load_path = function(self, p)
+            p = p or req2path(self.config_require_path)
+
             if not path.exists(p) then
                 return
             end
@@ -79,10 +82,17 @@ function filetype.new(name)
                 ok, msg = pcall(require, self.config_require_path)
             end
 
-            if ok and msg then
-                ok = msg()
-                if is_a.callable(ok) then
-                    out = ok()
+            if ok then
+                if is_a.callable(msg) then
+                    out = msg()
+                else
+                    if self.mappings and not is_empty(self.mappings) then
+                        self:load_mappings()
+                    end
+
+                    if self.autocmds and not is_empty(self.autocmds) then
+                        self:load_autocmds()
+                    end
                 end
             end
 
@@ -382,11 +392,15 @@ end
 function filetype.load_specs(is_user)
     if not is_user then
         array.each(dir.getallfiles(user.dir .. "/lua/core/ft/"), function(f)
-            require("core.ft." .. path.basename(f:gsub("%.lua$", "")))
+            f = path.basename(f):gsub('%.lua$', '')
+            local ok, msg = pcall(function()
+                filetype.get(f):load_config()
+            end)
         end)
     else
         array.each(dir.getallfiles(user.user_dir .. "/lua/user/ft/"), function(f)
-            require("core.ft." .. path.basename(f:gsub("%.lua$", "")))
+            f = path.basename(f):gsub('%.lua$', '')
+            filetype.get(f):load_config(true)
         end)
     end
 end

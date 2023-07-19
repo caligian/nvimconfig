@@ -649,7 +649,7 @@ function buffer.isempty(bufnr)
 end
 
 function buffer.create(name)
-    return buffer.exists(name) and buffer.bufnr(name) or buffer.bufadd(name)
+    return (buffer.exists(name) and buffer.bufnr(name)) or buffer.bufadd(name)
 end
 
 function buffer.scratch(name, filetype)

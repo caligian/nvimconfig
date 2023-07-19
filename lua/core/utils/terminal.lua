@@ -24,11 +24,16 @@ function terminal.new(cmd, opts)
     local on_input = opts.on_input
     opts.on_input = nil
 
+    -- Only for repls
+    local load_file = opts.load_file
+    opts.load_file = nil
+
     return {
         id = false,
         cmd = cmd,
         opts = opts,
         on_input = on_input or false,
+        load_file = load_file or false,
         center_float = function(self, opts)
             return self:float(dict.merge({ center = { 0.8, 0.8 } }, opts or {}))
         end,
@@ -107,18 +112,32 @@ function terminal.new(cmd, opts)
             end
 
             local id = self.id
+
+            local function send_string(s)
+                s = to_array(s)
+                s[#s + 1] = ""
+
+                vim.api.nvim_chan_send(id, table.concat(s, "\n"))
+
+                buffer.call(self.bufnr, function()
+                    vim.cmd "normal! G"
+                end)
+            end
+
             if is_a.string(s) then
                 s = vim.split(s, "[\n\r]+")
             end
 
-            if self.on_input then s = self.on_input(s) end
-            s[#s + 1] = ""
-
-            vim.api.nvim_chan_send(id, table.concat(s, "\n"))
-
-            buffer.call(self.bufnr, function()
-                vim.cmd "normal! G"
-            end)
+            if self.load_file then
+                if self.on_input then s = self.on_input(s) end
+                send_string(self.load_file("/tmp/nvim_repl_last_input", function (fname)
+                    file.write(fname, array.join(s, "\n"))
+                end))
+            elseif self.on_input then
+                send_string(self.on_input(s))
+            else
+                send_string(s)
+            end
 
             return true
         end,
