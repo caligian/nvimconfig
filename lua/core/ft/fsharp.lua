@@ -1,4 +1,4 @@
-local fsharp = filetype.new "fsharp"
+local fsharp = Filetype.get "fsharp"
 
 fsharp.repl = {
     "dotnet fsi",

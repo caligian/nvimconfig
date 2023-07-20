@@ -1,6 +1,6 @@
-local mysql = filetype.get "mysel"
+local mysql = Filetype.get "mysql"
 mysql.repl = "mysql"
-mysql.server = "sqlls"
+mysql.lsp_server = "sqlls"
 mysql.formatter = {
     path.join(os.getenv "HOME", "node_modules", ".bin", "sql-formatter") .. " --fix",
     stdin = true,

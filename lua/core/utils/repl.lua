@@ -1,4 +1,4 @@
-require "core.utils.filetype"
+require "core.utils.Filetype"
 require "core.utils.terminal"
 
 repl = repl
@@ -20,7 +20,7 @@ function repl.get_command(ft)
     end
 
     local cmd, opts
-    cmd = filetype.get(ft, "repl")
+    cmd = Filetype.get(ft, "repl")
 
     if is_a.table(cmd) then
         opts = deepcopy(cmd)

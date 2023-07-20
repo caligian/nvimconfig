@@ -1,4 +1,4 @@
-local zsh = filetype.get "zsh"
+local zsh = Filetype.get "zsh"
 
 zsh.repl = "/usr/bin/zsh"
 zsh.compile = "/usr/bin/zsh"

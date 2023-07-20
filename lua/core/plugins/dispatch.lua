@@ -3,7 +3,7 @@ local dispatch = plugin.get "dispatch"
 function dispatch.get_command(action, bufnr)
     bufnr = bufnr or vim.fn.bufnr()
     local name = buffer.name(bufnr)
-    local cmd = filetype.get(vim.bo.filetype, action)
+    local cmd = Filetype.get(vim.bo.filetype, action)
 
     if not cmd then
         return nil, 'no command found for ' .. bufnr

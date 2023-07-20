@@ -1,4 +1,4 @@
-local erlang = filetype.get 'erlang'
+local erlang = Filetype.get 'erlang'
 
 erlang.repl = {'erl'}
 

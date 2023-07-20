@@ -3,7 +3,7 @@ require "core.option"
 require "core.defaults"
 require "core.netrw"
 
-filetype.load_specs()
+Filetype.load_specs()
 
 plugin.setup_lazy()
 

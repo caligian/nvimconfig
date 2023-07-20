@@ -80,7 +80,7 @@ dict.merge(user.mappings, {
                     return
                 end
 
-                filetype.format_buffer(ft, bufnr)
+                Filetype.format_buffer(ft, bufnr)
             end,
             { desc = "format buffer" },
         },
@@ -94,7 +94,7 @@ dict.merge(user.mappings, {
                     return
                 end
 
-                filetype.format_dir(ft, path.dirname(bufname))
+                Filetype.format_dir(ft, path.dirname(bufname))
             end,
             { desc = "format current directory" },
         },

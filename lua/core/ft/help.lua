@@ -92,7 +92,7 @@ local function putheading()
     buffer.set_lines(vim.fn.bufnr(), row - 1, row, s)
 end
 
-filetype.help = {
+Filetype.help = {
     extension = ".txt",
 
     hooks = {

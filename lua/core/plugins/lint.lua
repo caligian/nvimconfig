@@ -2,7 +2,7 @@ local nvimlint = require "lint"
 local lint = plugin.get "lint"
 
 function lint.load_linters()
-    dict.each(filetype.filetypes, function(ft, conf)
+    dict.each(Filetype.filetypes, function(ft, conf)
         if not conf.linters then
             return
         end

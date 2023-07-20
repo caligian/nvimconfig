@@ -1,4 +1,4 @@
-local cs = filetype.new "cs"
+local cs = Filetype.get "cs"
 
 cs.repl = "csharp"
 cs.compile = function(bufnr)
@@ -8,7 +8,7 @@ cs.compile = function(bufnr)
     return sprintf("csc %s && [[ -f %s ]] && mono %s", name, exe, exe)
 end
 cs.build = "csc %%"
-cs.server = {
+cs.lsp_server = {
     "omnisharp",
     config = {
         cmd = { path.join(os.getenv "HOME", "Downloads", "omnisharp", "run") },
@@ -80,7 +80,3 @@ cs.mappings = {
         { desc = "Format buffer (C#)", noremap = true },
     },
 }
-
-return function()
-    cs:load_mappings()
-end

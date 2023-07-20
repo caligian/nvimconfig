@@ -1,4 +1,4 @@
-local julia = filetype.new "julia"
+local julia = Filetype.get "julia"
 
 julia.compile = "julia"
 

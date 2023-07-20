@@ -1,4 +1,4 @@
-local python = filetype.get "python"
+local python = Filetype.get "python"
 
 python.linters = "pylint"
 

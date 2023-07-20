@@ -1,4 +1,4 @@
-local elixir = filetype.get "elixir"
+local elixir = Filetype.get "elixir"
 
 elixir.repl = {"iex", load_file = function (fname, make_file)
     fname = fname .. '.exs'

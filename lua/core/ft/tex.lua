@@ -1,4 +1,4 @@
-local tex = filetype.new "text"
+local tex = Filetype.get "text"
 
 tex.lsp_server = "texlab"
 

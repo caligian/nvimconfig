@@ -1,4 +1,4 @@
-local lua = filetype.new "lua"
+local lua = Filetype.get "lua"
 local package_path = vim.split(package.path, ";")
 local formatter_path = path.join(os.getenv "HOME", ".cargo", "bin", "stylua")
 local formatter_cmd = formatter_path

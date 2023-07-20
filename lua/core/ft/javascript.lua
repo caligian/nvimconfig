@@ -1,4 +1,4 @@
-filetype.javascript = {
+Filetype.javascript = {
     compile = "node",
     repl = "node",
     server = "tsserver",

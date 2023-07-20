@@ -1,4 +1,4 @@
-filetype.mysql = {
+Filetype.mysql = {
     repl = "mysql",
     server = "sqlls",
     formatter = {
