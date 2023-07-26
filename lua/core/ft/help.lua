@@ -92,38 +92,29 @@ local function putheading()
     buffer.set_lines(vim.fn.bufnr(), row - 1, row, s)
 end
 
-Filetype.help = {
-    extension = ".txt",
+local help = Filetype.get 'help'
+help.autocmds = {
+    buffer_options = function (au)
+        dict.each({formatoptions='tqn', textwidth=80}, function(key, value)
+            buffer.set_option(au.buf, key, value)
+        end)
+    end
+}
 
-    hooks = {
-        function(au)
-            if buffer.name(au.buf):match(user.dir) then
-                buffer.set_var(au.buf, "help_prefix", "postmodern")
-            end
-        end,
-    },
-
-    bo = {
-        formatoptions = "tqn",
-        textwidth = 80,
-        shiftwidth = 2,
-        tabstop = 2,
-    },
-
-    kbd = {
+help.mappings = {
+    opts = {
         noremap = true,
         prefix = "<leader>m",
-
-        { "-", putsep, "Put seperator" },
-        { "|", putref, "Put reference" },
-        { "*", putjump, "Put jump reference" },
-        { "=", putheading, "Put heading" },
-        {
-            "p",
-            function()
-                getprefix(input({ "prefix", "Tag prefix" }).prefix)
-            end,
-            "Set tag prefix",
-        },
+    },
+    put_sep = { "-", putsep, {desc = "Put seperator"} },
+    put_ref = { "|", putref, {desc = "Put reference"} },
+    put_jump_ref = { "*", putjump, {desc = "Put jump reference"} },
+    put_heading = { "=", putheading, {desc = "Put heading" } },
+    set_prefix = {
+        "p",
+        function()
+            getprefix(input({ "prefix", "Tag prefix" }).prefix)
+        end,
+        "Set tag prefix",
     },
 }

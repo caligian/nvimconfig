@@ -3,7 +3,7 @@ require "core.utils.buffer"
 terminal = terminal
     or {
         terminals = {},
-        timeout = 30,
+        timeout = 100,
         exception = {
             invalid_command = exception "expected valid command",
             shell_not_executable = exception "shell not executable",

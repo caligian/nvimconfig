@@ -71,12 +71,3 @@ cs.lsp_server = {
         },
     },
 }
-
-cs.mappings = {
-    format_buffer = {
-        "n",
-        "<leader>bf",
-        ":! dotnet format --include %<CR>",
-        { desc = "Format buffer (C#)", noremap = true },
-    },
-}

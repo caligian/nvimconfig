@@ -4,7 +4,7 @@ require "core.utils.lsp"
 require "lua-utils.class"
 
 Filetype = Filetype
-    or class.new("Filetype", {
+    or struct.new("Filetype", {
         "name",
         "augroup",
         "user_config_require_path",
@@ -65,6 +65,7 @@ function Filetype.load_path(self, p)
 
     local out
     local ok, msg = pcall(loadfile, p)
+
     if ok and msg then
         ok = msg()
         if is_a.callable(ok) then
@@ -72,12 +73,18 @@ function Filetype.load_path(self, p)
         end
     end
 
-    if self.mappings and not is_empty(self.mappings) then
-        self:load_mappings()
-    end
+    ok, msg = pcall(function()
+        if self.mappings and not is_empty(self.mappings) then
+            Filetype.load_mappings(self)
+        end
 
-    if self.autocmds and not is_empty(self.autocmds) then
-        self:load_autocmds()
+        if self.autocmds and not is_empty(self.autocmds) then
+            Filetype.load_autocmds(self)
+        end
+    end)
+
+    if not ok and msg then
+        print("error loading config for  " .. self.name .. ": " .. msg)
     end
 
     return out or true
@@ -117,11 +124,11 @@ function Filetype.load_config(self, is_user)
             out = msg()
         else
             if self.mappings and not is_empty(self.mappings) then
-                self:load_mappings()
+                Filetype.load_mappings(self)
             end
 
             if self.autocmds and not is_empty(self.autocmds) then
-                self:load_autocmds()
+                Filetype.load_autocmds(self)
             end
         end
     end
@@ -131,9 +138,9 @@ end
 
 function Filetype.reload_config(self, is_user)
     if is_user then
-        return self:load_config(req2path(self.user_config_require_path))
+        return Filetype.load_config(self, req2path(self.user_config_require_path))
     else
-        return self:load_config(req2path(self.config_require_path))
+        return Filetype.load_config(self, req2path(self.config_require_path))
     end
 end
 
@@ -201,8 +208,9 @@ function Filetype.load_mappings(self, mappings)
         if opts then
             local mode, ks, cb, rest
             ks, cb, rest = unpack(spec)
+            rest = is_a.string(rest) and {desc = rest} or rest
             rest = dict.merge(rest or {}, opts)
-            rest.name = "Filetype." .. self.name .. "." .. name
+            rest.name =  self.name .. "." .. name
             rest.event = "FileType"
             rest.pattern = self.name
             mode = rest.mode or "n"
@@ -212,8 +220,9 @@ function Filetype.load_mappings(self, mappings)
         else
             spec = deepcopy(spec)
             local mode, ks, cb, rest = unpack(spec)
+            rest = is_a.string(rest) and {desc = rest} or rest
             rest = rest or {}
-            rest.name = "Filetype." .. self.name .. "." .. name
+            rest.name = self.name .. "." .. name
             rest.event = "FileType"
             rest.pattern = self.name
             spec[4] = rest
@@ -410,7 +419,7 @@ function Filetype.static_format_buffer(ft, bufnr, opts)
         if opts then
             config = dict.merge(copy(config), opts)
         end
-        return ft_obj:format_buffer(bufnr, config)
+        return Filetype.format_buffer(ft_obj, bufnr, config)
     end)
 end
 
@@ -431,14 +440,12 @@ function Filetype.static_load_specs(is_user)
     if not is_user then
         array.each(dir.getallfiles(user.dir .. "/lua/core/ft/"), function(f)
             f = path.basename(f):gsub("%.lua$", "")
-            Filetype.get(f):load_path()
+            Filetype.load_path(Filetype.get(f))
         end)
     else
         array.each(dir.getallfiles(user.user_dir .. "/lua/user/ft/"), function(f)
             f = path.basename(f):gsub("%.lua$", "")
-            Filetype.get(f):load_path(true)
+            Filetype.load_path(Filetype.get(f), true)
         end)
     end
 end
-
-

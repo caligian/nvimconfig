@@ -2,9 +2,8 @@ local tex = Filetype.get "text"
 
 tex.lsp_server = "texlab"
 
-tex:add_autocmd {
-    name = "whitespace",
-    callback = function()
+tex.autocmds = {
+    whitespace = function()
         vim.bo.textwidth = 80
         vim.bo.shiftwidth = 4
         vim.bo.tabstop = 4

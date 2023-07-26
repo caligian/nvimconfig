@@ -34,8 +34,6 @@ function kbd.new(mode, ks, callback, opts)
     local group
     local name = opts.name
 
-    -- if kbd.kbds[name] then kbd.exception.duplicate_name:throw(name) end
-
     local other_opts = dict.grep(opts, function(key, _)
         local unrequired = {
             mode = true,

@@ -58,9 +58,9 @@ lua.lsp_server = {
     },
 }
 
-lua:add_autocmd {
-    name = "lua.whitespace",
-    callback = function(au)
+lua.autocmds = {
+    whitespace = function(au)
         buffer.set_option(au.buf, { shiftwidth = 2, tabstop = 2 })
     end,
+
 }

@@ -51,6 +51,7 @@ return {
 
     suda = {
         "lambdalisue/suda.vim",
+        event = 'BufRead',
     },
 
     colorscheme = {
@@ -120,6 +121,7 @@ return {
     startuptime = {
         "dstein64/vim-startuptime",
         cmd = "StartupTime",
+        keys = {{'q', ':hide<CR>', mode = {'n', 'i'}}}
     },
 
     comment = {
@@ -229,12 +231,14 @@ return {
     fugitive = {
         "tpope/vim-fugitive",
         dependencies = { "tpope/vim-git" },
+        keys = '<leader>g',
     },
 
     tagbar = {
         "preservim/tagbar",
-        keys = "<C-t>",
-        event = "BufReadPost",
+        config = function ()
+            kbd.map('n', '<localleader>t', ':TagbarToggle<CR>', {desc = 'Tagbar', name = 'tagbar'})
+        end
     },
 
     whichkey = {
@@ -249,9 +253,7 @@ return {
 
     lsp = {
         "neovim/nvim-lspconfig",
-        dependencies = {
-            "lukas-reineke/lsp-format.nvim",
-        },
+        dependencies = { "lukas-reineke/lsp-format.nvim", },
     },
 
     bbye = {
