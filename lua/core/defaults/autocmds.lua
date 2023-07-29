@@ -14,30 +14,34 @@ autocmd.map("BufAdd", {
     end,
 })
 
-autocmd.map("BufAdd", {
-    name = "txt_is_help",
-    pattern = "*txt",
-    callback = "set ft=help",
-})
+autocmd.map('BufAdd', {
+	pattern = '*',
+	callback = function (opts)
+        local bufnr = opts.buf
+        local bufname = buffer.name(bufnr)
+        local function map_quit()
+            buffer.map(bufnr, 'ni', 'q', '<cmd>hide<CR>')
+        end
 
-autocmd.map("BufAdd", {
-    name = "quit_temp_buffer_with_q",
-    pattern = "*",
-    callback = function(au)
-        local bufnr = vim.fn.bufnr()
-        array.each(dict.values(user.temp_buffer_patterns), function(pat)
+        dict.each(user.temp_buffer_patterns, function (_, pat)
             if is_callable(pat) then
-                if pat(bufnr) then
-                    vim.keymap.set({ "n", "i" }, "q", ":hide<CR>", { buffer = bufnr })
+                if pat(bufname) then
+                    map_quit()
+                end
+            elseif is_array_of(pat, 'string') then
+                for i = 1, #pat do
+                    if bufname:match(pat[i]) then
+                        map_quit()
+                        break
+                    end
                 end
             elseif is_string(pat) then
-                if vim.api.nvim_buf_get_name(bufnr):match(pat) then
-                    vim.keymap.set({ "n", "i" }, "q", ":hide<CR>", { buffer = bufnr })
+                if bufname:match(pat) then
+                    map_quit()
                 end
-            elseif is_table(pat) then
-                local ft = pat.ft or pat.filetype
-                if ft and vim.bo.filetype == ft then
-                    vim.keymap.set({ "n", "i" }, "q", ":hide<CR>", { buffer = bufnr })
+            elseif is_table(pat) and pat.ft then
+                if buffer.option(bufnr, 'filetype') == pat.ft then
+                    map_quit()
                 end
             end
         end)

@@ -171,8 +171,8 @@ telescope.mappings = {
     },
 }
 
---function telescope:setup()
-local ts = require "telescope"
-ts.setup(T)
-ts.load_extension "file_browser"
---end
+function telescope:setup()
+    local ts = require "telescope"
+    ts.setup(T)
+    ts.load_extension "file_browser"
+end

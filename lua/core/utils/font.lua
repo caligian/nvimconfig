@@ -17,7 +17,7 @@ local valid = {
     c = "string",
 }
 
-local valid_attribs = {}
+local valid_attribs = {__nonexistent = false}
 local mod = {}
 
 for key, value in pairs(valid) do
@@ -25,7 +25,7 @@ for key, value in pairs(valid) do
 end
 
 local function checkattribs(attribs)
-    validate.attribs(valid_attribs, attribs)
+    validate {attribs = {valid_attribs, attribs} }
 end
 
 function font.get(name, callback)

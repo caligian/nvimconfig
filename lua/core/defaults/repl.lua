@@ -506,8 +506,8 @@ repl.autocmds = {
     },
 }
 
-return function()
+-- return function()
     repl.map_commands()
     repl.load_mappings()
     repl.load_autocmds()
-end
+-- end

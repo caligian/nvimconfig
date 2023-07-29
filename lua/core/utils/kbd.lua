@@ -1,251 +1,212 @@
 require "core.utils.autocmd"
 
-kbd = {
-    kbds = {},
-    exception = {
-        duplicate_name = exception "keybinding already exists",
-    },
-}
+kbd = struct.new("kbd", {
+    "mode",
+    "keys",
+    "callback",
+    "opts",
+    "event",
+    "pattern",
+    "name",
+    "once",
+    "leader",
+    "localleader",
+    "prefix",
+    "enabled",
+    "autocmd",
+    "augroup",
+    "desc",
+})
 
+kbd.kbds = {}
 local enable = vim.keymap.set
 local delete = vim.keymap.del
 
-function kbd.new(mode, ks, callback, opts)
-    if is_a.string(opts) then
-        opts = { desc = opts }
+function kbd.init_before(mode, ks, callback, rest)
+    if is_struct(mode, "kbd") then
+        return mode
     end
 
-    validate {
-        mode = { "string", mode },
-        keys = { "string", ks },
-        callback = { is { "callable", "string" }, callback },
-        opts = {
-            {
-                opt_event = is { "string", "array" },
-                opt_pattern = is { "string", "array" },
-                opt_prefix = "string",
-                name = "string",
-            },
-            opts,
-        },
-    }
+    rest = is_string(rest) and { desc = rest } or rest
+    rest = rest or {}
 
-    opts = vim.deepcopy(opts)
-    local group
-    local name = opts.name
+    local not_match =
+        array.to_dict { "mode", "event", "pattern", "name", "once", "leader", "localleader", "prefix", "augroup" }
 
-    local other_opts = dict.grep(opts, function(key, _)
-        local unrequired = {
-            mode = true,
-            keys = true,
-            callback = true,
-            event = true,
-            pattern = true,
-            name = true,
-            once = true,
-            leader = true,
-            localleader = true,
-            prefix = true,
-        }
-        return not unrequired[key]
+    local opts, custom = {}, {}
+
+    dict.each(rest, function(key, v)
+        if not_match[key] then
+            custom[key] = v
+        else
+            opts[key] = v
+        end
     end)
 
-    if opts.leader then
-        ks = "<leader>" .. ks
-    elseif opts.localleader then
-        ks = "<localleader>" .. ks
-    elseif opts.prefix then
-        ks = opts.prefix .. ks
-    end
-
-    kbd.kbds[name] = {
-        mode = vim.split(mode, ""),
+    local self = {
+        mode = mode,
         keys = ks,
-        event = opts.event or false,
-        pattern = opts.pattern or false,
-        name = name,
-        opts = other_opts,
         callback = callback,
-        enabled = false,
-        autocmd = false,
-        enable = function(self)
-            if self.enabled then
-                return
-            elseif self.event and self.pattern then
-                self.autocmd = autocmd.new(self.event, {
-                    pattern = self.pattern,
-                    name = "kbd." .. self.name,
-                    callback = function(au)
-                        local kbd_opts = vim.deepcopy(self.opts)
-                        kbd_opts.buffer = au.buf
-                        vim.keymap.set(self.mode, self.keys, self.callback, kbd_opts)
-                        self.enabled = true
-                    end,
-                })
-                self.autocmd:enable()
-            else
-                vim.keymap.set(self.mode, self.keys, self.callback, self.opts)
-                self.enabled = true
-            end
-
-            return self
-        end,
-        disable = function(self, current)
-            if not self.enabled then
-                return
-            elseif self.autocmd then
-                if not self.enabled then
-                    return
-                end
-
-                self.autocmd:disable()
-                array.each(self.autocmd.buffers, function(buf)
-                    vim.keymap.del(self.mode, self.keys, { buffer = buf })
-                end)
-            else
-                vim.keymap.del(self.mode, self.keys, { buffer = current })
-            end
-
-            self.enabled = false
-
-            return self
-        end,
+        opts = opts,
+        desc = opts.desc,
     }
 
-    return kbd.kbds[name]
+    merge(self, custom)
+
+    return self
 end
 
-function kbd.map_with_opts(opts, callback)
-    validate {
-        preset_opts = { "dict", opts },
-        names_with_callbacks = { "dict", callback },
-    }
+function kbd.init(self)
 
-    opts = deepcopy(opts)
-    local apply = opts.apply
-    opts.apply = nil
+    mode, ks, callback, opts = self.mode, self.keys, self.callback, self.opts
+    local name, event, pattern, once, prefix, localleader, leader, group =
+        self.name, self.even, self.pattern, self.once, self.prefix, self.localleader, self.leader, self.group
 
-    dict.each(callback, function(kbd_name, callback)
-        local ks, cb, rest = unpack(callback)
-        if is_a.string(rest) then
-            rest = { desc = rest }
+    mode = is_string(mode) and string.splat(mode) or mode
+
+    if prefix and (localleader or leader) then
+        if localleader then
+            ks = "<localleader>" .. prefix .. ks
+        else
+            ks = "<leader>" .. prefix .. ks
         end
-        rest = dict.merge(vim.deepcopy(rest or {}), opts)
-        rest.name = rest.name or kbd_name
-        local mode = rest.mode or "n"
-
-        if apply then
-            mode, ks, cb, rest = apply(mode, ks, cb, rest)
-        end
-
-        kbd.new(mode, ks, cb, rest):enable()
-    end)
-end
-
-function kbd.map(...)
-    return kbd.new(...):enable()
-end
-
-function kbd.noremap(mode, keys, cb, opts)
-    if is_a.string(opts) then
-        opts = { desc = opts }
+    elseif localleader then
+        ks = "<localleader>" .. ks
+    elseif leader then
+        ks = "<leader>" .. ks
     end
 
-    opts = vim.deepcopy(opts or {})
-    opts.remap = false
+    self.keys = ks
+    self.mode = mode
+    self.callback = callback
+
+    if name then
+        if group then
+            name = group .. "." .. name
+        end
+
+        self.name = name
+        kbd.kbds[name] = self
+    end
+
+
+    return self
+end
+
+function kbd.enable(self)
+    if self.autocmd and autocmd.exists(self.autocmd) then
+        return self
+    end
+
+    if self.event and self.pattern then
+        self.autocmd = autocmd.map(self.event, {
+            pattern = self.pattern,
+            group = self.group,
+            once = self.once,
+            callback = function(au_opts)
+                local opts = copy(self.opts)
+                opts.buffer = buffer.bufnr()
+                enable(self.mode, self.keys, self.callback, opts)
+            end,
+        })
+    else
+        enable(self.mode, self.keys, self.callback, self.opts)
+    end
+
+    return self
+end
+
+function kbd.disable(self)
+    if self.opts.buffer then
+        if self.opts.buffer then
+            del(mode, keys, { buffer = self.opts.buffer })
+        end
+    elseif self.events and self.pattern then
+        del(mode, keys, { buffer = buffer.bufnr() })
+    else
+        del(mode, keys)
+    end
+
+    if self.autocmd then
+        autocmd.disable(self.autocmd)
+    end
+
+    return self
+end
+
+function kbd.static_map(mode, ks, callback, opts)
+    return kbd.enable(kbd(mode, ks, callback, opts))
+end
+
+function kbd.static_noremap(mode, ks, callback, opts)
+    opts = is_string(opts) and { desc = opts } or opts
+    opts = opts or {}
     opts.noremap = true
 
-    return kbd.map(mode, keys, cb, opts)
+    return kbd.map(mode, ks, callback, opts)
 end
 
-function kbd.map_groups(groups)
-    local all_opts = deepcopy(groups.opts or {})
-    local all_apply = groups.apply
-    groups.apply = nil
-    groups.opts = nil
-    local new = {}
+function kbd.static_map_group(group_name, specs, compile)
+    local mapped = {}
+    local opts = specs.opts
+    local apply = specs.apply
 
-    dict.each(groups, function(group_name, group_spec)
-        if group_name == "opts" or group_name == "inherit" or group_name == "apply" then
+    dict.each(specs, function(name, spec)
+        if name == "opts" or name == "apply" then
             return
         end
 
-        local opts = group_spec.opts and deepcopy(group_spec.opts)
-        local inherit = group_spec.inherit
-        local apply = group_spec.apply
-        group_spec.opts = nil
-        group_spec.inherit = nil
-        group_spec.apply = nil
+        name = group_name .. "." .. name
+        local mode, ks, callback, rest
 
-        if opts or inherit then
-            if opts and inherit then
-                dict.merge(opts, all_opts)
-            elseif not opts then
-                opts = all_opts
-            end
-
-            opts.apply = function(mode, ks, cb, rest)
-                if apply and all_apply then
-                    return all_apply(apply(mode, ks, cb, rest))
-                elseif apply then
-                    return apply(mode, ks, cb, rest)
-                else
-                    return mode, ks, cb, rest
-                end
-            end
-
-            dict.each(group_spec, function(kbd_name, kbd_spec)
-                local ks, cb, rest = unpack(kbd_spec)
-                if is_a.string(rest) then
-                    rest = { desc = rest }
-                end
-
-                rest = rest or {}
-                if opts then
-                    dict.merge(rest, opts)
-                end
-                rest.apply = nil
-
-                rest.name = group_name .. "." .. kbd_name
-                local mode = rest.mode or "n"
-                new[rest.name] = { mode, ks, cb, rest }
-            end)
+        if opts then
+            ks, callback, rest = unpack(spec)
+            rest = is_string(rest) and { desc = rest } or rest
+            rest = merge(copy(rest or {}), opts or {})
+            mode = rest.mode or "n"
         else
-            dict.each(group_spec, function(kbd_name, kbd_spec)
-                if is_a.string(kbd_spec[4]) then
-                    kbd_spec[4] = { desc = kbd_spec[4] }
-                end
+            mode, ks, callback, rest = unpack(spec)
+            rest = is_string(rest) and { desc = rest } or rest
+            rest = copy(rest or {})
+            rest.name = name
+        end
 
-                local options = kbd_spec[4] or {}
-                options.name = group_name .. "." .. kbd_name
-                kbd_spec[4] = options
-                local mode, ks, cb, rest = unpack(kbd_spec)
+        if apply then
+            mode, ks, callback, rest = apply(mode, ks, callback, rest)
+        end
 
-                rest = rest or {}
-                if opts then
-                    dict.merge(rest, opts)
-                end
-                rest.apply = nil
-                rest.name = group_name .. "." .. kbd_name
-
-                if apply and all_apply then
-                    mode, ks, cb, rest = all_apply(apply(mode, ks, cb, rest))
-                elseif apply then
-                    mode, ks, cb, rest = apply(mode, ks, cb, rest)
-                end
-
-                new[rest.name] = { mode, ks, cb, rest }
-            end)
+        if compile then
+            mapped[name] = kbd(mode, ks, callback, rest)
+        else
+            mapped[name] = kbd.map(mode, ks, callback, rest)
         end
     end)
 
-    dict.each(new, function(_, spec)
-        kbd.map(unpack(spec))
-    end)
-
-    return new
+    return mapped
 end
 
-function kbd.map_group(group, spec)
-    return kbd.map_groups { [group] = spec }
+function kbd.static_map_groups(specs, compile)
+    local all_mapped = {}
+    local opts = specs.opts
+    specs = deepcopy(specs)
+    specs.opts = nil
+
+    dict.each(specs, function(group, spec)
+        if group == "inherit" then
+            return
+        elseif spec.opts and opts then
+            merge(spec.opts, opts)
+        elseif spec.inherit then
+            spec.opts = opts
+        end
+
+        spec.inherit = nil
+        specs[group] = spec
+    end)
+
+    dict.each(specs, function(group, spec)
+        merge(all_mapped, kbd.map_group(group, spec, compile))
+    end)
+
+    return all_mapped
 end

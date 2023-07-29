@@ -120,13 +120,31 @@ return {
 
     startuptime = {
         "dstein64/vim-startuptime",
-        cmd = "StartupTime",
-        keys = {{'q', ':hide<CR>', mode = {'n', 'i'}}}
+        config = function ()
+            kbd.map(
+                'ni',
+                'q',
+                '<cmd>hide<CR>',
+                {
+                    name = 'startuptime.hide_buffer',
+                    event = 'FileType',
+                    pattern = 'startuptime'
+                }
+            )
+
+            kbd.noremap(
+                'n',
+                '<leader>hs',
+                '<cmd>StartupTime<CR>',
+                {
+                    name = 'startuptime',
+                }
+            )
+        end
     },
 
     comment = {
         "tpope/vim-commentary",
-        event = "BufReadPost",
     },
 
     vimtex = {
@@ -231,7 +249,6 @@ return {
     fugitive = {
         "tpope/vim-fugitive",
         dependencies = { "tpope/vim-git" },
-        keys = '<leader>g',
     },
 
     tagbar = {

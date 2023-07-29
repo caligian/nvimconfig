@@ -667,52 +667,6 @@ function buffer.scratch(name, filetype)
     return bufnr
 end
 
-function buffer.menu(desc, items, formatter, callback)
-    validate {
-        description = { is_string_or_table, desc },
-        items = { is_string_or_table, items },
-        callback = { "callable", callback },
-        ["?formatter"] = { "callable", formatter },
-    }
-
-    if is_a.string(dict.items) then
-        dict.items = vim.split(items, "\n")
-    end
-    if is_a.string(desc) then
-        desc = vim.split(desc, "\n")
-    end
-    local b = buffer.scratch()
-    local desc_n = #desc
-    local s = array.extend(desc, items)
-    local lines = copy(s)
-    if formatter then
-        s = array.map(s, formatter)
-    end
-    local _callback = callback
-
-    callback = function()
-        local idx = vim.fn.line "."
-        if idx <= desc_n then
-            return
-        end
-        _callback(lines[idx])
-    end
-
-    buffer.setbuffer(b, s)
-    buffer.setopt(b, "modifiable", false)
-    buffer.hook(b, "WinLeave", function()
-        buffer.delete(b)
-    end)
-    buffer.bind(b, { noremap = true, event = "BufEnter" }, {
-        "q",
-        function()
-            buffer.hide(b)
-        end,
-    }, { "<CR>", callback, "Run callback" })
-
-    return b
-end
-
 function buffer.input(text, cb, opts)
     validate {
         text = { is_string_or_table, text },

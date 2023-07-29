@@ -16,6 +16,7 @@ dict.merge(user, {
         vim_help = "/usr/share/nvim/runtime/doc",
         help_files = { ft = "help" },
         log_files = "%.log$",
+        startuptime = {ft = 'startuptime'},
     },
 })
 

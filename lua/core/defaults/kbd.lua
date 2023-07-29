@@ -258,7 +258,7 @@ dict.merge(user.mappings, {
         scroll_inc_fontsize = { "<C-ScrollWheelUp>", inc_fontsize, "Increase font size by 1pt" },
         scroll_dec_fontsize = { "<C-ScrollWheelDown>", dec_fontsize, "Decrease font size by 1pt" },
         inc_fontsize = { "<C-x><C-=>", inc_fontsize, "Increase font size by 1pt" },
-        dec_fontsize = { "<C-x><C-->", dec_fontsize, "Decrease font size by 1pt" },
+        dec_fontsize = { "<C-x><C-->", dec_fontsize, "Decrease font size by -1pt" },
     },
 })
 

@@ -1,235 +1,163 @@
-autocmd = {
-    autocmds = {},
-    autocmds_by_name = {},
-    augroups = {},
-    augroups_by_name = {},
-}
+local enable = vim.api.nvim_create_autocmd
+local disable = vim.api.nvim_del_autocmd
+local get = vim.api.nvim_get_autocmds
+local create_augroup = vim.api.nvim_create_augroup
 
-local disable_autocmd = vim.api.nvim_del_autocmd
-local enable_autocmd = vim.api.nvim_create_autocmd
-local enable_augroup = vim.api.nvim_create_augroup
-local disable_augroup = vim.api.nvim_del_augroup_by_id
+autocmd = autocmd or struct.new('autocmd', {
+    'id',
+    'name',
+    'event',
+    'pattern',
+    'callback',
+    'group',
+    'once',
+    'buffers',
+    'buffer',
+    'nested',
+})
 
-autocmd.exception = {
-    duplicate_name = exception.new("duplicate_name", "autocmd by this name already exists"),
-}
+autocmd.autocmds = autocmd.autocmds or {}
 
-function autocmd.create_augroup(name, clear)
-    if autocmd.augroups_by_name[name] then
-        return autocmd.augroups[name]
-    end
+function autocmd.init_before(event, opts)
+	if is_struct(event, 'autocmd') then return event end
 
-    local group = {}
-    local id = enable_augroup(name, { clear = clear })
-    group.id = id
-    group.name = name
-    autocmd.augroups_by_name[name] = group
-    autocmd.augroups[id] = group
-
-    return group
+	return {
+		event = event, 
+		pattern = opts.pattern,
+		callback = opts.callback,
+		group = opts.group or 'MyGroup',
+		buffers = {},
+		name = opts.name,
+	}
 end
 
-local function get_augroup(name)
-    local group = autocmd.augroups_by_name[name] or autocmd.augroups[name]
-    return group
-end
+function autocmd.init(self)
+    local callback = self.callback
 
-function autocmd.list_augroup(name)
-    local group = get_augroup(name)
-    if not group then
-        return
-    end
-
-    group = copy(group)
-    group.id = nil
-    group.name = nil
-
-    return group
-end
-
-function autocmd.disable_augroup(name)
-    local group = get_augroup(name)
-    if not group or not group.id then
-        return
-    end
-
-    local id = group.id
-    group.id = false
-
-    dict.each(group, function(group_name, autocmds)
-        if group_name == "id" or group_name == "name" then
-            return
+    function self.callback(opts)
+        if is_string(callback) then
+            vim.cmd(callback)
+        else
+            callback(opts)
         end
-        dict.each(autocmds, function(au_name, au_obj)
-            au_obj:disable()
-        end)
-    end)
-
-    return id
-end
-
-function autocmd.delete_augroup(name)
-    local id = autocmd.disable_augroup(name)
-    if not id or not get_augroup(id) then
-        return
+        append(self.buffers, buffer.bufnr())
     end
 
-    autocmd.augroups[id] = nil
-    autocmd.augroups_by_name[name] = nil
+    if self.name then
+        local name = self.name
 
-    return id
-end
+        if self.group then
+            name = self.group .. '.' .. name
+        end
 
-function autocmd.new(event, opts)
-    validate {
-        event = { is { "array", "string" }, event },
-        opts = {
-            {
-                pattern = is { "array", "string" },
-                callback = is { "string", "callable" },
-                name = "string",
-                opt_group = "string",
-            },
-            opts,
-        },
-    }
+        local exists = autocmd.autocmds[name]
+        if exists and autocmd.exists(exists) then return exists end
 
-    opts = deepcopy(opts)
-    local name = opts.name
-    local exists = autocmd.autocmds_by_name[name]
-
-    if exists and not exists:is_disabled() then
-        autocmd.exception.duplicate_name:throw(name)
+        autocmd.autocmds[self.name] = self
     end
-
-    opts.group = opts.group or "default"
-    local clear_group = opts.clear_group
-    opts.clear_group = nil
-
-    if not autocmd.augroups[opts.group] then
-        autocmd.create_augroup(opts.group, clear_group)
-    end
-
-    local self = {
-        name = name,
-        event = event,
-        pattern = opts.pattern,
-        once = opts.once,
-        nested = opts.nested,
-        callback = opts.callback,
-        id = false,
-        group = opts.group,
-        disable = function(self)
-            if not self.id then
-                return
-            end
-
-            local id = self.id
-            self.id = false
-            disable_autocmd(self.id)
-
-            return id
-        end,
-        enable = function(self)
-            if self.id then
-                return false
-            end
-
-            self.id = enable_autocmd(self.event, {
-                pattern = self.pattern,
-                once = self.once,
-                callback = function(au_opts)
-                    if is_a.callable(self.callback) then
-                        self.callback(self, au_opts)
-                    else
-                        vim.cmd(self.callback)
-                    end
-
-                    if self.once then
-                        self.id = false
-                    end
-                end,
-                group = self.group,
-                nested = self.nested,
-            })
-
-            autocmd.autocmds_by_name[self.name] = self
-            autocmd.autocmds[self.id] = self
-
-            return self
-        end,
-        is_enabled = function(self)
-            if not self.id then
-                return
-            end
-            return true
-        end,
-        is_disabled = function(self)
-            if not self.id then
-                return true
-            end
-            return
-        end,
-        delete = function(self)
-            if not autocmd.autocmds_by_name[self.name] then
-                return
-            end
-
-            autocmd.autocmds_by_name[self.name] = nil
-            autocmd.autocmds[self.id] = nil
-
-            return self
-        end,
-    }
 
     return self
 end
 
-function autocmd.map(...)
-    return autocmd.new(...):enable()
-end
+function autocmd.exists(self)
+    local found, msg = pcall(get, {group = self.group, event = self.event, buffer = self.buffers })
 
-function autocmd.map_with_opts(opts, callback)
-    validate {
-        preset_opts = { "dict", opts },
-        names_with_callbacks = { "dict", callback },
-    }
-
-    dict.each(callback, function(au_name, cb)
-        local _opts = dict.merge({ callback = cb, name = au_name }, opts)
-        _opts.name = au_name
-        autocmd.new(au_name, _opts)
-    end)
-end
-
-function autocmd.map_group(group_name, group_spec)
-    local apply = group_spec.apply
-    group_spec.apply = nil
-
-    local out = {}
-
-    dict.each(deepcopy(group_spec), function(au_name, au_spec)
-        au_spec[2].group = group_name
-        au_spec[2].name = "au." .. group_name .. "." .. au_name
-
-        local event, opts = unpack(au_spec)
-
-        if apply then
-            event, opts = apply(event, opts)
+    if not found then
+        if msg and msg:match "Invalid .group." then
+            create_augroup(self.group, {})
         end
 
-        out[au_spec[2].name] = autocmd.map(event, opts)
+        return
+    end
+
+    found = msg
+    found = array.grep(found, function (x)
+        return self.id and x.id == self.id
     end)
 
-    return out
+    if #found > 0 then
+        return self
+    end
 end
 
-function autocmd.map_groups(groups)
-    local out = {}
+function autocmd.enable(self)
+    if autocmd.exists(self) then
+        return self.id
+    end
 
-    dict.each(vim.deepcopy(groups), function(group_name, group_spec)
-        dict.merge(out, autocmd.map_group(group_name, group_spec))
+    self.id = enable(self.event, {
+        pattern = self.pattern,
+        group = self.group,
+        callback = self.callback,
+        once = self.once,
+        nested = self.nested,
+    })
+
+    return id
+end
+
+function autocmd.disable(self)
+    if not autocmd.exists(self) then
+        return 
+    end
+
+    return disable(self.id)
+end
+
+function autocmd.static_find(spec)
+    return get(spec)
+end
+
+function autocmd.static_map(...)
+    local x = autocmd(...)
+    local id = autocmd.enable(x)
+
+    return x, id
+end
+
+function autocmd.static_map_group(group, mappings, compile)
+    local opts = mappings.opts
+    local apply = mappings.apply
+    local mapped = {}
+
+    dict.each(mappings, function (key, value)
+        if key == 'opts' or key == 'apply' then
+            return 
+        end
+
+        value = deepcopy(value)
+
+        local event, rest
+        local event, rest = unpack(value)
+        local name = group .. '.' .. key
+        rest.group = group
+
+        if opts then
+            rest = merge(copy(rest), opts)
+        end
+
+        rest.name = name
+
+        if apply then 
+            event, rest = apply(event, rest) 
+        end
+
+        if compile then
+            mapped[name] = autocmd(event, rest)
+        else
+            mapped[name] = autocmd.map(event, rest)
+        end
     end)
 
-    return out
+    return mapped
+end
+
+function autocmd.static_map_groups(groups, compile)
+    local all_groups = {}
+
+    dict.each(groups, function(name, group)
+        merge(all_groups, autocmd.map_group(name, group, compile))
+    end)
+
+    return all_groups
 end
