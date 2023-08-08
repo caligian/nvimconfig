@@ -80,7 +80,12 @@ dict.merge(user.mappings, {
                     return
                 end
 
-                Filetype.format_buffer(ft, bufnr)
+                if not Filetype.filetypes[ft] then
+                    pp(sprintf('no formatter defined for ' .. ft))
+                else
+                    local x = Filetype.filetypes[ft]
+                    Filetype.format_buffer(x)
+                end
             end,
             { desc = "format buffer" },
         },
@@ -94,7 +99,12 @@ dict.merge(user.mappings, {
                     return
                 end
 
-                Filetype.format_dir(ft, path.dirname(bufname))
+                if not Filetype.filetypes[ft] then
+                    pp(sprintf('no formatter defined for ' .. ft))
+                else
+                    local x = Filetype.filetypes[ft]
+                    Filetype.format_buffer(x)
+                end
             end,
             { desc = "format current directory" },
         },

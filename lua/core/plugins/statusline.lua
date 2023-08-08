@@ -24,8 +24,6 @@ function statusline:update_colors()
     local bg = colors.bg
     local fg = colors.fg
 
-    print(laude)
-
     if is_light(bg) then
         local contrast = contrast(bg, fg)
         for key, value in pairs(colors) do
@@ -262,9 +260,7 @@ function statusline:setup_evil()
     }
 
     ins_right {
-        function()
-            return "▊"
-        end,
+        function() return "▊" end,
         color = { fg = colors.red },
         padding = { left = 1 },
     }
@@ -321,9 +317,7 @@ statusline.autocmds = {
         "ColorScheme",
         {
             pattern = "*",
-            callback = function()
-                statusline:setup()
-            end,
+            callback = function() statusline:setup() end,
         },
     },
 }

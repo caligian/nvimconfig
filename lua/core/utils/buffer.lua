@@ -756,9 +756,9 @@ function buffer.split(bufnr, direction)
         vim.cmd(s)
     end
 
-    if direction == "vert" or direction == "vertical" or direction == "v" then
+    if string.match(direction, 'v') then
         cmd ":vsplit"
-    elseif direction == "split" or direction == "horizontal" or direction == "s" then
+    elseif string.match_any(direction, '^s$', 'split','horiz') then
         cmd ":split"
     elseif direction == "botright" then
         cmd ":botright"

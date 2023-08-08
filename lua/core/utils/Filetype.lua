@@ -41,6 +41,14 @@ function Filetype.init_before(name)
     return { name = name, user_config_require_path = "user.ft." .. name, config_require_path = "core.ft." .. name }
 end
 
+function Filetype.init(self)
+    if Filetype.filetypes[self.name] then
+        return Filetype.filetypes[self.name]
+    end
+
+    return self
+end
+
 function Filetype.load_autocmds(self, autocmds)
     autocmds = autocmds or self.autocmds
     if not autocmds then
@@ -58,33 +66,18 @@ end
 
 function Filetype.load_path(self, p)
     p = p or req2path(self.config_require_path)
+    local out = loadfile(p)()
 
-    if not path.exists(p) then
-        return
+    if self.mappings and not is_empty(self.mappings) then
+        Filetype.load_mappings(self)
     end
 
-    local out
-    local ok, msg = pcall(loadfile, p)
-
-    if ok and msg then
-        ok = msg()
-        if is_a.callable(ok) then
-            out = ok()
-        end
+    if self.autocmds and not is_empty(self.autocmds) then
+        Filetype.load_autocmds(self)
     end
 
-    ok, msg = pcall(function()
-        if self.mappings and not is_empty(self.mappings) then
-            Filetype.load_mappings(self)
-        end
-
-        if self.autocmds and not is_empty(self.autocmds) then
-            Filetype.load_autocmds(self)
-        end
-    end)
-
-    if not ok and msg then
-        print("error loading config for  " .. self.name .. ": " .. msg)
+    if out then
+        Filetype.filetypes[self.name] = out
     end
 
     return out or true
@@ -112,28 +105,22 @@ function Filetype.setup_lsp(self)
 end
 
 function Filetype.load_config(self, is_user)
-    local ok, msg
+    local old_self = self
     if is_user then
-        ok, msg = pcall(reqloadfile, self.user_config_require_path)
+        self = reqloadfile(self.user_config_require_path)
     else
-        ok, msg = pcall(reqloadfile, self.config_require_path)
+        self = reqloadfile(self.config_require_path)
     end
 
-    if ok then
-        if is_a.callable(msg) then
-            out = msg()
-        else
-            if self.mappings and not is_empty(self.mappings) then
-                Filetype.load_mappings(self)
-            end
-
-            if self.autocmds and not is_empty(self.autocmds) then
-                Filetype.load_autocmds(self)
-            end
-        end
+    if self then
+        Filetype.filetypes[self.name] = self
+        Filetype.load_autocmds(self)
+        Filetype.load_mappings(self)
     end
 
-    return out or true
+    Filetype.load_autocmds(old_self)
+    Filetype.load_mappings(old_self)
+    return old_self
 end
 
 function Filetype.reload_config(self, is_user)
@@ -208,25 +195,23 @@ function Filetype.load_mappings(self, mappings)
         if opts then
             local mode, ks, cb, rest
             ks, cb, rest = unpack(spec)
-            rest = is_a.string(rest) and {desc = rest} or rest
+            rest = is_a.string(rest) and { desc = rest } or rest
             rest = dict.merge(rest or {}, opts)
-            rest.name =  self.name .. "." .. name
+            rest.name = self.name .. "." .. name
             rest.event = "FileType"
             rest.pattern = self.name
             mode = rest.mode or "n"
             spec = { mode, ks, cb, rest }
-
             apply(kbd.map, spec)
         else
             spec = deepcopy(spec)
             local mode, ks, cb, rest = unpack(spec)
-            rest = is_a.string(rest) and {desc = rest} or rest
+            rest = is_a.string(rest) and { desc = rest } or rest
             rest = rest or {}
             rest.name = self.name .. "." .. name
             rest.event = "FileType"
             rest.pattern = self.name
             spec[4] = rest
-
             apply(kbd.map, spec)
         end
     end)
@@ -391,61 +376,38 @@ function Filetype.format_buffer(self, bufnr, opts)
     return proc
 end
 
-Filetype.static_get = multimethod.new {
-    string = function(ft)
-        if not Filetype.filetypes[ft] then
-            Filetype.filetypes[ft] = Filetype.new(ft)
+function Filetype.get(ft, attrib, callback)
+    local x = Filetype(ft)
+
+    if attrib then
+        x = x[attrib]
+        if callback then 
+            return callback(x) 
+        else
+            return x
         end
-        return Filetype.filetypes[ft]
-    end,
-    [{ "string", "string" }] = function(ft, attrib)
-        return Filetype.get(ft)[attrib]
-    end,
-    [{ "string", "string", "callable" }] = function(ft, attrib, callback)
-        ft = Filetype.get(ft)
-        attrib = ft[attrib]
-
-        if attrib ~= nil then
-            return callback(attrib, ft)
-        end
-    end,
-    [{ "string", "callback" }] = function(ft, callback)
-        return callback(Filetype.get(ft))
-    end,
-}
-
-function Filetype.static_format_buffer(ft, bufnr, opts)
-    return Filetype.get(ft, "formatter", function(config, ft_obj)
-        if opts then
-            config = dict.merge(copy(config), opts)
-        end
-        return Filetype.format_buffer(ft_obj, bufnr, config)
-    end)
-end
-
-function Filetype.static_format_dir(ft, p, opts)
-    return Filetype.get(ft, "dir_formatter", function(_, ft_obj)
-        return ft_obj:format_dir(p)
-    end)
-end
-
-function Filetype.static_load_defaults(ft)
-    local p = "core.ft." .. ft
-    if req2path(p) then
-        return require(p)
+    elseif callback then
+        return callback(x)
+    else
+        return x
     end
 end
 
-function Filetype.static_load_specs(is_user)
+function Filetype.load_defaults(ft)
+    local p = "core.ft." .. ft
+    if req2path(p) then return require(p) end
+end
+
+function Filetype.load_specs(is_user)
     if not is_user then
         array.each(dir.getallfiles(user.dir .. "/lua/core/ft/"), function(f)
             f = path.basename(f):gsub("%.lua$", "")
-            Filetype.load_path(Filetype.get(f))
+            Filetype.load_config(Filetype(f))
         end)
     else
         array.each(dir.getallfiles(user.user_dir .. "/lua/user/ft/"), function(f)
             f = path.basename(f):gsub("%.lua$", "")
-            Filetype.load_path(Filetype.get(f), true)
+            Filetype.load_config(Filetype(f), true)
         end)
     end
 end

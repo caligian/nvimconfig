@@ -104,18 +104,18 @@ function autocmd.disable(self)
     return disable(self.id)
 end
 
-function autocmd.static_find(spec)
+function autocmd.find(spec)
     return get(spec)
 end
 
-function autocmd.static_map(...)
+function autocmd.map(...)
     local x = autocmd(...)
     local id = autocmd.enable(x)
 
     return x, id
 end
 
-function autocmd.static_map_group(group, mappings, compile)
+function autocmd.map_group(group, mappings, compile)
     local opts = mappings.opts
     local apply = mappings.apply
     local mapped = {}
@@ -152,7 +152,7 @@ function autocmd.static_map_group(group, mappings, compile)
     return mapped
 end
 
-function autocmd.static_map_groups(groups, compile)
+function autocmd.map_groups(groups, compile)
     local all_groups = {}
 
     dict.each(groups, function(name, group)

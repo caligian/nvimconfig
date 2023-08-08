@@ -27,6 +27,7 @@ function kbd.init_before(mode, ks, callback, rest)
         return mode
     end
 
+    mode = is_string(mode) and mode:splat() or mode
     rest = is_string(rest) and { desc = rest } or rest
     rest = rest or {}
 
@@ -43,22 +44,19 @@ function kbd.init_before(mode, ks, callback, rest)
         end
     end)
 
-    local self = {
+    local self = merge({
         mode = mode,
         keys = ks,
         callback = callback,
         opts = opts,
         desc = opts.desc,
-    }
-
-    merge(self, custom)
+    }, custom)
 
     return self
 end
 
 function kbd.init(self)
-
-    mode, ks, callback, opts = self.mode, self.keys, self.callback, self.opts
+    local mode, ks, callback, opts = self.mode, self.keys, self.callback, self.opts
     local name, event, pattern, once, prefix, localleader, leader, group =
         self.name, self.even, self.pattern, self.once, self.prefix, self.localleader, self.leader, self.group
 
@@ -134,11 +132,11 @@ function kbd.disable(self)
     return self
 end
 
-function kbd.static_map(mode, ks, callback, opts)
+function kbd.map(mode, ks, callback, opts)
     return kbd.enable(kbd(mode, ks, callback, opts))
 end
 
-function kbd.static_noremap(mode, ks, callback, opts)
+function kbd.noremap(mode, ks, callback, opts)
     opts = is_string(opts) and { desc = opts } or opts
     opts = opts or {}
     opts.noremap = true
@@ -146,12 +144,17 @@ function kbd.static_noremap(mode, ks, callback, opts)
     return kbd.map(mode, ks, callback, opts)
 end
 
-function kbd.static_map_group(group_name, specs, compile)
+function kbd.map_group(group_name, specs, compile)
     local mapped = {}
     local opts = specs.opts
     local apply = specs.apply
 
     dict.each(specs, function(name, spec)
+        if is_struct(spec, 'kbd') then
+            kbd.enable(spec)
+            return
+        end
+
         if name == "opts" or name == "apply" then
             return
         end
@@ -185,14 +188,17 @@ function kbd.static_map_group(group_name, specs, compile)
     return mapped
 end
 
-function kbd.static_map_groups(specs, compile)
+function kbd.map_groups(specs, compile)
     local all_mapped = {}
     local opts = specs.opts
     specs = deepcopy(specs)
     specs.opts = nil
 
     dict.each(specs, function(group, spec)
-        if group == "inherit" then
+        if is_struct(spec, 'kbd') then
+            kbd.enable(spec)
+            return
+        elseif group == "inherit" then
             return
         elseif spec.opts and opts then
             merge(spec.opts, opts)

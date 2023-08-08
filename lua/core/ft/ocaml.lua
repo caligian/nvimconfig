@@ -1,4 +1,4 @@
-local ocaml = Filetype.get 'ocaml'
+local ocaml = Filetype 'ocaml'
 
 ocaml.repl = {
     "utop",
@@ -23,3 +23,5 @@ ocaml.autocmds = {
         buffer.set_option(au.buf, 'shiftwidth', 4)
     end
 }
+
+return ocaml

@@ -1,4 +1,4 @@
-local julia = Filetype.get "julia"
+local julia = Filetype "julia"
 
 julia.compile = "julia"
 
@@ -10,3 +10,5 @@ julia.lsp_server = {
     single_file_support = true,
     cmd = { "julia", "-e", "using LanguageServer; runserver()" },
 }
+
+return julia

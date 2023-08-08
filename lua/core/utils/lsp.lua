@@ -191,8 +191,8 @@ function lsp.on_attach(client, bufnr)
         buffer.set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 
         local ft = vim.bo.filetype
-        local has_formatter = Filetype.get(ft, 'formatter')
-        if not has_formatter then
+        local has_formatter = Filetype(ft)
+        if has_formatter and not has_formatter.formatter then
             lsp.attach_formatter(client)
         end
 

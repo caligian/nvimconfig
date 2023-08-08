@@ -1,4 +1,4 @@
-local elixir = Filetype.get "elixir"
+local elixir = Filetype "elixir"
 
 elixir.repl = {"iex", load_file = function (fname, make_file)
     fname = fname .. '.exs'
@@ -21,3 +21,5 @@ elixir.lsp_server = {
         path.join(user.data_dir, "lsp-servers", "elixir-ls", "scripts", "language_server.sh"),
     },
 }
+
+return elixir

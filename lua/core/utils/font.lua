@@ -50,7 +50,7 @@ end
 
 function font.new(family, attribs)
     if not family then
-        font.exception.invalid_font:throw()
+        exception.throw(font.exception.invalid_font)
     end
 
     local self = {}
@@ -92,7 +92,8 @@ local function assertcurrent(self)
     if self:iscurrent() then
         return self
     end
-    font.exception.not_set:throw(self.family)
+
+    exception.throw(font.exception.not_set, self)
 end
 
 function mod:inc(by)

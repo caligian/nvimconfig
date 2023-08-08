@@ -1,4 +1,4 @@
-local tex = Filetype.get "text"
+local tex = Filetype "text"
 
 tex.lsp_server = "texlab"
 
@@ -14,3 +14,5 @@ tex.formatter = {
     "latexindent.pl -m -",
     stdin = true,
 }
+
+return tex

@@ -1,4 +1,4 @@
-local python = Filetype.get "python"
+local python = Filetype "python"
 
 python.linters = "pylint"
 
@@ -22,3 +22,5 @@ python.autocmds = {
         buffer.set_option(au.buf, { shiftwidth = 4, tabstop = 4, expandtab = true })
     end
 }
+
+return python

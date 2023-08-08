@@ -1,4 +1,4 @@
-local cs = Filetype.get "cs"
+local cs = Filetype "cs"
 
 cs.repl = "csharp"
 cs.compile = function(bufnr)
@@ -71,3 +71,5 @@ cs.lsp_server = {
         },
     },
 }
+
+return cs

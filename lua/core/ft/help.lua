@@ -92,7 +92,7 @@ local function putheading()
     buffer.set_lines(vim.fn.bufnr(), row - 1, row, s)
 end
 
-local help = Filetype.get 'help'
+local help = Filetype 'help'
 help.autocmds = {
     buffer_options = function (au)
         dict.each({formatoptions='tqn', textwidth=80}, function(key, value)
@@ -118,3 +118,5 @@ help.mappings = {
         "Set tag prefix",
     },
 }
+
+return help

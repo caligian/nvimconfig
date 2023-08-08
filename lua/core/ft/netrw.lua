@@ -1,7 +1,9 @@
-local netrw = Filetype.get 'netrw'
+local netrw = Filetype 'netrw'
 
 netrw.autocmds = {
     temp_buffer = function (au)
         buffer.map(au.buf, 'ni', 'q', ':hide<CR>')
     end
 }
+
+return netrw

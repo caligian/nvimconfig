@@ -1,4 +1,4 @@
-local js = Filetype.get 'javascript'
+local js = Filetype 'javascript'
 js.compile = 'node'
 js.repl = 'node'
 js.lsp_server = 'tsserver'
@@ -9,3 +9,5 @@ js.autocmds = {
         buffer.set_option(bufnr, 'expandtab', true)
     end
 }
+
+return js

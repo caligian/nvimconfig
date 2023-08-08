@@ -98,28 +98,6 @@ end
 
 del_command = vim.api.nvim_del_user_command
 
--- form: {var, <input-option> ...}
-function input(...)
-    local args = { ... }
-    local out = {}
-
-    for _, form in ipairs(args) do
-        assert(is_a.table(form) and #form >= 1, "form: {var, [rest vim.fn.input args]}")
-
-        local name = form[1]
-        local s = vim.fn.input((form[2] or name) .. " % ", unpack(array.rest(array.rest(form))))
-
-        if #s == 0 then
-            pp("\nexpected string for param " .. name)
-            return
-        end
-
-        out[name] = s
-    end
-
-    return out
-end
-
 --- Only works for user and doom dirs
 function reqloadfile(s)
     s = s:split "%."
@@ -155,69 +133,44 @@ function req(s)
     end
 end
 
+--- @tparam array[array] array of input() args
 function input(spec)
     local out = {}
 
-    array.each(spec, function(value)
-        local key = value[1]
-
-        validate[key]({
-            opt_validate = "callable",
-            opt_prompt = "string",
-            opt_completion = "string",
-            opt_post = "callable",
-        }, value)
-
-        local check = value.validate
-        local prompt = value.prompt or key
-        local default = value.default
-        local required = value.required
-        local post = value.post
-            or function(x)
-                if x:match "^[0-9]+$" then
-                    return tonumber(x)
-                end
-                return x
-            end
-        prompt = prompt .. " > "
-
-        local userint
-        if not default then
-            userint = vim.fn.input(prompt)
-        else
-            userint = vim.fn.input(prompt)
-        end
-
-        userint = #userint == 0 and false or stringtrim(userint)
+    dict.each(spec, function(key, value)
+        local name = key
+        local default, completion, cancelreturn, prompt, default, highlight, post, required
+        required = value.required
+        post = value.post
+        prompt = (value.prompt or value[1] or key) .. ' > '
+        default = value.default or value[2]
+        cancelreturn = value.cancelreturn
+        highlight = value.highlight
+        completion = value[3] or value.completion
+        local opts = {
+            prompt = prompt,
+            default = default,
+            completion = completion,
+            cancelreturn = cancelreturn,
+            highlight = highlight,
+        }
+        local userint = vim.fn.input(opts):trim()
 
         if #userint == 0 then
-            userint = false
-        end
-
-        if not userint and default then
-            userint = default
-        end
-
-        if required == nil then
-            required = true
-        end
-
-        if required and not userint then
-            error("invalid input passed :" .. dump(value))
-        end
-
-        if check then
-            local ok, msg = check(userint)
-            if not ok then
-                error("invalid input passed :" .. msg)
-            end
+            out[key] = false
+        elseif userint:is_number() then
+            out[key] = tonumber(userint)
+        else
+            out[key] = userint
         end
 
         if post then
-            userint = post(userint)
+            out[key] = post(out[key])
         end
 
-        out[key] = userint
+        if required then
+            assert(out[key], 'no input passed for non-optional key ' .. key)
+        end
     end)
 
     return out
