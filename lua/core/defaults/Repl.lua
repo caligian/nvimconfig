@@ -115,7 +115,7 @@ local function create_mod(opts)
                     get_repl(bufnr, value, {
                         running = true,
                         orelse = function()
-                            say(sprintf("No Repl running for buffer %d [%s]. Run :ReplBufferStart %s first", bufnr, ft))
+                            say(sprintf("No Repl running for buffer %d [%s]. Run :ReplBufferStart %s first", bufnr, ft, ft))
                         end,
                     })
                 end
@@ -216,7 +216,7 @@ dict.each(cmds, function(key, fun)
     mappings["ft_" .. fun] = { "<localleader>r" .. key, "<cmd>" .. to_camelcase("repl_ft_" .. fun) .. "<cr>" }
     mappings["sh_" .. fun] =
         { "<leader>x" .. (key == "r" and "x" or key), "<cmd>" .. to_camelcase("repl_sh_" .. fun) .. "<Cr>" }
-end)
+end) 
 
 mappings["buffer_send_range"] = { "<leader>re", "<cmd>ReplBufferSendRange<CR>", { mode = "v" } }
 mappings["ft_send_range"] = { "<localleader>re", "<cmd>ReplFtSendRange<CR>", { mode = "v" } }
