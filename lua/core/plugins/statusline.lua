@@ -224,7 +224,7 @@ function statusline:setup_evil()
     ins_right {
         function()
             local bufnr = vim.fn.bufnr()
-            local groups = buffer_group.buffers[bufnr]
+            local groups = BufferGroup.buffers[bufnr]
             if not groups then
                 return "<!>"
             end

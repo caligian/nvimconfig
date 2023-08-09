@@ -23,6 +23,11 @@ autocmd.map('BufAdd', {
             buffer.map(bufnr, 'ni', 'q', '<cmd>hide<CR>')
         end
 
+        if buffer.option(bufnr, 'filetype') == 'help' then
+            map_quit()
+            return 
+        end
+
         dict.each(user.temp_buffer_patterns, function (_, pat)
             if is_callable(pat) then
                 if pat(bufname) then

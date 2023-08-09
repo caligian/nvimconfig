@@ -51,7 +51,7 @@ function log_pcall(f, ...)
         return out
     else
         out = debug.traceback()
-        user.logs[#user.logs+1] = out
+        user.logs[#user.logs + 1] = out
         logger:debug(out)
     end
 end

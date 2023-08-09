@@ -34,10 +34,10 @@ local function compile_and_run(lines)
 end
 
 -- Setup commands
-command("NvimEvalRegion", function()
-    local lines = buffer.range(vim.fn.bufnr())
+command("NvimEvalRegion", function(opts)
+    local lines = buffer.range(opts.buf)
     compile_and_run(lines)
-end, { range = true })
+end, {})
 
 command("NvimEvalBuffer", function()
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)

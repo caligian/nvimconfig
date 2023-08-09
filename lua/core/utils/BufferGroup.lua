@@ -459,3 +459,12 @@ function BufferGroup.load_commands(commands)
 
     return Command.map_group('BufferGroup', commands)
 end
+
+function BufferGroup.get_statusline_string(bufnr)
+    local state = BufferGroup.buffers[bufnr]
+    if not state or dict.is_empty(state) then
+        return
+    end
+
+    return "<" .. array.join(dict.keys(state), " ") .. ">"
+end

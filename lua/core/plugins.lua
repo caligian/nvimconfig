@@ -292,5 +292,10 @@ return {
     elixir = {
         "elixir-editors/vim-elixir",
         ft = "elixir",
-    }
+    },
+
+    sexp = {
+        'guns/vim-sexp',
+        ft = {'lisp', 'clojure', 'scheme'},
+    },
 }

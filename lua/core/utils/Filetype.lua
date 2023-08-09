@@ -2,10 +2,14 @@ require "core.utils.autocmd"
 require "core.utils.kbd"
 require "core.utils.lsp"
 require "lua-utils.class"
+require "core.utils.Process"
+
+local add_ft = vim.filetype.add
 
 Filetype = Filetype
     or struct.new("Filetype", {
         "name",
+        'filetype',
         "augroup",
         "user_config_require_path",
         "config_require_path",
@@ -22,9 +26,10 @@ Filetype = Filetype
         "linters",
     })
 
-Filetype.filetypes = Filetype.filetypes or {}
+-- Filetype.filetypes = Filetype.filetypes or {}
+Filetype.filetypes = {}
 Filetype.id = Filetype.filetypes or 1
-Filetype.processes = Filetype.filetypes or {}
+Filetype.Processes = Filetype.Processes or {}
 
 local function formatter_config_path_exists(p)
     p = array.to_array(p)
@@ -46,12 +51,14 @@ function Filetype.init(self)
         return Filetype.filetypes[self.name]
     end
 
+    Filetype.filetypes[self.name] = self
+
     return self
 end
 
 function Filetype.load_autocmds(self, autocmds)
     autocmds = autocmds or self.autocmds
-    if not autocmds then
+    if not autocmds or is_empty(autocmds) then
         return
     end
 
@@ -62,25 +69,6 @@ function Filetype.load_autocmds(self, autocmds)
     end)
 
     return out
-end
-
-function Filetype.load_path(self, p)
-    p = p or req2path(self.config_require_path)
-    local out = loadfile(p)()
-
-    if self.mappings and not is_empty(self.mappings) then
-        Filetype.load_mappings(self)
-    end
-
-    if self.autocmds and not is_empty(self.autocmds) then
-        Filetype.load_autocmds(self)
-    end
-
-    if out then
-        Filetype.filetypes[self.name] = out
-    end
-
-    return out or true
 end
 
 function Filetype.setup_lsp(self)
@@ -105,30 +93,31 @@ function Filetype.setup_lsp(self)
 end
 
 function Filetype.load_config(self, is_user)
-    local old_self = self
+    local ok, msg
+
+    if is_user and not req2path(self.user_config_require_path) then
+        return false
+    elseif not req2path(self.config_require_path) then
+        return false
+    end
+
     if is_user then
-        self = reqloadfile(self.user_config_require_path)
+        ok, msg = pcall(require, self.user_config_require_path)
     else
-        self = reqloadfile(self.config_require_path)
+        ok, msg = pcall(require, self.config_require_path)
     end
 
-    if self then
-        Filetype.filetypes[self.name] = self
-        Filetype.load_autocmds(self)
-        Filetype.load_mappings(self)
+    if not ok then
+        say('FATAL: ' .. msg)
+        return
     end
 
-    Filetype.load_autocmds(old_self)
-    Filetype.load_mappings(old_self)
-    return old_self
-end
-
-function Filetype.reload_config(self, is_user)
-    if is_user then
-        return Filetype.load_config(self, req2path(self.user_config_require_path))
-    else
-        return Filetype.load_config(self, req2path(self.config_require_path))
-    end
+    -- if self.commands then
+    --     Filetype.load_commands(self, self.commands)
+    -- end
+    Filetype.load_autocmds(self, self.autocmds)
+    Filetype.load_mappings(self, self.mappings)
+    Filetype.add_filetype(self, self.filetype)
 end
 
 function Filetype.add_autocmd(self, opts)
@@ -180,7 +169,7 @@ end
 function Filetype.load_mappings(self, mappings)
     mappings = mappings or self.mappings
 
-    if not mappings then
+    if not mappings or is_empty(self.mappings) then
         return
     end
 
@@ -202,7 +191,7 @@ function Filetype.load_mappings(self, mappings)
             rest.pattern = self.name
             mode = rest.mode or "n"
             spec = { mode, ks, cb, rest }
-            apply(kbd.map, spec)
+            out[name] = apply(kbd.map, spec)
         else
             spec = deepcopy(spec)
             local mode, ks, cb, rest = unpack(spec)
@@ -212,17 +201,20 @@ function Filetype.load_mappings(self, mappings)
             rest.event = "FileType"
             rest.pattern = self.name
             spec[4] = rest
-            apply(kbd.map, spec)
+
+            out[name] = apply(kbd.map, spec)
         end
     end)
+
+    return out
 end
 
 function Filetype.format_dir(self, p, opts)
-    local exists = Filetype.processes[p]
-    if exists and exists:is_running() then
-        local userint = vim.fn.input("stop process for " .. p .. " (y for yes) % ")
+    local exists = Filetype.Processes[p]
+    if exists and Process.is_running(exists) then
+        local userint = vim.fn.input("stop Process for " .. p .. " (y for yes) % ")
         if userint == "y" then
-            exists:stop()
+            Process.stop(exists)
         else
             return exists
         end
@@ -258,17 +250,18 @@ function Filetype.format_dir(self, p, opts)
         cmd = cmd .. " " .. path.abspath(p)
     end
 
-    local proc = process.new(cmd, {
+    local proc = Process(cmd, {
         on_exit = function(j)
+            pp(j)
             local err = j.stderr
             local out = j.stdout
 
-            if not ((#err == 1 and #err[1] == 0) or #err == 0) then
+            if err then
                 to_stderr(array.join(err, "\n"))
                 return
             end
 
-            if #out == 0 then
+            if not out then
                 vim.notify("successfully ran command " .. cmd)
                 return
             else
@@ -277,9 +270,8 @@ function Filetype.format_dir(self, p, opts)
         end,
     })
 
-    proc:start()
-
-    Filetype.processes[p] = proc
+    Process.start(proc)
+    Filetype.Processes[p] = proc
 
     return proc
 end
@@ -321,8 +313,10 @@ function Filetype.format_buffer(self, bufnr, opts)
 
     local winnr = buffer.winnr(bufnr)
     local view = winnr and win.save_view(winnr)
-    local proc = process.new(cmd, {
-        on_exit = function(proc)
+    local proc = Process(cmd, {
+        on_stdout = true,
+        on_stderr = true,
+        on_exit = function(x)
             local bufnr = bufnr
             local name = bufname
 
@@ -339,14 +333,14 @@ function Filetype.format_buffer(self, bufnr, opts)
                 return
             end
 
-            local err = proc.stderr
-            if not ((#err == 1 and #err[1] == 0) or #err == 0) then
+            local err = x.stderr
+            if err then
                 to_stderr(array.join(err, "\n"))
                 return
             end
 
-            local out = proc.stdout
-            if #out == 0 then
+            local out = x.stdout
+            if not out then
                 return
             end
 
@@ -359,19 +353,19 @@ function Filetype.format_buffer(self, bufnr, opts)
         end,
     })
 
-    local exists = Filetype.processes[bufname]
-    if exists and exists:is_running() then
+    local exists = Filetype.Processes[bufname]
+    if exists and Process.is_running(exists) then
         local userint = input {
             "userint",
-            "Stop existing process for " .. bufname .. "? (y for yes)",
+            "Stop existing Process for " .. bufname .. "? (y for yes)",
         }
         if userint.userint:match "y" then
-            exists:stop()
+            Process.stop(exists)
         end
     end
 
-    Filetype.processes[bufname] = proc
-    proc:start()
+    Filetype.Processes[bufname] = proc
+    Process.start(proc)
 
     return proc
 end
@@ -381,8 +375,8 @@ function Filetype.get(ft, attrib, callback)
 
     if attrib then
         x = x[attrib]
-        if callback then 
-            return callback(x) 
+        if callback then
+            return callback(x)
         else
             return x
         end
@@ -395,19 +389,56 @@ end
 
 function Filetype.load_defaults(ft)
     local p = "core.ft." .. ft
-    if req2path(p) then return require(p) end
+    if req2path(p) then
+        return require(p)
+    end
+end
+
+function Filetype.load_spec(ft_or_fname, is_user)
+    local ft, fname
+    if string.match(ft_or_fname, '%.lua$') then
+        ft = string.gsub(path.basename(ft_or_fname), '%.lua$', '')
+    else
+        ft = ft_or_fname
+    end
+
+    if is_user then
+        fname = 'user.ft.' .. ft
+    else
+        fname = 'core.ft.' .. ft
+    end
+
+    if not path.exists(req2path(fname)) then return end
+    local ok, msg = pcall(require, fname)
+
+    if ok then
+        Filetype.filetypes[msg.name] = msg
+        Filetype.load_config(msg)
+        Filetype.load_config(msg, true)
+    else
+        return false, msg
+    end
+
+    return ok, msg
+end
+
+function Filetype.add_filetype(self)
+    if not self.filetype then
+        return
+    end
+
+    vim.filetype.add(self.filetype)
+    return true
 end
 
 function Filetype.load_specs(is_user)
     if not is_user then
         array.each(dir.getallfiles(user.dir .. "/lua/core/ft/"), function(f)
-            f = path.basename(f):gsub("%.lua$", "")
-            Filetype.load_config(Filetype(f))
+            Filetype.load_spec(f)
         end)
     else
         array.each(dir.getallfiles(user.user_dir .. "/lua/user/ft/"), function(f)
-            f = path.basename(f):gsub("%.lua$", "")
-            Filetype.load_config(Filetype(f), true)
+            Filetype.load_spec(f, true)
         end)
     end
 end
