@@ -7,6 +7,5 @@ require "core.utils.autocmd"
 require "core.utils.process"
 require "core.utils.plugin"
 require "core.utils.Filetype"
-require "core.utils.font"
-require "core.utils.command-group"
-require "core.utils.buffer-group"
+require 'core.utils.Command'
+require 'core.utils.BufferGroup'

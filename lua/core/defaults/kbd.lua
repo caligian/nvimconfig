@@ -16,16 +16,7 @@ local function _toggle_option(option)
     end
 end
 
---------------------------------------------------------------------------------
-local function dec_fontsize()
-    user.current_font:dec(1)
-end
-
-local function inc_fontsize()
-    user.current_font:inc(1)
-end
-
-user.mappings = user.mappings or {}
+user.mappings = {}
 
 dict.merge(user.mappings, {
     opts = {
@@ -261,14 +252,6 @@ dict.merge(user.mappings, {
             end,
             "Add separator line",
         },
-    },
-
-    fonts = {
-        opts = { mode = "in" },
-        scroll_inc_fontsize = { "<C-ScrollWheelUp>", inc_fontsize, "Increase font size by 1pt" },
-        scroll_dec_fontsize = { "<C-ScrollWheelDown>", dec_fontsize, "Decrease font size by 1pt" },
-        inc_fontsize = { "<C-x><C-=>", inc_fontsize, "Increase font size by 1pt" },
-        dec_fontsize = { "<C-x><C-->", dec_fontsize, "Decrease font size by -1pt" },
     },
 })
 

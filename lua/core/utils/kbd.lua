@@ -150,12 +150,12 @@ function kbd.map_group(group_name, specs, compile)
     local apply = specs.apply
 
     dict.each(specs, function(name, spec)
-        if is_struct(spec, 'kbd') then
-            kbd.enable(spec)
+        if name == "opts" or name == "apply" then
             return
         end
 
-        if name == "opts" or name == "apply" then
+        if is_struct(spec, 'kbd') then
+            kbd.enable(spec)
             return
         end
 
@@ -195,9 +195,8 @@ function kbd.map_groups(specs, compile)
     specs.opts = nil
 
     dict.each(specs, function(group, spec)
-        if is_struct(spec, 'kbd') then
-            kbd.enable(spec)
-            return
+        if is_dict_of(spec, 'kbd') then
+            merge(all_mapped, kbd.map_group(group, spec))
         elseif group == "inherit" then
             return
         elseif spec.opts and opts then

@@ -11,5 +11,3 @@ plugin.setup_lazy()
 say = plugin.get('notify').say or vim.notify
 
 if user.zenmode then vim.cmd ":EnableZenMod" end
-
-font.set_default()

@@ -1,6 +1,7 @@
+require 'core.utils.BufferGroup'
 local home = os.getenv "HOME"
 
-buffer_group.defaults = {
+BufferGroup.defaults = {
     event = "BufEnter",
     nvim = user.dir,
     user_nvim = user.user_dir,
@@ -20,29 +21,30 @@ buffer_group.defaults = {
     },
 }
 
-buffer_group.commands = {
-    bufferPicker = {
+BufferGroup.commands = {
+    BufferPicker = {
         function(cmd)
-            if is_a.number(cmd) then
-                buffer_group.run_picker(cmd)
-            else
-                local args = cmd.fargs or {}
-                local buf = args[1] or buffer.bufnr()
-                buffer_group.run_picker(buf)
-            end
+            local args = cmd.fargs
+            args = args[1] and args[1] or buffer.bufnr()
+            BufferGroup.buffer.run_picker(args)
         end,
         {
             complete = function()
                 return buffer.list({ listed = true }, { name = true })
             end,
-            map = { "n", "<leader>.", {desc = "run buffer buffer_group picker"} },
             nargs = "?",
         },
     },
 }
 
-return function()
-    buffer_group.load_defaults()
-    buffer_group.map_commands()
-    buffer_group.load_mappings()
+BufferGroup.mappings = {
+    opts = {leader=true, noremap=true},
+    buffer_picker = {'.', '<cmd>BufferGroupBufferPicker<CR>'}
+}
+
+return function ()
+    BufferGroup.load_defaults(BufferGroup.defaults)
+    BufferGroup.load_autocmds(BufferGroup.autocmds)
+    BufferGroup.load_mappings(BufferGroup.mappings)
+    BufferGroup.load_commands(BufferGroup.commands)
 end
