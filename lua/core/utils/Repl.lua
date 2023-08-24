@@ -1,10 +1,11 @@
 require "core.utils.Terminal"
 require "core.utils.Filetype"
 require "core.utils.kbd"
-require "core.utils.command-group"
+require 'core.utils.Command'
 
 Repl = Repl or struct.new("Repl", {
     "single",
+    "pid",
     "id",
     "cmd",
     "opts",
@@ -16,16 +17,14 @@ Repl = Repl or struct.new("Repl", {
 })
 
 dict.each(Terminal, function (k, v)
-    if k ~= 'new' then
-        Repl[k] = v
-    end
+    if k ~= 'new' then Repl[k] = v end
 end)
 
 Repl.single_repls = Repl.single_repls or {}
 Repl.repls = Repl.repls or {}
 Repl.exception = {}
 Repl.exception.no_command = exception "no command for filetype"
-Repl.command_group = Repl.command_group or command_group.new "Repl"
+Repl.commands = {}
 
 local function get_command(ft)
     local repl = Filetype.get(ft)
@@ -77,6 +76,27 @@ function Repl.get(ft, callback)
     return callback and callback(exists) or exists
 end
 
+function Repl.load_mappings(mappings, compile)
+    mappings = mappings or Repl.mappings or {}
+    if is_empty(mappings) then return end
+
+    return kbd.map_group('Repl', mappings, compile)
+end
+
+function Repl.load_autocmds(autocmds, compile)
+    autocmds = autocmds or Repl.autocmds or {}
+    if is_empty(autocmds) then return end
+
+    return autocmd.map_group('Repl', autocmds, compile)
+end
+
+function Repl.load_commands(commands, compile)
+    commands = commands or Repl.commands or {}
+    if is_empty(commands) then return end
+
+    return Command.map_group('Repl', commands, compile)
+end
+
 function Repl.init_before(ft_or_bufnr, opts)
     local attribs = {}
 
@@ -105,7 +125,7 @@ end
 function Repl.init(self)
     local exists = self.connected and Repl.repls[self.bufnr] or Repl.single_repls[self.ft]
 
-    if exists and Repl.is_running(exists) then
+    if exists and pid_exists(exists.pid) then
         return exists
     end
 

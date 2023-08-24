@@ -119,3 +119,38 @@ function getoption(value, default)
     end
     return value
 end
+
+function pid_exists(pid)
+    if not is_number(pid) then return false end
+
+    local out = system("ps --pid " .. pid .. " | tail -n -1")
+    out = array.map(out, string.trim)
+    out = array.grep(out, function(x)
+        return #x ~= 0
+    end)
+
+    if #out > 0 then
+        if string.match(out[1], "error") then
+            return false, out
+        end
+
+        return true
+    end
+
+    return false
+end
+
+function kill_pid(pid, signal)
+    if not is_number(pid) then
+        return false
+    end
+
+    local out = system('kill -s ' .. signal  .. ' ' .. pid)
+    if #out == 0 then
+        return false
+    else
+        return false
+    end
+
+    return true
+end

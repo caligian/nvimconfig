@@ -177,7 +177,8 @@ function lsp.apply_mappings(overrides, callback)
     if overrides then
         dict.merge(mappings, overrides)
     end
-    kbd.map_with_groups(mappings, callback)
+
+    kbd.map_groups(mappings, callback)
 end
 
 function lsp.attach_formatter(client)

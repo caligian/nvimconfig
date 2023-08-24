@@ -112,9 +112,6 @@ function Filetype.load_config(self, is_user)
         return
     end
 
-    -- if self.commands then
-    --     Filetype.load_commands(self, self.commands)
-    -- end
     Filetype.load_autocmds(self, self.autocmds)
     Filetype.load_mappings(self, self.mappings)
     Filetype.add_filetype(self, self.filetype)

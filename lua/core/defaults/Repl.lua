@@ -226,5 +226,7 @@ Repl.commands = commands
 Repl.mappings = kbd.map_group('Repl', mappings, true)
 
 return function()
-    kbd.map_group("Repl", Repl.mappings)
+    Repl.load_commands(Repl.commands)
+    Repl.load_autocmds(Repl.autocmds)
+    Repl.load_mappings(Repl.mappings)
 end

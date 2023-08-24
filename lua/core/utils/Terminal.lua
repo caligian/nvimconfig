@@ -1,13 +1,14 @@
 require "core.utils.buffer"
 
-Terminal =  struct.new("Terminal", {
-        "id",
-        "cmd",
-        "opts",
-        "load_file",
-        "on_input",
-        "bufnr",
-    })
+Terminal = struct.new("Terminal", {
+    'pid',
+    "id",
+    "cmd",
+    "opts",
+    "load_file",
+    "on_input",
+    "bufnr",
+})
 
 Terminal.terminals = Terminal.terminals or {}
 
@@ -17,41 +18,93 @@ Terminal.exception = {
     exited_with_error = exception "command exited with error",
     interrupted = exception "terminal interrupted",
     invalid_id = exception "invalid job id",
+    no_default_command = exception 'no default command provided'
 }
 
-Terminal.timeout = 100
+Terminal.timeout = 200
 
 function Terminal.init_before(cmd, opts)
-    opts = copy(opts or {})
+    if is_table(cmd) then
+        cmd = copy(cmd)
+        local default = array.shift(cmd)
+        exception.assert(default, cmd)
+        local _cmd = cmd
+
+        cmd = function (current_dir)
+            for regex, value in pairs(_cmd) do
+                if is_function(regex) and not regex(current_dir) then
+                    return default
+                elseif is_string(regex) and not string.match(current_dir, regex) then
+                    return default
+                else
+                    return value
+                end
+            end
+        end
+    elseif is_string(cmd) then
+        local _cmd = cmd
+        cmd = function () return _cmd end
+    end
+
     local load_file, on_input = opts.load_file, opts.on_input
     opts.load_file = nil
     opts.on_input = nil
 
-    return { cmd = cmd, opts = opts, on_input = on_input, load_file = load_file, id = false }
+    return { cmd = cmd, opts = opts, on_input = on_input, load_file = load_file, id = false, pid = false }
 end
 
 function Terminal.start(self, callback)
+    if pid_exists(self.pid) then
+        return self.id, self.pid
+    end
+
     local scratch = buffer.create_empty()
-    local id, term
+    local current_dir = path.currentdir(buffer.name(buffer.bufnr()))
+    local cmd = self.cmd(current_dir)
+    local id, term, pid
 
     buffer.call(scratch, function()
         opts = opts or self.opts or {}
 
         if dict.is_empty(opts) then
-            id = vim.fn.termopen(self.cmd)
+            id = vim.fn.termopen(cmd)
         else
-            id = vim.fn.termopen(self.cmd, opts)
+            id = vim.fn.termopen(cmd, opts)
         end
 
-        self.id = id
+        local has_started = buffer.lines(scratch, 0, -1)
+        has_started = array.grep(has_started, function (x) return #x ~= 0 end)
 
-        local ok, ex = Terminal.get_status(self, opts.timeout or Terminal.timeout)
+        while #has_started == 0 do
+            vim.wait(10)
+            has_started = buffer.lines(scratch, 0, -1)
+            has_started = array.grep(has_started, function (x) return #x ~= 0 end)
+        end
+
+
         term = buffer.bufnr()
-        if not ok and ex then
-            exception.throw(Terminal.exception[ex], self)
+        self.id = id
+        pid = buffer.var(scratch, 'terminal_job_pid')
+        self.pid = pid
+
+        -- local ok, ex = Terminal.get_status_deprecated(self, opts.timeout or Terminal.timeout)
+        -- term = buffer.bufnr()
+        -- if not ok and ex then
+        --     exception.throw(Terminal.exception[ex], self)
+        -- end
+        --
+        local ok = pid_exists(pid)
+        if not ok then
+            error('Could not run command successfully ' .. cmd)
         end
 
         buffer.map(scratch, "n", "q", ":hide<CR>", { name = "terminal.hide_buffer" })
+
+        if self.connected then
+            buffer.autocmd(self.connected, 'BufDelete', function ()
+                Repl.stop(self)
+            end)
+        end
 
         if callback then
             callback(self)
@@ -61,10 +114,10 @@ function Terminal.start(self, callback)
     self.bufnr = term
     Terminal.terminals[id] = self
 
-    return id
+    return id, pid
 end
 
-function Terminal.get_status(self, timeout, success)
+function Terminal.get_status_deprecated(self, timeout, success)
     if not self.id then
         return
     end
@@ -96,8 +149,18 @@ function Terminal.get_status(self, timeout, success)
     return id
 end
 
+function Terminal.get_status(self)
+    return pid_exists(self.pid)
+end
+
 function Terminal.is_running(self, success)
-    return Terminal.get_status(self, nil, success)
+    if pid_exists(self.pid) then
+        if success then
+            return success(self)
+        end
+
+        return self
+    end
 end
 
 function Terminal.if_running(self, callback)
@@ -230,7 +293,7 @@ function Terminal.send(self, s)
 end
 
 function Terminal.split(self, direction, opts)
-    if not Terminal.is_running(self) then
+    if not pid_exists(self.pid) then
         return
     end
 
@@ -255,6 +318,23 @@ function Terminal.hide(self)
 end
 
 function Terminal.stop(self)
+    Terminal.hide(self)
+
+    if not self.pid then
+        return false
+    elseif not Terminal.is_running(self) then
+        return false
+    else
+        kill_pid(self.pid, 9)
+
+        self.pid = false
+        self.id = false
+    end
+
+    return true
+end
+
+function Terminal.stop_deprecated(self)
     if not Terminal.is_running(self) then
         return
     end

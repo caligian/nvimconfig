@@ -110,6 +110,10 @@ local cmd = [=[
         autocmd!
         autocmd! FileType clojure,scheme,lisp,timl call s:vim_sexp_mappings()
     augroup end
+
+
+    let g:sexp_enable_insert_mode_mappings = 1
+    let g:sexp_insert_after_wrap = 1
 ]=]
 
 function sexp:setup()

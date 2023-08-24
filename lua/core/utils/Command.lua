@@ -47,7 +47,9 @@ function Command.map_group(name, specs)
     local out = {}
 
     dict.each(specs, function (spec_name, spec)
-        out[name] = Command(name .. spec_name, unpack(spec))
+        if not is_struct(spec, 'Command') then
+            out[name] = Command(name .. spec_name, unpack(spec))
+        end
     end)
 
     return out

@@ -116,7 +116,7 @@ function statusline:setup_evil()
 
     ins_left {
         function()
-            return "▊"
+            return ""
         end,
         color = { fg = colors.red }, -- Sets highlighting of component
         padding = { left = 0, right = 1 }, -- We don't need space before this
@@ -168,8 +168,8 @@ function statusline:setup_evil()
 
     ins_left {
         "branch",
-        icon = "",
-        color = { fg = colors.violet, gui = "italic" },
+        icon = "in",
+        color = { fg = colors.violet, gui = "bold" },
     }
 
     ins_left {
@@ -260,7 +260,7 @@ function statusline:setup_evil()
     }
 
     ins_right {
-        function() return "▊" end,
+        function() return "" end,
         color = { fg = colors.red },
         padding = { left = 1 },
     }
