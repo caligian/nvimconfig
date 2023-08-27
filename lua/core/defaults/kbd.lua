@@ -117,6 +117,7 @@ dict.merge(user.mappings, {
         reload = { "be", ":e!<CR>", { desc = "Reload buffer" } },
         save = { "fs", ":w! %<CR>", { desc = "Save buffer" } },
         hide = { "bk", ":hide<CR>", { desc = "Hide buffer" } },
+        wipeout = { "bq", ":bwipeout! %<CR>", { desc = "Wipeout buffer" } },
         save_and_hide = {
             "bK",
             ":w! <bar> hide<CR>",

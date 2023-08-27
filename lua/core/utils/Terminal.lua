@@ -98,8 +98,10 @@ function Terminal.start(self, callback)
         end
 
         buffer.map(scratch, "n", "q", ":hide<CR>", { name = "terminal.hide_buffer" })
+
         buffer.autocmd(term, {'BufWipeout'}, function ()
             Repl.stop(self)
+            Repl.hide(self)
         end)
 
         if self.connected then
