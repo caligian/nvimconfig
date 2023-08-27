@@ -81,7 +81,6 @@ function Terminal.start(self, callback)
             has_started = array.grep(has_started, function (x) return #x ~= 0 end)
         end
 
-
         term = buffer.bufnr()
         self.id = id
         pid = buffer.var(scratch, 'terminal_job_pid')
@@ -99,9 +98,12 @@ function Terminal.start(self, callback)
         end
 
         buffer.map(scratch, "n", "q", ":hide<CR>", { name = "terminal.hide_buffer" })
+        buffer.autocmd(term, {'BufWipeout'}, function ()
+            Repl.stop(self)
+        end)
 
         if self.connected then
-            buffer.autocmd(self.connected, 'BufDelete', function ()
+            buffer.autocmd(self.connected, {'BufWipeout'}, function ()
                 Repl.stop(self)
             end)
         end
