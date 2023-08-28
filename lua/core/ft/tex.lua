@@ -1,4 +1,4 @@
-local tex = Filetype "text"
+local tex = Filetype "tex"
 
 tex.lsp_server = "texlab"
 

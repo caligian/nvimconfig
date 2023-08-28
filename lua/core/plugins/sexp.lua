@@ -1,4 +1,4 @@
-local sexp = plugin.get 'sexp'
+local sexp = Plugin.get 'sexp'
 local cmd = [=[
  function! s:vim_sexp_mappings()
             xmap <silent><buffer> af              <Plug>(sexp_outer_list)
@@ -119,3 +119,5 @@ local cmd = [=[
 function sexp:setup()
     vim.cmd(cmd)
 end
+
+return sexp

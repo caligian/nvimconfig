@@ -1,4 +1,4 @@
-local snippets = plugin.get "snippets"
+local snippets = Plugin.get "snippets"
 
 snippets.config = {
     history = true,
@@ -46,3 +46,5 @@ function snippets:setup()
         },
     }
 end
+
+return snippets

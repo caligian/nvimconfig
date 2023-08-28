@@ -1,5 +1,5 @@
 -- Textobjects are broken for some reason
-local treesitter = plugin.get "treesitter"
+local treesitter = Plugin.get "treesitter"
 treesitter.config = {
     refactor = {
         navigation = {
@@ -125,3 +125,5 @@ treesitter.mappings = {
 function treesitter:setup()
     require("nvim-treesitter.configs").setup(self.config)
 end
+
+return treesitter

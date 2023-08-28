@@ -29,7 +29,7 @@ return {
         "rcarriga/nvim-notify",
     },
 
-    gitsigns = {
+    signs = {
         "lewis6991/gitsigns.nvim",
         event = "BufReadPost",
     },
@@ -271,11 +271,6 @@ return {
     lsp = {
         "neovim/nvim-lspconfig",
         dependencies = { "lukas-reineke/lsp-format.nvim", },
-    },
-
-    bbye = {
-        "moll/vim-bbye",
-        event = "BufReadPost",
     },
 
     undotree = {

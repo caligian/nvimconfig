@@ -1,4 +1,4 @@
-local ssr = plugin.get "ssr"
+local ssr = Plugin.get "ssr"
 ssr.config = {
     border = "rounded",
     min_width = 50,
@@ -28,3 +28,5 @@ ssr.mappings = {
 function ssr:setup()
     require("ssr").setup(self.config)
 end
+
+return ssr

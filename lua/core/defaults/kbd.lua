@@ -184,11 +184,6 @@ dict.merge(user.mappings, {
 
     help = {
         inherit = true,
-        show_logs = {
-            "hl",
-            ":ShowLogs<CR>",
-            { desc = "Show startup logs" },
-        },
     },
 
     quit = {

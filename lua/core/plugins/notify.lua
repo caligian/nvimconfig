@@ -1,5 +1,6 @@
 local nf = require "notify"
-local notify = plugin.get "notify"
+local notify = Plugin.get "notify"
+notify.methods = {}
 
 notify.config = {
     background_colour = "NotifyBackground",
@@ -15,7 +16,7 @@ notify.config = {
     minimum_width = 50,
     render = "default",
     stages = "fade_in_slide_out",
-    timeout = 700,
+    timeout = 300,
     top_down = true,
 }
 
@@ -23,11 +24,11 @@ function notify:setup()
     nf.setup(self.config)
 end
 
-function notify.dismiss_all()
+function notify.methods.dismiss_all()
     nf.dismiss { pending = true, silent = true }
 end
 
-function notify.show_history()
+function notify.methods.show_history()
     local bufnr = buffer.create_empty()
     local history = nf.history()
 
@@ -43,12 +44,14 @@ function notify.show_history()
     buffer.autocmd(bufnr, "WinLeave", function() buffer.wipeout(bufnr) end)
 end
 
-function notify.say(...)
+function notify.methods.say(...)
     nf.notify(...) 
 end
 
 notify.mappings = {
     opts = {silent=true, noremap=true},
-    { "<leader>hn", notify.show_history, {desc = 'show notification history', name = 'show_history'} },
-    { "<leader>hN", notify.dismiss_all, {desc = 'hide notifications', name = 'hide_notifications'} },
+    { "<leader>hn", notify.methods.show_history, {desc = 'show notification history', name = 'show_history'} },
+    { "<leader>hN", notify.methods.dismiss_all, {desc = 'hide notifications', name = 'hide_notifications'} },
 }
+
+return notify

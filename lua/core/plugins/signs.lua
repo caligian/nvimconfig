@@ -1,40 +1,42 @@
 local gs = require "gitsigns"
-local gitsigns = plugin.get "gitsigns"
+local signs = Plugin.get "signs"
 
-gitsigns.next_hunk = function()
-    if vim.wo.diff then
-        return "]c"
-    end
-    vim.schedule(function()
-        gs.next_hunk()
-    end)
-    return "<Ignore>"
-end
+signs.methods = {
+    next_hunk = function()
+        if vim.wo.diff then
+            return "]c"
+        end
+        vim.schedule(function()
+            gs.next_hunk()
+        end)
+        return "<Ignore>"
+    end,
 
-gitsigns.previous_hunk = function()
-    if vim.wo.diff then
-        return "[c"
+    previous_hunk = function()
+        if vim.wo.diff then
+            return "[c"
+        end
+        vim.schedule(function()
+            gs.prev_hunk()
+        end)
+        return "<Ignore>"
     end
-    vim.schedule(function()
-        gs.prev_hunk()
-    end)
-    return "<Ignore>"
-end
+}
 
 -- mappings vs kbd? mappings will be used internally. kbd will be set externally
 -- If kbd is missing then K.bind won't be autocalled while mappings will be
 -- continued to be used by plugins
-gitsigns.mappings = {
+signs.mappings = {
     next_hunk = {
         "n",
         "]c",
-        gitsigns.next_hunk,
+        signs.methods.next_hunk,
         { expr = true, desc = "Next hunk" },
     },
     previous_hunk = {
         "n",
         "[c",
-        gitsigns.previous_hunk,
+        signs.methods.previous_hunk,
         { expr = true, desc = "Previous hunk" },
     },
     stage_hunk = {
@@ -111,14 +113,16 @@ gitsigns.mappings = {
     },
 }
 
-function gitsigns:setup(bufnr)
+function signs:setup(bufnr)
     local mappings = vim.deepcopy(self.mappings)
 
     function mappings.apply(mode, ks, cb, rest)
         rest.bufnr = bufnr or buffer.bufnr()
-        rest.name = "plugin.gitsigns." .. rest.name
+        rest.name = "plugin.signs." .. rest.name
         return mode, ks, cb, rest
     end
 
-    require("gitsigns").setup(self.config)
+    gs.setup(self.config)
 end
+
+return signs

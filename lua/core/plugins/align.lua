@@ -1,6 +1,4 @@
-require "core.plugin"
-
-local align = plugin.get("align", {})
+local align = Plugin.get("align")
 
 align.mappings = {
     opts = { leader = true, noremap = true },
@@ -19,3 +17,5 @@ function align:setup()
         vim.g[key] = value
     end)
 end
+
+return align

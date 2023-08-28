@@ -1,6 +1,8 @@
-local statusline = plugin.get "statusline"
+local statusline = Plugin.get "statusline"
 
-statusline.colors = {
+statusline.methods = {evil = true}
+
+statusline.methods.colors = {
     bg = "#000000",
     fg = "#ffffff",
     yellow = "#ECBE7B",
@@ -14,7 +16,7 @@ statusline.colors = {
     red = "#ec5f67",
 }
 
-function statusline:update_colors()
+function statusline.methods:update_colors()
     local normal = highlight "Normal"
     local colors = self.colors
 
@@ -48,7 +50,7 @@ function statusline:update_colors()
     return colors
 end
 
-function statusline:setup_evil()
+function statusline.methods:setup_evil()
     -- Eviline config for lualine
     -- Author: shadmansaleh
     -- Credit: glepnir
@@ -310,8 +312,6 @@ statusline.config = {
     extensions = {},
 }
 
-statusline.evil = true
-
 statusline.autocmds = {
     update_statusline_colors = {
         "ColorScheme",
@@ -323,9 +323,11 @@ statusline.autocmds = {
 }
 
 function statusline:setup()
-    if self.evil then
-        self:setup_evil()
+    if self.methods.evil then
+        self.methods:setup_evil()
     else
         require("lualine").setup(self.config)
     end
 end
+
+return statusline

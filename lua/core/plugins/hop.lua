@@ -1,4 +1,4 @@
-local plug = plugin.get "hop"
+local plug = Plugin.get "hop"
 local hop = require "hop"
 local directions = require("hop.hint").HintDirection
 
@@ -48,3 +48,5 @@ plug.mappings = {
 function plug:setup()
     hop.setup()
 end
+
+return plug

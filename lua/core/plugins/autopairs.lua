@@ -1,4 +1,4 @@
-local autopairs = plugin.get "autopairs"
+local autopairs = Plugin.get "autopairs"
 
 autopairs.config = {
     disable_filetype = { "TelescopePrompt", "spectre_panel", 'lisp', 'clojure', 'scheme' },
@@ -38,3 +38,5 @@ autopairs.config = {
 function autopairs:setup()
     require("nvim-autopairs").setup(self.config)
 end
+
+return autopairs

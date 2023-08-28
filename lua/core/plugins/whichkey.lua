@@ -1,5 +1,5 @@
 local wk = require "which-key"
-local whichkey = plugin.get "whichkey"
+local whichkey = Plugin.get "whichkey"
 
 whichkey.config = {
     plugins = {
@@ -92,3 +92,5 @@ function whichkey:setup()
         r = { name = "Single REPL" },
     }, { prefix = "<localleader>" })
 end
+
+return whichkey

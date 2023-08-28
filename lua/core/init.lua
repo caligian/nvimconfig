@@ -6,8 +6,9 @@ require "core.defaults"
 require "core.netrw"
 
 Filetype.load_specs()
-plugin.setup_lazy()
+Plugin.setup_lazy()
+Plugin.load_config_dir()
 
-say = plugin.get('notify').say or vim.notify
+say = Plugin.get('notify').say or vim.notify
 
 if user.zenmode then vim.cmd ":EnableZenMod" end

@@ -4,7 +4,7 @@ local find_files_actions = require "core.plugins.telescope.actions.find-files"
 local file_browser_actions = require "core.plugins.telescope.actions.file-browser"
 
 local T = copy(ivy)
-local telescope = plugin.get "telescope"
+local telescope = Plugin.get "telescope"
 
 --------------------------------------------------------------------------------
 -- Some default overrides
@@ -176,3 +176,5 @@ function telescope:setup()
     ts.setup(T)
     ts.load_extension "file_browser"
 end
+
+return telescope

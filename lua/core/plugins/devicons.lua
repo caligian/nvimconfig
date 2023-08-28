@@ -1,4 +1,4 @@
-local devicons = plugin.get "devicons"
+local devicons = Plugin.get "devicons"
 
 function devicons:setup()
     local web = require "nvim-web-devicons"
@@ -6,3 +6,5 @@ function devicons:setup()
         web.setup(self.config)
     end
 end
+
+return devicons

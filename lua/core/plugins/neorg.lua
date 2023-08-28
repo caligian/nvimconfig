@@ -1,4 +1,4 @@
-local neorg = plugin.get "neorg"
+local neorg = Plugin.get "neorg"
 
 neorg.config = {
     load = {
@@ -35,3 +35,5 @@ neorg.config = {
 function neorg:setup()
     require("neorg").setup(self.config)
 end
+
+return neorg

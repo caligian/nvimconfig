@@ -1,7 +1,8 @@
 local indent = require "indent_blankline"
-local indentblankline = plugin.get "indentblankline"
+local indentblankline = Plugin.get "indentblankline"
+indentblankline.methods = {}
 
-function indentblankline.set_highlight()
+function indentblankline.methods.set_highlight()
     local normal = highlight "Normal"
     normal.guibg = normal.guibg or "#000000"
 
@@ -17,11 +18,13 @@ end
 indentblankline.autocmds = {
     set_indentchar_color = {
         "ColorScheme",
-        { pattern = "*", callback = indentblankline.set_highlight },
+        { pattern = "*", callback = indentblankline.methods.set_highlight },
     },
 }
 
 function indentblankline:setup()
-    indentblankline.set_highlight()
+    indentblankline.methods.set_highlight()
     indent.setup(self.config or {})
 end
+
+return indentblankline

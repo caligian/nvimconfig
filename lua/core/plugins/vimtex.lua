@@ -1,0 +1,1 @@
+return Plugin.get('vimtex')

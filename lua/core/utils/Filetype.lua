@@ -92,29 +92,25 @@ function Filetype.setup_lsp(self)
     return true
 end
 
-function Filetype.load_config(self, is_user)
-    local ok, msg
+function Filetype.load_config(self)
+    local msg = logger.pcall(require, self.config_require_path)
+    local user_msg
 
-    if is_user and not req2path(self.user_config_require_path) then
-        return false
-    elseif not req2path(self.config_require_path) then
-        return false
+    if req2path(self.user_config_require_path) then
+        user_msg = logger.pcall(require, self.user_config_require_path)
     end
 
-    if is_user then
-        ok, msg = pcall(require, self.user_config_require_path)
-    else
-        ok, msg = pcall(require, self.config_require_path)
+    if msg and user_msg then
+        merge(msg, user_msg)
     end
 
-    if not ok then
-        say('FATAL: ' .. msg)
-        return
-    end
+    return logger.pcall(function()
+        Filetype.load_autocmds(msg, msg.autocmds)
+        Filetype.load_mappings(msg, msg.mappings)
+        Filetype.add_filetype(msg, msg.filetype)
 
-    Filetype.load_autocmds(self, self.autocmds)
-    Filetype.load_mappings(self, self.mappings)
-    Filetype.add_filetype(self, self.filetype)
+        return msg
+    end)
 end
 
 function Filetype.add_autocmd(self, opts)

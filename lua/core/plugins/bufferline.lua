@@ -1,4 +1,4 @@
-local bufferline = plugin.get "bufferline"
+local bufferline = Plugin.get "bufferline"
 
 bufferline.config = {
     options = {
@@ -55,3 +55,5 @@ bufferline.config = {
 function bufferline:setup()
     require("bufferline").setup(self.config)
 end
+
+return bufferline

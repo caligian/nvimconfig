@@ -1,4 +1,4 @@
-local colorscheme = plugin.get "colorscheme"
+local colorscheme = Plugin.get "colorscheme"
 
 colorscheme.config = {
     starry = {
@@ -181,4 +181,4 @@ function colorscheme:setup(name, config)
     end
 end
 
-colorscheme:setup()
+return colorscheme

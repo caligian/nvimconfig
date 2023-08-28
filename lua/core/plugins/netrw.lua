@@ -1,5 +1,6 @@
-local netrw = plugin.get "netrw"
-netrw = {
+local netrw = Plugin.get "netrw"
+
+netrw.config = {
     icons = {
         symlink = "",
         directory = "",
@@ -12,3 +13,5 @@ netrw = {
 function netrw:setup()
     require("netrw").setup(self.config)
 end
+
+return netrw

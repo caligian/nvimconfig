@@ -1,4 +1,4 @@
-local illuminate = plugin.get "illuminate"
+local illuminate = Plugin.get "illuminate"
 
 illuminate.config = {
     providers = {
@@ -35,3 +35,5 @@ illuminate.config = {
 function illuminate:setup()
     require("illuminate").configure(self.config)
 end
+
+return illuminate

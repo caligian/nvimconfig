@@ -104,6 +104,7 @@ function kbd.enable(self)
             callback = function(au_opts)
                 local opts = copy(self.opts)
                 opts.buffer = buffer.bufnr()
+
                 enable(self.mode, self.keys, self.callback, opts)
             end,
         })

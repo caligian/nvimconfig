@@ -1,4 +1,5 @@
-local tagbar = plugins.get "tagbar"
+local tagbar = Plugin.get "tagbar"
+
 tagbar.mappings = {
     tagbar = {
         "n",
@@ -9,3 +10,5 @@ tagbar.mappings = {
 }
 
 vim.g.tagbar_position = "leftabove vertical"
+
+return tagbar

@@ -1,6 +1,7 @@
-local dispatch = plugin.get "dispatch"
+local dispatch = Plugin.get "dispatch"
+dispatch.methods = {}
 
-function dispatch.get_command(action, bufnr)
+function dispatch.methods.get_command(action, bufnr)
     bufnr = bufnr or vim.fn.bufnr()
     local name = buffer.name(bufnr)
     local cmd = Filetype.get(vim.bo.filetype, action)
@@ -23,21 +24,21 @@ function dispatch.get_command(action, bufnr)
     return ("Dispatch " .. cmd)
 end
 
-function dispatch.get_compiler(bufnr)
-    return dispatch.get_command("compile", bufnr)
+function dispatch.methods.get_compiler(bufnr)
+    return dispatch.methods.get_command("compile", bufnr)
 end
 
-function dispatch.get_build(bufnr)
-    return dispatch.get_command("build", bufnr)
+function dispatch.methods.get_build(bufnr)
+    return dispatch.methods.get_command("build", bufnr)
 end
 
-function dispatch.get_test(bufnr)
-    return dispatch.get_command("test", bufnr)
+function dispatch.methods.get_test(bufnr)
+    return dispatch.methods.get_command("test", bufnr)
 end
 
-function dispatch.run(action, bufnr)
+function dispatch.methods.run(action, bufnr)
     bufnr = bufnr or buffer.bufnr()
-    local cmd = dispatch.get_command(action, bufnr)
+    local cmd = dispatch.methods.get_command(action, bufnr)
     if not cmd then
         return
     end
@@ -50,15 +51,15 @@ function dispatch.run(action, bufnr)
     vim.cmd(":chdir " .. currentdir)
 end
 
-function dispatch.build(bufnr)
+function dispatch.methods.build(bufnr)
     dispatch.run("build", bufnr)
 end
 
-function dispatch.test(bufnr)
+function dispatch.methods.test(bufnr)
     dispatch.run("test", bufnr)
 end
 
-function dispatch.compile(bufnr)
+function dispatch.methods.compile(bufnr)
     dispatch.run("compile", bufnr)
 end
 
@@ -66,7 +67,7 @@ dispatch.mappings = {
     opts = { noremap = true, leader = true },
     build = {
         "cb",
-        dispatch.build,
+        dispatch.methods.build,
         "n",
         { noremap = true, desc = "Build file" },
     },
@@ -78,14 +79,16 @@ dispatch.mappings = {
     },
     test = {
         "ct",
-        dispatch.test,
+        dispatch.methods.test,
         "n",
         { noremap = true, desc = "Test file" },
     },
     compile = {
         "cc",
-        dispatch.compile,
+        dispatch.methods.compile,
         "n",
         { noremap = true, desc = "Compile file" },
     },
 }
+
+return dispatch

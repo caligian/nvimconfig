@@ -1,7 +1,7 @@
 local nvim_cmp = require "cmp"
 local cmp_zsh = require "cmp_zsh"
 local luasnip = require "luasnip"
-local cmp = plugin.get "cmp"
+local cmp = Plugin.get "cmp"
 
 cmp.config = {
     mapping = {
@@ -67,3 +67,5 @@ function cmp:setup()
     })
     nvim_cmp.setup(self.config)
 end
+
+return cmp
