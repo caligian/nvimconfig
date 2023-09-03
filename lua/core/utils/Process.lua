@@ -1,7 +1,9 @@
 Process = struct("Process", { "id", "opts", "cmd", "stderr", "stdout", 'exit_code' })
 
-Process.Processes = Process.Processes or {}
+Process.processes = Process.processes or {}
+
 Process.timeout = 100
+
 Process.exception = exception.from_dict {
     invalid_command = "expected valid command",
     shell_not_executable = "shell not executable",
@@ -62,7 +64,7 @@ end
 
 function Process._on_exit(self, cb)
     return vim.schedule_wrap(function(j, exit_code)
-        j = Process.Processes[j]
+        j = Process.processes[j]
         j.exit_code = exit_code
 
         if #self.stdout == 1 and #self.stdout[1] == 0 then
@@ -138,7 +140,7 @@ function Process.start(self)
     end
 
     self.id = id
-    Process.Processes[id] = self
+    Process.processes[id] = self
 
     return self
 end
@@ -150,7 +152,7 @@ function Process.stop(self)
 
     vim.fn.chanclose(self.id)
     self.bufnr = nil
-    Process.Processes[self.id] = false
+    Process.processes[self.id] = false
 
     return self
 end

@@ -278,11 +278,11 @@ return {
         event = "InsertEnter",
     },
 
-    bufferline = {
-        "akinsho/bufferline.nvim",
-        version = "*",
-        dependencies = { "tiagovla/scope.nvim" },
-    },
+    -- bufferline = {
+    --     "akinsho/bufferline.nvim",
+    --     version = "*",
+    --     dependencies = { "tiagovla/scope.nvim" },
+    -- },
 
     elixir = {
         "elixir-editors/vim-elixir",

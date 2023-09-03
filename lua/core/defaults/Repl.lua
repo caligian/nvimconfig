@@ -218,9 +218,10 @@ dict.each(cmds, function(key, fun)
         { "<leader>x" .. (key == "r" and "x" or key), "<cmd>" .. to_camelcase("repl_sh_" .. fun) .. "<Cr>" }
 end) 
 
-mappings["buffer_send_range"] = { "<leader>re", "<cmd>ReplBufferSendRange<CR>", { mode = "v" } }
-mappings["ft_send_range"] = { "<localleader>re", "<cmd>ReplFtSendRange<CR>", { mode = "v" } }
-mappings["sh_send_range"] = { "<leader>xe", "<cmd>ReplShSendRange<CR>", { mode = "v" } }
+mappings["buffer_send_range"] = { "<leader>re", "<esc>:ReplBufferSendRange<CR>", { mode = "v" } }
+mappings["ft_send_range"] = { "<localleader>re", "<esc>:ReplFtSendRange<CR>", { mode = "v" } }
+mappings["sh_send_range"] = { "<leader>xe", "<esc>:ReplShSendRange<CR>", { mode = "v" } }
+mappings['stop_all'] = {'<leader>rQ', ':lua Repl.stop_all()<CR>'}
 
 Repl.commands = commands
 Repl.mappings = kbd.map_group('Repl', mappings, true)

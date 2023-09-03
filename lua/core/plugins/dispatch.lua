@@ -4,8 +4,11 @@ dispatch.methods = {}
 function dispatch.methods.get_command(action, bufnr)
     bufnr = bufnr or vim.fn.bufnr()
     local name = buffer.name(bufnr)
-    local cmd = Filetype.get(vim.bo.filetype, action)
+    if #name == 0 then
+        return false
+    end
 
+    local cmd = Filetype.get(vim.bo.filetype, action)
     if not cmd then
         return nil, 'no command found for ' .. bufnr
     elseif is_callable(cmd) then
@@ -52,15 +55,15 @@ function dispatch.methods.run(action, bufnr)
 end
 
 function dispatch.methods.build(bufnr)
-    dispatch.run("build", bufnr)
+    dispatch.methods.run("build", bufnr)
 end
 
 function dispatch.methods.test(bufnr)
-    dispatch.run("test", bufnr)
+    dispatch.methods.run("test", bufnr)
 end
 
 function dispatch.methods.compile(bufnr)
-    dispatch.run("compile", bufnr)
+    dispatch.methods.run("compile", bufnr)
 end
 
 dispatch.mappings = {
@@ -89,6 +92,10 @@ dispatch.mappings = {
         "n",
         { noremap = true, desc = "Compile file" },
     },
+}
+
+local opts = {
+    dispatch_no_maps = 1,
 }
 
 return dispatch

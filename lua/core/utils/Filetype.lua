@@ -27,9 +27,9 @@ Filetype = Filetype
     })
 
 -- Filetype.filetypes = Filetype.filetypes or {}
-Filetype.filetypes = {}
-Filetype.id = Filetype.filetypes or 1
-Filetype.Processes = Filetype.Processes or {}
+Filetype.filetypes = Filetype.filetypes or {}
+Filetype.id = #Filetype.filetypes or 1
+Filetype.processes = Filetype.processes or {}
 
 local function formatter_config_path_exists(p)
     p = array.to_array(p)
@@ -203,7 +203,7 @@ function Filetype.load_mappings(self, mappings)
 end
 
 function Filetype.format_dir(self, p, opts)
-    local exists = Filetype.Processes[p]
+    local exists = Filetype.processes[p]
     if exists and Process.is_running(exists) then
         local userint = vim.fn.input("stop Process for " .. p .. " (y for yes) % ")
         if userint == "y" then
@@ -264,7 +264,7 @@ function Filetype.format_dir(self, p, opts)
     })
 
     Process.start(proc)
-    Filetype.Processes[p] = proc
+    Filetype.processes[p] = proc
 
     return proc
 end
@@ -346,7 +346,7 @@ function Filetype.format_buffer(self, bufnr, opts)
         end,
     })
 
-    local exists = Filetype.Processes[bufname]
+    local exists = Filetype.processes[bufname]
     if exists and Process.is_running(exists) then
         local userint = input {
             "userint",
@@ -357,7 +357,7 @@ function Filetype.format_buffer(self, bufnr, opts)
         end
     end
 
-    Filetype.Processes[bufname] = proc
+    Filetype.processes[bufname] = proc
     Process.start(proc)
 
     return proc
@@ -435,3 +435,74 @@ function Filetype.load_specs(is_user)
         end)
     end
 end
+
+local function get_command(bufnr, action)
+    bufnr = buffer.bufnr()
+    local name = buffer.name(bufnr)
+    local ft = buffer.option(bufnr, 'filetype')
+
+    if #ft == 0 then
+        return false
+    end
+
+    return Filetype.get(ft, action, function (config)
+        local append_filename = true
+        local cmd
+
+        if is_string(config) then
+            cmd = config
+        elseif is_function(config) then
+            cmd = config({bufnr = bufnr, bufname = name})
+        elseif is_table(config) then
+            config = copy(config)
+            append_filename = dict.delete(config, {'append_filename'})
+
+            for regex, cmd in pairs(t) do
+                if string.match(name, regex) then
+                    opts.cmd = cmd
+                    break
+                end
+            end
+        end
+
+        if append_filename then
+            cmd = cmd .. ' ' .. name
+        elseif string.match(cmd, '%$bufname') then
+            cmd = string.gsub(cmd, '%$bufname', name)
+        end
+
+        return cmd
+    end)
+end
+
+local function run_command(cmd)
+    local proc = Process(cmd, {
+        on_stdout = true, 
+        on_stderr = true,
+        on_exit = function (process)
+            if not process.stdout and not process.stderr then
+                return
+            end
+
+            local s = process.stdout and process.stdout or {}
+            s = array.extend(s, process.stderr and process.stderr or {})
+
+            vim.fn.setqflist(s)
+
+
+            -- local out = buffer.create_empty()
+            -- buffer.set_lines(out, 0, -1, s)
+            -- buffer.autocmd(out, 'WinClosed', partial(buffer.wipeout, out))
+            -- buffer.map(out, 'in', 'q', ':hide<CR>')
+            -- buffer.split(out, 's')
+        end
+    })
+
+    return Process.start(proc)
+end
+
+-- @tparam string action any of 'compile', 'build', 'test'
+function Filetype.buffer_do(bufnr, action)
+end
+
+proc = run_command('ls')

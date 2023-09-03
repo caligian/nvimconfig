@@ -4,7 +4,7 @@ notify.methods = {}
 
 notify.config = {
     background_colour = "NotifyBackground",
-    fps = 30,
+    fps = 60,
     icons = {
         DEBUG = "[Debug]",
         ERROR = "ERROR",
@@ -16,7 +16,7 @@ notify.config = {
     minimum_width = 50,
     render = "default",
     stages = "fade_in_slide_out",
-    timeout = 300,
+    timeout = 200,
     top_down = true,
 }
 

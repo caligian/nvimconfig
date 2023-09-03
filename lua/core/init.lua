@@ -9,6 +9,6 @@ Filetype.load_specs()
 Plugin.setup_lazy()
 Plugin.load_config_dir()
 
-say = Plugin.get('notify').say or vim.notify
+say = Plugin.get('notify').methods.say or vim.notify
 
 if user.zenmode then vim.cmd ":EnableZenMod" end
