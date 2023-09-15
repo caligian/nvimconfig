@@ -107,6 +107,7 @@ function Process._on_stdout(self, cb)
         end
     end)
 end
+
 function Process.send(self, s)
     if not Process.is_running(self) then
         return

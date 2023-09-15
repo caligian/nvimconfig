@@ -16,6 +16,22 @@ local function _toggle_option(option)
     end
 end
 
+local function close_other_windows()
+    local current_winnr = win.current()
+    local current_winid = win.current_id()
+    local current_tab = vim.api.nvim_get_current_tabpage()
+    local wins = vim.api.nvim_tabpage_list_wins(current_tab)
+
+    array.each(wins, function (winid)
+        print(winid, current_winid)
+        if winid == current_winid then
+            return
+        else
+            win.call(win.id2nr(winid), function () vim.cmd(':hide') end)
+        end
+    end)
+end
+
 user.mappings = {}
 
 dict.merge(user.mappings, {
@@ -210,7 +226,7 @@ dict.merge(user.mappings, {
     windows = {
         inherit = true,
         left = { "wh", "<C-w>h", "Left win" },
-        hide_others = { "wo", "<C-w>o", "Hide other wins" },
+        hide_others = { "wo", close_other_windows, "Hide other wins" },
         max_height = { "w_", "<C-w>_", "Max out height" },
         max_width = { "w|", "<C-w>|", "Max out width" },
         down = { "wj", "<C-w>j", "Down win" },
@@ -248,6 +264,47 @@ dict.merge(user.mappings, {
             end,
             "Add separator line",
         },
+    },
+
+    qflist = {
+        inherit = true,
+        open = { 'cq', ':botright copen<CR>', 'open qflist' },
+        close = {'ck', ':cclose<CR>', 'close qflist'},
+    },
+
+    compile = {
+        inherit = true,
+        compile = {
+            'cc', 
+            Filetype.compile_buffer,
+            'compile current buffer'
+        },
+        test = {
+            'ct',
+            function ()
+                Filetype.compile_buffer(buffer.current(), 'test')
+            end,
+            'test current buffer'
+        },
+        build = {
+            'cb',
+            function ()
+                Filetype.compile_buffer(buffer.current(), 'build')
+            end,
+            'build current buffer'
+        },
+        run = {
+            'cr',
+            function ()
+                local cmd = vim.fn.input('Shell command % ')
+                if #cmd == 0 then
+                    print('no command provided')
+                    return
+                end
+
+                Filetype.run_buffer(buffer.current(), cmd, 'qf')
+            end
+        }
     },
 })
 

@@ -46,11 +46,11 @@ function Plugin.load_config(self)
     local msg
 
     if builtin_path then
-        msg = logger.pcall(require, self.config_require_path)
+        msg = require(self.config_require_path)
     end
 
     if user_path then
-        msg = logger.pcall(require, self.user_config_require_path)
+        msg = require(self.user_config_require_path)
     end
 
     if not msg then return end

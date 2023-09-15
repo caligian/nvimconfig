@@ -5,10 +5,18 @@ require "core.utils.win"
 require "core.utils.autocmd"
 require "core.utils.kbd"
 
+
 buffer = { float = {} }
 local floatmt = {}
 local float = setmetatable(buffer.float, floatmt)
 local is_string_or_table = is { "string", "array" }
+
+autocmd.map('FileType', {
+    pattern = 'qf',
+    callback = function ()
+        kbd.map('ni', 'q', ':hide<CR>', {desc = 'kill buffer', buffer = buffer.current()})
+    end
+})
 
 --- Add buffer by name or return existing buffer index. ':help bufadd()'
 -- @function buffer.bufadd
@@ -744,8 +752,17 @@ function buffer.windows(bufnr)
     end
 end
 
+function buffer.to_qflist(out)
+    out = array.grep(out, function (x) return #x ~= 0 end)
+    out = array.map(out, function(x) return {bufnr = 0, text = x} end)
+
+    vim.fn.setqflist(out)
+    vim.cmd(':botright copen')
+end
+
 function buffer.split(bufnr, direction)
     direction = direction or "s"
+
     local bufnr = bufnr or buffer.current()
     if not buffer.exists(bufnr) then
         return
@@ -770,9 +787,10 @@ function buffer.split(bufnr, direction)
         cmd ":belowright"
     elseif direction == "tabnew" or direction == "t" or direction == "tab" then
         cmd ":tabnew"
+    elseif string.match(direction, 'qf') then
+        local lines = buffer.lines(bufnr, 0, -1)
+        buffer.to_qflist(lines)
     end
-
-    return true
 end
 
 function buffer.botright(bufnr)

@@ -10,3 +10,4 @@ require "core.utils.Plugin"
 require "core.utils.Filetype"
 require 'core.utils.Command'
 require 'core.utils.BufferGroup'
+require 'core.utils.Abbrev'

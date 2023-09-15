@@ -18,6 +18,14 @@ elixir.repl = {
     { "iex", [is_project] = "cd ../ ; iex -S mix" },
 }
 
+elixir.autocmds = {
+    set_abbrevs = function ()
+        vim.cmd ':abbrev puts IO.inspect'
+        vim.cmd ':abbrev print IO.write'
+    end
+}
+
+
 -- elixir.repl = {"cd ../; iex -S mix", load_file = function (fname, make_file)
 --     fname = fname .. '.exs'
 --     make_file(fname)

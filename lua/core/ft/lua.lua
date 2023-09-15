@@ -1,6 +1,7 @@
 local lua = Filetype "lua"
 local package_path = vim.split(package.path, ";")
 local formatter_path = path.join(os.getenv "HOME", ".cargo", "bin", "stylua")
+
 local formatter_cmd = formatter_path
 
 local default_args = {
@@ -27,6 +28,14 @@ lua.dir_formatter = {
     formatter_cmd,
     args = default_args,
     append_dirname = true,
+}
+
+lua.abbrevs = {
+    {'print', 'printf'},
+    {'__ma', 'map(lst, function(x) end)'},
+    {'__fi', 'filter(lst, function(x) end)'},
+    {'__gr', 'grep(lst, function(x) end)'},
+    {'__ea', 'each(lst, function(x) end)'},
 }
 
 lua.repl = "luajit"

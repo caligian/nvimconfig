@@ -15,11 +15,6 @@ return {
         },
     },
 
-    dispatch = {
-        "tpope/vim-dispatch",
-        event = "BufReadPost",
-    },
-
     hy = {
         "hylang/vim-hy",
         ft = { "hy" },

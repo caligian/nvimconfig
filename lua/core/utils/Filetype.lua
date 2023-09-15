@@ -8,6 +8,7 @@ local add_ft = vim.filetype.add
 
 Filetype = Filetype
     or struct.new("Filetype", {
+        'abbrevs',
         "name",
         'filetype',
         "augroup",
@@ -93,7 +94,7 @@ function Filetype.setup_lsp(self)
 end
 
 function Filetype.load_config(self)
-    local msg = logger.pcall(require, self.config_require_path)
+    local msg = require(self.config_require_path)
     local user_msg
 
     if req2path(self.user_config_require_path) then
@@ -104,13 +105,28 @@ function Filetype.load_config(self)
         merge(msg, user_msg)
     end
 
-    return logger.pcall(function()
-        Filetype.load_autocmds(msg, msg.autocmds)
-        Filetype.load_mappings(msg, msg.mappings)
-        Filetype.add_filetype(msg, msg.filetype)
+    Filetype.load_autocmds(msg, msg.autocmds)
+    Filetype.load_mappings(msg, msg.mappings)
+    Filetype.add_filetype(msg, msg.filetype)
+    Filetype.load_abbrevs(msg, msg.abbrevs)
 
-        return msg
-    end)
+    return msg
+end
+
+function Filetype.load_abbrevs(self, abbrevs)
+    abbrevs = self.abbrevs or abbrevs or {}
+
+    if is_empty(abbrevs) then
+        return
+    end
+
+    return Abbrev.map(map(abbrevs, function (abbrev)
+        abbrev[3] = abbrev[3] or {}
+        abbrev[3].pattern = self.name
+        abbrev[3].event = 'FileType'
+
+        return abbrev
+    end))
 end
 
 function Filetype.add_autocmd(self, opts)
@@ -475,34 +491,105 @@ local function get_command(bufnr, action)
     end)
 end
 
-local function run_command(cmd)
-    local proc = Process(cmd, {
-        on_stdout = true, 
-        on_stderr = true,
-        on_exit = function (process)
-            if not process.stdout and not process.stderr then
-                return
-            end
+local function clear_qflist()
+    vim.fn.setqflist({})
+end
 
-            local s = process.stdout and process.stdout or {}
-            s = array.extend(s, process.stderr and process.stderr or {})
+local function to_qflist(src_bufnr, out)
+    clear_qflist()
 
-            vim.fn.setqflist(s)
+    out = array.grep(out, function (x) return #x ~= 0 end)
+    out = array.map(out, function(x) return {bufnr = src_bufnr, text = x} end)
 
+    vim.fn.setqflist(out)
+end
 
-            -- local out = buffer.create_empty()
-            -- buffer.set_lines(out, 0, -1, s)
-            -- buffer.autocmd(out, 'WinClosed', partial(buffer.wipeout, out))
-            -- buffer.map(out, 'in', 'q', ':hide<CR>')
-            -- buffer.split(out, 's')
+function Filetype.run_command(cmd, out_bufname, direction)
+    direction = direction or 's'
+    local out_bufnr = buffer.bufadd(out_bufname)
+
+    buffer.map(out_bufnr, 'in', 'q', ':bwipeout!<CR>', {desc = 'kill buffer'})
+    buffer.autocmd(out_bufnr, 'BufDelete', function () buffer.wipeout(out_bufnr) end)
+
+    local opts =  {}
+    opts.on_stdout = true 
+    opts.on_stderr = true 
+
+    opts.on_exit = function (job)
+        if job.stdout then
+            local out = copy(job.stdout)
+            array.unshift(out, "-- STDOUT --")
+            buffer.set_lines(out_bufnr, 0, -1, out)
         end
-    })
 
-    return Process.start(proc)
+        if job.stderr then
+            local out = copy(job.stderr)
+            array.unshift(out, "-- STDERR --")
+            buffer.set_lines(out_bufnr, -1, -1, out)
+        end
+
+        local lc = buffer.linecount(out_bufnr)
+        buffer.hide(out_bufnr)
+
+        if lc > 0 then
+            buffer.split(out_bufnr, direction)
+            vim.cmd(':resize 10')
+        end
+
+    end
+
+    local proc = Process(cmd, opts)
+    Process.start(proc)
+
+    return proc
 end
 
--- @tparam string action any of 'compile', 'build', 'test'
-function Filetype.buffer_do(bufnr, action)
+function Filetype.compile_buffer(bufnr, action, direction)
+    bufnr = bufnr or buffer.current()
+    action = action or 'compile'
+    local cmd = Filetype.get(buffer.option(bufnr, 'filetype'), action)
+    local bufname = buffer.name(bufnr)
+
+    if not cmd then
+        say(sprintf('%s: no command found for action %s', bufname, action))
+        return
+    elseif is_table(cmd) then
+        for key, value in pairs(cmd) do
+            if string.match(bufname, key) then
+                cmd = value
+                break
+            end
+        end
+
+        assert(cmd, 'no command found for buffer ' .. bufname)
+    elseif is_callable(cmd) then
+        assert(cmd(bufname), 'no command found for buffer ' .. bufname)
+    end
+
+    local out_buffer = cmd .. '_output'
+    if string.match(cmd, '%s') then
+        cmd = string.gsub(cmd, '%s', bufname)
+    else
+        cmd = cmd .. ' ' .. bufname
+    end
+
+    Filetype.run_command(cmd, out_buffer, direction)
 end
 
-proc = run_command('ls')
+function Filetype.run_buffer(bufnr, cmd, direction)
+    bufnr = bufnr or buffer.current()
+    local bufname = buffer.name(bufnr)
+    local out_bufname = cmd .. '_cmd_output'
+
+    if buffer.exists(out_bufname) then
+        buffer.wipeout(bufnr)
+    end
+
+    if string.match(cmd, '%s') then
+        cmd = string.gsub(cmd, '%s', bufname)
+    else
+        cmd = cmd .. ' ' .. bufname
+    end
+
+    Filetype.run_command(cmd, out_bufname, direction)
+end

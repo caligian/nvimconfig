@@ -47,4 +47,6 @@ function snippets:setup()
     }
 end
 
+snippets:setup()
+
 return snippets

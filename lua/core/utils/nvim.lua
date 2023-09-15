@@ -133,47 +133,60 @@ function req(s)
     end
 end
 
---- @tparam array[array] array of input() args
-function input(spec)
+local function process_input(key, value)
     local out = {}
+    local default, completion, cancelreturn, prompt, default, highlight, post, required
+    required = value.required
+    post = value.post
+    prompt = (value.prompt or value[1] or key) .. ' > '
+    default = value.default or value[2]
+    cancelreturn = value.cancelreturn
+    highlight = value.highlight
+    completion = value[3] or value.completion
+    local opts = {
+        prompt = prompt,
+        default = default,
+        completion = completion,
+        cancelreturn = cancelreturn,
+        highlight = highlight,
+    }
+    local userint = vim.fn.input(opts):trim()
 
-    dict.each(spec, function(key, value)
-        local name = key
-        local default, completion, cancelreturn, prompt, default, highlight, post, required
-        required = value.required
-        post = value.post
-        prompt = (value.prompt or value[1] or key) .. ' > '
-        default = value.default or value[2]
-        cancelreturn = value.cancelreturn
-        highlight = value.highlight
-        completion = value[3] or value.completion
-        local opts = {
-            prompt = prompt,
-            default = default,
-            completion = completion,
-            cancelreturn = cancelreturn,
-            highlight = highlight,
-        }
-        local userint = vim.fn.input(opts):trim()
+    if #userint == 0 then
+        userint = false
+    elseif userint:is_number() then
+        userint = tonumber(userint)
+    else
+        userint = userint
+    end
 
-        if #userint == 0 then
-            out[key] = false
-        elseif userint:is_number() then
-            out[key] = tonumber(userint)
-        else
-            out[key] = userint
-        end
+    if post then
+        userint = post(userint)
+    end
 
-        if post then
-            out[key] = post(out[key])
-        end
+    if required then
+        assert(userint, 'no input passed for non-optional key ' .. key)
+    end
 
-        if required then
-            assert(out[key], 'no input passed for non-optional key ' .. key)
-        end
-    end)
+    out[key] = value
 
     return out
+end
+
+--- @tparam table[input_args] | input_args
+function input(spec)
+    if dict.typeof(spec, 'table') then
+        local res = {}
+
+        for key, value in pairs(spec) do
+            local out = process_input(key, value)
+            dict.merge(res, out)
+        end
+
+        return res
+    else
+        return process_input(1, unpack(spec))
+    end
 end
 
 function whereis(bin, match)
