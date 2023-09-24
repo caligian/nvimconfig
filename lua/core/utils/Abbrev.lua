@@ -117,7 +117,7 @@ function Abbrev.init_before(lhs, rhs, opts)
     self.pattern = pattern
     self.event = event
 
-    if buf_is_number or pattern or event then
+    if buf or buf_is_number or pattern or event then
         apply_for_buffer(self)
     else
         vim.cmd(self.cmd)
@@ -202,7 +202,12 @@ end
 function Abbrev.map_dict(opts, spec)
     if opts then
         return dict.map(spec, function (lhs, opts)
-            local rhs, o = unpack(opts)
+            local rhs, o
+            if is_string(opts) then
+                rhs = opts
+            end
+
+            rhs, o = unpack(opts)
             o = merge_(o or {}, opts)
             return Abbrev(lhs, rhs, o)
         end)
