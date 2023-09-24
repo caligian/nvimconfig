@@ -1,3 +1,5 @@
+require 'core.utils.kbd'
+
 Bookmark = Bookmark or module "Bookmark"
 Bookmark.path = path.join(os.getenv "HOME", ".bookmarks.json")
 Bookmark.bookmarks = Bookmark.bookmarks or {}
@@ -185,22 +187,73 @@ function Bookmark.to_picker_results(file_path)
 
     local obj = Bookmark.bookmarks[file_path]
     if not obj then
-        return 
+        return
     elseif obj.context and is_empty(obj.context) then
         return
     end
 
     return {
         results = keys(obj.context),
-        entry_maker = function (linenum)
+        entry_maker = function(linenum)
             return {
-                display = sprintf('%d | %s', linenum, obj.context[linenum]),
+                display = sprintf("%d | %s", linenum, obj.context[linenum]),
                 value = linenum,
                 obj = obj,
                 ordinal = linenum,
             }
-        end
+        end,
     }
+end
+
+function Bookmark.create_line_picker(file_path)
+    local obj = Bookmark.bookmarks[file_path]
+    local fail = not obj or obj.dir or not obj.context or is_empty(obj.context)
+    if fail then return end
+
+    local t = telescope:load()
+    local line_mod = {}
+
+    local function line_value(bufnr)
+        local values = t:get_selected(bufnr)
+        values = map(values, function(sel)
+            return { sel.value, sel.obj }
+        end)
+        return values
+    end
+
+    function line_mod.default_action(bufnr)
+        local linenum, obj = unpack(line_value(bufnr)[1])
+        local file_path = obj.path
+
+        Bookmark.open(file_path, linenum, "s")
+    end
+
+    function line_mod.del(bufnr)
+        each(line_value(bufnr), function(value)
+            local linenum, obj = unpack(value)
+            local file_path = obj.path
+
+            Bookmark.del_and_save(file_path, linenum)
+        end)
+    end
+
+    local context = Bookmark.to_picker_results(obj.path)
+    local picker = t:create_picker(context, {
+        line_mod.default_action,
+        { "n", "x", line_mod.del },
+    }, {
+        prompt_title = "Bookmarked lines",
+    })
+
+    return picker
+end
+
+function Bookmark.run_line_picker(file_path)
+    local picker = Bookmark.create_line_picker(file_path)
+    if not picker then return end
+
+    picker:find()
+    return true
 end
 
 function Bookmark.create_picker()
@@ -211,51 +264,21 @@ function Bookmark.create_picker()
 
     local t = telescope.load()
     local mod = {}
-    local line_mod = {}
 
     local function value(bufnr)
         local values = t:get_selected(bufnr)
-        values = map(values, function(sel) return sel.value end)
-        return values
-    end
-
-    local function line_value(bufnr)
-        local values = t:get_selected(bufnr)
-        values = map(values, function(sel) return {sel.value, sel.obj} end)
-        return values       
-    end
-
-    function line_mod.default_action(bufnr)
-        local linenum, obj = unpack(line_value(bufnr)[1])
-        local file_path = obj.path
-
-        Bookmark.open(file_path, linenum, 's')
-    end
-
-    function line_mod.del(bufnr)
-        each(line_value(bufnr), function (value)
-            local linenum, obj = unpack(value)
-            local file_path = obj.path
-
-            Bookmark.del_and_save(file_path, linenum)
+        values = map(values, function(sel)
+            return sel.value
         end)
+        return values
     end
 
     function mod.default_action(bufnr)
         local obj = value(bufnr)[1]
+        local line_picker = Bookmark.create_line_picker(obj.path)
 
-        if obj.context and not is_empty(obj.context) then
-            local context = Bookmark.to_picker_results(obj.path)
-            local picker = t:create_picker(context, {
-                line_mod.default_action, 
-                {'n', 'x', line_mod.del}
-            }, {
-                prompt_title = 'Bookmarked lines'
-            })
-
-            picker:find()
-        else
-            Bookmark.open(obj.path, 's')
+        if line_picker then
+            line_picker:find()
         end
     end
 
@@ -286,6 +309,24 @@ function Bookmark.reset()
     end
 end
 
+function Bookmark.create_dwim_picker()
+    local bufname = buffer.name()
+    local obj = Bookmark.bookmarks[bufname]
+
+    if not obj or (obj.context and is_empty(obj.context)) then
+        return Bookmark.create_picker()
+    else
+        return Bookmark.create_line_picker(obj.path)
+    end
+end
+
+function Bookmark.run_dwim_picker()
+    local picker = Bookmark.create_dwim_picker()
+    if picker then picker:find() end
+
+    return true
+end
+
 Bookmark.mappings = kbd.map_group("Bookmark", {
     opts = {
         noremap = true,
@@ -302,13 +343,20 @@ Bookmark.mappings = kbd.map_group("Bookmark", {
                 Bookmark.add_and_save(bufname, count)
             end
         end,
-        {desc = 'add current buffer'}
+        { desc = "add current buffer" },
+    },
+    open_dwim_picker = {
+        "g<space>",
+        function ()
+            Bookmark.run_dwim_picker()
+        end,
+        {desc = 'dwim picker'}
     },
     open_picker = {
-        'gbb',
-        function ()
+        "g.",
+        function()
             Bookmark.run_picker()
         end,
-        {desc = 'run picker'}
-    }
+        { desc = "run picker" },
+    },
 })

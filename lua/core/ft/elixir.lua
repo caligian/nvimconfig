@@ -77,6 +77,10 @@ elixir.mappings = {
     },
 }
 
+elixir.abbrevs = {
+    puts = 'IO.inspect',
+    dump = 'inspect',
+    print = 'IO.write',
+}
+
 return elixir
-
-

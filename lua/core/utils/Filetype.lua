@@ -113,20 +113,28 @@ function Filetype.load_config(self)
     return msg
 end
 
-function Filetype.load_abbrevs(self, abbrevs)
-    abbrevs = self.abbrevs or abbrevs or {}
+function Filetype.load_abbrevs(self, spec)
+    spec = self.abbrevs or deepcopy(spec)
 
-    if is_empty(abbrevs) then
+    if not spec or is_empty(spec) then
         return
     end
 
-    return Abbrev.map(map(abbrevs, function (abbrev)
-        abbrev[3] = abbrev[3] or {}
-        abbrev[3].pattern = self.name
-        abbrev[3].event = 'FileType'
+    local opts = spec.opts
+    spec.opts = nil
 
-        return abbrev
-    end))
+    return dict.map(spec, function (lhs, value)
+        if is_string(value) then
+            value = {value, {}}
+        end
+
+        local rhs, o = unpack(value)
+        o = merge(o or {}, opts)
+        o.event = 'FileType'
+        o.pattern = self.name
+
+        return Abbrev(lhs, rhs, o)
+    end)
 end
 
 function Filetype.add_autocmd(self, opts)

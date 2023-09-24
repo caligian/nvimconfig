@@ -4,7 +4,6 @@ require "core.utils.buffer"
 Abbrev = Abbrev or struct("Abbrev", { "mode", "cmd", "buffer", "lhs", "rhs", "autocmd", "autocmd_id", 'pattern', 'event' })
 Abbrev.buffers = Abbrev.buffers or {}
 Abbrev.rhs = Abbrev.rhs or {}
-Abbrev.abbrevs = {}
 
 local function get_id()
     return #(keys(Abbrev.rhs)) + 1
@@ -198,4 +197,18 @@ function Abbrev.map(...)
     else
         return Abbrev(...)
     end
+end
+
+function Abbrev.map_dict(opts, spec)
+    if opts then
+        return dict.map(spec, function (lhs, opts)
+            local rhs, o = unpack(opts)
+            o = merge_(o or {}, opts)
+            return Abbrev(lhs, rhs, o)
+        end)
+    end
+
+    return dict.map(opts, function (lhs, opts)
+        return Abbrev(lhs, unpack(opts))
+    end)
 end
