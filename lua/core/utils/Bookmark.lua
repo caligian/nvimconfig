@@ -46,7 +46,7 @@ function from_string_keys(parsed_json)
     return out
 end
 
-function Bookmark:__call()
+function Bookmark.init()
     Bookmark.bookmarks = Bookmark.load()
     return Bookmark.bookmarks
 end

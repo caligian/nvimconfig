@@ -164,3 +164,8 @@ function Plugin.setup_lazy()
 
     require("lazy").setup(values(core))
 end
+
+function Plugin.load()
+    Plugin.setup_lazy()
+    Plugin.load_config_dir()
+end

@@ -595,3 +595,7 @@ function Filetype.run_buffer(bufnr, cmd, direction)
 
     Filetype.run_command(cmd, out_bufname, direction)
 end
+
+function Filetype.load()
+    return Filetype.load_specs()
+end
