@@ -508,8 +508,11 @@ function Filetype.run_command(cmd, out_bufname, direction)
     direction = direction or 's'
     local out_bufnr = buffer.bufadd(out_bufname)
 
+    buffer.set_lines(out_bufnr, 0, -1, {})
     buffer.map(out_bufnr, 'in', 'q', ':bwipeout!<CR>', {desc = 'kill buffer'})
     buffer.autocmd(out_bufnr, 'BufDelete', function () buffer.wipeout(out_bufnr) end)
+    buffer.set_option(out_bufnr, 'buftype', 'nofile')
+    buffer.set_option(out_bufnr, 'buflisted', false)
 
     local opts =  {}
     opts.on_stdout = true 
@@ -528,14 +531,13 @@ function Filetype.run_command(cmd, out_bufname, direction)
             buffer.set_lines(out_bufnr, -1, -1, out)
         end
 
-        local lc = buffer.linecount(out_bufnr)
-        buffer.hide(out_bufnr)
-
-        if lc > 0 then
-            buffer.split(out_bufnr, direction)
-            vim.cmd(':resize 10')
+        local s = buffer.string(out_bufnr)
+        if s ~= "" then
+            buffer.split(out_bufnr, 's')
+            vim.cmd('resize 10')
         end
 
+        print('recently ran command: ' .. cmd)
     end
 
     local proc = Process(cmd, opts)
@@ -566,7 +568,7 @@ function Filetype.compile_buffer(bufnr, action, direction)
         assert(cmd(bufname), 'no command found for buffer ' .. bufname)
     end
 
-    local out_buffer = cmd .. '_output'
+    local out_buffer = 'compile_output'
     if string.match(cmd, '%s') then
         cmd = string.gsub(cmd, '%s', bufname)
     else

@@ -1,0 +1,155 @@
+#!/usr/bin/python3
+
+import json, time, pytz
+from datetime import datetime
+from argparse import ArgumentParser
+
+class Bookmark:
+    def __init__(self):
+        self.bookmarks_file = os.path.join(os.getenv("HOME"), ".bookmarks.json")
+        self.bookmarks = None
+        self.exists = os.path.isfile(self.bookmarks_file)
+
+    @staticmethod
+    def get_line(path, line) -> str | ValueError:
+        if not os.path.isfile(path):
+            raise ValueError(f"expected file, got {path}")
+
+        with open(path) as fh:
+            lines = fh.readlines()
+            line = line - 1
+
+            if len(lines) < line or line < 0:
+                raise ValueError(f"invalid line ({line}) for {path}")
+            else:
+                return lines[line]
+
+    def save(self) -> bool:
+        if not self.bookmarks:
+            return False
+
+        with open(self.bookmarks_file, "w") as fh:
+            json.dump(self.bookmarks, fh)
+            return True
+
+    def load(self) -> dict | None:
+        if not self.exists:
+            raise ValueError(
+                f"{self.bookmarks_file} does not exist. please add some bookmarks first"
+            )
+
+        with open(self.bookmarks_file) as fh:
+            self.bookmarks = json.load(fh)
+            return self.bookmarks
+
+    def json(self):
+        if not self.bookmarks:
+            return
+
+        print(json.dumps(self.bookmarks))
+
+    def add(self, file_path, line=None, desc="") -> dict | ValueError:
+        if not self.bookmarks:
+            self.bookmarks = {}
+
+        if file_path[-1] == "/":
+            file_path = file_path[:-1]
+
+        isfile = os.path.isfile(file_path)
+        isdir = os.path.isdir(file_path)
+
+        if not isfile and not isdir:
+            raise ValueError(f"{file_path} is neither a file nor a directory")
+
+        if line:
+            self.bookmarks[file_path] = {
+                "file": isfile,
+                "dir": isdir,
+                "context": self.get_line(file_path, line),
+                "line": line,
+                "desc": desc,
+                "path": file_path,
+                "creation_time": time.time(),
+            }
+        else:
+            self.bookmarks[file_path] = {
+                "context": None,
+                "line": None,
+                "file": isfile,
+                "dir": isdir,
+                "desc": desc,
+                "path": file_path,
+                "creation_time": time.time(),
+            }
+
+        return self.bookmarks[file_path]
+
+    def delete(self, file_path) -> dict:
+        file_path = file_path.replace('~', os.getenv('HOME'))
+
+        if self.bookmarks.get(file_path):
+            self.bookmarks.pop(file_path)
+
+        return self.bookmarks
+
+    def print(self):
+        if not self.bookmarks:
+            return
+
+        for path, props in self.bookmarks.items():
+            if props['file']:
+                print(f"path: {props['path']}")
+            else:
+                print(f"path: {props['path']}/")
+
+            creation_time = props['creation_time']
+            creation_time = datetime.fromtimestamp(time.time(), tz=pytz.timezone("Asia/Kolkata")).strftime('%d/%m/%Y at %H:%M:%S')
+            print(f"creation time: {creation_time}")
+
+            desc = props["desc"]
+            if len(desc) != 0:
+                print(f"description: {desc}")
+                
+            if props['context']:
+                print(f'line: {props["line"]}')
+                print(f'context: {props["context"]}')
+
+            print()
+
+
+    @staticmethod
+    def main():
+        parser = ArgumentParser(description="Simple bookmarks manager")
+        add = parser.add_argument
+
+        add('-i', '--path', default=None)
+        add('-l', '--line', default=None, type=int, help='use linenum as context')
+        add('-d', '--desc', default="", help='bookmark description')
+        add('-x', '--delete', default=None, help='remove path from bookmarks')
+        add('-o', '--json', default=False, action='store_true', help='print bookmarks as json')
+        add('-p', '--print', default=False, action='store_true', help='pretty print bookmarks')
+
+        args = parser.parse_args()
+        fname = args.path
+        self = Bookmark()
+        
+        if args.print or args.json:
+            self.load()
+
+            if args.print:
+                self.print()
+            else:
+                self.json()
+        else:
+            if not args.filename:
+                raise ValueError(f"path missing")
+
+            if args.delete:
+                self.load()
+                self.delete(fname)
+            else:
+                self.add(fname, **{'line': args.line, 'desc': args.desc})
+
+        self.save()
+
+Bookmark.main()

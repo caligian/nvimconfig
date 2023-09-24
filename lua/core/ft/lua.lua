@@ -30,14 +30,6 @@ lua.dir_formatter = {
     append_dirname = true,
 }
 
-lua.abbrevs = {
-    {'print', 'printf'},
-    {'__ma', 'map(lst, function(x) end)'},
-    {'__fi', 'filter(lst, function(x) end)'},
-    {'__gr', 'grep(lst, function(x) end)'},
-    {'__ea', 'each(lst, function(x) end)'},
-}
-
 lua.repl = "luajit"
 
 lua.compile = "luajit"

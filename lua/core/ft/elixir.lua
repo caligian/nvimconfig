@@ -20,8 +20,8 @@ elixir.repl = {
 
 elixir.autocmds = {
     set_abbrevs = function ()
-        vim.cmd ':abbrev puts IO.inspect'
-        vim.cmd ':abbrev print IO.write'
+        vim.cmd ':abbrev <buffer> puts IO.inspect'
+        vim.cmd ':abbrev <buffer> print IO.write'
     end
 }
 

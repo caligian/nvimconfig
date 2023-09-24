@@ -96,7 +96,7 @@ telescope.load = function(override)
                     return {
                         value = entry[1],
                         display = entry[1],
-                        ordinal = -1,
+                        ordinal = entry[1],
                         callback = entry[2],
                     }
                 end,
