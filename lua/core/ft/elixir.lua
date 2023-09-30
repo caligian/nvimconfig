@@ -43,7 +43,6 @@ elixir.compile = "elixir"
 elixir.lsp_server = {
     "elixirls",
     cmd = {
-        "bash",
         path.join(user.data_dir, "lsp-servers", "elixir-ls", "scripts", "language_server.sh"),
     },
 }

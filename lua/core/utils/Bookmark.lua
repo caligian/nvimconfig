@@ -155,13 +155,21 @@ function Bookmark.open(file_path, line, split)
         split = line
     end
 
-    local bufnr = buffer.bufadd(file_path)
-    buffer.split(bufnr, split)
+    if path.isdir(file_path) then
+        vim.cmd(':e! ' .. file_path)
+    elseif path.isfile(file_path) then
+        local bufnr = buffer.bufadd(file_path)
+        buffer.split(bufnr, split)
 
-    if line then
-        buffer.call(bufnr, function()
-            vim.cmd(":normal! " .. line .. "Gzz")
-        end)
+        if line then
+            if buffer.current() == file_path then
+                vim.cmd(":normal! " .. line .. "Gzz")
+            else
+                buffer.call(bufnr, function()
+                    vim.cmd(":normal! " .. line .. "Gzz")
+                end)
+            end
+        end
     end
 end
 
@@ -275,10 +283,13 @@ function Bookmark.create_picker()
 
     function mod.default_action(bufnr)
         local obj = value(bufnr)[1]
-        local line_picker = Bookmark.create_line_picker(obj.path)
-
-        if line_picker then
-            line_picker:find()
+        if obj.file then
+            local line_picker = Bookmark.create_line_picker(obj.path)
+            if line_picker then
+                line_picker:find()
+            end
+        else
+            Bookmark.open(obj.path, 's')
         end
     end
 

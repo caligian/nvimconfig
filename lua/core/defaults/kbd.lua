@@ -306,6 +306,30 @@ dict.merge(user.mappings, {
             end
         }
     },
+
+    lsp = {
+        inherit = true,
+        info = {
+            'li',
+            ':LspInfo<CR>',
+            'lsp info'
+        },
+        stop_lsp = {
+            'lq',
+            ':LspStart<CR>',
+            'start lsp'
+        },
+        restart_lsp = {
+            'lL',
+            ':LspStart<CR>',
+            'start lsp'
+        },
+        start_lsp = {
+            'll',
+            ':LspStart<CR>',
+            'start lsp'
+        },
+    }
 })
 
 return function()
