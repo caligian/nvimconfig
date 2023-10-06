@@ -1,6 +1,5 @@
 local elixir = Filetype "elixir"
-
-function is_project(current_dir)
+local function is_project(current_dir)
     local prev_dir = vim.fn.fnamemodify(current_dir, ':h')
     local ls = dir.getallfiles(prev_dir)
     local check = path.join(prev_dir, 'mix.exs')
@@ -17,21 +16,6 @@ end
 elixir.repl = {
     { "iex", [is_project] = "cd ../ ; iex -S mix" },
 }
-
-elixir.autocmds = {
-    set_abbrevs = function ()
-        vim.cmd ':abbrev <buffer> puts IO.inspect'
-        vim.cmd ':abbrev <buffer> print IO.write'
-    end
-}
-
-
--- elixir.repl = {"cd ../; iex -S mix", load_file = function (fname, make_file)
---     fname = fname .. '.exs'
---     make_file(fname)
-
---     return sprintf("c(\"%s\")", fname)
--- end}
 
 elixir.formatter = {
     "mix format - ",

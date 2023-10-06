@@ -323,7 +323,7 @@ end
 -- @tparam table start Should be table containing start row and col
 -- @tparam table till Should be table containing end row and col
 -- @tparam string|table repl Replacement text
-function buffer.settext(bufnr, start, till, repl)
+function buffer.set_text(bufnr, start, till, repl)
     bufnr = bufnr or vim.fn.bufnr()
     if not buffer.exists(bufnr) then
         return
@@ -494,7 +494,7 @@ function buffer.string(bufnr)
     return table.concat(buffer.lines(bufnr, 0, -1), "\n")
 end
 
-function buffer.getbuffer(bufnr)
+function buffer.get_buffer(bufnr)
     bufnr = bufnr or vim.fn.bufnr()
     if not buffer.exists(bufnr) then
         return
@@ -503,7 +503,7 @@ function buffer.getbuffer(bufnr)
     return buffer.lines(bufnr, 0, -1)
 end
 
-function buffer.setbuffer(bufnr, lines)
+function buffer.set_buffer(bufnr, lines)
     bufnr = bufnr or vim.fn.bufnr()
     if not buffer.exists(bufnr) then
         return
@@ -514,13 +514,12 @@ end
 
 function buffer.current_line(bufnr)
     bufnr = bufnr or vim.fn.bufnr()
+
     if not buffer.exists(bufnr) then
         return
     end
 
-    return buffer.call(bufnr, function()
-        return vim.fn.getline "."
-    end)
+    return buffer.pos(bufnr).row
 end
 
 function buffer.till_cursor(bufnr)
@@ -647,7 +646,7 @@ function buffer.create_empty(listed, scratch)
     return vim.api.nvim_create_buf(listed, scratch)
 end
 
-function buffer.isempty(bufnr)
+function buffer.is_empty(bufnr)
     bufnr = bufnr or vim.fn.bufnr()
     if not buffer.exists(bufnr) then
         return
@@ -664,13 +663,14 @@ function buffer.scratch(name, filetype)
     if not name then
         return buffer.create_empty(listed, true)
     end
-    local bufnr = buffer.bufadd(name)
 
+    local bufnr = buffer.bufadd(name)
     if bufnr == 0 then
         return
     end
 
     buffer.set_option(bufnr, { buflisted = false, buftype = "nofile", filetype = filetype })
+    buffer.noremap(bufnr, 'n', 'q', ':hide<CR>', {})
 
     return bufnr
 end
@@ -773,18 +773,18 @@ function buffer.split(bufnr, direction)
         vim.cmd(s)
     end
 
-    if string.match(direction, 'v') then
+    if direction:match_any("^v$", '^vsplit$') then
         cmd ":vsplit"
-    elseif string.match_any(direction, '^s$', 'split','horiz') then
+    elseif string.match_any(direction, '^s$', '^split$') then
         cmd ":split"
-    elseif direction == "botright" then
-        cmd ":botright"
-    elseif direction == "topleft" then
-        cmd ":topleft"
-    elseif direction == "aboveleft" or direction == "leftabove" then
-        cmd ":aboveleft"
-    elseif direction == "belowright" or direction == "rightbelow" then
-        cmd ":belowright"
+    elseif direction:match "botright" then
+        cmd(direction)
+    elseif direction:match "topleft" then
+        cmd(direction)
+    elseif direction:match_any("aboveleft", "leftabove")  then
+        cmd(direction)
+    elseif direction:match_any("belowright", "rightbelow") then
+        cmd(direction)
     elseif direction == "tabnew" or direction == "t" or direction == "tab" then
         cmd ":tabnew"
     elseif string.match(direction, 'qf') then
@@ -793,28 +793,52 @@ function buffer.split(bufnr, direction)
     end
 end
 
+function buffer.botright_vsplit(bufnr)
+    return buffer.split(bufnr, "botright vsplit")
+end
+
+function buffer.topleft_vsplit(bufnr)
+    return buffer.split(bufnr, "topleft vsplit")
+end
+
+function buffer.rightbelow_vsplit(bufnr)
+    return buffer.split(bufnr, "belowright vsplit")
+end
+
+function buffer.leftabove_vsplit(bufnr)
+    return buffer.split(bufnr, "aboveleft vsplit")
+end
+
+function buffer.belowright_vsplit(bufnr)
+    return buffer.split(bufnr, "belowright vsplit")
+end
+
+function buffer.aboveleft_vsplit(bufnr)
+    return buffer.split(bufnr, "aboveleft vsplit")
+end
+
 function buffer.botright(bufnr)
-    return buffer.split(bufnr, "botright")
+    return buffer.split(bufnr, "botright split")
 end
 
 function buffer.topleft(bufnr)
-    return buffer.split(bufnr, "topleft")
+    return buffer.split(bufnr, "topleft split")
 end
 
 function buffer.rightbelow(bufnr)
-    return buffer.split(bufnr, "belowright")
+    return buffer.split(bufnr, "belowright split")
 end
 
 function buffer.leftabove(bufnr)
-    return buffer.split(bufnr, "aboveleft")
+    return buffer.split(bufnr, "aboveleft split")
 end
 
 function buffer.belowright(bufnr)
-    return buffer.split(bufnr, "belowright")
+    return buffer.split(bufnr, "belowright split")
 end
 
 function buffer.aboveleft(bufnr)
-    return buffer.split(bufnr, "aboveleft")
+    return buffer.split(bufnr, "aboveleft split")
 end
 
 function buffer.tabnew(bufnr)

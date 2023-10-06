@@ -271,71 +271,92 @@ function win.goto(winnr)
 end
 
 function win.split(winnr, direction)
-    direction = direction or "s"
-    local bufnr = vim.fn.bufwinnr(winnr)
-    if bufnr == -1 then
+    winnr = winnr or win.current()
+    if not win.exists(winnr) then
         return
     end
 
-    return win.call(winnr, function()
-        local function cmd(s)
-            local cmd = s .. " | " .. bufnr
-            vim.cmd(cmd)
-        end
+    local bufnr = win.bufnr(winnr)
+    direction = direction or "s"
 
-        if direction == "vert" or direction == "vertical" or direction == "v" then
-            cmd ":vsplit"
-        elseif direction == "split" or direction == "horizontal" or direction == "s" then
-            cmd ":split"
-        elseif direction == "botright" then
-            cmd ":botright"
-        elseif direction == "topleft" then
-            cmd ":topleft"
-        elseif direction == "aboveleft" or direction == "leftabove" then
-            cmd ":aboveleft"
-        elseif direction == "belowright" or direction == "rightbelow" then
-            cmd ":belowright"
-        elseif direction == "tabnew" or direction == "t" or direction == "tab" then
-            vim.cmd "tabnew"
-            if bufnr then
-                vim.cmd(":b " .. bufnr)
-            end
-        end
+    local function cmd(s)
+        local s = s .. " | b " .. bufnr
+        vim.cmd(s)
+    end
 
-        return true
-    end)
+    if direction:match_any("^v$", '^vsplit$') then
+        cmd ":vsplit"
+    elseif string.match_any(direction, '^s$', '^split$') then
+        cmd ":split"
+    elseif direction:match "botright" then
+        cmd(direction)
+    elseif direction:match "topleft" then
+        cmd(direction)
+    elseif direction:match_any("aboveleft", "leftabove")  then
+        cmd(direction)
+    elseif direction:match_any("belowright", "rightbelow") then
+        cmd(direction)
+    elseif direction == "tabnew" or direction == "t" or direction == "tab" then
+        cmd ":tabnew"
+    end
+
+    return true
 end
 
-function win.botright(winnr, bufnr)
-    return win.split(winnr, "botright", bufnr)
+function win.botright_vsplit(winnr)
+    return win.split_vsplit(winnr, "botright vsplit")
 end
 
-function win.topleft(winnr, bufnr)
-    return win.split(winnr, "topleft", bufnr)
+function win.topleft_vsplit(winnr)
+    return win.split_vsplit(winnr, "topleft vsplit")
 end
 
-function win.rightbelow(winnr, bufnr)
-    return win.split(winnr, "belowright", bufnr)
+function win.rightbelow_vsplit(winnr)
+    return win.split_vsplit(winnr, "belowright vsplit")
 end
 
-function win.leftabove(winnr, bufnr)
-    return win.split(winnr, "aboveleft", bufnr)
+function win.leftabove_vsplit(winnr)
+    return win.split_vsplit(winnr, "aboveleft vsplit")
 end
 
-function win.belowright(winnr, bufnr)
-    return win.split(winnr, "belowright", bufnr)
+function win.belowright_vsplit(winnr)
+    return win.split_vsplit(winnr, "belowright vsplit")
 end
 
-function win.aboveleft(winnr, bufnr)
-    return win.split(winnr, "aboveleft", bufnr)
+function win.aboveleft_vsplit(winnr)
+    return win.split_vsplit(winnr, "aboveleft vsplit")
 end
 
-function win.tabnew(winnr, bufnr)
-    return win.split(winnr, "t", bufnr)
+function win.botright(winnr)
+    return win.split(winnr, "botright split")
 end
 
-function win.vsplit(winnr, bufnr)
-    return win.split(winnr, "v", bufnr)
+function win.topleft(winnr)
+    return win.split(winnr, "topleft split")
+end
+
+function win.rightbelow(winnr)
+    return win.split(winnr, "belowright split")
+end
+
+function win.leftabove(winnr)
+    return win.split(winnr, "aboveleft split")
+end
+
+function win.belowright(winnr)
+    return win.split(winnr, "belowright split")
+end
+
+function win.aboveleft(winnr)
+    return win.split(winnr, "aboveleft split")
+end
+
+function win.tabnew(winnr)
+    return win.split(winnr, "t")
+end
+
+function win.vsplit(winnr)
+    return win.split(winnr, "v")
 end
 
 function win.type(winnr)

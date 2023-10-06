@@ -8,6 +8,7 @@ local add_ft = vim.filetype.add
 
 Filetype = Filetype
     or struct.new("Filetype", {
+        'actions',
         'abbrevs',
         "name",
         'filetype',
@@ -55,6 +56,72 @@ function Filetype.init(self)
     Filetype.filetypes[self.name] = self
 
     return self
+end
+
+-- run when in a workspace
+function Filetype.create_actions_picker(bufnr)
+    bufnr = bufnr or buffer.bufnr()
+    local ft = buffer.option(bufnr, 'filetype')
+    local specs = Filetype.get(ft, 'actions')
+    local p = buffer.name(bufnr)
+    local workspace
+
+    if not specs or is_empty(specs) then
+        return false
+    else
+        specs = vim.deepcopy(specs)
+    end
+
+    workspace = Filetype.workspace(bufnr)
+    if not specs.buffer and not specs.workspace then
+        return false
+    elseif workspace and specs.workspace then
+        specs = specs.workspace
+    elseif buffer and specs.buffer then
+        specs = specs.buffer
+    else
+        return false
+    end
+
+    local t = load_telescope()
+
+    local default = specs.default
+    if not default then
+        error('no default action provided')
+    end
+
+    local results = {
+        results = keys(specs),
+        entry_maker = function (x)
+            if workspace then
+                return {
+                    value = x,
+                    ordinal = x,
+                    display = sprintf('(%s) %s', workspace, x),
+                    workspace = workspace,
+                }
+            end
+
+            return {
+                value = x,
+                ordinal = x,
+                display = x,
+            }
+
+        end
+    }
+
+    local prompt_title
+    do
+        if not in_workspace then
+            prompt_title = 'actions for ' .. p
+        else
+            prompt_title = 'actions for (workspace) ' .. workspace
+        end
+    end
+
+    local t = load_telescope()
+    return t.create(results, default, {prompt_title=prompt_title})
 end
 
 function Filetype.load_autocmds(self, autocmds)
@@ -117,13 +184,7 @@ function Filetype.load_abbrevs(self, spec)
     spec = spec or self.abbrevs or {}
     if is_empty(spec) then return end
 
-    return Filetype.add_autocmd(self, {
-        callback = function(opts)
-            if buffer.option(opts.buf, 'filetype') == self.name then
-                Abbrev.map_dict({buffer=opts.buf}, spec)
-            end
-        end
-    })
+    return Abbrev.map_dict({event = 'FileType', pattern = self.name}, spec)
 end
 
 function Filetype.add_autocmd(self, opts)
@@ -566,8 +627,8 @@ function Filetype.compile_buffer(bufnr, action, direction)
     end
 
     local out_buffer = 'compile_output'
-    if string.match(cmd, '%s') then
-        cmd = string.gsub(cmd, '%s', bufname)
+    if string.match(cmd, '%%s') then
+        cmd = string.gsub(cmd, '%%s', bufname)
     else
         cmd = cmd .. ' ' .. bufname
     end
@@ -595,4 +656,67 @@ end
 
 function Filetype.load()
     return Filetype.load_specs()
+end
+
+local function find_workspace(start_dir, pats, maxdepth, _depth)
+    max_depth = max_depth or 2
+    _depth = _depth or 0
+    pats = array.to_array(pats or "%.git$")
+
+    if max_depth == _depth then
+        return false
+    end
+
+    if not path.isdir(start_dir) then
+        return false
+    end
+
+    start_dir = path.abspath(start_dir) 
+    local parent = path.dirname(start_dir)
+    local children = dir.getfiles(start_dir)
+
+    for i=1, #pats do
+        local pat = pats[i]
+
+        for j=1,#children do
+            if children[j]:match(pat) then
+                return children[j]
+            end
+        end
+    end
+
+    return find_workspace(parent, pats, maxdepth, _depth+1)
+end
+
+local function find_buffer_workspace(bufnr, pats, maxdepth, _depth)
+    bufnr = bufnr or buffer.bufnr()
+
+    if not buffer.exists(bufnr) then
+        return false
+    end
+
+    local lspconfig = require 'lspconfig'
+    local server = Filetype.get(buffer.option(bufnr, 'filetype'), 'lsp_server')
+    local bufname = buffer.name(bufnr)
+
+    if not server then
+        return find_workspace(bufname, pats, maxdepth, _depth)
+    end
+
+    local config = lspconfig[server[1]]
+    if not config.get_root_dir then
+        return find_workspace(bufname, pats, maxdepth, _depth)
+    end
+
+    return config.get_root_dir(bufname)
+end
+
+function Filetype.workspace(p, pats, maxdepth, _depth)
+    p = p or buffer.bufnr()
+
+    if is_number(p) then
+        return find_buffer_workspace(p, pats, maxdepth, _depth)
+    end
+
+    return find_workspace(p, pats, maxdepth, _depth)
 end

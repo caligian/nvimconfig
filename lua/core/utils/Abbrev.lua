@@ -44,13 +44,13 @@ local function apply_for_buffer(self)
     end
 
     if bufnr then
-        self.autocmd = autocmd.map("BufEnter", {
+        self.autocmd = autocmd.map("BufAdd", {
             buffer = bufnr,
             callback = callback,
         })
     elseif event and pattern then
         self.autocmd = autocmd.map(event, {
-            buffer = buffer.bufnr(),
+            pattern = pattern,
             callback = callback,
         })
     elseif event then
@@ -59,7 +59,7 @@ local function apply_for_buffer(self)
             callback = callback,
         })
     elseif pattern then
-        self.autocmd = autocmd.map("BufEnter", {
+        self.autocmd = autocmd.map("BufAdd", {
             pattern = pattern,
             callback = callback,
         })
@@ -201,14 +201,18 @@ end
 
 function Abbrev.map_dict(opts, spec)
     if opts then
-        return dict.map(spec, function (lhs, opts)
-            local rhs, o
-            if is_string(opts) then
-                rhs = opts
+        return dict.map(spec, function (lhs, o)
+            local rhs
+
+            if is_string(o) then
+                rhs = o
+                o = {}
+            else
+                rhs, o = unpack(o)
             end
 
-            rhs, o = unpack(opts)
             o = merge_(o or {}, opts)
+
             return Abbrev(lhs, rhs, o)
         end)
     end

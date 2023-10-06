@@ -1,7 +1,6 @@
 local lua = Filetype "lua"
 local package_path = vim.split(package.path, ";")
 local formatter_path = path.join(os.getenv "HOME", ".cargo", "bin", "stylua")
-
 local formatter_cmd = formatter_path
 
 local default_args = {
@@ -65,5 +64,15 @@ lua.autocmds = {
     end,
 
 }
+
+
+lua.actions = {
+    workspace = {
+        default = build,
+        build = build
+    }
+}
+
+Filetype.create_actions_picker():find()
 
 return lua
