@@ -527,7 +527,7 @@ function buffer.till_cursor(bufnr)
         return
     end
 
-    return buffer.getlines(bufnr, 0, win.row)
+    return buffer.lines(bufnr, 0, win.row)
 end
 
 function buffer.append(bufnr, lines)
@@ -990,7 +990,7 @@ end
 function float.set_config(bufnr, config)
     config = config or {}
     local winnr = buffer.winnr(bufnr)
-    local ok, msg = pcall(vim.api.nvim_win_set_config, win.id(winnr), config)
+    local ok, msg = pcall(vim.api.nvim_win_set_config, win.nr2id(winnr), config)
 
     if not ok then
         return
@@ -1006,7 +1006,7 @@ function float.get_config(bufnr)
         return
     end
 
-    local ok, msg = pcall(vim.api.nvim_win_get_config, win.id(winnr))
+    local ok, msg = pcall(vim.api.nvim_win_get_config, win.nr2id(winnr))
     if not ok then
         return
     end
