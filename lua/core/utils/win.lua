@@ -1,10 +1,5 @@
-win = { float = {} }
-local floatmt = {}
-local float = setmetatable(win.float, floatmt)
-
-local function default_bufnr()
-    return vim.fn.bufnr()
-end
+win = win or module "win"
+win.float = module "win.float"
 
 function win.vimsize()
     local scratch = vim.api.nvim_create_buf(false, true)
@@ -35,17 +30,21 @@ end
 
 function win.id(winnr)
     local id = vim.fn.win_getid(winnr or default_winnr())
+
     if id == 0 then
         return
     end
+
     return id
 end
 
 function win.id2nr(id)
     local winnr = vim.fn.win_id2win(id or win.id())
+
     if winnr == 0 then
         return
     end
+
     return winnr
 end
 
@@ -97,7 +96,7 @@ function win.var(winnr, var)
 
     local ok, msg = pcall(vim.api.nvim_win_get_var, win.id(winnr), var)
     if not ok then
-        return
+        return false, msg
     end
 
     return ok
@@ -105,27 +104,31 @@ end
 
 function win.option(winnr, opt)
     winnr = winnr or win.winnr()
+
     if not win.exists(winnr) then
         return
     end
 
-    local ok, msg = pcall(vim.api.nvim_win_get_option, win.id(winnr), var)
+    local ok, msg = pcall(vim.api.nvim_win_get_option, win.id(winnr), opt)
+
     if not ok then
-        return
+        return false, msg
     end
 
-    return ok
+    return ok, msg
 end
 
 function win.delvar(winnr, var)
     winnr = winnr or win.current()
+
     if not win.exists(winnr) then
         return
     end
 
-    local ok, msg = pcall(vim.api.nvim_win_del_var, winnr)
+    local ok, msg = pcall(vim.api.nvim_win_del_var, winnr, var)
+
     if not ok then
-        return
+        return false, msg
     end
 
     return true
@@ -280,19 +283,19 @@ function win.split(winnr, direction)
     direction = direction or "s"
 
     local function cmd(s)
-        local s = s .. " | b " .. bufnr
+        s = s .. " | b " .. bufnr
         vim.cmd(s)
     end
 
-    if direction:match_any("^v$", '^vsplit$') then
+    if direction:match_any("^v$", "^vsplit$") then
         cmd ":vsplit"
-    elseif string.match_any(direction, '^s$', '^split$') then
+    elseif string.match_any(direction, "^s$", "^split$") then
         cmd ":split"
     elseif direction:match "botright" then
         cmd(direction)
     elseif direction:match "topleft" then
         cmd(direction)
-    elseif direction:match_any("aboveleft", "leftabove")  then
+    elseif direction:match_any("aboveleft", "leftabove") then
         cmd(direction)
     elseif direction:match_any("belowright", "rightbelow") then
         cmd(direction)
@@ -474,136 +477,6 @@ function win.set_width(winnr, width)
     return true
 end
 
-function floatmt:__call(winnr, opts)
-    validate {
-        win_options = {
-            {
-                __nonexistent = true,
-                ["?center"] = "dict",
-                ["?panel"] = "number",
-                ["?dock"] = "number",
-            },
-            opts or {},
-        },
-    }
-
-    local function from_percent(current, width, min)
-        current = current or vim.fn.winwidth(0)
-        width = width or 0.5
-
-        assert(width ~= 0, "width cannot be 0")
-        assert(width > 0, "width cannot be < 0")
-
-        if width < 1 then
-            required = math.floor(current * width)
-        else
-            return width
-        end
-
-        if min < 1 then
-            min = math.floor(current * min)
-        else
-            min = math.floor(min)
-        end
-
-        if required < min then
-            required = min
-        end
-
-        return required
-    end
-
-    winnr = winnr or win.current()
-    opts = opts or {}
-    local dock = opts.dock
-    local panel = opts.panel
-    local center = opts.center
-    local focus = opts.focus
-    opts.dock = nil
-    opts.panel = nil
-    opts.center = nil
-    opts.style = opts.style or "minimal"
-    opts.border = opts.border or "single"
-    local editor_size = win.vimsize()
-    local current_width = win.width()
-    local current_height = win.height()
-    opts.width = opts.width or current_width
-    opts.height = opts.height or current_height
-    opts.relative = opts.relative or "editor"
-    focus = focus == nil and true or focus
-
-    if center then
-        if opts.relative == "editor" then
-            current_width = editor_size[1]
-            current_height = editor_size[2]
-        end
-        local width, height = unpack(center)
-        width = math.floor(from_percent(current_width, width, 10))
-        height = math.floor(from_percent(current_height, height, 5))
-        local col = (current_width - width) / 2
-        local row = (current_height - height) / 2
-        opts.width = width
-        opts.height = height
-        opts.col = math.floor(col)
-        opts.row = math.floor(row)
-    elseif panel then
-        if opts.relative == "editor" then
-            current_width = editor_size[1]
-            current_height = editor_size[2]
-        end
-        opts.row = 0
-        opts.col = 1
-        opts.width = from_percent(current_width, panel, 5)
-        opts.height = current_height
-        if reverse then
-            opts.col = current_width - opts.width
-        end
-    elseif dock then
-        if opts.relative == "editor" then
-            current_width = editor_size[1]
-            current_height = editor_size[2]
-        end
-        opts.col = 0
-        opts.row = opts.height - dock
-        opts.height = from_percent(current_height, dock, 5)
-        opts.width = current_width > 5 and current_width - 2 or current_width
-        if reverse then
-            opts.row = opts.height
-        end
-    end
-
-    local bufnr = vim.fn.winbufnr(winnr)
-    local winid = vim.api.nvim_open_win(bufnr, focus, opts)
-    if winid == 0 then
-        return false
-    end
-
-    return winnr
-end
-
-function float.set_config(winnr, config)
-    config = config or {}
-    local ok, msg = pcall(vim.api.nvim_win_set_config, win.id(winnr), config)
-    if not ok then
-        return
-    end
-
-    return true
-end
-
-function float.get_config(winnr)
-    if not win.exists(winnr) then
-        return
-    end
-
-    local ok, msg = pcall(vim.api.nvim_win_get_config, win.id(winnr))
-    if not ok then
-        return
-    end
-
-    return ok
-end
-
 function win.info(winnr)
     if not win.exists(bufnr) then
         return
@@ -672,88 +545,183 @@ function win.scroll(winnr, direction, lines)
     return true
 end
 
+
 --------------------------------------------------
--- winid api
-local id = win.id
-win.id = setmetatable({
-    exists = function(winnr)
-        return id(winnr) ~= nil and winnr
-    end,
+local function from_percent(current, width, min)
+    current = current or vim.fn.winwidth(0)
+    width = width or 0.5
 
-    move = function(from_winid, to_winid, opts)
-        from_winid = from_winid or win.current_id()
-        to_winid = to_winid or -1
-        local from_winnr = win.id2nr(from_winid)
-        local to_winnr = win.id2nr(to_winid)
+    assert(width ~= 0, "width cannot be 0")
+    assert(width > 0, "width cannot be < 0")
 
-        if not win.exists(from_winnr) then
-            return
-        end
-        if not win.exists(to_winnr) then
-            return
-        end
-
-        vim.fn.win_splitmove(from_winnr, to_winnr, opts or { right = true })
-
-        return true
-    end,
-    float = function(...)
-        win.float(...)
-    end,
-}, {
-    __call = function(self, winnr)
-        return id(winnr)
-    end,
-})
-
-array.each({
-    "scroll",
-    "info",
-    "bufnr",
-    "winnr",
-    "height",
-    "width",
-    "size",
-    "var",
-    "option",
-    "set_var",
-    "set_option",
-    "delvar",
-    "tabnr",
-    "call",
-    "restore_view",
-    "restore_cmd",
-    "save_view",
-    "current_line",
-    "virtualcol",
-    "set_height",
-    "set_width",
-    "close",
-    "hide",
-    "range",
-    "range_text",
-    "cursor_pos",
-    "type",
-    "vsplit",
-    "split",
-    "tabnew",
-    "row",
-    "col",
-    "botright",
-    "belowright",
-    "rightbelow",
-    "leftabove",
-    "aboveleft",
-    "goto",
-    "tabwin",
-    "move_statusline",
-    "move_separator",
-    "screen_pos",
-    "pos",
-}, function(name)
-    win.id[name] = function(self, winid, ...)
-        return win[name](win.id2nr(winid) or -1, ...)
+    if width < 1 then
+        required = math.floor(current * width)
+    else
+        return width
     end
-end)
+
+    if min < 1 then
+        min = math.floor(current * min)
+    else
+        min = math.floor(min)
+    end
+
+    if required < min then
+        required = min
+    end
+
+    return required
+end
+
+local float = win.float
+function float:__call(winnr, opts)
+    winnr = winnr or win.current()
+    local bufnr
+
+    if not win.exists(winnr) then
+        return
+    else
+        bufnr = win.bufnr(winnr)
+    end
+
+    validate {
+        win_options = {
+            {
+                __nonexistent = true,
+                ["?center"] = "array",
+                ["?panel"] = "number",
+                ["?dock"] = "number",
+            },
+            opts or {},
+        },
+    }
+
+    opts = opts or {}
+    local dock = opts.dock
+    local panel = opts.panel
+    local center = opts.center
+    local focus = opts.focus
+    opts.dock = nil
+    opts.panel = nil
+    opts.center = nil
+    opts.style = opts.style or "minimal"
+    opts.border = opts.border or "single"
+    local editor_size = win.vimsize()
+    local current_width = win.width()
+    local current_height = win.height()
+    opts.width = opts.width or current_width
+    opts.height = opts.height or current_height
+    opts.relative = opts.relative or "editor"
+    focus = focus == nil and true or focus
+    local reverse = opts.reverse
+    opts.reverse = nil
+
+    if center then
+        if opts.relative == "editor" then
+            current_width = editor_size[1]
+            current_height = editor_size[2]
+        end
+
+        local width, height = unpack(center)
+        width = math.floor(from_percent(current_width, width, 10))
+        height = math.floor(from_percent(current_height, height, 5))
+        local col = (current_width - width) / 2
+        local row = (current_height - height) / 2
+        opts.width = width
+        opts.height = height
+        opts.col = math.floor(col)
+        opts.row = math.floor(row)
+    elseif panel then
+        if opts.relative == "editor" then
+            current_width = editor_size[1]
+            current_height = editor_size[2]
+        end
+
+        opts.row = 0
+        opts.col = 1
+        opts.width = from_percent(current_width, panel, 5)
+        opts.height = current_height
+
+        if reverse then
+            opts.col = current_width - opts.width
+        end
+    elseif dock then
+        if opts.relative == "editor" then
+            current_width = editor_size[1]
+            current_height = editor_size[2]
+        end
+
+        opts.col = 0
+        opts.row = opts.height - dock
+        opts.height = from_percent(current_height, dock, 5)
+        opts.width = current_width > 5 and current_width - 2 or current_width
+
+        if reverse then
+            opts.row = opts.height
+        end
+    end
+
+    local winid = vim.api.nvim_open_win(bufnr, focus, opts)
+
+    if winid == 0 then
+        return false
+    end
+
+    return winid
+end
+
+function float.panel(winnr, size, opts)
+    if not size then
+        size = 30
+    end
+
+    local o = merge({ panel = size }, opts or {})
+    return float(winnr, o)
+end
+
+function float.center(winnr, size, opts)
+    if not size then
+        size = { 80, 80 }
+    elseif is_number(size) then
+        local n = size
+        size = { n, n }
+    elseif #size == 1 then
+        local n = size[1]
+        size = { n, n }
+    end
+
+    return float(winnr, merge({ center = size }, opts))
+end
+
+function float.dock(winnr, size, opts)
+    size = size or 10
+    return float(winnr, merge({ dock = size }, opts or {}))
+end
+
+function float.set_config(winnr, config)
+    config = config or {}
+    local ok, msg = pcall(vim.api.nvim_win_set_config, win.id(winnr), config)
+
+    if not ok then
+        return false, msg
+    end
+
+    return true
+end
+
+function float.get_config(winnr)
+    if not win.exists(winnr) then
+        return
+    end
+
+    local ok, msg = pcall(vim.api.nvim_win_get_config, win.id(winnr))
+    if not ok then
+        return false, msg
+    end
+
+    return ok
+end
+
+--------------------------------------------------
 
 return win

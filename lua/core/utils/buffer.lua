@@ -6,17 +6,11 @@ require "core.utils.autocmd"
 require "core.utils.kbd"
 
 
-buffer = { float = {} }
-local floatmt = {}
-local float = setmetatable(buffer.float, floatmt)
-local is_string_or_table = is { "string", "array" }
+buffer = buffer or module('buffer')
+buffer.float = module('buffer.float')
+buffer.history = buffer.history or module('buffer.history')
 
-autocmd.map('FileType', {
-    pattern = 'qf',
-    callback = function ()
-        kbd.map('ni', 'q', ':hide<CR>', {desc = 'kill buffer', buffer = buffer.current()})
-    end
-})
+local is_strarray = union("string", "array")
 
 --- Add buffer by name or return existing buffer index. ':help bufadd()'
 -- @function buffer.bufadd
@@ -41,7 +35,7 @@ buffer.current = buffer.bufnr
 -- @tparam string keys
 -- @tparam ?string flags
 -- @treturn false if invalid buffer is provided
-function buffer.feedkeys(bufnr, keys, flags)
+function buffer.normal(bufnr, keys)
     bufnr = bufnr or vim.fn.bufnr()
     if not buffer.exists(bufnr) then
         return
@@ -533,7 +527,6 @@ function buffer.till_cursor(bufnr)
         return
     end
 
-    local pos = win.pos(winnr)
     return buffer.getlines(bufnr, 0, win.row)
 end
 
@@ -677,7 +670,7 @@ end
 
 function buffer.input(text, cb, opts)
     validate {
-        text = { is_string_or_table, text },
+        text = { is_strarray, text },
         cb = { "callable", cb },
         ["?opts"] = { "dict", opts },
     }
@@ -762,14 +755,14 @@ end
 
 function buffer.split(bufnr, direction)
     direction = direction or "s"
+    bufnr = bufnr or buffer.current()
 
-    local bufnr = bufnr or buffer.current()
     if not buffer.exists(bufnr) then
         return
     end
 
     local function cmd(s)
-        local s = s .. " | b " .. bufnr
+        s = s .. " | b " .. bufnr
         vim.cmd(s)
     end
 
@@ -849,7 +842,36 @@ function buffer.vsplit(bufnr)
     return buffer.split(bufnr, "v")
 end
 
-function floatmt:__call(bufnr, opts)
+--------------------------------------------------
+local function from_percent(current, width, min)
+    current = current or vim.fn.winwidth(0)
+    width = width or 0.5
+
+    assert(width ~= 0, "width cannot be 0")
+    assert(width > 0, "width cannot be < 0")
+
+    if width < 1 then
+        required = math.floor(current * width)
+    else
+        return width
+    end
+
+    if min < 1 then
+        min = math.floor(current * min)
+    else
+        min = math.floor(min)
+    end
+
+    if required < min then
+        required = min
+    end
+
+    return required
+end
+
+
+local float = buffer.float
+function float:__call(bufnr, opts)
     validate {
         win_options = {
             {
@@ -862,34 +884,7 @@ function floatmt:__call(bufnr, opts)
         },
     }
 
-    local function from_percent(current, width, min)
-        current = current or vim.fn.winwidth(0)
-        width = width or 0.5
-
-        assert(width ~= 0, "width cannot be 0")
-        assert(width > 0, "width cannot be < 0")
-
-        if width < 1 then
-            required = math.floor(current * width)
-        else
-            return width
-        end
-
-        if min < 1 then
-            min = math.floor(current * min)
-        else
-            min = math.floor(min)
-        end
-
-        if required < min then
-            required = min
-        end
-
-        return required
-    end
-
     bufnr = bufnr or buffer.current()
-    local winnr = vim.fn.bufwinnr(bufnr)
     opts = opts or {}
     local dock = opts.dock
     local panel = opts.panel
@@ -907,12 +902,15 @@ function floatmt:__call(bufnr, opts)
     opts.height = opts.height or current_height
     opts.relative = opts.relative or "editor"
     focus = focus == nil and true or focus
+    local reverse = opts.reverse
+    opts.reverse = nil
 
     if center then
         if opts.relative == "editor" then
             current_width = editor_size[1]
             current_height = editor_size[2]
         end
+
         local width, height = unpack(center)
         width = math.floor(from_percent(current_width, width, 10))
         height = math.floor(from_percent(current_height, height, 5))
@@ -927,10 +925,12 @@ function floatmt:__call(bufnr, opts)
             current_width = editor_size[1]
             current_height = editor_size[2]
         end
+
         opts.row = 0
         opts.col = 1
         opts.width = from_percent(current_width, panel, 5)
         opts.height = current_height
+
         if reverse then
             opts.col = current_width - opts.width
         end
@@ -939,10 +939,12 @@ function floatmt:__call(bufnr, opts)
             current_width = editor_size[1]
             current_height = editor_size[2]
         end
+
         opts.col = 0
         opts.row = opts.height - dock
         opts.height = from_percent(current_height, dock, 5)
         opts.width = current_width > 5 and current_width - 2 or current_width
+
         if reverse then
             opts.row = opts.height
         end
@@ -954,12 +956,42 @@ function floatmt:__call(bufnr, opts)
         return false
     end
 
-    return bufnr
+    return bufnr, winid
 end
 
-function float.set_config(winnr, config)
+function float.panel(bufnr, size, opts)
+    if not size then
+        size = 30
+    end
+
+    local o = merge({panel = size}, opts or {})
+    return float(bufnr, o)
+end
+
+function float.center(bufnr, size, opts)
+    if not size then
+        size = {80, 80}
+    elseif is_number(size) then
+        local n = size
+        size = {n, n}
+    elseif #size == 1 then
+        local n = size[1]
+        size = {n, n}
+    end
+
+    return float(bufnr, merge({center = size}, opts))
+end
+
+function float.dock(bufnr, size, opts)
+    size = size or 10
+    return float(bufnr, merge({dock = size}, opts or {}))
+end
+
+function float.set_config(bufnr, config)
     config = config or {}
+    local winnr = buffer.winnr(bufnr)
     local ok, msg = pcall(vim.api.nvim_win_set_config, win.id(winnr), config)
+
     if not ok then
         return
     end
@@ -967,7 +999,9 @@ function float.set_config(winnr, config)
     return true
 end
 
-function float.get_config(winnr)
+function float.get_config(bufnr)
+    local winnr = buffer.winnr(bufnr)
+
     if not win.exists(winnr) then
         return
     end
@@ -1023,5 +1057,137 @@ array.each(copy_methods, function(name)
         return win[name](winnr, ...)
     end
 end)
+
+autocmd.map('FileType', {
+    pattern = 'qf',
+    callback = function ()
+        kbd.map('ni', 'q', ':hide<CR>', {desc = 'kill buffer', buffer = buffer.current()})
+    end
+})
+
+--------------------------------------------------
+local hist = buffer.history
+
+hist.ignore_filetypes = {
+    TelescopePrompt = true,
+    [''] = true
+}
+
+hist.history = hist.history or setmetatable({}, {
+    __index = function (self, key)
+        return rawget(self, tostring(key))
+    end,
+})
+
+local history =  hist.history
+
+function hist.get_state()
+    if #hist.history == 0 then
+        return
+    end
+
+    return hist.history
+end
+
+function hist.print()
+    pp(history)
+end
+
+function hist.prune()
+    for i=1, #history do
+        local bufnr = history[i]
+        local exists =buffer.exists(bufnr) 
+
+        if not buffer.exists(bufnr) then
+            array.remove(history, i)
+            history[tostring(bufnr)] = nil
+        end
+    end
+end
+
+function hist.push(bufnr)
+    if not bufnr then
+        return
+    elseif history[#history] == buffer.current() then
+        return
+    elseif hist.ignore_filetypes[buffer.option(bufnr, 'filetype')] then
+        return
+    end
+
+    history[#history+1] = bufnr
+    history[tostring(bufnr)] = true
+
+    return true
+end
+
+function hist.pop(n)
+    local items = array.pop(history, n)
+    items = array.to_array(items)
+
+    if #items == 0 then
+        return
+    end
+
+    each(items, function (bufnr) history[tostring(bufnr)] = nil end)
+
+    return items
+end
+
+local function no_history()
+    print 'no buffer history left'
+end
+
+function hist.pop_open(n)
+    hist.prune()
+
+    local current = hist.pop(n)
+    if not current then
+        return no_history()
+    else
+        current = current[1]
+    end
+
+    if current == buffer.current() then
+        current = hist.pop()
+    else
+        return buffer.open(current)
+    end
+
+    if not current then
+        return no_history()
+    end
+
+    return buffer.open(current[1])
+end
+
+function hist.open()
+    local current = hist.pop()
+
+    if not current then
+        return no_history()
+    end
+
+    hist.prune()
+
+    current = current[1]
+    if current == buffer.current() then
+        current = hist.pop()
+    else
+        return buffer.open(current)
+    end
+
+    if not current then
+        return no_history()
+    end
+
+    return buffer.open(current[1])
+end
+
+autocmd.map('BufEnter', {
+    pattern = '*',
+    callback = function (opts)
+        hist.push(opts.buf)
+    end
+})
 
 return buffer
