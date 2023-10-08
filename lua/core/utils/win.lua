@@ -1,8 +1,15 @@
-win = win or module "win"
+win = module "win"
 win.float = module "win.float"
+win.id = module "win.id"
+win.nr = module "win.nr"
+local m_id = win.id
+local m_nr = win.nr
+m_nr.float = module "win.nr.float"
+m_id.float = module "win.id.float"
 
 function win.vimsize()
     local scratch = vim.api.nvim_create_buf(false, true)
+
     vim.api.nvim_buf_call(scratch, function()
         vim.cmd "tabnew"
         local tabpage = vim.fn.tabpagenr()
@@ -21,14 +28,14 @@ local function default_winnr()
 end
 
 function win.exists(winnr)
-    local ok = vim.api.nvim_win_is_valid(win.id(winnr) or -1)
+    local ok = vim.api.nvim_win_is_valid(win.nr2id(winnr) or -1)
     if not ok then
         return
     end
     return winnr
 end
 
-function win.id(winnr)
+function win.nr2id(winnr)
     local id = vim.fn.win_getid(winnr or default_winnr())
 
     if id == 0 then
@@ -39,7 +46,7 @@ function win.id(winnr)
 end
 
 function win.id2nr(id)
-    local winnr = vim.fn.win_id2win(id or win.id())
+    local winnr = vim.fn.win_id2win(id or win.nr2id())
 
     if winnr == 0 then
         return
@@ -60,10 +67,10 @@ function win.current()
 end
 
 function win.current_id()
-    return win.id(win.current())
+    return win.nr2id(win.current())
 end
 
-function win.height(winnr)
+function m_nr.height(winnr)
     winnr = winnr or win.current()
     if not win.exists(winnr) then
         return
@@ -71,7 +78,7 @@ function win.height(winnr)
     return vim.fn.winheight(winnr)
 end
 
-function win.width(winnr)
+function m_nr.width(winnr)
     winnr = winnr or win.current()
     if not win.exists(winnr) then
         return
@@ -79,8 +86,9 @@ function win.width(winnr)
     return vim.fn.winwidth(winnr)
 end
 
-function win.size(winnr)
-    local width, height = win.width(winnr), win.height(wi)
+function m_nr.size(winnr)
+    local width, height = win.width(winnr), win.height(winnr)
+
     if not width or not height then
         return
     end
@@ -90,11 +98,13 @@ end
 
 function win.var(winnr, var)
     winnr = winnr or win.winnr()
+
     if not win.exists(winnr) then
         return
     end
 
-    local ok, msg = pcall(vim.api.nvim_win_get_var, win.id(winnr), var)
+    local ok, msg = pcall(vim.api.nvim_win_get_var, win.nr2id(winnr), var)
+
     if not ok then
         return false, msg
     end
@@ -109,7 +119,7 @@ function win.option(winnr, opt)
         return
     end
 
-    local ok, msg = pcall(vim.api.nvim_win_get_option, win.id(winnr), opt)
+    local ok, msg = pcall(vim.api.nvim_win_get_option, win.nr2id(winnr), opt)
 
     if not ok then
         return false, msg
@@ -118,7 +128,7 @@ function win.option(winnr, opt)
     return ok, msg
 end
 
-function win.delvar(winnr, var)
+function win.del_var(winnr, var)
     winnr = winnr or win.current()
 
     if not win.exists(winnr) then
@@ -134,7 +144,7 @@ function win.delvar(winnr, var)
     return true
 end
 
-function win.tabnr(winnr)
+function m_nr.tabnr(winnr)
     winnr = winnr or win.current()
     if not win.exists(winnr) then
         return
@@ -143,16 +153,16 @@ function win.tabnr(winnr)
     return vim.api.nvim_win_get_tabpage(winnr)
 end
 
-function win.call(winnr, f)
+function m_nr.call(winnr, f)
     winnr = winnr or win.current()
 
     if not winnr then
         return
     end
-    return vim.api.nvim_win_call(win.id(winnr), f)
+    return vim.api.nvim_win_call(win.nr2id(winnr), f)
 end
 
-function win.pos(winnr, expr)
+function m_nr.pos(winnr, expr)
     winnr = winnr or win.current()
 
     return win.call(winnr, function()
@@ -160,7 +170,7 @@ function win.pos(winnr, expr)
         return {
             bufnr = vim.fn.bufnr(),
             winnr = winnr,
-            winid = win.id(winnr),
+            winid = win.nr2id(winnr),
             row = pos[2],
             col = pos[3],
             offset = pos[4],
@@ -168,13 +178,13 @@ function win.pos(winnr, expr)
     end)
 end
 
-function win.restore_cmd(winnr)
+function m_nr.restore_cmd(winnr)
     return win.call(winnr, function()
         return vim.fn.winrestcmd()
     end)
 end
 
-function win.restore_view(winnr, view)
+function m_nr.restore_view(winnr, view)
     return win.call(winnr, function()
         if is_a.string(view) then
             vim.cmd(view)
@@ -186,13 +196,13 @@ function win.restore_view(winnr, view)
     end)
 end
 
-function win.save_view(winnr)
+function m_nr.save_view(winnr)
     return win.call(winnr, function()
         return vim.fn.winsaveview()
     end)
 end
 
-function win.current_line(winnr)
+function m_nr.current_line(winnr)
     return win.call(winnr, function()
         return vim.fn.winline()
     end)
@@ -212,7 +222,7 @@ function win.layouts(tab)
     return out
 end
 
-function win.virtualcol(winnr)
+function m_nr.virtualcol(winnr)
     return win.call(winnr, function()
         return vim.fn.wincol()
     end)
@@ -225,7 +235,7 @@ function win.bufnr(winnr)
     return vim.fn.winbufnr(winnr)
 end
 
-function win.move(from_winnr, to_winnr, opts)
+function m_nr.move(from_winnr, to_winnr, opts)
     from_winnr = from_winnr or win.current()
 
     if not win.exists(from_winnr) then
@@ -240,24 +250,26 @@ function win.move(from_winnr, to_winnr, opts)
     return true
 end
 
-function win.screen_pos(winnr)
+function m_nr.screen_pos(winnr)
     winnr = winnr or win.current()
+
     if not win.exists(winnr) then
         return
     end
+
     return vim.fn.win_screen_pos(winnr)
 end
 
-function win.move_statusline(winnr, offset)
+function m_nr.move_statusline(winnr, offset)
     return vim.fn.win_move_statusline(winnr, offset) ~= 0
 end
 
-function win.move_separator(winnr, offset)
+function m_nr.move_separator(winnr, offset)
     return vim.fn.win_move_separator(winnr, offset) ~= 0
 end
 
-function win.tabwin(winnr)
-    local out = vim.fn.win_id2tabwin(win.id(winnr))
+function m_nr.tabwin(winnr)
+    local out = vim.fn.win_id2tabwin(win.nr2id(winnr))
     if out[1] == 0 and out[2] == 0 then
         return
     end
@@ -265,15 +277,11 @@ function win.tabwin(winnr)
     return out
 end
 
-function win.gotoid(id)
+function m_id.gotoid(id)
     return vim.fn.win_gotoid(id) ~= 0
 end
 
-function win.goto(winnr)
-    return win.gotoid(win.id(winnr))
-end
-
-function win.split(winnr, direction)
+function m_nr.split(winnr, direction)
     winnr = winnr or win.current()
     if not win.exists(winnr) then
         return
@@ -306,88 +314,88 @@ function win.split(winnr, direction)
     return true
 end
 
-function win.botright_vsplit(winnr)
-    return win.split_vsplit(winnr, "botright vsplit")
+function m_nr.botright_vsplit(winnr)
+    return m_nr.split_vsplit(winnr, "botright vsplit")
 end
 
-function win.topleft_vsplit(winnr)
-    return win.split_vsplit(winnr, "topleft vsplit")
+function m_nr.topleft_vsplit(winnr)
+    return m_nr.split_vsplit(winnr, "topleft vsplit")
 end
 
-function win.rightbelow_vsplit(winnr)
-    return win.split_vsplit(winnr, "belowright vsplit")
+function m_nr.rightbelow_vsplit(winnr)
+    return m_nr.split_vsplit(winnr, "belowright vsplit")
 end
 
-function win.leftabove_vsplit(winnr)
-    return win.split_vsplit(winnr, "aboveleft vsplit")
+function m_nr.leftabove_vsplit(winnr)
+    return m_nr.split_vsplit(winnr, "aboveleft vsplit")
 end
 
-function win.belowright_vsplit(winnr)
-    return win.split_vsplit(winnr, "belowright vsplit")
+function m_nr.belowright_vsplit(winnr)
+    return m_nr.split_vsplit(winnr, "belowright vsplit")
 end
 
-function win.aboveleft_vsplit(winnr)
-    return win.split_vsplit(winnr, "aboveleft vsplit")
+function m_nr.aboveleft_vsplit(winnr)
+    return m_nr.split_vsplit(winnr, "aboveleft vsplit")
 end
 
-function win.botright(winnr)
-    return win.split(winnr, "botright split")
+function m_nr.botright(winnr)
+    return m_nr.split(winnr, "botright split")
 end
 
-function win.topleft(winnr)
-    return win.split(winnr, "topleft split")
+function m_nr.topleft(winnr)
+    return m_nr.split(winnr, "topleft split")
 end
 
-function win.rightbelow(winnr)
-    return win.split(winnr, "belowright split")
+function m_nr.rightbelow(winnr)
+    return m_nr.split(winnr, "belowright split")
 end
 
-function win.leftabove(winnr)
-    return win.split(winnr, "aboveleft split")
+function m_nr.leftabove(winnr)
+    return m_nr.split(winnr, "aboveleft split")
 end
 
-function win.belowright(winnr)
-    return win.split(winnr, "belowright split")
+function m_nr.belowright(winnr)
+    return m_nr.split(winnr, "belowright split")
 end
 
-function win.aboveleft(winnr)
-    return win.split(winnr, "aboveleft split")
+function m_nr.aboveleft(winnr)
+    return m_nr.split(winnr, "aboveleft split")
 end
 
-function win.tabnew(winnr)
-    return win.split(winnr, "t")
+function m_nr.tabnew(winnr)
+    return m_nr.split(winnr, "t")
 end
 
-function win.vsplit(winnr)
-    return win.split(winnr, "v")
+function m_nr.vsplit(winnr)
+    return m_nr.split(winnr, "v")
 end
 
-function win.type(winnr)
-    winnr = winnr or win.current()
-    if not win.exists(winnr) then
+function m_nr.type(winnr)
+    winnr = winnr or m_nr.current()
+    if not m_nr.exists(winnr) then
         return
     end
 
     return vim.fn.win_gettype(winnr)
 end
 
-function win.col(winnr, expr)
-    return win.call(winnr, function()
+function m_nr.col(winnr, expr)
+    return m_nr.call(winnr, function()
         expr = expr or "."
         return vim.fn.col(expr)
     end)
 end
 
-function win.row(winnr, expr)
-    return win.call(winnr, function()
+function m_nr.row(winnr, expr)
+    return m_nr.call(winnr, function()
         expr = expr or "."
         return vim.fn.line(expr)
     end)
 end
 
-function win.cursor_pos(winnr)
-    local row = win.row(winnr)
-    local col = win.col(winnr)
+function m_nr.cursor_pos(winnr)
+    local row = m_nr.row(winnr)
+    local col = m_nr.col(winnr)
     if not row or not col then
         return
     end
@@ -395,8 +403,8 @@ function win.cursor_pos(winnr)
     return { row, col }
 end
 
-function win.range(winnr)
-    return win.call(winnr, function()
+function m_nr.range(winnr)
+    return m_nr.call(winnr, function()
         local _, csrow, cscol, _ = unpack(vim.fn.getpos "'<")
         local _, cerow, cecol, _ = unpack(vim.fn.getpos "'>")
 
@@ -404,8 +412,8 @@ function win.range(winnr)
     end)
 end
 
-function win.range_text(winnr)
-    return win.call(winnr, function()
+function m_nr.range_text(winnr)
+    return m_nr.call(winnr, function()
         local _, csrow, cscol, _ = unpack(vim.fn.getpos "'<")
         local _, cerow, cecol, _ = unpack(vim.fn.getpos "'>")
         local last_line = vim.fn.getline(cerow)
@@ -426,28 +434,28 @@ function win.range_text(winnr)
     end)
 end
 
-function win.is_visible(winnr)
-    return win.id(winnr)
+function m_nr.is_visible(winnr)
+    return m_nr.to_id(winnr)
 end
 
-function win.hide(winnr)
-    winnr = winnr or win.current()
+function m_id.is_visible(winid)
+    return m_nr.is_visible(win.id2nr(winid))
+end
 
-    if not win.exists(winnr) then
+function m_id.hide(winid)
+    if not m_id.is_visible(winid) then
         return
     end
-    vim.api.nvim_win_hide(win.id(winnr))
 
+    vim.api.nvim_win_hide(winid)
     return true
 end
 
-function win.close(winnr, force)
-    winnr = winnr or win.current()
-    if not win.is_visible(winnr) then
+function m_id.close(winid, force)
+    if not m_id.is_visible(winid) then
         return
     end
 
-    local winid = win.id(winnr)
     if not force then
         vim.api.nvim_win_close(winid, false)
     else
@@ -463,7 +471,7 @@ function win.set_height(winnr, height)
         return
     end
 
-    vim.api.nvim_win_set_height(win.id(winnr), height)
+    vim.api.nvim_win_set_height(win.nr2id(winnr), height)
     return true
 end
 
@@ -473,7 +481,7 @@ function win.set_width(winnr, width)
         return
     end
 
-    vim.api.nvim_win_set_width(win.id(winnr), width)
+    vim.api.nvim_win_set_width(win.nr2id(winnr), width)
     return true
 end
 
@@ -481,7 +489,7 @@ function win.info(winnr)
     if not win.exists(bufnr) then
         return
     end
-    return vim.fn.getwininfo(win.id(winnr))
+    return vim.fn.getwininfo(win.nr2id(winnr))
 end
 
 function win.set_var(winnr, k, v)
@@ -516,7 +524,7 @@ function win.set_option(winnr, k, v)
     end
 
     if is_a.string(k) then
-        vim.api.nvim_win_set_option(win.id(winnr), k, v)
+        vim.api.nvim_win_set_option(win.nr2id(winnr), k, v)
     else
         dict.each(k, function(key, value)
             win.set_option(winnr, key, value)
@@ -544,7 +552,6 @@ function win.scroll(winnr, direction, lines)
 
     return true
 end
-
 
 --------------------------------------------------
 local function from_percent(current, width, min)
@@ -700,7 +707,7 @@ end
 
 function float.set_config(winnr, config)
     config = config or {}
-    local ok, msg = pcall(vim.api.nvim_win_set_config, win.id(winnr), config)
+    local ok, msg = pcall(vim.api.nvim_win_set_config, win.nr2id(winnr), config)
 
     if not ok then
         return false, msg
@@ -714,13 +721,112 @@ function float.get_config(winnr)
         return
     end
 
-    local ok, msg = pcall(vim.api.nvim_win_get_config, win.id(winnr))
+    local ok, msg = pcall(vim.api.nvim_win_get_config, win.nr2id(winnr))
     if not ok then
         return false, msg
     end
 
     return ok
 end
+
+--------------------------------------------------
+m_nr.exists = win.exists
+m_nr.to_id = win.to_id
+m_nr.current = win.current
+m_nr.var = win.var
+m_nr.del_var = win.del_var
+m_nr.option = win.option
+m_nr.layouts = win.layouts
+m_nr.set_height = win.set_height
+m_nr.set_width = win.set_width
+m_nr.info = win.info
+m_nr.set_var = win.set_var
+m_nr.set_option = win.set_option
+m_nr.set_height = win.set_height
+m_nr.set_width = win.set_width
+m_nr.scroll = win.scroll
+m_nr.set_var = win.set_var
+m_nr.info = win.info
+m_nr.bufnr = win.bufnr
+
+function m_nr.close(winnr)
+    return m_id.close(win.nr2id(winnr))
+end
+
+function m_nr.hide(winnr)
+    return m_id.hide(win.nr2id(winnr))
+end
+
+function m_nr.goto(winnr)
+    return m_id.goto(win.nr2id(winnr))
+end
+
+function m_nr.float:__call(winnr, opts)
+    return win.float(winnr, opts)
+end
+
+for key, value in pairs(win.float) do
+    m_id.float[key] = function(winid, ...)
+        return value(win.id2nr(winid), ...)
+    end
+end
+
+for key, value in pairs(m_nr) do
+    if key ~= "float" then
+        m_id[key] = function(winid, ...)
+            return value(win.id2nr(winid), ...)
+        end
+    end
+end
+
+for key, value in pairs(win.float) do
+    m_nr.float[key] = value
+end
+
+function m_id.float:__call(winid, opts)
+    return win.float(win.id2nr(winid), opts)
+end
+
+for key, value in pairs(win.float) do
+    m_id.float[key] = function(winid, ...)
+        return value(win.id2nr(winid), ...)
+    end
+end
+
+m_nr.to_id = win.nr2id
+m_id.to_nr = win.id2nr
+
+win.close = m_nr.close
+win.hide = m_nr.hide
+win.goto = m_nr.goto
+win.current_line = m_nr.current_line
+win.save_view = m_nr.save_view
+win.restore_view = m_nr.restore_view
+win.restore_cmd = m_nr.restore_cmd
+win.call = m_nr.call
+win.tabnr = m_nr.tabnr
+win.virtualcol = m_nr.virtualcol
+win.move = m_nr.move
+win.screen_pos = m_nr.screen_pos
+win.move_statusline = m_nr.move_statusline
+win.move_separator = m_nr.move_separator
+win.tabwin = m_nr.tabwin
+win.split = m_nr.split
+win.botright_vsplit = m_nr.botright_vsplit
+win.topleft_vsplit = m_nr.topleft_vsplit
+win.rightbelow_vsplit = m_nr.rightbelow_vsplit
+win.leftabove_vsplit = m_nr.leftabove_vsplit
+win.belowright_vsplit = m_nr.belowright_vsplit
+win.aboveleft_vsplit = m_nr.aboveleft_vsplit
+win.vsplit = m_nr.vsplit
+win.botright = m_nr.botright
+win.topleft = m_nr.topleft
+win.rightbelow = m_nr.rightbelow
+win.leftabove = m_nr.leftabove
+win.belowright = m_nr.belowright
+win.aboveleft = m_nr.aboveleft
+win.vsplit = m_nr.vsplit
+win.is_visible = m_nr.is_visible
 
 --------------------------------------------------
 
