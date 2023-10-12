@@ -56,16 +56,31 @@ cmp.config = {
             },
         },
     },
+    window = {
+        completion = { -- rounded border; thin-style scrollbar
+            border = "rounded",
+            scrollbar = "║",
+        },
+        documentation = { -- no border; native-style scrollbar
+            border = nil,
+            scrollbar = "",
+            -- other options
+        },
+    },
 }
 
 function cmp:setup()
     cmp_zsh.setup { zshrc = true, filetypes = { "zsh" } }
+
     nvim_cmp.setup.cmdline("/", {
         sources = nvim_cmp.config.sources {
             { name = "nvim_lsp_document_symbol" },
         },
     })
+
     nvim_cmp.setup(self.config)
 end
 
 return cmp
+
+

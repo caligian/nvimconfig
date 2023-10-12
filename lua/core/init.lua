@@ -5,6 +5,7 @@ require "core.option"
 require "core.defaults"
 require "core.netrw"
 
+
 Filetype.load()
 Plugin.load()
 Bookmark.init()
