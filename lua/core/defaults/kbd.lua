@@ -332,6 +332,17 @@ dict.merge(user.mappings, {
     }
 })
 
+
+kbd.map('n', '<leader>bh', function ()
+    local n = vim.v.count
+
+    if n == 0 then
+        buffer.history.open()
+    else
+        buffer.history.pop_open(n)
+    end
+end, {desc = '(pop N and) open recent'})
+
 return function()
     kbd.map_groups(user.mappings)
 end
