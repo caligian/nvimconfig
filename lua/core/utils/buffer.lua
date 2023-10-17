@@ -9,6 +9,7 @@ require "core.utils.kbd"
 buffer = buffer or module('buffer')
 buffer.float = module('buffer.float')
 buffer.history = buffer.history or module('buffer.history')
+buffer.recent = buffer.recent or ""
 
 local is_strarray = union("string", "array")
 
@@ -1015,48 +1016,6 @@ function float.get_config(bufnr)
 end
 
 --------------------------------------------------
---
-local copy_methods = {
-    "scroll",
-    "height",
-    "width",
-    "size",
-    "restore_view",
-    "restore_cmd",
-    "save_view",
-    "current_line",
-    "virtualcol",
-    "set_height",
-    "set_width",
-    "close",
-    "hide",
-    "range",
-    "range_text",
-    "cursor_pos",
-    "tabnew",
-    "row",
-    "col",
-    "move_statusline",
-    "move_separator",
-    "screen_pos",
-    "pos",
-}
-
-array.each(copy_methods, function(name)
-    buffer[name] = function(bufnr, ...)
-        bufnr = bufnr or buffer.bufnr()
-        if not bufnr then
-            return
-        end
-
-        local winnr = buffer.winnr(bufnr)
-        if not winnr then
-            return
-        end
-
-        return win[name](winnr, ...)
-    end
-end)
 
 autocmd.map('FileType', {
     pattern = 'qf',
@@ -1090,13 +1049,15 @@ function hist.get_state()
 end
 
 function hist.print()
-    pp(history)
+    for i=1, #history do
+        printf("%2d. %s", i, buffer.name(history[i]))
+    end
 end
 
 function hist.prune()
     for i=1, #history do
         local bufnr = history[i]
-        local exists =buffer.exists(bufnr) 
+        local exists = buffer.exists(bufnr) 
 
         if not buffer.exists(bufnr) then
             array.remove(history, i)
@@ -1186,8 +1147,22 @@ end
 autocmd.map('BufEnter', {
     pattern = '*',
     callback = function (opts)
-        hist.push(opts.buf)
+        if hist.push(opts.buf) then
+            buffer.recent = opts.buf
+        end
     end
 })
+
+buffer.range = win.range
+buffer.range_text = win.range_text
+
+function buffer.hide(bufnr)
+    if buffer.is_visible(bufnr) then
+        return win.hide(buffer.winnr(bufnr))
+    end
+end
+
+buffer.add = buffer.bufadd
+buffer.nr = buffer.bufnr
 
 return buffer

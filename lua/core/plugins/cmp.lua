@@ -1,6 +1,7 @@
 local nvim_cmp = require "cmp"
 local cmp_zsh = require "cmp_zsh"
 local luasnip = require "luasnip"
+local lspkind = require 'lspkind'
 local cmp = Plugin.get "cmp"
 
 cmp.config = {
@@ -58,15 +59,23 @@ cmp.config = {
     },
     window = {
         completion = { -- rounded border; thin-style scrollbar
-            border = "rounded",
+            border = "",
             scrollbar = "║",
         },
+
         documentation = { -- no border; native-style scrollbar
-            border = nil,
-            scrollbar = "",
+            border = "",
+            scrollbar = "|",
             -- other options
         },
     },
+    formatting = {
+        format = lspkind.cmp_format {
+            mode = 'symbol',
+            maxwidth = 50,
+            ellipsis_char = '...'
+        }
+    }, 
 }
 
 function cmp:setup()
@@ -82,5 +91,3 @@ function cmp:setup()
 end
 
 return cmp
-
-

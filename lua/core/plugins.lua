@@ -46,13 +46,13 @@ return {
 
     suda = {
         "lambdalisue/suda.vim",
-        event = 'BufRead',
+        event = "BufRead",
     },
 
     colorscheme = {
-        "RRethy/nvim-base16",
+        "maxmx03/solarized.nvim",
         dependencies = {
-            "maxmx03/solarized.nvim",
+            "RRethy/nvim-base16",
             "sainnhe/everforest",
             "rktjmp/lush.nvim",
             "rose-pine/neovim",
@@ -115,27 +115,17 @@ return {
 
     startuptime = {
         "dstein64/vim-startuptime",
-        config = function ()
-            kbd.map(
-                'ni',
-                'q',
-                '<cmd>hide<CR>',
-                {
-                    name = 'startuptime.hide_buffer',
-                    event = 'FileType',
-                    pattern = 'startuptime'
-                }
-            )
+        config = function()
+            kbd.map("ni", "q", "<cmd>hide<CR>", {
+                name = "startuptime.hide_buffer",
+                event = "FileType",
+                pattern = "startuptime",
+            })
 
-            kbd.noremap(
-                'n',
-                '<leader>hs',
-                '<cmd>StartupTime<CR>',
-                {
-                    name = 'startuptime',
-                }
-            )
-        end
+            kbd.noremap("n", "<leader>hs", "<cmd>StartupTime<CR>", {
+                name = "startuptime",
+            })
+        end,
     },
 
     comment = {
@@ -229,6 +219,7 @@ return {
         "hrsh7th/nvim-cmp",
         event = "InsertEnter",
         dependencies = {
+            "onsails/lspkind.nvim",
             "L3MON4D3/LuaSnip",
             "saadparwaiz1/cmp_luasnip",
             "tamago324/cmp-zsh",
@@ -238,6 +229,7 @@ return {
             "hrsh7th/cmp-path",
             "hrsh7th/cmp-nvim-lsp-signature-help",
             "hrsh7th/cmp-nvim-lsp-document-symbol",
+            "ray-x/navigator.lua",
         },
     },
 
@@ -248,9 +240,9 @@ return {
 
     tagbar = {
         "preservim/tagbar",
-        config = function ()
-            kbd.map('n', '<localleader>t', ':TagbarToggle<CR>', {desc = 'Tagbar', name = 'tagbar'})
-        end
+        config = function()
+            kbd.map("n", "<localleader>t", ":TagbarToggle<CR>", { desc = "Tagbar", name = "tagbar" })
+        end,
     },
 
     whichkey = {
@@ -263,9 +255,15 @@ return {
         ft = "markdown",
     },
 
+    lspsaga = {
+        "nvimdev/lspsaga.nvim",
+    },
+
     lsp = {
         "neovim/nvim-lspconfig",
-        dependencies = { "lukas-reineke/lsp-format.nvim", },
+        dependencies = {
+            "lukas-reineke/lsp-format.nvim",
+        },
     },
 
     undotree = {
@@ -285,7 +283,9 @@ return {
     },
 
     sexp = {
-        'guns/vim-sexp',
-        ft = {'lisp', 'clojure', 'scheme'},
+        "guns/vim-sexp",
+        ft = { "lisp", "clojure", "scheme" },
     },
 }
+
+

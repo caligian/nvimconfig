@@ -11,7 +11,6 @@ Job = struct("Job", {
     "errors",
     "handle",
     "check",
-    "tty",
     "stdout_buffer",
     "stderr_buffer",
 })
@@ -274,7 +273,13 @@ function Job.send(self, s)
     return uv.write(self.pipes.stdin, s:split "\n")
 end
 
-j = Job("ls", { stdout = true, split = "botright split" })
+local function temp_write_cmd()
+end
 
+function Job.run(outbuf, cmd, opts)
+    local tempfile = system("mktemp")[1] 
+    outbuf = buffer.bufadd(outbuf or cmd)
+    opts = opts or {}
+end
 
 return Job

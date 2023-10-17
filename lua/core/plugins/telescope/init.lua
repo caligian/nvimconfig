@@ -125,18 +125,18 @@ telescope.mappings = {
         picker "lsp_workspace_symbols",
         { desc = "Workspace symbols" },
     },
-    lsp_buffer_diagnostics = {
-        "ld",
-        function()
-            picker("diagnostics", { bufnr = 0 })()
-        end,
-        { desc = "Show buffer LSP diagnostics" },
-    },
-    lsp_diagnostics = {
-        "l`",
-        picker "diagnostics",
-        { desc = "Show LSP diagnostics" },
-    },
+    -- lsp_buffer_diagnostics = {
+    --     "ld",
+    --     function()
+    --         picker("diagnostics", { bufnr = 0 })()
+    --     end,
+    --     { desc = "Show buffer LSP diagnostics" },
+    -- },
+    -- lsp_diagnostics = {
+    --     "l`",
+    --     picker "diagnostics",
+    --     { desc = "Show LSP diagnostics" },
+    -- },
     git_commits = {
         "gC",
         picker "git_commits",

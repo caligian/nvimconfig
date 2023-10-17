@@ -150,7 +150,7 @@ function Bookmark.get_context(file_path, line)
     return data[line]
 end
 
-function Bookmark.open(file_path, line, split)
+function Bookmark.open(file_path, line)
     if is_string(line) then
         split = line
     end
@@ -159,7 +159,7 @@ function Bookmark.open(file_path, line, split)
         vim.cmd(':e! ' .. file_path)
     elseif path.isfile(file_path) then
         local bufnr = buffer.bufadd(file_path)
-        buffer.split(bufnr, split)
+        buffer.open(bufnr)
 
         if line then
             if buffer.current() == file_path then

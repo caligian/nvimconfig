@@ -23,7 +23,7 @@ lsp.mappings = {
             { desc = "LSP go to next diagnostic" },
         },
         set_loclist = {
-            "<leader>lq",
+            "lq",
             vim.diagnostic.setloclist,
             { desc = "LSP set loclist" },
         },
@@ -83,7 +83,7 @@ lsp.mappings = {
             { desc = "Rename buffer" },
         },
         code_action = {
-            "leaderla",
+            "<leader>la",
             vim.lsp.buf.code_action,
             { desc = "Show code actions" },
         },

@@ -17,17 +17,18 @@ local function _toggle_option(option)
 end
 
 local function close_other_windows()
-    local current_winnr = win.current()
     local current_winid = win.current_id()
     local current_tab = vim.api.nvim_get_current_tabpage()
     local wins = vim.api.nvim_tabpage_list_wins(current_tab)
 
-    array.each(wins, function (winid)
+    array.each(wins, function(winid)
         print(winid, current_winid)
         if winid == current_winid then
             return
         else
-            win.call(win.id2nr(winid), function () vim.cmd(':hide') end)
+            win.call(win.id2nr(winid), function()
+                vim.cmd ":hide"
+            end)
         end
     end)
 end
@@ -79,7 +80,6 @@ dict.merge(user.mappings, {
         format = {
             "bf",
             function()
-                local bufnr = buffer.bufnr()
                 local bufname = buffer.name()
                 local ft = vim.bo.filetype
 
@@ -88,7 +88,7 @@ dict.merge(user.mappings, {
                 end
 
                 if not Filetype.filetypes[ft] then
-                    pp(sprintf('no formatter defined for ' .. ft))
+                    pp(sprintf("no formatter defined for " .. ft))
                 else
                     local x = Filetype.filetypes[ft]
                     Filetype.format_buffer(x)
@@ -107,7 +107,7 @@ dict.merge(user.mappings, {
                 end
 
                 if not Filetype.filetypes[ft] then
-                    pp(sprintf('no formatter defined for ' .. ft))
+                    pp(sprintf("no formatter defined for " .. ft))
                 else
                     local x = Filetype.filetypes[ft]
                     Filetype.format_buffer(x)
@@ -143,11 +143,6 @@ dict.merge(user.mappings, {
         next = { "bn", ":bnext<CR>", { desc = "Next buffer" } },
         first = { "b0", ":bfirst<CR>", { desc = "First buffer" } },
         last = { "b$", ":blast<CR>", { desc = "Last buffer" } },
-        recent = {
-            "bl",
-            ":b#<CR>",
-            { desc = "Previously opened buffer" },
-        },
         source = {
             "fv",
             ":w! % <bar> :source %<CR>",
@@ -250,7 +245,7 @@ dict.merge(user.mappings, {
             "#",
             function()
                 local tw = vim.bo.textwidth
-                local comment = string.split(vim.bo.commentstring or "#", " ")[1]
+                local comment = split(vim.bo.commentstring or "#", " ")[1]
                 local l = #comment
                 tw = tw == 0 and 50 or tw
 
@@ -268,72 +263,81 @@ dict.merge(user.mappings, {
 
     qflist = {
         inherit = true,
-        open = { 'cq', ':botright copen<CR>', 'open qflist' },
-        close = {'ck', ':cclose<CR>', 'close qflist'},
+        open = { "cq", ":botright copen<CR>", "open qflist" },
+        close = { "ck", ":cclose<CR>", "close qflist" },
     },
 
     compile = {
         inherit = true,
         compile = {
-            'cc', 
+            "cc",
             Filetype.compile_buffer,
-            'compile current buffer'
+            "compile current buffer",
         },
         test = {
-            'ct',
-            function ()
-                Filetype.compile_buffer(buffer.current(), 'test')
+            "ct",
+            function()
+                Filetype.compile_buffer(buffer.current(), "test")
             end,
-            'test current buffer'
+            "test current buffer",
         },
         build = {
-            'cb',
-            function ()
-                Filetype.compile_buffer(buffer.current(), 'build')
+            "cb",
+            function()
+                Filetype.compile_buffer(buffer.current(), "build")
             end,
-            'build current buffer'
+            "build current buffer",
         },
         run = {
-            'cr',
-            function ()
-                local cmd = vim.fn.input('Shell command % ')
+            "cr",
+            function()
+                local cmd = vim.fn.input "Shell command % "
                 if #cmd == 0 then
-                    print('no command provided')
+                    print "no command provided"
                     return
                 end
 
-                Filetype.run_buffer(buffer.current(), cmd, 'qf')
-            end
-        }
+                Filetype.run_buffer(buffer.current(), cmd, "qf")
+            end,
+        },
     },
 
     lsp = {
         inherit = true,
         info = {
-            'li',
-            ':LspInfo<CR>',
-            'lsp info'
+            "li",
+            ":LspInfo<CR>",
+            "lsp info",
         },
         stop_lsp = {
-            'lq',
-            ':LspStart<CR>',
-            'start lsp'
+            "lq",
+            ":LspStart<CR>",
+            "start lsp",
         },
         restart_lsp = {
-            'lL',
-            ':LspStart<CR>',
-            'start lsp'
+            "lL",
+            ":LspStart<CR>",
+            "start lsp",
         },
         start_lsp = {
-            'll',
-            ':LspStart<CR>',
-            'start lsp'
+            "ll",
+            ":LspStart<CR>",
+            "start lsp",
         },
-    }
+    },
 })
 
+kbd.map("n", "<leader>bl", function()
+    if buffer.recent and buffer.exists(buffer.recent) then
+        vim.cmd(':b ' .. buffer.recent)
+    end
+end, { desc = "(pop N and) open recent" })
 
-kbd.map('n', '<leader>bh', function ()
+kbd.map("n", "<leader>bH", function()
+    buffer.history.print()
+end, { desc = "(pop N and) open recent" })
+
+kbd.map("n", "<leader>bh", function()
     local n = vim.v.count
 
     if n == 0 then
@@ -341,7 +345,7 @@ kbd.map('n', '<leader>bh', function ()
     else
         buffer.history.pop_open(n)
     end
-end, {desc = '(pop N and) open recent'})
+end, { desc = "(pop N and) open recent" })
 
 return function()
     kbd.map_groups(user.mappings)

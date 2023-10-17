@@ -671,7 +671,6 @@ local function find_workspace(start_dir, pats, maxdepth, _depth)
         return false
     end
 
-    start_dir = path.abspath(start_dir) 
     local parent = path.dirname(start_dir)
     local children = dir.getfiles(start_dir)
 

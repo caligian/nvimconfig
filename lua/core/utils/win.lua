@@ -827,6 +827,9 @@ win.belowright = m_nr.belowright
 win.aboveleft = m_nr.aboveleft
 win.vsplit = m_nr.vsplit
 win.is_visible = m_nr.is_visible
+win.range = m_nr.range
+win.range_text = m_nr.range_text
+win.pos = m_nr.pos
 
 --------------------------------------------------
 

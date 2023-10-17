@@ -71,13 +71,26 @@ colorscheme.config = {
         end,
     },
     solarized = {
-        config = { theme = "neovim" },
-        setup = function(self, opts)
-            opts = opts or {}
-            opts = dict.merge(copy(self.config), opts)
-            vim.o.background = "dark"
-            require("solarized"):setup(opts)
-        end,
+        setup = function (self)
+            require('solarized').setup {
+                highlights = function (colors, colorhelper)
+                    local darken = colorhelper.darken
+                    local lighten = colorhelper.lighten
+                    local blend = colorhelper.blend
+
+                    return {
+                        LineNr = { bg = colors.bg },
+                        CursorLineNr = { bg = colors.base02 },
+                        CursorLine = { bg = colors.base02 },
+                        Function = { italic = false },
+                        Visual = { bg = colors.cyan },
+                        CmpKindBorder = { fg = colors.base01, bg = colors.base04 }
+                    }
+                end
+            }
+           
+            vim.cmd.color 'solarized'
+        end
     },
     tokyonight = {
         config = {
@@ -110,7 +123,45 @@ colorscheme.config = {
     },
 }
 
-colorscheme.autocmds = {
+function colorscheme:setup(name, config)
+    local name = name or user.colorscheme
+
+    if is_callable(name) then
+        name(config)
+    elseif is_string(name) then
+        if self.config[name] then
+            self.config[name]:setup(config)
+        else
+            local ok = pcall(vim.cmd, "color " .. name)
+            if not ok then
+                vim.cmd "color carbonfox"
+            end
+        end
+    elseif is_table(name) then
+        local color, config = name[1], name.config
+        if not self.config[color] then
+            return
+        end
+        color = self.config[color]
+        color:setup(config)
+    else
+        self.config.tokyonight:setup()
+    end
+end
+
+
+autocmd.map_group('colorscheme', {
+    update_line_and_sign_columns_bg = {
+        "ColorScheme",
+        {
+            pattern = "*",
+            callback = function ()
+                local normal = hi("normal").guibg
+                highlightset("LineNr", {guibg=normal})
+                highlightset("SignColumn", {guibg=normal})
+            end
+        }
+    },
     update_colorcolumn_bg = {
         "ColorScheme",
         {
@@ -153,32 +204,6 @@ colorscheme.autocmds = {
             end,
         },
     },
-}
-
-function colorscheme:setup(name, config)
-    local name = name or user.colorscheme
-
-    if is_callable(name) then
-        name(config)
-    elseif is_string(name) then
-        if self.config[name] then
-            self.config[name]:setup(config)
-        else
-            local ok = pcall(vim.cmd, "color " .. name)
-            if not ok then
-                vim.cmd "color carbonfox"
-            end
-        end
-    elseif is_table(name) then
-        local color, config = name[1], name.config
-        if not self.config[color] then
-            return
-        end
-        color = self.config[color]
-        color:setup(config)
-    else
-        self.config.tokyonight:setup()
-    end
-end
+})
 
 return colorscheme
