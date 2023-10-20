@@ -22,7 +22,6 @@ local function close_other_windows()
     local wins = vim.api.nvim_tabpage_list_wins(current_tab)
 
     array.each(wins, function(winid)
-        print(winid, current_winid)
         if winid == current_winid then
             return
         else
