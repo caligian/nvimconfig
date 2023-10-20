@@ -1,7 +1,6 @@
 require "core.utils.Terminal"
 require "core.utils.Filetype"
 require "core.utils.kbd"
-require 'core.utils.Command'
 
 Repl = Repl or struct.new("Repl", {
     "single",
@@ -24,7 +23,6 @@ Repl.single_repls = Repl.single_repls or {}
 Repl.repls = Repl.repls or {}
 Repl.exception = {}
 Repl.exception.no_command = exception "no command for filetype"
-Repl.commands = {}
 
 local function get_command(ft)
     local repl = Filetype.get(ft)
@@ -90,12 +88,6 @@ function Repl.load_autocmds(autocmds, compile)
     return autocmd.map_group('Repl', autocmds, compile)
 end
 
-function Repl.load_commands(commands, compile)
-    commands = commands or Repl.commands or {}
-    if is_empty(commands) then return end
-
-    return Command.map_group('Repl', commands, compile)
-end
 
 function Repl.init_before(ft_or_bufnr, opts)
     local attribs = {}
@@ -204,13 +196,6 @@ function Repl.if_running(self, callback)
     end
 end
 
-local send_current_line = Repl.send_current_line
-local send_buffer = Repl.send_buffer
-local send_till_cursor = Repl.send_till_cursor
-local send_textsubject_at_cursor = Repl.send_textsubject_at_cursor
-local send_range = Repl.send_range
-local send_node_at_cursor = Repl.send_node_at_cursor
-
 array.each({
     "send_current_line",
     "send_buffer",
@@ -233,3 +218,10 @@ array.each({
         end
     end
 end)
+
+function Repl.load_commands(self, spec, compile)
+    spec = spec or self.commands
+    if not spec or is_empty(spec) then return end
+
+    return command.map_group('repl', spec, compile)
+end

@@ -1,4 +1,4 @@
-Process = struct("Process", { "id", "opts", "cmd", "stderr", "stdout", 'exit_code' })
+Process = Process or struct("Process", { "id", "opts", "cmd", "stderr", "stdout", 'exit_code' })
 
 Process.processes = Process.processes or {}
 
@@ -204,3 +204,5 @@ function Process.unless_running(self, callback)
 
     return callback(self)
 end
+
+return Process

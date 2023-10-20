@@ -2,7 +2,7 @@
 
 local uv = vim.loop
 
-Job = struct("Job", {
+Job = Job or struct("Job", {
     "exit_code",
     "cmd",
     "args",

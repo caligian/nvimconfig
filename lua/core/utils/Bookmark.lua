@@ -218,14 +218,16 @@ function Bookmark.create_line_picker(file_path)
     local fail = not obj or obj.dir or not obj.context or is_empty(obj.context)
     if fail then return end
 
-    local t = telescope:load()
+    local t = load_telescope()
     local line_mod = {}
 
     local function line_value(bufnr)
-        local values = t:get_selected(bufnr)
+        local values = t.selected(bufnr)
+
         values = map(values, function(sel)
             return { sel.value, sel.obj }
         end)
+
         return values
     end
 
@@ -246,7 +248,8 @@ function Bookmark.create_line_picker(file_path)
     end
 
     local context = Bookmark.to_picker_results(obj.path)
-    local picker = t:create_picker(context, {
+
+    local picker = t.create(context, {
         line_mod.default_action,
         { "n", "x", line_mod.del },
     }, {
@@ -270,14 +273,15 @@ function Bookmark.create_picker()
         return
     end
 
-    local t = telescope.load()
+    local t = load_telescope()
     local mod = {}
 
     local function value(bufnr)
-        local values = t:get_selected(bufnr)
+        local values = t.selected(bufnr)
         values = map(values, function(sel)
             return sel.value
         end)
+
         return values
     end
 
@@ -300,7 +304,7 @@ function Bookmark.create_picker()
         end)
     end
 
-    return t:create_picker(results, { mod.default_action, { "n", "x", mod.del } }, { prompt_title = "Bookmarks" })
+    return t.create(results, { mod.default_action, { "n", "x", mod.del } }, { prompt_title = "Bookmarks" })
 end
 
 function Bookmark.run_picker()

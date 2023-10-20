@@ -1,5 +1,6 @@
 Plugin = Plugin
     or struct("Plugin", {
+        'spec',
         "name",
         'methods',
         "autocmds",
@@ -10,7 +11,7 @@ Plugin = Plugin
         "config_require_path",
     })
 
-Plugin.Plugins = Plugin.Plugins or {}
+Plugin.plugins = Plugin.plugins or {}
 
 function Plugin.init_before(name, opts)
     opts = opts
@@ -27,7 +28,7 @@ function Plugin.init_before(name, opts)
 end
 
 function Plugin.init(self)
-    Plugin.Plugins[self.name] = self
+    Plugin.plugins[self.name] = self
     return self
 end
 
@@ -68,7 +69,7 @@ function Plugin.set_autocmds(self, autocmds)
 end
 
 function Plugin.get(name, callback, args)
-    local plugin = Plugin.Plugins[name] or Plugin(name)
+    local plugin = Plugin.plugins[name] or Plugin(name)
     callback = is_string(callback) and Plugin[callback] or callback
 
     if not callback then
@@ -87,7 +88,7 @@ function Plugin.load_configs()
         dict.merge(plugins, user_plugins)
     end
 
-    dict.each(Plugin.Plugins, function (_, plugin)
+    dict.each(Plugin.plugins, function (_, plugin)
         Plugin.load_config(plugin)
     end)
 end
@@ -155,14 +156,18 @@ function Plugin.to_lazy_spec()
 
     assert(not is_empty(core), 'lazy: expected non-empty dict')
 
+    for key, value in pairs(core) do
+        if not Plugin.plugins[key] then
+            Plugin.plugins[key] = Plugin(key)
+            Plugin.plugins[key].spec = value
+        end
+    end
+
     return core
 end
 
 function Plugin.setup_lazy()
-    local core = Plugin.to_lazy_spec()
-    array.map(keys(core), function (plugin) return Plugin(plugin) end)
-
-    require("lazy").setup(values(core))
+    require("lazy").setup(values(Plugin.to_lazy_spec()))
 end
 
 function Plugin.load()

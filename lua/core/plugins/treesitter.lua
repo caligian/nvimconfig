@@ -1,5 +1,6 @@
 -- Textobjects are broken for some reason
 local treesitter = Plugin.get "treesitter"
+
 treesitter.config = {
     refactor = {
         navigation = {

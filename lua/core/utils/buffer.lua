@@ -5,7 +5,6 @@ require "core.utils.win"
 require "core.utils.autocmd"
 require "core.utils.kbd"
 
-
 buffer = buffer or module('buffer')
 buffer.float = module('buffer.float')
 buffer.history = buffer.history or module('buffer.history')
@@ -143,7 +142,7 @@ function buffer.var(bufnr, var)
     end
 end
 
-function buffer.setvar(bufnr, k, v)
+function buffer.set_var(bufnr, k, v)
     validate {
         key = { is { "string", "dict" }, k },
     }
@@ -157,7 +156,7 @@ function buffer.setvar(bufnr, k, v)
         vim.api.nvim_buf_set_var(bufnr, k, v)
     else
         dict.each(k, function(key, value)
-            buffer.setvar(bufnr, key, value)
+            buffer.set_var(bufnr, key, value)
         end)
     end
 
@@ -1128,8 +1127,6 @@ function hist.open()
         return no_history()
     end
 
-    hist.prune()
-
     current = current[1]
     if current == buffer.current() then
         current = hist.pop()
@@ -1153,8 +1150,15 @@ autocmd.map('BufEnter', {
     end
 })
 
-buffer.range = win.range
-buffer.range_text = win.range_text
+function buffer.range_text(bufnr)
+    bufnr = bufnr or buffer.bufnr()
+    return win.range_text(buffer.winnr(bufnr))
+end
+
+function buffer.range(bufnr)
+    bufnr = bufnr or buffer.bufnr()
+    return win.range(buffer.winnr(bufnr))
+end
 
 function buffer.hide(bufnr)
     if buffer.is_visible(bufnr) then

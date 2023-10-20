@@ -1,8 +1,8 @@
-local _ = telescope.load()
+local _ = load_telescope()
 local mod = {}
 
 function mod.bwipeout(bufnr)
-    local sel = _:get_selected(bufnr, true)
+    local sel = _.selected(bufnr, true)
 
     array.each(sel, function(x)
         print("Wiping out buffer " .. x.bufnr)
@@ -11,7 +11,7 @@ function mod.bwipeout(bufnr)
 end
 
 function mod.nomodified(bufnr)
-    local sels = _:get_selected(bufnr, true)
+    local sels = _.selected(bufnr, true)
 
     array.each(sels, function(sel)
         print("Setting buffer status to nomodified: " .. vim.fn.bufname(sel.bufnr))
@@ -22,7 +22,7 @@ function mod.nomodified(bufnr)
 end
 
 function mod.save(bufnr)
-    local sels = _:get_selected(bufnr, true)
+    local sels = _.selected(bufnr, true)
     array.each(sels, function()
         print("Saving buffer " .. sel.bufnr)
         local name = vim.fn.bufname(sel.bufnr)
@@ -31,7 +31,7 @@ function mod.save(bufnr)
 end
 
 function mod.readonly(bufnr)
-    local sels = _:get_selected(bufnr, true)
+    local sels = _.selected(bufnr, true)
     array.each(sels, function(sel)
         print("Setting buffer to readonly: " .. vim.fn.bufname(sel.bufnr))
         vim.api.nvim_buf_call(sel.bufnr, function()

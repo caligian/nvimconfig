@@ -47,6 +47,6 @@ function snippets:setup()
     }
 end
 
-snippets:setup()
+-- snippets:setup()
 
 return snippets

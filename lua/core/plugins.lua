@@ -17,7 +17,7 @@ return {
 
     hy = {
         "hylang/vim-hy",
-        ft = { "hy" },
+        ft = "hy",
     },
 
     notify = {
@@ -26,27 +26,18 @@ return {
 
     signs = {
         "lewis6991/gitsigns.nvim",
-        event = "BufReadPost",
     },
 
     indentblankline = {
         "lukas-reineke/indent-blankline.nvim",
-        event = "BufReadPost",
     },
 
     align = {
         "junegunn/vim-easy-align",
-        event = "BufReadPost",
-    },
-
-    neorg = {
-        "nvim-neorg/neorg",
-        ft = "norg",
     },
 
     suda = {
         "lambdalisue/suda.vim",
-        event = "BufRead",
     },
 
     colorscheme = {
@@ -105,12 +96,13 @@ return {
 
     lint = {
         "mfussenegger/nvim-lint",
-        event = "BufReadPost",
+        event = "BufEnter",
     },
 
     clipboard = {
         "jasonccox/vim-wayland-clipboard",
         keys = '"',
+        event = "BufEnter",
     },
 
     startuptime = {
@@ -130,11 +122,7 @@ return {
 
     comment = {
         "tpope/vim-commentary",
-    },
-
-    vimtex = {
-        "lervag/vimtex",
-        ft = "tex",
+        event = "InsertEnter",
     },
 
     fennel = {
@@ -142,21 +130,16 @@ return {
         ft = "fennel",
     },
 
-    ssr = {
-        "cshuaimin/ssr.nvim",
-        event = "BufReadPost",
-    },
-
     hop = {
         "phaazon/hop.nvim",
-        event = "WinEnter",
+        event = "BufEnter",
     },
 
-    illuminate = { "RRethy/vim-illuminate", event = "BufReadPost" },
+    illuminate = { "RRethy/vim-illuminate", event = "BufEnter" },
 
     treesitter = {
         "nvim-treesitter/nvim-treesitter",
-        event = "BufReadPost",
+        event = "InsertEnter",
         dependencies = {
             "windwp/nvim-autopairs",
             "RRethy/vim-illuminate",
@@ -206,18 +189,18 @@ return {
     treehopper = {
         "mfussenegger/nvim-treehopper",
         dependencies = { "phaazon/hop.nvim" },
-        event = { "BufReadPost" },
+        event = { "BufEnter" },
     },
 
     snippets = {
         "L3MON4D3/LuaSnip",
         dependencies = { "rafamadriz/friendly-snippets" },
-        event = "InsertEnter",
+        event = "BufEnter",
     },
 
     cmp = {
         "hrsh7th/nvim-cmp",
-        event = "InsertEnter",
+        event = "BufEnter",
         dependencies = {
             "onsails/lspkind.nvim",
             "L3MON4D3/LuaSnip",
@@ -243,6 +226,7 @@ return {
         config = function()
             kbd.map("n", "<localleader>t", ":TagbarToggle<CR>", { desc = "Tagbar", name = "tagbar" })
         end,
+        event = "InsertEnter",
     },
 
     whichkey = {
@@ -257,6 +241,7 @@ return {
 
     lspsaga = {
         "nvimdev/lspsaga.nvim",
+        event = "BufEnter",
     },
 
     lsp = {
@@ -270,12 +255,6 @@ return {
         "mbbill/undotree",
         event = "InsertEnter",
     },
-
-    -- bufferline = {
-    --     "akinsho/bufferline.nvim",
-    --     version = "*",
-    --     dependencies = { "tiagovla/scope.nvim" },
-    -- },
 
     elixir = {
         "elixir-editors/vim-elixir",

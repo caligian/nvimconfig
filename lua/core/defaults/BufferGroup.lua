@@ -1,4 +1,5 @@
 require 'core.utils.BufferGroup'
+
 local home = os.getenv "HOME"
 
 BufferGroup.defaults = {
@@ -21,30 +22,17 @@ BufferGroup.defaults = {
     },
 }
 
-BufferGroup.commands = {
-    BufferPicker = {
-        function(cmd)
-            local args = cmd.fargs
-            args = args[1] and args[1] or buffer.bufnr()
-            BufferGroup.buffer.run_picker(args)
-        end,
-        {
-            complete = function()
-                return buffer.list({ listed = true }, { name = true })
-            end,
-            nargs = "?",
-        },
-    },
-}
+local function run_picker()
+    BufferGroup.buffer.run_picker(buffer.bufnr())
+end
 
 BufferGroup.mappings = {
     opts = {leader=true, noremap=true},
-    buffer_picker = {'.', '<cmd>BufferGroupBufferPicker<CR>'}
+    buffer_picker = {'.', run_picker}
 }
 
 return function ()
     BufferGroup.load_defaults(BufferGroup.defaults)
     BufferGroup.load_autocmds(BufferGroup.autocmds)
     BufferGroup.load_mappings(BufferGroup.mappings)
-    BufferGroup.load_commands(BufferGroup.commands)
 end

@@ -1,10 +1,10 @@
-lsp = {}
+lsp = lsp or {}
 
 lsp.diagnostic = { virtual_text = false, underline = false, update_in_insert = false }
 
 vim.diagnostic.config(lsp.diagnostic)
 
-lsp.mappings = {
+lsp.mappings = lsp.mappings or {
     diagnostic = {
         opts = { noremap = true, leader = true },
         float_diagnostic = {
@@ -172,15 +172,6 @@ function lsp.fix_omnisharp(client, bufnr)
     }
 end
 
-function lsp.apply_mappings(overrides, callback)
-    local mappings = deepcopy(lsp.mappings)
-    if overrides then
-        dict.merge(mappings, overrides)
-    end
-
-    kbd.map_groups(mappings, callback)
-end
-
 function lsp.attach_formatter(client)
     require("lsp-format").on_attach(client)
 end
@@ -192,15 +183,17 @@ function lsp.on_attach(client, bufnr)
         buffer.set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 
         local ft = vim.bo.filetype
-        local has_formatter = Filetype(ft)
+        local has_formatter = Filetype.get(ft)
         if has_formatter and not has_formatter.formatter then
             lsp.attach_formatter(client)
         end
 
-        lsp.apply_mappings({}, function(mode, ks, cb, rest)
-            rest.buffer = bufnr
-            return mode, ks, cb, rest
-        end)
+        local mappings = deepcopy(lsp.mappings)
+        for key, value in pairs(mappings) do
+            value.buffer = bufnr
+        end
+
+        kbd.map_groups(mappings)
     end
 end
 

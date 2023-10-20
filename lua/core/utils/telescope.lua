@@ -101,7 +101,7 @@ function load_telescope(overrides)
     }, self)
 end
 
-telescope.load = function(override)
+load_telescope = function(override)
     local opts = dict.merge({
         exists = require "telescope",
         pickers = require "telescope.pickers",
@@ -181,7 +181,7 @@ telescope.load = function(override)
             return setmetatable({}, {
                 __newindex = function(self, name, f)
                     rawset(self, name, function(bufnr)
-                        array.each(self:get_selected(bufnr, no_close), function(sel)
+                        array.each(self.selected(bufnr, no_close), function(sel)
                             return f(sel, bufnr)
                         end)
                     end)
@@ -190,7 +190,7 @@ telescope.load = function(override)
         end,
 
         create_menu = function(self, title, spec)
-            return self:create_picker({
+            return self.create({
                 results = spec,
                 entry_maker = function(entry)
                     return {
@@ -201,7 +201,7 @@ telescope.load = function(override)
                     }
                 end,
             }, function(prompt_bufnr)
-                local sel = self:get_selected(prompt_bufnr)[1]
+                local sel = self.selected(prompt_bufnr)[1]
                 sel.callback(sel)
             end, {
                 prompt_title = title,
@@ -209,7 +209,7 @@ telescope.load = function(override)
         end,
 
         run_picker = function(...)
-            return self:create_picker(...):find()
+            return self.create(...):find()
         end,
     }, opts)
 end

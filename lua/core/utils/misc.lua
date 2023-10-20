@@ -15,12 +15,13 @@ function whereis(bin, regex)
             end
         end
     end
+
     return out[1]
 end
 
 -- For multiple patterns, OR matching will be used
 -- If varname in [varname] = var is prefixed with '!' then it will be overwritten
-function global(vars)
+function setglobal(vars)
     for var, value in pairs(vars) do
         if var:match "^!" then
             var = var:gsub("^!", "")
@@ -32,9 +33,16 @@ function global(vars)
     end
 end
 
+function getglobal(var)
+    if _G[var] then
+        return _G[var]
+    end
+end
+
 function with_open(fname, mode, callback)
     local fh = io.open(fname, mode)
     local out = nil
+
     if fh then
         out = callback(fh)
         fh:close()
@@ -113,10 +121,11 @@ function reqmodule(s)
     return builtin
 end
 
-function getoption(value, default)
+function optional(value, default)
     if value == nil then
         return default
     end
+
     return value
 end
 
@@ -154,5 +163,3 @@ function kill_pid(pid, signal)
 
     return true
 end
-
-

@@ -33,7 +33,7 @@ local function close_other_windows()
     end)
 end
 
-user.mappings = {}
+user.mappings = user.mappings or {}
 
 dict.merge(user.mappings, {
     opts = {
@@ -168,7 +168,7 @@ dict.merge(user.mappings, {
         },
         till_cursor = {
             "e.",
-            "<cmd>NvimEvalTillPoint<CR>",
+            "<cmd>NvimEvalTillCursor<CR>",
             { desc = "Lua source till point", name = "source_till_point" },
         },
         region = {
@@ -310,14 +310,14 @@ dict.merge(user.mappings, {
             "lsp info",
         },
         stop_lsp = {
-            "lq",
-            ":LspStart<CR>",
-            "start lsp",
+            "lL",
+            ":LspStop<CR>",
+            "stop lsp",
         },
         restart_lsp = {
-            "lL",
-            ":LspStart<CR>",
-            "start lsp",
+            "l!",
+            ":LspRestart<CR>",
+            "restart lsp",
         },
         start_lsp = {
             "ll",

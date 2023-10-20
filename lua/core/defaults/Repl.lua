@@ -1,6 +1,5 @@
 require "core.utils.Repl"
-require "core.utils.Command"
-
+require "core.utils.command"
 
 local function get_repl(bufnr, callback, opts)
     opts = opts or {}
@@ -190,9 +189,9 @@ array.each(keys(buffer_mod), function(fun)
     local buf_name = to_camelcase("repl_buffer_" .. fun)
     local ft_name = to_camelcase("repl_ft_" .. fun)
     local sh_name = to_camelcase("repl_sh_" .. fun)
-    commands[buf_name] = Command(buf_name, wrap_command("b", buffer_mod[fun]), { nargs = "?" })
-    commands[ft_name] = Command(ft_name, wrap_command("f", ft_mod[fun]), { nargs = "?" })
-    commands[sh_name] = Command(sh_name, wrap_command("sh", sh_mod[fun]), { nargs = "?" })
+    commands[buf_name] = command(buf_name, wrap_command("b", buffer_mod[fun]), { nargs = "?" })
+    commands[ft_name] = command(ft_name, wrap_command("f", ft_mod[fun]), { nargs = "?" })
+    commands[sh_name] = command(sh_name, wrap_command("sh", sh_mod[fun]), { nargs = "?" })
 end)
 
 local mappings = { opts = { noremap = true } }

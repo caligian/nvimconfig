@@ -1,9 +1,8 @@
 BufferGroup = BufferGroup or struct("BufferGroup", { "buffers", "name", "event", "pattern", "callbacks", "exclude", "autocmd" })
-
 BufferGroup.buffers = BufferGroup.buffers or {}
 BufferGroup.BufferGroups = BufferGroup.BufferGroups or {}
-BufferGroup.mappings = {}
-BufferGroup.autocmds = {}
+BufferGroup.mappings = BufferGroup.mappings or {}
+BufferGroup.autocmds = BufferGroup.autocmds or {}
 
 function BufferGroup.init_before(name, event, pattern)
     validate {
@@ -201,20 +200,21 @@ function BufferGroup.create_picker(self, tp)
             return
         end
 
-        local _ = telescope.load()
+        local _ = load_telescope()
         local mod = {}
 
         function mod.include_buffer(prompt_bufnr)
-            BufferGroup.include_buffer(self, unpack(array.map(_:get_selected(prompt_bufnr), function(buf)
+            BufferGroup.include_buffer(self, unpack(array.map(_.selected(prompt_bufnr), function(buf)
                 return buf.bufnr
             end)))
         end
 
         mod.default_action = mod.include_buffer
-        local picker = _:create_picker({
+        local picker = _.create({
             results = bufs,
             entry_maker = function(entry)
                 local bufname = buffer.name(entry)
+
                 return {
                     display = bufname,
                     value = entry,
@@ -253,18 +253,18 @@ function BufferGroup.create_picker(self, tp)
             end,
         }
 
-        local _ = telescope.load()
+        local _ = load_telescope()
         local mod = {}
 
         function mod.remove_buffer(prompt_bufnr)
-            local sel = _:get_selected(prompt_bufnr, true)
+            local sel = _.selected(prompt_bufnr, true)
             array.each(sel, function(buf)
                 BufferGroup.remove_buffer(self, buf.bufnr)
             end)
         end
 
         function mod.open_buffer(prompt_bufnr)
-            local sel = _:get_selected(prompt_bufnr)[1]
+            local sel = _.selected(prompt_bufnr)[1]
             if not sel then
                 return
             end
@@ -280,7 +280,7 @@ function BufferGroup.create_picker(self, tp)
         end
 
         function mod.exclude_buffer(prompt_bufnr)
-            BufferGroup.exclude_buffer(self, unpack(array.map(_:get_selected(prompt_bufnr), function(buf)
+            BufferGroup.exclude_buffer(self, unpack(array.map(_.selected(prompt_bufnr), function(buf)
                 return buf.bufnr
             end)))
         end
@@ -292,7 +292,7 @@ function BufferGroup.create_picker(self, tp)
             prompt_title = "BufferGroup = " .. self.name
         end
 
-        local picker = _:create_picker(items, {
+        local picker = _.create(items, {
             mod.default_action,
             { "n", "x", mod.remove_buffer },
             { "n", "o", mod.open_buffer },
@@ -372,25 +372,25 @@ function BufferGroup.buffer.create_picker(bufnr, ...)
     }
 
     local mod = {}
-    local _ = telescope.load()
+    local _ = load_telescope()
 
     function mod.default_action(prompt_bufnr)
-        local sel = _:get_selected(prompt_bufnr)[1]
+        local sel = _.selected(prompt_bufnr)[1]
         BufferGroup.run_picker(BufferGroup.BufferGroups[sel.BufferGroup])
     end
 
     function mod.remove_buffers(prompt_bufnr)
-        local sel = _:get_selected(prompt_bufnr)[1]
+        local sel = _.selected(prompt_bufnr)[1]
         BufferGroup.run_picker(BufferGroup.BufferGroups[sel.BufferGroup], 'remove')
     end
 
     function mod.show_excluded_buffers(prompt_bufnr)
-        local sel = _:get_selected(prompt_bufnr)[1]
+        local sel = _.selected(prompt_bufnr)[1]
         BufferGroup.run_picker(BufferGroup.BufferGroups[sel.BufferGroup], 'include')
     end
 
     function mod.change_pattern(prompt_bufnr)
-        local sel = _:get_selected(prompt_bufnr)[1]
+        local sel = _.selected(prompt_bufnr)[1]
         local group = BufferGroup.BufferGroups[sel.BufferGroup]
         local pattern = group.pattern
         local userint = input {pattern = {'new pattern' }}
@@ -399,7 +399,7 @@ function BufferGroup.buffer.create_picker(bufnr, ...)
         printf("pattern changed to  %s for BufferGroup %s", dump(group.pattern), group.name)
     end
 
-    return _:create_picker(items, {
+    return _.create(items, {
         mod.default_action,
         { "n", "e", mod.show_excluded_buffers },
         { "n", "x", mod.remove_buffers },
@@ -453,13 +453,6 @@ function BufferGroup.load_defaults(defaults)
     return out
 end
 
-function BufferGroup.load_commands(commands)
-    commands = commands or BufferGroup.commands
-    if is_empty(commands) then return end
-
-    return Command.map_group('BufferGroup', commands)
-end
-
 function BufferGroup.get_statusline_string(bufnr)
     local state = BufferGroup.buffers[bufnr]
     if not state or dict.is_empty(state) then
@@ -468,3 +461,5 @@ function BufferGroup.get_statusline_string(bufnr)
 
     return "<" .. array.join(dict.keys(state), " ") .. ">"
 end
+
+return BufferGroup

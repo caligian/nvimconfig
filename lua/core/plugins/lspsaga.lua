@@ -65,7 +65,7 @@ lspsaga.mappings = {
     },
 
     buf_diags = {
-        'D',
+        'd',
         '<cmd>Lspsaga show_buf_diagnostics ++float<CR>',
         'diagnostics',
     },

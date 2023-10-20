@@ -1,4 +1,4 @@
-local _ = telescope.load()
+local _ = load_telescope()
 
 local function get_fname(sel)
     return sel.cwd .. "/" .. sel[1]
@@ -6,7 +6,7 @@ end
 
 local mod = {
     delete = function(prompt_bufnr)
-        local sel = _:get_selected(prompt_bufnr, true)
+        local sel = _.selected(prompt_bufnr, true)
         array.each(sel, function(x)
             x = get_fname(x)
             print("rm -r " .. x)

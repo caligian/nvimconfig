@@ -1,6 +1,6 @@
 require "core.utils.autocmd"
 
-kbd = struct.new("kbd", {
+kbd = kbd or struct.new("kbd", {
     "mode",
     "keys",
     "callback",
@@ -18,7 +18,7 @@ kbd = struct.new("kbd", {
     "desc",
 })
 
-kbd.kbds = {}
+kbd.kbds = kbd.kbds or {}
 local enable = vim.keymap.set
 local delete = vim.keymap.del
 

@@ -1,10 +1,10 @@
 require "core.utils.telescope"
 
-local _ = telescope.load()
+local _ = load_telescope()
 local mod = {}
 
 function mod.delete(bufnr)
-    local sels = _:get_selected(bufnr, true)
+    local sels = _.selected(bufnr, true)
 
     array.each(sels, function(sel)
         print("rm -r", sel[1])
@@ -13,7 +13,7 @@ function mod.delete(bufnr)
 end
 
 function mod.force_delete(bufnr)
-    local sels = _:get_selected(bufnr)
+    local sels = _.selected(bufnr)
 
     array.each(sels, function(sel)
         print("rm -rf", sel[1])
@@ -22,7 +22,7 @@ function mod.force_delete(bufnr)
 end
 
 function mod.touch(bufnr)
-    local sel = _:get_selected(bufnr, true)
+    local sel = _.selected(bufnr, true)
     local cwd = sel.Path._cwd
     local fname = vim.fn.input "Filename % "
     if #fname == 0 then
