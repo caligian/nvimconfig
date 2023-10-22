@@ -1,4 +1,4 @@
-local shlex = {}
+shlex = module "shlex"
 
 ---
 -- @tparam string cmd
@@ -7,7 +7,9 @@ local function get_quoted(cmd)
     local first_quote = string.find(cmd, "'") or string.find(cmd, '"')
 
     if not first_quote then
-        return split(cmd, " ")
+        return map(split(cmd, " "), function (x)
+            return {false, x}
+        end)
     end
 
     local quote = string.sub(cmd, first_quote, first_quote)
@@ -86,7 +88,8 @@ function shlex.parse(cmd)
     end)
 end
 
--- local test = [[xargs -i{} -d $'\n' echo "abcd ef {} \"hello\"" $acd $'']]
--- pp(shlex.parse(test))
+function shlex:__call(cmd)
+    return shlex.parse(cmd)
+end
 
 return shlex

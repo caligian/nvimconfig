@@ -1,5 +1,4 @@
-#!/usr/bin/luajit
-
+require 'core.utils.shlex'
 local uv = vim.loop
 
 Job = Job or struct("Job", {
@@ -11,8 +10,7 @@ Job = Job or struct("Job", {
     "errors",
     "handle",
     "check",
-    "stdout_buffer",
-    "stderr_buffer",
+    "buffer",
 })
 
 function Job.mkpipes(self)
@@ -41,13 +39,18 @@ end
 function Job.init_before(cmd, opts)
     opts = copy(opts or {})
     local self = {}
-    args = args or {}
+    local args = deepcopy(opts.args or {})
     local check = uv.new_check()
     local stdout = opts.stdout
     local stderr = opts.stderr
     local output = opts.output
     local split = opts.split
     local out_buf = split and buffer.create_empty()
+    local on_exit = opts.on_exit
+    local stdout_buffer = opts.stdout_buffer
+    local stderr_buffer = opts.stderr_buffer
+    local output_buffer = opts.output_buffer 
+    opts.on_exit = nil
 
     if is_table(cmd) then
         args = array.slice(cmd, 2, -1)
@@ -70,6 +73,10 @@ function Job.init_before(cmd, opts)
             check:stop()
             self.exit_code = code
             Job.close(self)
+
+            if on_exit then
+                on_exit(self)
+            end
 
             if split then
                 local lines = {"COMMAND: " .. cmd, "---"}
@@ -110,6 +117,7 @@ function Job.init_before(cmd, opts)
     self.lines = {}
     self.errors = {}
     self.args = args
+    self.buffer = out_buf
 
     if output then
         if is_callable(output) then
@@ -273,13 +281,18 @@ function Job.send(self, s)
     return uv.write(self.pipes.stdin, s:split "\n")
 end
 
-local function temp_write_cmd()
-end
-
-function Job.run(outbuf, cmd, opts)
+function Job.oneshot(outbuf, cmd, opts)
     local tempfile = system("mktemp")[1] 
     outbuf = buffer.bufadd(outbuf or cmd)
     opts = opts or {}
+    cmd = shlex(cmd)
+    opts.args = array.slice(cmd, 2, -1)
+    cmd = cmd[1]
+    opts.buffer = outbuf
+    opts.stdout = true
+    opts.stderr = true
+
+    return Job(cmd, opts)
 end
 
 return Job

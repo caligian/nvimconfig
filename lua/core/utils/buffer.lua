@@ -21,6 +21,7 @@ buffer.bufadd = vim.fn.bufadd
 function buffer.bufnr(bufnr)
     bufnr = bufnr or vim.fn.bufnr()
     bufnr = vim.fn.bufnr(bufnr)
+
     if bufnr == -1 then
         return false
     end
