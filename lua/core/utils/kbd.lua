@@ -1,10 +1,22 @@
 require "core.utils.autocmd"
 
-kbd = kbd or struct.new("kbd", {
+kbd = kbd or struct("kbd", {
+	-- nvim_set_keymap opts
+	'buffer',
+	'nowait',
+	'silent',
+	'script',
+	'expr',
+	'unique',
+	'noremap',
+	'desc',
+	'callback',
+	'replace_keycodes',
+
+	-- extract opts
+	'command',
     "mode",
     "keys",
-    "callback",
-    "opts",
     "event",
     "pattern",
     "name",
@@ -14,53 +26,60 @@ kbd = kbd or struct.new("kbd", {
     "prefix",
     "enabled",
     "autocmd",
-    "augroup",
-    "desc",
+    "group",
 })
 
 kbd.kbds = kbd.kbds or {}
 local enable = vim.keymap.set
 local delete = vim.keymap.del
+local del = delete
 
-function kbd.init_before(mode, ks, callback, rest)
-    if is_struct(mode, "kbd") then
-        return mode
-    end
-
-    mode = is_string(mode) and mode:splat() or mode
-    rest = is_string(rest) and { desc = rest } or rest
-    rest = rest or {}
-
-    local not_match =
-        array.to_dict { "mode", "event", "pattern", "name", "once", "leader", "localleader", "prefix", "augroup" }
-
-    local opts, custom = {}, {}
-
-    dict.each(rest, function(key, v)
-        if not_match[key] then
-            custom[key] = v
-        else
-            opts[key] = v
-        end
-    end)
-
-    local self = merge({
-        mode = mode,
-        keys = ks,
-        callback = callback,
-        opts = opts,
-        desc = opts.desc,
-    }, custom)
-
-    return self
+function kbd.opts(self)
+	return tfilter(self, function(key, _)
+		return strmatch(key,
+		'buffer',
+		'nowait',
+		'silent',
+		'script',
+		'expr',
+		'unique',
+		'noremap',
+		'desc',
+		'callback',
+		'replace_keycodes'
+		)
+	end)
 end
 
-function kbd.init(self)
-    local mode, ks, callback, opts = self.mode, self.keys, self.callback, self.opts
-    local name, event, pattern, once, prefix, localleader, leader, group =
-        self.name, self.even, self.pattern, self.once, self.prefix, self.localleader, self.leader, self.group
+function kbd.init(self, mode, ks, callback, rest)
+	rest = rest or {}
+	mode = mode or 'n'
 
-    mode = is_string(mode) and string.splat(mode) or mode
+    local _rest = rest
+	rest = is_string(_rest) and {desc = _rest} or _rest
+
+	validate {
+		mode = {union('string', 'list'), mode},
+		ks = {'string', ks},
+		callback = {union('callable', 'string'), callback},
+		opts = {'table', rest}
+	}
+
+    mode = is_string(mode) and split(mode, "") or mode
+	local command = is_string(callback) and callback
+	callback = is_callable(callback) and callback
+	local prefix = rest.prefix
+	local noremap = rest.noremap
+	local event = rest.event
+	local pattern = rest.pattern
+	local once = rest.once
+	local buffer = rest.buffer
+	local cond = rest.cond
+	local localleader = rest.localleader
+	local leader = rest.leader
+	local name = rest.name
+	local group = rest.group or 'Keybinding'
+	local desc = rest.desc
 
     if prefix and (localleader or leader) then
         if localleader then
@@ -74,21 +93,36 @@ function kbd.init(self)
         ks = "<leader>" .. ks
     end
 
-    self.keys = ks
-    self.mode = mode
-    self.callback = callback
-
     if name then
         if group then
             name = group .. "." .. name
         end
-
-        self.name = name
-        kbd.kbds[name] = self
     end
 
+	self.mode = mode
+	self.keys = ks
+	self.command = command
+	self.prefix = prefix
+	self.noremap = noremap
+	self.event = event
+	self.pattern = pattern
+	self.once = once
+	self.buffer = buffer
+	self.cond = cond
+	self.localleader = localleader
+	self.leader = leader
+	self.name = name
+	self.group = augroup
+	self.desc = desc
+	self.enabled = false
+	self.autocmd = false
+    self.callback = callback
 
-    return self
+	if name then
+		kbd.kbds[name] = self
+	end
+
+	return self
 end
 
 function kbd.enable(self)
@@ -96,34 +130,48 @@ function kbd.enable(self)
         return self
     end
 
+	local opts = copy(kbd.opts(self))
+	local cond = self.cond
+	local callback
+
+	if self.command then 
+		callback = self.command
+	else
+		callback = ''
+		opts.callback = self.callback
+	end
+
     if self.event and self.pattern then
-        self.autocmd = autocmd.map(self.event, {
+        self.autocmd = autocmd(self.event, {
             pattern = self.pattern,
             group = self.group,
             once = self.once,
             callback = function(au_opts)
-                local opts = copy(self.opts)
+				if cond and not cond() then return end
+				opts = copy(opts)
                 opts.buffer = buffer.bufnr()
 
-                enable(self.mode, self.keys, self.callback, opts)
+                enable(self.mode, self.keys, callback, opts)
+				self.enabled = true
             end,
         })
     else
-        enable(self.mode, self.keys, self.callback, self.opts)
+        enable(self.mode, self.keys, callback, opts)
+		self.enabled = true
     end
 
     return self
 end
 
 function kbd.disable(self)
-    if self.opts.buffer then
-        if self.opts.buffer then
-            del(mode, keys, { buffer = self.opts.buffer })
+    if self.buffer then
+        if self.buffer then
+            del(self.mode, self.keys, { buffer = self.buffer })
         end
     elseif self.events and self.pattern then
-        del(mode, keys, { buffer = buffer.bufnr() })
+        del(self.mode, self.keys, { buffer = buffer.bufnr() })
     else
-        del(mode, keys)
+        del(self.mode, self.keys)
     end
 
     if self.autocmd then
@@ -150,12 +198,12 @@ function kbd.map_group(group_name, specs, compile)
     local opts = specs.opts
     local apply = specs.apply
 
-    dict.each(specs, function(name, spec)
+    teach(specs, function(name, spec)
         if name == "opts" or name == "apply" then
             return
         end
 
-        if is_struct(spec, 'kbd') then
+        if is_a.kbd(spec) then
             kbd.enable(spec)
             return
         end
@@ -195,7 +243,7 @@ function kbd.map_groups(specs, compile)
     specs = deepcopy(specs)
     specs.opts = nil
 
-    dict.each(specs, function(group, spec)
+    teach(specs, function(group, spec)
         if is_dict_of(spec, 'kbd') then
             merge(all_mapped, kbd.map_group(group, spec))
         elseif group == "inherit" then
@@ -210,7 +258,7 @@ function kbd.map_groups(specs, compile)
         specs[group] = spec
     end)
 
-    dict.each(specs, function(group, spec)
+    teach(specs, function(group, spec)
         merge(all_mapped, kbd.map_group(group, spec, compile))
     end)
 

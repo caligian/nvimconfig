@@ -1,4 +1,4 @@
-local i3config = Filetype 'i3config'
+local i3config = 'i3config'
 i3config.filetype = {
     extension = {
         i3config = 'i3config',

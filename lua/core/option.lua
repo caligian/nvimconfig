@@ -34,6 +34,7 @@ user.option = {
         inccommand = "split",
         background = "dark",
         guifont = "Liberation Mono:h12",
+        virtualedit = 'block,onemore',
     },
     g = {
         mapleader = " ",

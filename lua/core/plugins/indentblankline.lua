@@ -1,5 +1,5 @@
-local indent = require "indent_blankline"
-local indentblankline = Plugin.get "indentblankline"
+local indent = require "ibl"
+local indentblankline = plugin.get "indentblankline"
 indentblankline.methods = {}
 
 function indentblankline.methods.set_highlight()
@@ -12,7 +12,7 @@ function indentblankline.methods.set_highlight()
         normal.guifg = lighten(normal.guibg, 20)
     end
 
-    hi("IndentBlankLineChar", { guifg = normal.guifg })
+    highlightset("IblIndent", { guifg = normal.guifg })
 end
 
 indentblankline.autocmds = {

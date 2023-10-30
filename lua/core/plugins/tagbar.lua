@@ -1,4 +1,4 @@
-local tagbar = Plugin.get "tagbar"
+local tagbar = plugin.get "tagbar"
 
 tagbar.mappings = {
     tagbar = {

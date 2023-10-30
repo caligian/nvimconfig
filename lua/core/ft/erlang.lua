@@ -1,10 +1,10 @@
-local erlang = Filetype 'erlang'
+local erlang = 'erlang'
 
 erlang.repl = {'erl'}
 
 erlang.lsp_server = 'erlangls'
 
-erlang.compile = 'erl'
+erlang.compile = 'erl %s'
 
 erlang.formatter = {'rebar3 fmt -', stdin=true}
 

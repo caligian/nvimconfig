@@ -1,10 +1,10 @@
-local python = Filetype "python"
+local python = plugin.get("python")
 
-python.linters = "pylint"
+python.linters = "pylint %s"
 
 python.formatter = { "black -q -", stdin = true }
 
-python.test = "pytest"
+python.test = "pytest %s"
 
 python.repl = {"ipython3", load_file = function (fname, make_file)
     local new_fname = fname .. '.py'
@@ -15,7 +15,7 @@ end}
 
 python.lsp_server = "pyright"
 
-python.compile = "python3"
+python.compile = "python3 %s"
 
 python.autocmds = {
     whitespace = function (au)

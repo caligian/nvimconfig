@@ -1,4 +1,4 @@
-local mysql = Filetype 'sql'
+local mysql = 'sql'
 mysql.repl = 'mysql'
 mysql.lsp_server = 'sqlls'
 mysql.formatter = {

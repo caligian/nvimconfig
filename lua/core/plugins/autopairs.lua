@@ -1,4 +1,4 @@
-local autopairs = Plugin.get "autopairs"
+local autopairs = plugin.get "autopairs"
 
 autopairs.config = {
     disable_filetype = { "TelescopePrompt", "spectre_panel", 'lisp', 'clojure', 'scheme' },

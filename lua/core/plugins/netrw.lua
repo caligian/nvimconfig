@@ -1,4 +1,4 @@
-local netrw = Plugin.get "netrw"
+local netrw = plugin.get "netrw"
 
 netrw.config = {
     icons = {

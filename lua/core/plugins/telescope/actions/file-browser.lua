@@ -6,7 +6,7 @@ local mod = {}
 function mod.delete(bufnr)
     local sels = _.selected(bufnr, true)
 
-    array.each(sels, function(sel)
+    each(sels, function(sel)
         print("rm -r", sel[1])
         vim.fn.system { "rm", "-r", sel[1] }
     end)
@@ -15,7 +15,7 @@ end
 function mod.force_delete(bufnr)
     local sels = _.selected(bufnr)
 
-    array.each(sels, function(sel)
+    each(sels, function(sel)
         print("rm -rf", sel[1])
         vim.fn.system { "rm", "-rf", sel[1] }
     end)

@@ -7,7 +7,7 @@ end
 local mod = {
     delete = function(prompt_bufnr)
         local sel = _.selected(prompt_bufnr, true)
-        array.each(sel, function(x)
+        each(sel, function(x)
             x = get_fname(x)
             print("rm -r " .. x)
             print(vim.fn.system { "rm", "-r", x })

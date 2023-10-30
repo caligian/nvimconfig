@@ -1,4 +1,4 @@
-local tex = Filetype "tex"
+local tex = plugin.get("tex")
 
 tex.lsp_server = "texlab"
 

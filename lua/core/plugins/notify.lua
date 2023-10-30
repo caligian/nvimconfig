@@ -1,5 +1,5 @@
 local nf = require "notify"
-local notify = Plugin.get "notify"
+local notify = plugin.get "notify"
 notify.methods = {}
 
 notify.config = {

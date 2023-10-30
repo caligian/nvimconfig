@@ -2,7 +2,7 @@ local nvim_cmp = require "cmp"
 local cmp_zsh = require "cmp_zsh"
 local luasnip = require "luasnip"
 local lspkind = require 'lspkind'
-local cmp = Plugin.get "cmp"
+local cmp = plugin.get "cmp"
 
 cmp.config = {
     mapping = {

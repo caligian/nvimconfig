@@ -1,4 +1,4 @@
-local go = Filetype.get('go')
+local go = filetype.get('go')
 
 go.lsp_server = 'gopls'
 go.compile = 'go run'
@@ -10,7 +10,7 @@ local function run_and_split(cmd, append_bufname)
             cmd = cmd .. ' ' .. buffer.name()
         end
 
-        Filetype.run_command(cmd, cmd .. '_stdout', 's')
+        run_command(cmd, cmd .. '_stdout', 's')
     end
 end
 

@@ -11,13 +11,13 @@ local function load_all()
     local dest = path.join(user.dir, "lua", "core", "defaults")
     local files = dir.getallfiles(dest)
 
-    array.each(files, function(x)
+    each(files, function(x)
         if x:match "init" then
             return
         end
 
         x = path.basename(x)
-        if not x:match_any("lua$", "^[a-zA-Z0-9_-]+$") then
+        if not strmatch(x, "lua$", "^[a-zA-Z0-9_-]+$") then
             return
         end
 

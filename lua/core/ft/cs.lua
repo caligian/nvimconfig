@@ -1,4 +1,4 @@
-local cs = Filetype "cs"
+local cs = plugin.get("cs")
 
 cs.repl = "csharp"
 cs.compile = function(bufnr)

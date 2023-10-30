@@ -176,7 +176,7 @@ function command.map_group(name, spec, compile)
     local gopts = spec.opts or {}
     spec.opts = nil
 
-    dict.each(spec, function (key, value)
+    spec, function (key, value)
         key = name .. capitalize(key)
         new[key] = value
         value[2] = merge(copy(value[2] or {}), gopts)

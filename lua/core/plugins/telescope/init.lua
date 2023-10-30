@@ -2,9 +2,8 @@ local ivy = load_telescope().theme
 local buffer_actions = require "core.plugins.telescope.actions.buffer"
 local find_files_actions = require "core.plugins.telescope.actions.find-files"
 local file_browser_actions = require "core.plugins.telescope.actions.file-browser"
-
 local T = copy(ivy)
-local telescope = Plugin.get "telescope"
+local telescope = plugin.get "telescope"
 
 --------------------------------------------------------------------------------
 -- Some default overrides
@@ -49,7 +48,7 @@ T.pickers = {
 -- Start keymappings
 local function picker(p, conf)
     return function()
-        require("telescope.builtin")[p](dict.merge(conf or {}, ivy))
+        require("telescope.builtin")[p](merge(conf or {}, ivy))
     end
 end
 
@@ -176,5 +175,6 @@ function telescope:setup()
     ts.setup(T)
     ts.load_extension "file_browser"
 end
+
 
 return telescope

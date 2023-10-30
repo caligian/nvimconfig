@@ -1,5 +1,5 @@
 local gs = require "gitsigns"
-local signs = Plugin.get "signs"
+local signs = plugin.get "signs"
 
 signs.methods = {
     next_hunk = function()

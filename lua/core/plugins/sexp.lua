@@ -1,4 +1,4 @@
-local sexp = Plugin.get 'sexp'
+local sexp = plugin.get 'sexp'
 local cmd = [=[
  function! s:vim_sexp_mappings()
             xmap <silent><buffer> af              <Plug>(sexp_outer_list)

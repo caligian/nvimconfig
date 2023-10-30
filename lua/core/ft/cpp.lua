@@ -1,4 +1,4 @@
-local cpp = Filetype.get('cpp')
+local cpp = filetype.get('cpp')
 
 cpp.lsp_server = {
     "ccls",

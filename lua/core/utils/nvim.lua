@@ -1,5 +1,3 @@
-require "core.utils.misc"
-
 function to_stderr(...)
     for _, s in ipairs { ... } do
         vim.api.nvim_err_writeln(s)
@@ -15,14 +13,16 @@ function system(...)
     return vim.fn.systemlist(...)
 end
 
--- If multiple dict.keys are supplied, the table is going to be assumed to be nested
+-- If multiple keys are supplied, the table is going to be assumed to be nested
 user.logs = user.logs or {}
 function req(require_string, do_assert)
     local ok, out = pcall(require, require_string)
+
     if ok then
         return out
     end
-    array.append(user.logs, out)
+
+    append(user.logs, out)
     logger:debug(out)
 
     if do_assert then
@@ -37,8 +37,10 @@ end
 
 function get_font()
     local font, height
-    font = user and user.font.family
-    height = user and user.font.height
+    font = user and user.font and user.font.family
+    height = user and user.font and user.font.height or '11'
+	if not font then return end
+
     font = vim.o.guifont:match "^([^:]+)" or font
     height = vim.o.guifont:match "h([0-9]+)" or height
 
@@ -62,10 +64,6 @@ function log_pcall_wrap(f)
     end
 end
 
-function throw_error(desc)
-    error(dump(desc))
-end
-
 function try_require(s, success, failure)
     local M = require(s)
     if M and success then
@@ -74,21 +72,6 @@ function try_require(s, success, failure)
         return failure(M)
     end
     return M
-end
-
-function copy(obj, deep)
-    if type(obj) ~= "table" then
-        return obj
-    elseif deep then
-        return vim.deepcopy(obj)
-    end
-
-    local out = {}
-    for key, value in pairs(obj) do
-        out[key] = value
-    end
-
-    return out
 end
 
 function command(name, callback, opts)
@@ -100,7 +83,7 @@ del_command = vim.api.nvim_del_user_command
 
 --- Only works for user and doom dirs
 function reqloadfile(s)
-    s = s:split "%."
+    s = split(s, "%.")
     local fname
 
     local function _loadfile(p)
@@ -175,12 +158,12 @@ end
 
 --- @tparam table[input_args] | input_args
 function input(spec)
-    if dict.typeof(spec, 'table') then
+    if is_a.table(spec) then
         local res = {}
 
         for key, value in pairs(spec) do
             local out = process_input(key, value)
-            dict.merge(res, out)
+            merge(res, out)
         end
 
         return res
@@ -189,19 +172,147 @@ function input(spec)
     end
 end
 
-function whereis(bin, match)
-    local fh = io.popen("whereis " .. bin .. " | cut -d : -f 2")
-    local out = fh:read "*a"
-    fh:close()
+function whereis(bin, regex)
+    local out = vim.fn.system("whereis " .. bin .. [[ | cut -d : -f 2- | sed -r "s/(^ *| *$)//mg"]])
+    out = trim(out)
+    out = split(out, " ")
 
-    out = out:trim()
-    if #out == 0 then
+    if is_empty(out) then
+        return false
+    end
+
+    if regex then
+        for _, value in ipairs(out) do
+            if value:match(regex) then
+                return value
+            end
+        end
+    end
+
+    return out[1]
+end
+
+-- For multiple patterns, OR matching will be used
+-- If varname in [varname] = var is prefixed with '!' then it will be overwritten
+function config_set(vars, attrib)
+	if attrib then
+		return merge(user[attrib], vars)
+	end
+
+	return merge(user, vars)
+end
+
+function config_get(attrib)
+	return user[attrib]
+end
+
+function with_open(fname, mode, callback)
+    local fh = io.open(fname, mode)
+    local out = nil
+
+    if fh then
+        out = callback(fh)
+        fh:close()
+    end
+
+    return out
+end
+
+function basename(s)
+    s = vim.split(s, "/")
+    return s[#s]
+end
+
+function req2path(s, is_file)
+    local p = split(s, "[./]") or { s }
+    local test
+    user.user_dir = user.user_dir or path.join(os.getenv "HOME", ".nvim")
+    user.dir = user.dir or vim.fn.stdpath "config"
+
+    if p[1]:match "user" then
+        test = path.join(user.user_dir, "lua", unpack(p))
+    else
+        test = path.join(user.dir, "lua", unpack(p))
+    end
+
+    local isdir = path.exists(test)
+    local isfile = path.exists(test .. ".lua")
+
+    if is_file and isfile then
+        return test .. ".lua", "file"
+    elseif isdir then
+        return test, "dir"
+    elseif isfile then
+        return test .. ".lua", "file"
+    end
+end
+
+function reqmodule(s)
+    if not s:match "^core" then
+        return
+    end
+    if s:match "^core%.utils" then
         return
     end
 
-    out = out:split " +"
-    return array.grep(out, function(x)
-        if not match then return not x:match "man.*%.gz$" and not path.isdir(x) end
-        return x:match(match) and not x:match "man.*%.gz$" and not path.isdir(x)
-    end)
+    local p = s:gsub("^core", "user")
+    if not req2path(s) then
+        return
+    end
+
+    local builtin, builtin_tp = req2path(s)
+    local _user, user_tp = req2path(p)
+
+    if not builtin then
+        return
+    elseif builtin_tp == "dir" and path.exists(builtin .. "/init.lua") then
+        builtin = require(s)
+    else
+        builtin = require(s)
+    end
+
+    if user_tp == "dir" and path.exists(path.join(_user, "init.lua")) then
+        _user = require(s)
+    else
+        _user = require(s)
+    end
+
+    if is_table(builtin) and is_table(_user) then
+        return merge(copy(builtin), _user)
+    end
+
+    return builtin
+end
+
+function pid_exists(pid)
+    if not is_number(pid) then return false end
+
+    local out = system("ps --pid " .. pid .. " | tail -n -1")
+    out = map(out, trim)
+    out = filter(out, function(x) return #x ~= 0 end)
+
+    if #out > 0 then
+        if string.match(out[1], "error") then
+            return false, out
+        end
+
+        return true
+    end
+
+    return false
+end
+
+function kill_pid(pid, signal)
+    if not is_number(pid) then
+        return false
+    end
+
+    local out = system('kill -s ' .. signal  .. ' ' .. pid)
+    if #out == 0 then
+        return false
+    else
+        return false
+    end
+
+    return true
 end

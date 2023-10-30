@@ -9,8 +9,7 @@ buffer = buffer or module('buffer')
 buffer.float = module('buffer.float')
 buffer.history = buffer.history or module('buffer.history')
 buffer.recent = buffer.recent or ""
-
-local is_strarray = union("string", "array")
+local is_strlist = union("string", "list")
 
 --- Add buffer by name or return existing buffer index. ':help bufadd()'
 -- @function buffer.bufadd
@@ -144,10 +143,6 @@ function buffer.var(bufnr, var)
 end
 
 function buffer.set_var(bufnr, k, v)
-    validate {
-        key = { is { "string", "dict" }, k },
-    }
-
     bufnr = bufnr or buffer.bufnr()
     if not buffer.exists(bufnr) then
         return
@@ -156,7 +151,7 @@ function buffer.set_var(bufnr, k, v)
     if is_a.string(k) then
         vim.api.nvim_buf_set_var(bufnr, k, v)
     else
-        dict.each(k, function(key, value)
+        teach(k, function(key, value)
             buffer.set_var(bufnr, key, value)
         end)
     end
@@ -169,10 +164,6 @@ end
 -- @tparam string k option name
 -- @tparam any v value
 function buffer.set_option(bufnr, k, v)
-    validate {
-        key = { is { "string", "dict" }, k },
-    }
-
     bufnr = bufnr or buffer.bufnr()
     if not buffer.exists(bufnr) then
         return
@@ -181,7 +172,7 @@ function buffer.set_option(bufnr, k, v)
     if is_a.string(k) then
         vim.api.nvim_buf_set_option(bufnr, k, v)
     else
-        dict.each(k, function(key, value)
+        teach(k, function(key, value)
             buffer.set_option(bufnr, key, value)
         end)
     end
@@ -227,7 +218,7 @@ end
 
 --- Create a buffer local autocommand. The  pattern will be automatically set to '<buffer=%d>'
 -- @see autocmd._init
-function buffer.hook(bufnr, event, callback, opts)
+function buffer.autocmd(bufnr, event, callback, opts)
     bufnr = bufnr or vim.fn.bufnr()
     if not buffer.exists(bufnr) then
         return
@@ -237,15 +228,11 @@ function buffer.hook(bufnr, event, callback, opts)
 
     return autocmd.map(
         event,
-        dict.merge(opts, {
+        merge(opts, {
             pattern = sprintf("<buffer=%d>", bufnr),
             callback = callback,
         })
     )
-end
-
-function buffer.autocmd(...)
-    return buffer.hook(...)
 end
 
 --- Hide current buffer if visible
@@ -324,8 +311,8 @@ function buffer.set_text(bufnr, start, till, repl)
         return
     end
 
-    validate.startind("array", start)
-    validate.endind("array", till)
+    validate.startind("list", start)
+    validate.endind("list", till)
 
     vim.api.nvim_buf_set_text(self.bufnr, start[1], till[1], start[2], till[2], repl)
 
@@ -403,9 +390,9 @@ function buffer.listed(bufnr)
 end
 
 function buffer.info(bufnr, all)
-    local function to_dict(lst)
+    local function _to_dict(lst)
         local new = {}
-        array.each(lst, function(info)
+        each(lst, function(info)
             new[info.bufnr] = info
         end)
 
@@ -413,7 +400,7 @@ function buffer.info(bufnr, all)
     end
 
     if is_a.dict(bufnr) then
-        return to_dict(vim.fn.getbufinfo(bufnr))
+        return _to_dict(vim.fn.getbufinfo(bufnr))
     end
 
     bufnr = bufnr or vim.fn.bufnr()
@@ -422,15 +409,15 @@ function buffer.info(bufnr, all)
     end
 
     if all then
-        return to_dict(vim.fn.getbufinfo(bufnr))
+        return _to_dict(vim.fn.getbufinfo(bufnr))
     else
-        return to_dict(vim.fn.getbufinfo(bufnr)[1])
+        return _to_dict(vim.fn.getbufinfo(bufnr)[1])
     end
 end
 
 function buffer.list(criteria, opts)
     local found = buffer.info(criteria)
-    local out = dict.keys(found)
+    local out = keys(found)
 
     if #out == 0 then
         return
@@ -448,11 +435,11 @@ function buffer.list(criteria, opts)
     local name = opts.name
 
     if name then
-        out = array.map(out, buffer.name)
+        out = map(out, buffer.name)
     end
 
     if remove_empty then
-        out = array.grep(out, function(x)
+        out = filter(out, function(x)
             if is_a.string(x) then
                 return #x > 0
             else
@@ -462,11 +449,11 @@ function buffer.list(criteria, opts)
     end
 
     if filter then
-        out = array.grep(out, filter)
+        out = filter(out, filter)
     end
 
     if apply then
-        out = array.map(out, apply)
+        out = map(out, apply)
     end
 
     if callback then
@@ -475,7 +462,7 @@ function buffer.list(criteria, opts)
 
     if keep_dict then
         local info = {}
-        array.each(out, function(bufnr)
+        each(out, function(bufnr)
             info[bufnr] = found[bufnr]
         end)
 
@@ -545,16 +532,7 @@ function buffer.map_lines(bufnr, f)
         return
     end
 
-    return array.map(buffer.lines(bufnr, 0, -1), f)
-end
-
-function buffer.grep(bufnr, f)
-    bufnr = bufnr or vim.fn.bufnr()
-    if not buffer.exists(bufnr) then
-        return
-    end
-
-    return array.grep(buffer.lines(bufnr, 0, -1), f)
+    return map(buffer.lines(bufnr, 0, -1), f)
 end
 
 function buffer.filter(bufnr, f)
@@ -563,7 +541,16 @@ function buffer.filter(bufnr, f)
         return
     end
 
-    return array.filter(buffer.lines(bufnr, 0, -1), f)
+    return filter(buffer.lines(bufnr, 0, -1), f)
+end
+
+function buffer.filter(bufnr, f)
+    bufnr = bufnr or vim.fn.bufnr()
+    if not buffer.exists(bufnr) then
+        return
+    end
+
+    return filter(buffer.lines(bufnr, 0, -1), f)
 end
 
 function buffer.match(bufnr, pat)
@@ -572,7 +559,7 @@ function buffer.match(bufnr, pat)
         return
     end
 
-    return array.grep(buffer.lines(bufnr, 0, -1), function(s)
+    return filter(buffer.lines(bufnr, 0, -1), function(s)
         return s:match(pat)
     end)
 end
@@ -654,12 +641,13 @@ function buffer.create(name)
 end
 
 function buffer.scratch(name, filetype)
+	local bufnr
     if not name then
-        return buffer.create_empty(listed, true)
+        bufnr = buffer.create_empty(listed, true)
     end
 
-    local bufnr = buffer.bufadd(name)
-    if bufnr == 0 then
+    local bufnr = bufnr or buffer.bufadd(name)
+    if not buffer.exists(bufnr) then
         return
     end
 
@@ -671,7 +659,7 @@ end
 
 function buffer.input(text, cb, opts)
     validate {
-        text = { is_strarray, text },
+        text = { is_strlist, text },
         cb = { "callable", cb },
         ["?opts"] = { "dict", opts },
     }
@@ -700,7 +688,7 @@ function buffer.input(text, cb, opts)
         local sanitized = {}
         local idx = 1
 
-        array.each(lines, function(s)
+        each(lines, function(s)
             if not s:match("^" .. comment) then
                 sanitized[idx] = s
                 idx = idx + 1
@@ -747,8 +735,8 @@ function buffer.windows(bufnr)
 end
 
 function buffer.to_qflist(out)
-    out = array.grep(out, function (x) return #x ~= 0 end)
-    out = array.map(out, function(x) return {bufnr = 0, text = x} end)
+    out = filter(out, function (x) return #x ~= 0 end)
+    out = map(out, function(x) return {bufnr = 0, text = x} end)
 
     vim.fn.setqflist(out)
     vim.cmd(':botright copen')
@@ -767,17 +755,17 @@ function buffer.split(bufnr, direction)
         vim.cmd(s)
     end
 
-    if direction:match_any("^v$", '^vsplit$') then
+    if strmatch(direction, "^v$", '^vsplit$') then
         cmd ":vsplit"
-    elseif string.match_any(direction, '^s$', '^split$') then
+    elseif strmatch(direction, '^s$', '^split$') then
         cmd ":split"
     elseif direction:match "botright" then
         cmd(direction)
     elseif direction:match "topleft" then
         cmd(direction)
-    elseif direction:match_any("aboveleft", "leftabove")  then
+    elseif strmatch(direction, "aboveleft", "leftabove")  then
         cmd(direction)
-    elseif direction:match_any("belowright", "rightbelow") then
+    elseif strmatch(direction, "belowright", "rightbelow") then
         cmd(direction)
     elseif direction == "tabnew" or direction == "t" or direction == "tab" then
         cmd ":tabnew"
@@ -873,15 +861,17 @@ end
 
 local float = buffer.float
 function float:__call(bufnr, opts)
+    opts = opts or {}
+
     validate {
         win_options = {
             {
                 __nonexistent = true,
-                ["?center"] = "array",
+                ["?center"] = "list",
                 ["?panel"] = "number",
                 ["?dock"] = "number",
             },
-            opts or {},
+            opts,
         },
     }
 
@@ -1060,7 +1050,7 @@ function hist.prune()
         local exists = buffer.exists(bufnr) 
 
         if not buffer.exists(bufnr) then
-            array.remove(history, i)
+            remove(history, i)
             history[tostring(bufnr)] = nil
         end
     end
@@ -1082,8 +1072,8 @@ function hist.push(bufnr)
 end
 
 function hist.pop(n)
-    local items = array.pop(history, n)
-    items = array.to_array(items)
+    local items = pop(history, n)
+    items = to_list(items)
 
     if #items == 0 then
         return
@@ -1167,7 +1157,18 @@ function buffer.hide(bufnr)
     end
 end
 
+function buffer.goto(bufnr)
+    if buffer.is_visible(bufnr) then
+        return win.goto(buffer.winnr(bufnr))
+    end
+end
+
 buffer.add = buffer.bufadd
-buffer.nr = buffer.bufnr
+
+function buffer.filetype(bufnr)
+    bufnr = buffer.bufnr(bufnr)
+    return buffer.option(bufnr, 'filetype')
+end
+
 
 return buffer

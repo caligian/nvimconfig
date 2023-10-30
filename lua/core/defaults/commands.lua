@@ -12,14 +12,13 @@ end, {})
 
 -- Open scratch buffer
 command("OpenScratch", function()
-    buffer.split(buffer.scratch(false, "s"), "s")
+    buffer.split(buffer.scratch('scratch'), "s")
 end, {})
 
 command("OpenScratchVertically", function()
-    buffer.split(buffer.scratch(false, "s"), "v")
+    buffer.split(buffer.scratch('scratch'), "v")
 end, {})
 
--- Compile neovim lua
 local function compile_and_run(lines)
     if is_a(lines, "table") then
         lines = table.concat(lines, "\n")
@@ -35,7 +34,7 @@ end
 
 -- Setup commands
 command("NvimEvalRegion", function(opts)
-    local lines = buffer.range(opts.buf)
+    local lines = buffer.range_text(opts.buf)
     compile_and_run(lines)
 end, {})
 
@@ -44,7 +43,7 @@ command("NvimEvalBuffer", function()
     compile_and_run(lines)
 end, {})
 
-command("NvimEvalTillPoint", function()
+command("NvimEvalTillCursor", function()
     local line = vim.fn.line "."
     local lines = vim.api.nvim_buf_get_lines(0, 0, line - 1, false)
     compile_and_run(lines)
@@ -78,7 +77,7 @@ command("Darken", function(args)
 end, { nargs = "+" })
 
 command("TrimWhiteSpace", function()
-    local layout = vim.fn.winsave_view()
+    local layout = vim.fn.winsaveview()
     vim.cmd "keeppatterns %s/\\s\\+$//e"
     vim.fn.winrestview(layout)
 end, {})

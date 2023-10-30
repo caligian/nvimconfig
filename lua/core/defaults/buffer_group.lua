@@ -33,6 +33,6 @@ BufferGroup.mappings = {
 
 return function ()
     BufferGroup.load_defaults(BufferGroup.defaults)
-    BufferGroup.load_autocmds(BufferGroup.autocmds)
-    BufferGroup.load_mappings(BufferGroup.mappings)
+    BufferGroup.set_autocmds(BufferGroup.autocmds)
+    BufferGroup.set_mappings(BufferGroup.mappings)
 end

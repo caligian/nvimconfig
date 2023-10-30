@@ -1,6 +1,6 @@
-local julia = Filetype "julia"
+local julia = plugin.get("julia")
 
-julia.compile = "julia"
+julia.compile = "julia %s"
 
 julia.repl = "julia"
 

@@ -1,33 +1,28 @@
-BufferGroup = BufferGroup or struct("BufferGroup", { "buffers", "name", "event", "pattern", "callbacks", "exclude", "autocmd" })
-BufferGroup.buffers = BufferGroup.buffers or {}
-BufferGroup.buffer_groups = BufferGroup.buffer_groups or {}
-BufferGroup.mappings = BufferGroup.mappings or {}
-BufferGroup.autocmds = BufferGroup.autocmds or {}
+buffer_group = buffer_group or struct("buffer_group", { "buffers", "name", "event", "pattern", "callbacks", "exclude", "autocmd" })
+buffer_group.buffers = buffer_group.buffers or {}
+buffer_group.buffer_groups = buffer_group.buffer_groups or {}
+buffer_group.mappings = buffer_group.mappings or {}
+buffer_group.autocmds = buffer_group.autocmds or {}
 
-function BufferGroup.init_before(name, event, pattern)
+function buffer_group.init(self, name, event, pattern)
     validate {
         name = { "string", name },
-        pattern = { union("array", "string"), pattern },
-        opt_event = { union("array", "string"), event },
+        pattern = { union("list", "string"), pattern },
+        opt_event = { union("list", "string"), event },
     }
 
-    return {
+    return merge(self, {
         name = name,
-        event = array.to_array(event or "BufEnter"),
-        pattern = array.to_array(pattern),
+        event = to_list(event or "BufEnter"),
+        pattern = to_list(pattern),
         callbacks = {},
         exclude = {},
         buffers = {},
         autocmd = false,
-    }
+    })
 end
 
-function BufferGroup.init(self)
-    BufferGroup.buffer_groups[self.name] = self
-    return self
-end
-
-function BufferGroup.is_valid_buffer(self, bufnr)
+function buffer_group.is_valid_buffer(self, bufnr)
     bufnr = bufnr or buffer.bufnr()
     if not buffer.exists(bufnr) or self.exclude[bufnr] then
         return false
@@ -44,9 +39,9 @@ function BufferGroup.is_valid_buffer(self, bufnr)
     return found
 end
 
-function BufferGroup.exclude_buffer(self, ...)
+function buffer_group.exclude_buffer(self, ...)
     local success = {}
-    array.each({ ... }, function(buf)
+    each({ ... }, function(buf)
         buf = buffer.bufnr(buf)
 
         if not self.buffers[buf] then
@@ -58,7 +53,7 @@ function BufferGroup.exclude_buffer(self, ...)
         self.exclude[buf] = true
         self.buffers[buf] = nil
 
-        array.append(success, buf)
+        append(success, buf)
     end)
 
     if #success == 0 then
@@ -68,18 +63,18 @@ function BufferGroup.exclude_buffer(self, ...)
     end
 end
 
-function BufferGroup.remove_buffer(self, ...)
+function buffer_group.remove_buffer(self, ...)
     local removed = {}
-    array.each({ ... }, function(bufnr)
+    each({ ... }, function(bufnr)
         bufnr = buffer.bufnr(bufnr)
         if not self.buffers[bufnr] then
             return
         end
 
-        array.append(removed, bufnr)
+        append(removed, bufnr)
         self.buffers[bufnr] = nil
 
-        local exists, exists_t = dict.get(BufferGroup.buffers, { bufnr, self.name })
+        local exists, exists_t = get(buffer_group.buffers, { bufnr, self.name })
 
         if exists then
             exists_t[self.name] = nil
@@ -87,43 +82,43 @@ function BufferGroup.remove_buffer(self, ...)
         self.exclude[bufnr] = true
     end)
 
-    if array.is_empty(removed) then
+    if is_empty(removed) then
         return
     else
         return removed
     end
 end
 
-function BufferGroup.buffer_exists(self, bufnr)
+function buffer_group.buffer_exists(self, bufnr)
     return self.buffers[bufnr] or false
 end
 
-function BufferGroup.prune(self)
-    dict.each(self.buffers, function(bufnr, _)
+function buffer_group.prune(self)
+    each(self.buffers, function(bufnr, _)
         if not buffer.exists(bufnr) or self.exclude[bufnr] then
             self.buffers[bufnr] = nil
         end
     end)
 
-    local bufs = dict.keys(self.buffers)
-    if dict.is_empty(bufs) then
+    local bufs = keys(self.buffers)
+    if is_empty(bufs) then
         return
     else
         return bufs
     end
 end
 
-function BufferGroup.add_buffer(self, ...)
+function buffer_group.add_buffer(self, ...)
     local added = {}
-    array.each({ ... }, function(bufnr)
-        if not BufferGroup.is_valid_buffer(self, bufnr) or self.exclude[bufnr] then
+    each({ ... }, function(bufnr)
+        if not buffer_group.is_valid_buffer(self, bufnr) or self.exclude[bufnr] then
             return
         else
-            array.append(added, bufnr)
+            append(added, bufnr)
         end
 
-        BufferGroup.buffers[bufnr] = BufferGroup.buffers[bufnr] or {}
-        BufferGroup.buffers[bufnr][self.name] = self
+        buffer_group.buffers[bufnr] = buffer_group.buffers[bufnr] or {}
+        buffer_group.buffers[bufnr][self.name] = self
         self.buffers[bufnr] = true
     end)
 
@@ -133,7 +128,7 @@ function BufferGroup.add_buffer(self, ...)
     return added
 end
 
-function BufferGroup.enable(self)
+function buffer_group.enable(self)
     if self.autocmd then
         return self.autocmd
     end
@@ -141,9 +136,9 @@ function BufferGroup.enable(self)
     local au = autocmd.map(self.event, {
         pattern = "*",
         callback = function()
-            BufferGroup.add_buffer(self, buffer.bufnr())
+            buffer_group.add_buffer(self, buffer.bufnr())
         end,
-        group = "BufferGroup",
+        group = "buffer_group",
         name = self.name,
     })
 
@@ -152,8 +147,8 @@ function BufferGroup.enable(self)
     return au
 end
 
-function BufferGroup.list_buffers(self, callback)
-    local bufs = BufferGroup.prune(self)
+function buffer_group.list_buffers(self, callback)
+    local bufs = buffer_group.prune(self)
     if not bufs then
         return
     end
@@ -166,16 +161,16 @@ function BufferGroup.list_buffers(self, callback)
     end
 end
 
-function BufferGroup.run_picker(self, tp)
-    local picker = BufferGroup.create_picker(self, tp)
+function buffer_group.run_picker(self, tp)
+    local picker = buffer_group.create_picker(self, tp)
     if not picker then
         return
     end
     picker:find()
 end
 
-function BufferGroup.include_buffer(self, ...)
-    array.each({ ... }, function(buf)
+function buffer_group.include_buffer(self, ...)
+    each({ ... }, function(buf)
         if not self.exclude[buf] then
             return
         end
@@ -185,17 +180,17 @@ function BufferGroup.include_buffer(self, ...)
     end)
 end
 
-function BufferGroup.get_excluded_buffers(self)
-    local ks = dict.keys(self.exclude)
-    if dict.is_empty(ks) then
+function buffer_group.get_excluded_buffers(self)
+    local ks = keys(self.exclude)
+    if is_empty(ks) then
         return
     end
     return ks
 end
 
-function BufferGroup.create_picker(self, tp)
+function buffer_group.create_picker(self, tp)
     local function create_include_buffer_picker()
-        local bufs = BufferGroup.get_excluded_buffers(self)
+        local bufs = buffer_group.get_excluded_buffers(self)
         if not bufs then
             return
         end
@@ -204,7 +199,7 @@ function BufferGroup.create_picker(self, tp)
         local mod = {}
 
         function mod.include_buffer(sel)
-            BufferGroup.include_buffer(self, unpack(map(sel, function(buf)
+            buffer_group.include_buffer(self, unpack(map(sel, function(buf)
                 return buf.bufnr
             end)))
         end
@@ -229,14 +224,14 @@ function BufferGroup.create_picker(self, tp)
             mod.default_action,
             { "n", "i", mod.include_buffer },
         }, {
-            prompt_title = "excluded buffers in BufferGroup " .. self.name,
+            prompt_title = "excluded buffers in buffer_group " .. self.name,
         })
 
         return picker
     end
 
     local function create_picker(remove)
-        local bufs = BufferGroup.list_buffers(self)
+        local bufs = buffer_group.list_buffers(self)
         if not bufs then return end
 
         local items = {
@@ -258,8 +253,8 @@ function BufferGroup.create_picker(self, tp)
         local mod = {}
 
         function mod.remove_buffer(sel)
-            array.each(sel, function(buf)
-                BufferGroup.remove_buffer(self, buf.bufnr)
+            each(sel, function(buf)
+                buffer_group.remove_buffer(self, buf.bufnr)
             end)
         end
 
@@ -276,16 +271,16 @@ function BufferGroup.create_picker(self, tp)
         end
 
         function mod.exclude_buffer(sel)
-            BufferGroup.exclude_buffer(self, unpack(map(sel, function(buf)
+            buffer_group.exclude_buffer(self, unpack(map(sel, function(buf)
                 return buf.bufnr
             end)))
         end
 
         local prompt_title
         if remove then
-            prompt_title = "remove buffers from BufferGroup = " .. self.name
+            prompt_title = "remove buffers from buffer_group = " .. self.name
         else
-            prompt_title = "BufferGroup = " .. self.name
+            prompt_title = "buffer_group = " .. self.name
         end
 
         local picker = _.create(items, {
@@ -313,7 +308,7 @@ local function get_group(bufnr, group)
     assert(bufnr)
     assert(group)
 
-    group = BufferGroup.buffers[bufnr]
+    group = buffer_group.buffers[bufnr]
     if not group then return nil, "buffer_not_captured" end
 
     group = group[group]
@@ -322,7 +317,7 @@ local function get_group(bufnr, group)
     return group
 end
 
-BufferGroup.buffer = dict.map(BufferGroup, function (key, value)
+buffer_group.buffer = map(buffer_group, function (key, value)
     return function (group, bufnr, ...)
         group = get_group(bufnr, group)
         if not group then return end
@@ -331,22 +326,22 @@ BufferGroup.buffer = dict.map(BufferGroup, function (key, value)
     end
 end)
 
-BufferGroup.buffer.init = nil
-BufferGroup.buffer.init_before = nil
+buffer_group.buffer.init = nil
+buffer_group.buffer.init_before = nil
 
-function BufferGroup.buffer.create_picker(bufnr, ...)
+function buffer_group.buffer.create_picker(bufnr, ...)
     bufnr = bufnr or buffer.bufnr()
 
     if not buffer.exists(bufnr) then
         return
     end
 
-    local groups = BufferGroup.buffers[bufnr]
-    if not groups or dict.is_empty(groups) then
+    local groups = buffer_group.buffers[bufnr]
+    if not groups or is_empty(groups) then
         return
     end
 
-    items = dict.keys(groups)
+    items = keys(groups)
     items = {
         results = items,
         entry_maker = function(entry)
@@ -359,8 +354,8 @@ function BufferGroup.buffer.create_picker(bufnr, ...)
                 display = sprintf(
                     "%-15s = %s :: %s",
                     entry,
-                    array.join(groups[entry].event, ", "),
-                    array.join(groups[entry].pattern, ", ")
+                    join(groups[entry].event, ", "),
+                    join(groups[entry].pattern, ", ")
                 ),
                 ordinal = bufnr,
             }
@@ -371,27 +366,27 @@ function BufferGroup.buffer.create_picker(bufnr, ...)
     local _ = load_telescope()
 
     function mod.default_action(sel)
-        BufferGroup.run_picker(BufferGroup.buffer_groups[sel[1].name])
+        buffer_group.run_picker(buffer_group.buffer_groups[sel[1].name])
     end
 
     function mod.remove_buffers(sel)
         each(sel, function (obj)
-            BufferGroup.run_picker(BufferGroup.buffer_groups[obj.name], 'remove')
+            buffer_group.run_picker(buffer_group.buffer_groups[obj.name], 'remove')
         end)
     end
 
     function mod.show_excluded_buffers(sel)
-        BufferGroup.run_picker(BufferGroup.buffer_groups[sel[1].name], 'include')
+        buffer_group.run_picker(buffer_group.buffer_groups[sel[1].name], 'include')
     end
 
     function mod.change_pattern(sel)
         sel = sel[1]
-        local group = BufferGroup.buffer_groups[sel.name]
+        local group = buffer_group.buffer_groups[sel.name]
         local pattern = group.pattern
         local userint = input {pattern = {'new pattern' }}
-        group.pattern = array.to_array(userint.pattern or group.pattern)
+        group.pattern = to_list(userint.pattern or group.pattern)
 
-        printf("pattern changed to  %s for BufferGroup %s", dump(group.pattern), group.name)
+        printf("pattern changed to  %s for buffer_group %s", dump(group.pattern), group.name)
     end
 
     return _.create(items, {
@@ -404,34 +399,34 @@ function BufferGroup.buffer.create_picker(bufnr, ...)
     })
 end
 
-function BufferGroup.buffer.run_picker(bufnr, ...)
+function buffer_group.buffer.run_picker(bufnr, ...)
     bufnr = bufnr or buffer.bufnr()
-    local picker = BufferGroup.buffer.create_picker(bufnr, ...)
+    local picker = buffer_group.buffer.create_picker(bufnr, ...)
     if picker then picker:find() end
 end
 
 --------------------------------------------------
-function BufferGroup.load_mappings(mappings, compile)
-    mappings = mappings or BufferGroup.mappings or {}
+function buffer_group.set_mappings(mappings, compile)
+    mappings = mappings or buffer_group.mappings or {}
     if is_empty(mappings) then return end
 
-    return kbd.map_group('BufferGroup', mappings, compile)
+    return kbd.map_group('buffer_group', mappings, compile)
 end
 
-function BufferGroup.load_autocmds(mappings)
-    mappings = mappings or BufferGroup.mappings or {}
+function buffer_group.set_autocmds(mappings)
+    mappings = mappings or buffer_group.mappings or {}
     if is_empty(mappings) then return end
 
-    return autocmd.map_group('BufferGroup', mappings, compile)
+    return autocmd.map_group('buffer_group', mappings, compile)
 end
 
-function BufferGroup.load_defaults(defaults)
-    defaults = deepcopy(defaults or BufferGroup.defaults)
+function buffer_group.load_defaults(defaults)
+    defaults = deepcopy(defaults or buffer_group.defaults)
     local event = defaults.event or "BufEnter"
     defaults.event = nil
     local out = {}
 
-    dict.each(defaults, function(name, spec)
+    each(defaults, function(name, spec)
         local pattern
 
         if is_a.string(spec) then
@@ -441,20 +436,18 @@ function BufferGroup.load_defaults(defaults)
             pattern = spec.pattern
         end
 
-        out[name] = BufferGroup(name, event, pattern)
-        BufferGroup.enable(out[name])
+        out[name] = buffer_group(name, event, pattern)
+        buffer_group.enable(out[name])
     end)
 
     return out
 end
 
-function BufferGroup.get_statusline_string(bufnr)
-    local state = BufferGroup.buffers[bufnr]
-    if not state or dict.is_empty(state) then
+function buffer_group.get_statusline_string(bufnr)
+    local state = buffer_group.buffers[bufnr]
+    if not state or is_empty(state) then
         return
     end
 
-    return "<" .. array.join(dict.keys(state), " ") .. ">"
+    return "<" .. join(keys(state), " ") .. ">"
 end
-
-return BufferGroup

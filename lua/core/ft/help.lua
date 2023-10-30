@@ -7,7 +7,7 @@ local function prevheading()
 end
 
 local function putstring(s, align)
-    s = string.trim(array.to_array(s)[1])
+    s = string.trim(s)[1])
     local linenum = vim.fn.line "."
     local line = vim.fn.getline(linenum):gsub(" *$", "")
     local len = #line
@@ -17,11 +17,11 @@ local function putstring(s, align)
     local tw = vim.bo.textwidth
 
     if not align or (len >= tw or len + slen > tw) then
-        buffer.set_lines(bufnr, linenum - 1, linenum, array.concat { line, " ", s })
+        buffer.set_lines(bufnr, linenum - 1, linenum, array.
     elseif align then
         local spaceslen = tw - (len + slen)
         local spaces = string.rep(" ", spaceslen)
-        s = array.concat { line, spaces, s }
+        s = array.
         buffer.set_lines(bufnr, linenum - 1, linenum, s)
     end
 end
@@ -46,13 +46,13 @@ local function getstring(tag, ref, prefix, heading)
         local spaceslen = tw - (#tag + #ref)
         local spaces = string.rep(" ", spaceslen)
 
-        return array.concat { tag, spaces, ref }
+        return array.
     elseif tag and not heading then
-        return array.concat { "*", tag, "*" }
+        return array.
     elseif tag then
-        return array.concat { "*", prefix, ".", tag, "*" }
+        return array.
     elseif ref then
-        return array.concat { "|", prefix, ".", ref, "|" }
+        return array.
     end
 end
 
@@ -92,10 +92,10 @@ local function putheading()
     buffer.set_lines(vim.fn.bufnr(), row - 1, row, s)
 end
 
-local help = Filetype 'help'
+local help = 'help'
 help.autocmds = {
     buffer_options = function (au)
-        dict.each({formatoptions='tqn', textwidth=80}, function(key, value)
+        {formatoptions='tqn', textwidth=80}, function(key, value)
             buffer.set_option(au.buf, key, value)
         end)
     end

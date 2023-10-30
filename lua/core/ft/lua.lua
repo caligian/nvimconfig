@@ -1,4 +1,4 @@
-local lua = Filetype "lua"
+local lua = filetype "lua"
 local package_path = vim.split(package.path, ";")
 local formatter_path = path.join(os.getenv "HOME", ".cargo", "bin", "stylua")
 local formatter_cmd = formatter_path
@@ -29,9 +29,15 @@ lua.dir_formatter = {
     append_dirname = true,
 }
 
-lua.repl = "luajit"
+lua.repl = {
+    { "luajit", workspace = "luajit" },
+}
 
-lua.compile = "luajit"
+lua.compile = {
+    {
+        "luajit %s",
+    },
+}
 
 lua.lsp_server = {
     "lua_ls",
@@ -62,17 +68,14 @@ lua.autocmds = {
     whitespace = function(au)
         buffer.set_option(au.buf, { shiftwidth = 2, tabstop = 2 })
     end,
-
 }
-
 
 lua.actions = {
     workspace = {
         default = build,
-        build = build
-    }
+        build = build,
+    },
 }
 
-Filetype.create_actions_picker():find()
-
 return lua
+

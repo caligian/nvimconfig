@@ -1,5 +1,5 @@
-local js = Filetype 'javascript'
-js.compile = 'node'
+local js = 'javascript'
+js.compile = 'node %s'
 js.repl = 'node'
 js.lsp_server = 'tsserver'
 js.linters = {'eslint'}

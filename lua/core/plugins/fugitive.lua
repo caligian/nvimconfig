@@ -1,4 +1,4 @@
-local fugitive = Plugin.get "fugitive"
+local fugitive = plugin.get "fugitive"
 
 fugitive.mappings = {
     opts = { leader = true, prefix = "g" },

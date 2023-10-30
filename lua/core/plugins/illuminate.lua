@@ -1,4 +1,4 @@
-local illuminate = Plugin.get "illuminate"
+local illuminate = plugin.get "illuminate"
 
 illuminate.config = {
     providers = {

@@ -4,7 +4,7 @@ local telescope = telescope
 function load_telescope(overrides)
     overrides = copy(overrides or {})
 
-    dict.merge(overrides, {
+    merge(overrides, {
         exists = require "telescope",
         pickers = require "telescope.pickers",
         actions = require "telescope.actions",
@@ -12,7 +12,7 @@ function load_telescope(overrides)
         sorters = require "telescope.sorters",
         finders = require "telescope.finders",
         conf = require('telescope.config').values,
-        theme = dict.merge(require('telescope.themes').get_dropdown(), {
+        theme = merge(require('telescope.themes').get_dropdown(), {
             disable_devicons = true,
             previewer = false,
             extensions = {},
@@ -45,7 +45,7 @@ function load_telescope(overrides)
         return { overrides.action_state.get_selected_entry() }
     end
 
-    local M = dict.merge({
+    local M = merge({
         override = function (picker, mappings)
             return partial(picker, {
                 attach_mappings = function (bufnr, map)
@@ -68,7 +68,7 @@ function load_telescope(overrides)
             opts.sorter = opts.sorter or overrides.sorters.get_fzy_sorter()
 
             if mappings then
-                mappings = array.to_array(mappings)
+                mappings = to_list(mappings)
 
                 opts.attach_mappings = function(prompt_bufnr, map)
                     if mappings then
@@ -80,7 +80,7 @@ function load_telescope(overrides)
                             end)
                         end
 
-                        array.each(array.rest(mappings), function(x)
+                        each(rest(mappings), function(x)
                             local mode, ks, cb = unpack(x)
 
                             local function callback(bufnr)

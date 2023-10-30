@@ -1,4 +1,4 @@
-local statusline = Plugin.get "statusline"
+local statusline = plugin.get "statusline"
 
 statusline.methods = {evil = true}
 
@@ -231,7 +231,7 @@ function statusline.methods:setup_evil()
                 return "<!>"
             end
 
-            return sprintf("<%s>", array.join(dict.keys(groups), ","))
+            return sprintf("<%s>", join(keys(groups), ","))
         end,
     }
 

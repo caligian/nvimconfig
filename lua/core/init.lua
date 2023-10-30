@@ -5,8 +5,7 @@ require "core.option"
 require "core.defaults"
 require "core.netrw"
 
-Filetype.load()
-Plugin.load()
-Bookmark.init()
+filetype.load_specs()
+plugin.load()
 
-say = Plugin.get('notify').methods.say or vim.notify
+-- say = plugin.get('notify').methods.say or vim.notify

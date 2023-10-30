@@ -1,5 +1,5 @@
 local wk = require "which-key"
-local whichkey = Plugin.get "whichkey"
+local whichkey = plugin.get "whichkey"
 
 whichkey.config = {
     plugins = {

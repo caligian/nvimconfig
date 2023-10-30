@@ -1,4 +1,4 @@
-local lisp = Filetype "lisp"
+local lisp = plugin.get("lisp")
 lisp.repl = "rebar3 lfe repl"
 lisp.filetype = { extension = { lfe = "lisp" } }
 
@@ -18,12 +18,12 @@ local function run_command(cmd, prompt)
             on_stderr = true,
             on_exit = function(proc)
                 if proc.stderr then
-                    say(array.join(proc.stderr, "\n"))
+                    say(proc.stderr, "\n"))
                     return
                 end
 
                 if proc.stdout then
-                    say(array.join(proc.stdout, "\n"))
+                    say(proc.stdout, "\n"))
                 end
             end,
         })

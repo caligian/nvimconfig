@@ -1,4 +1,4 @@
-local dispatch = Plugin.get "dispatch"
+local dispatch = plugin.get "dispatch"
 dispatch.methods = {}
 
 -- function dispatch.methods.get_command(action, bufnr)

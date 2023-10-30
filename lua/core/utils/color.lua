@@ -11,16 +11,17 @@ function highlight(hi)
 
     hi = {}
     out = vim.split(out, " +")
-    out = array.grep(out, function(c)
-        if string.match_any(c, "xxx", "cleared") then
+    out = filter(out, function(c)
+        if strmatch(c, "xxx", "cleared") then
             return false
         else
             return true
         end
     end)
-    out = array.slice(out, 1, #out)
 
-    array.each(out, function(i)
+    out = sublist(out, 1, #out)
+
+    each(out, function(i)
         local attrib, value = unpack(vim.split(i, "="))
         if value then
             hi[attrib] = value
@@ -106,7 +107,7 @@ function highlightset(hi, set, defaults)
     local group = hi
     hi = highlight(hi)
 
-    if dict.is_empty(hi) then
+    if is_empty(hi) then
         if defaults then
             hi = defaults
         else
@@ -114,7 +115,7 @@ function highlightset(hi, set, defaults)
         end
     end
 
-    dict.each(set, function(attrib, transformer)
+    teach(set, function(attrib, transformer)
         if not hi[attrib] then
             return
         end
@@ -131,34 +132,23 @@ function highlightset(hi, set, defaults)
     return hi
 end
 
-hi = multimethod.new {
-    string = function(hi)
-        return highlight(hi)
-    end,
-    [{ "string", "table" }] = function(...)
-        return highlightset(...)
-    end,
-}
-
 --- ttps://stackoverflow.com/questions/22603510/is-this-possible-to-detect-a-colour-is-a-light-or-dark-colour
-is_dark = multimethod.new {
-    string = function(hex)
-        hex = hex or "#000000"
-        local r, g, b = hex2rgb(hex)
+function is_dark(hex_or_r, g, b)
+	local r
+
+	if g then
+		r = hex_or_r
         local hsp = 0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b)
+
         if hsp > 127.5 then
             return false
         end
+
         return true
-    end,
-    [{ "string", "string", "string" }] = function(r, g, b)
-        local hsp = 0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b)
-        if hsp > 127.5 then
-            return false
-        end
-        return true
-    end,
-}
+	end
+
+	return is_dark(hex2rgb(hex_or_r))
+end
 
 function is_light(...)
     return not is_dark(...)

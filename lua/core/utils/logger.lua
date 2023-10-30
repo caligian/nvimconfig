@@ -18,14 +18,7 @@ function logger.split(direction)
 end
 
 function logger.log(level, s)
-    if is_string(s) then
-        s = string.split(s, "[\n\r]")
-    end
-
-    s = array.unshift(s, sprintf("[%s]", string.upper(level)))
-    s = array.append(s, "")
-
-    logger.write(s)
+	logger.write((is_table(s) and join(s, "\n")) + sprintf("[%s]", string.upper(level)))
 end
 
 function logger.warn(s)
@@ -38,7 +31,6 @@ end
 
 function logger.pcall(f, args, on_failure)
     args = args or {}
-    args = array.to_array(args)
     local ok, msg = pcall(f, unpack(args))
 
     if not ok then

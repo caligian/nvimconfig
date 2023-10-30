@@ -1,10 +1,10 @@
-local ocaml = Filetype 'ocaml'
+local ocaml = 'ocaml'
 
 ocaml.repl = {
     "utop",
     on_input = function(s)
         if not s[#s]:match ";;$" then
-            return array.append(s, ";;")
+            return s, ";;")
         end
         return s
     end,

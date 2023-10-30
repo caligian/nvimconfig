@@ -2,7 +2,7 @@ shlex = module "shlex"
 
 ---
 -- @tparam string cmd
--- @treturn array[string] quoted contents
+-- @treturn list[string] quoted contents
 local function get_quoted(cmd)
     local first_quote = string.find(cmd, "'") or string.find(cmd, '"')
 
@@ -29,7 +29,7 @@ local function get_quoted(cmd)
         if escaped or not is_quote then
             append(cache, c)
         elseif is_quote and not escaped then
-            append(res, { true, join(array.slice(cache, 2), "") })
+            append(res, { true, join(sublist(cache, 2), "") })
 
             cache = { true }
 
@@ -57,12 +57,12 @@ end
 
 --- parse a command string split by whitespace and quotes
 -- @tparam cmd string command to parse
--- @treturn array[string]
+-- @treturn list[string]
 function shlex.parse(cmd)
     local parsed = get_quoted(cmd)
     local res = {}
 
-    array.ieach(parsed, function(i, status)
+    ieach(parsed, function(i, status)
         local is_quoted, s = unpack(status)
         local prev_status = parsed[i - 1]
         prev_status = prev_status and prev_status[2]
@@ -72,7 +72,6 @@ function shlex.parse(cmd)
 
         if ends_with_dollar then
             res[#res] = substr(res[#res], 1, #res[#res] - 1)
-            print(substr(res[#res], 1, #res - 1))
             s = "$" .. "'" .. s .. "'"
         end
 
@@ -83,7 +82,7 @@ function shlex.parse(cmd)
         end
     end)
 
-    return grep(res, function(x)
+    return filter(res, function(x)
         return #x > 0
     end)
 end

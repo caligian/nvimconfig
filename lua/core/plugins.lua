@@ -26,10 +26,12 @@ return {
 
     signs = {
         "lewis6991/gitsigns.nvim",
+        event = 'BufEnter',
     },
 
     indentblankline = {
         "lukas-reineke/indent-blankline.nvim",
+        event = 'InsertEnter'
     },
 
     align = {
@@ -135,7 +137,7 @@ return {
         event = "BufEnter",
     },
 
-    illuminate = { "RRethy/vim-illuminate", event = "BufEnter" },
+    illuminate = { "RRethy/vim-illuminate", event = "InsertEnter" },
 
     treesitter = {
         "nvim-treesitter/nvim-treesitter",
@@ -195,12 +197,12 @@ return {
     snippets = {
         "L3MON4D3/LuaSnip",
         dependencies = { "rafamadriz/friendly-snippets" },
-        event = "BufEnter",
+        event = "InsertEnter",
     },
 
     cmp = {
         "hrsh7th/nvim-cmp",
-        event = "BufEnter",
+        event = "InsertEnter",
         dependencies = {
             "onsails/lspkind.nvim",
             "L3MON4D3/LuaSnip",
@@ -223,9 +225,7 @@ return {
 
     tagbar = {
         "preservim/tagbar",
-        config = function()
-            kbd.map("n", "<localleader>t", ":TagbarToggle<CR>", { desc = "Tagbar", name = "tagbar" })
-        end,
+        config = function() kbd.map("n", "<localleader>t", ":TagbarToggle<CR>", { desc = "Tagbar", name = "tagbar" }) end,
         event = "InsertEnter",
     },
 

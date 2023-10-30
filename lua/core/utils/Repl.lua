@@ -1,146 +1,100 @@
-require "core.utils.Terminal"
-require "core.utils.Filetype"
+require "core.utils.terminal"
 require "core.utils.kbd"
+require 'core.utils.filetype'
 
-Repl = Repl or struct.new("Repl", {
-    "single",
-    "pid",
-    "id",
-    "cmd",
-    "opts",
+REPL = REPL or struct("REPL", {
+    'terminals',
     "load_file",
     "on_input",
-    "bufnr",
     "connected",
-    "ft",
+    "filetype",
+    'buffers',
+    'filetype',
 })
 
-dict.each(Terminal, function (k, v)
-    if k ~= 'new' then Repl[k] = v end
-end)
+REPL.repls = REPL.repls or {}
 
-Repl.single_repls = Repl.single_repls or {}
-Repl.repls = Repl.repls or {}
-Repl.exception = {}
-Repl.exception.no_command = exception "no command for filetype"
+function REPL.init(self, ft, opts)
+    ft = ft or buffer.filetype(buffer.bufnr())
 
-local function get_command(ft)
-    local repl = Filetype.get(ft)
-    if not repl then
-        error('no command found for ' .. ft)
+    if not filetype.attrib(ft, 'repl') then
+        error('no spec exists for ' .. dump(ft))
+    elseif REPL.repls[ft] then
+        return REPL.repls[ft]
     end
 
-    repl = repl.repl
-    local out = { ft = ft }
+    opts = opts or {}
 
-    if is_table(repl) then
-        repl = copy(repl)
-        out.cmd = repl.cmd or repl[1]
-        assert(out.cmd, "no command found for " .. ft)
+    self.filetype = ft
+    self.terminals = {buffer = {}, workspace = {}, single = {}}
+    self.buffers = {}
+    self.connected = {}
+    self.on_input = opts.on_input
+    self.load_file = opts.load_file
 
-        repl.cmd = nil
-        shift(repl)
-
-        out.load_file = repl.load_file
-        out.on_input = repl.on_input
-        repl.load_file = nil
-        repl.on_input = repl.on_input
-        out.opts = repl
-    else
-        out.cmd = repl
-        out.opts = {}
-    end
-
-    return out
-end
-
-function Repl.get(ft, callback)
-    if is_struct(ft, 'Repl') then
-        return ft
-    end
-
-    local exists
-
-    if is_number(ft) then
-        exists = Repl.repls[ft]
-    else
-        exists = Repl.single_repls[ft]
-    end
-
-    if not exists then
-        return
-    end
-
-    return callback and callback(exists) or exists
-end
-
-function Repl.load_mappings(mappings, compile)
-    mappings = mappings or Repl.mappings or {}
-    if is_empty(mappings) then return end
-
-    return kbd.map_group('Repl', mappings, compile)
-end
-
-function Repl.load_autocmds(autocmds, compile)
-    autocmds = autocmds or Repl.autocmds or {}
-    if is_empty(autocmds) then return end
-
-    return autocmd.map_group('Repl', autocmds, compile)
-end
-
-
-function Repl.init_before(ft_or_bufnr, opts)
-    local attribs = {}
-
-    if is_number(ft_or_bufnr) then
-        assert(buffer.exists(ft_or_bufnr), "expected valid buffer, got " .. ft_or_bufnr)
-
-        local ft = buffer.option(ft_or_bufnr, "filetype")
-        assert(#ft > 0, "invalid filetype obtained")
-
-        local bufnr = ft_or_bufnr
-        attribs.ft = ft
-        attribs.connected = bufnr
-    else
-        attribs.ft = ft_or_bufnr
-    end
-
-    merge(attribs, get_command(attribs.ft))
-
-    if opts then
-        merge(attribs.opts, opts)
-    end
-
-    return attribs
-end
-
-function Repl.init(self)
-    local exists = self.connected and Repl.repls[self.bufnr] or Repl.single_repls[self.ft]
-
-    if exists and pid_exists(exists.pid) then
-        return exists
-    end
-
-    merge(self, Terminal(self.cmd, self.opts))
-
-    if self.connected then
-        Repl.repls[self.connected] = self
-    else
-        Repl.single_repls[self.ft] = self
-    end
-
-    mtset(self, 'name', 'Repl')
-
+    REPL.repls[ft] = self
     return self
 end
 
-local start = Repl.start
-function Repl.start(self, callback)
-    self = Repl.get(self)
+function REPL.buffer_get(bufnr, callback)
+    bufnr = buffer.bufnr(bufnr)
+    local ft = buffer.filetype(bufnr)
+    local exists = REPL.repls[ft] and REPL.repls[ft].connected[bufnr]
+
+    if exists and terminal.is_running(exists) then
+        if callback then
+            return callback(exists)
+        end
+
+        return exists
+    end
+
+    return false
+end
+
+function REPL.register(self, buf, opts)
+    local exists = REPL.buffer_get(buf)
+    if exists then return exists end
+
+    local bufnr = buffer.bufnr(buf)
+    local ft = buffer.filetype(buf)
+
+    if ft ~= self.filetype then
+        error('expected ' .. self.filetype .. ' buffer, got ' .. ft)
+    end
+
+    local cmd, ws = filetype.command(ft, 'repl')(buffer.name(bufnr))
+    opts = opts or {}
+
+    self.connected[bufnr] = terminal(cmd, {
+        on_input = self.on_input,
+        load_file = self.load_file,
+    })
+
+    return self.connected[bufnr]
+end
+
+function REPL.set_mappings(mappings, compile)
+    mappings = mappings or REPL.mappings or {}
+    if is_empty(mappings) then return end
+
+    return kbd.map_group('REPL', mappings, compile)
+end
+
+function REPL.set_autocmds(autocmds, compile)
+    autocmds = autocmds or REPL.autocmds or {}
+    if is_empty(autocmds) then return end
+
+    return autocmd.map_group('REPL', autocmds, compile)
+end
+
+local start = REPL.start
+function REPL.start(self, callback)
+    self = REPL.get(self)
 
     if not self then
         return 
-    elseif Repl.is_running(self) then
+    elseif REPL.is_running(self) then
         return self
     end
 
@@ -148,7 +102,7 @@ function Repl.start(self, callback)
         vim.api.nvim_create_autocmd('BufWipeout', {
             pattern = '<buffer=' .. self.connected .. '>',
             desc = 'stop repl for buffer ' .. self.connected,
-            callback = function () Repl.stop(self) end,
+            callback = function () REPL.stop(self) end,
             once = true,
         })
     end
@@ -156,38 +110,38 @@ function Repl.start(self, callback)
     return start(self)
 end
 
-function Repl.set_mappings(mappings)
-    mappings = mappings or Repl.mappings
-    return kbd.map_group("Repl", mappings)
+function REPL.set_mappings(mappings)
+    mappings = mappings or REPL.mappings
+    return kbd.map_group("REPL", mappings)
 end
 
-function Repl.set_autocmds(autocmds)
-    autocmds = autocmds or Repl.autocmds
-    return autocmd.map_group("Repl", Repl.autocmds)
+function REPL.set_autocmds(autocmds)
+    autocmds = autocmds or REPL.autocmds
+    return autocmd.map_group("REPL", REPL.autocmds)
 end
 
-local stop = Repl.stop
-function Repl.stop(self)
-    self = Repl.get(self)
+local stop = REPL.stop
+function REPL.stop(self)
+    self = REPL.get(self)
     if self then return stop(self) end
 end
 
-function Repl.stop_all()
-    array.each(values(Repl.repls), Repl.stop)
-    array.each(values(Repl.single_repls), Repl.stop)
+function REPL.stop_all()
+    each(values(REPL.repls), REPL.stop)
+    each(values(REPL.single_repls), REPL.stop)
 end
 
-function Repl.set_commands(commands)
-    dict.each(commands or Repl.commands, function(name, spec)
-        Repl.command_group:add(name, unpack(spec))
+function REPL.set_commands(commands)
+    teach(commands or REPL.commands, function(name, spec)
+        REPL.command_group:add(name, unpack(spec))
     end)
 
-    return Repl.command_group
+    return REPL.command_group
 end
 
-local if_running = Repl.if_running
-function Repl.if_running(self, callback)
-    self = Repl.get(self)
+local if_running = REPL.if_running
+function REPL.if_running(self, callback)
+    self = REPL.get(self)
 
     if not self then
         return
@@ -196,7 +150,7 @@ function Repl.if_running(self, callback)
     end
 end
 
-array.each({
+each({
     "send_current_line",
     "send_buffer",
     "send_till_cursor",
@@ -204,9 +158,9 @@ array.each({
     "send_node_at_cursor",
     "send_range",
 }, function (fun)
-    local current = Repl[fun]
-    Repl[fun] = function (self, src_bufnr)
-        self = Repl.get(self)
+    local current = REPL[fun]
+    REPL[fun] = function (self, src_bufnr)
+        self = REPL.get(self)
         if not self then
             return
         elseif src_bufnr then
@@ -219,7 +173,7 @@ array.each({
     end
 end)
 
-function Repl.load_commands(self, spec, compile)
+function REPL.load_commands(self, spec, compile)
     spec = spec or self.commands
     if not spec or is_empty(spec) then return end
 

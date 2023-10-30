@@ -1,4 +1,4 @@
-local align = Plugin.get("align")
+local align = plugin.get("align")
 
 align.mappings = {
     opts = { leader = true, noremap = true },
@@ -13,7 +13,7 @@ align.mappings = {
 align.config = {}
 
 function align:setup()
-    dict.each(self.config or {}, function(key, value)
+    each(self.config or {}, function(key, value)
         vim.g[key] = value
     end)
 end

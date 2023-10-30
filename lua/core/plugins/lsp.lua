@@ -1,10 +1,10 @@
 require "core.utils.lsp"
 
-local lsp = Plugin.get 'lsp'
+local lsp = plugin.get 'lsp'
 
-for ft, obj in pairs(Filetype.filetypes) do
+for ft, obj in pairs(filetype.filetypes) do
     if obj.lsp_server then
-        Filetype.setup_lsp(obj)
+        filetype.setup_lsp(obj)
     end
 end
 

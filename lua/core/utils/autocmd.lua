@@ -1,10 +1,11 @@
 local enable = vim.api.nvim_create_autocmd
 local disable = vim.api.nvim_del_autocmd
-local get = vim.api.nvim_get_autocmds
+local getinfo = vim.api.nvim_get_autocmds
 local create_augroup = vim.api.nvim_create_augroup
 
-autocmd = autocmd or struct.new('autocmd', {
-    'id',
+autocmd = autocmd or struct('autocmd', {
+	'id',
+	'command',
     'name',
     'event',
     'pattern',
@@ -18,45 +19,63 @@ autocmd = autocmd or struct.new('autocmd', {
 
 autocmd.autocmds = autocmd.autocmds or {}
 
-function autocmd.init_before(event, opts)
-	if is_struct(event, 'autocmd') then return event end
+function autocmd.init(self, event, opts)
+	local pattern = opts.pattern
+	local callback = opts.callback
+	local group = opts.group or 'MyGroup'
+	local buffers = {}
+	local name = opts.name
+    local cb = opts.callback
+	local callback
+	local once = opts.once
+	local nested = opts.nested
+	local command = opts.command
+	local desc = opts.desc
+	local buf = opts.buffer
 
-	return {
-		event = event, 
-		pattern = opts.pattern,
-		callback = opts.callback,
-		group = opts.group or 'MyGroup',
-		buffers = {},
-		name = opts.name,
+	assert_unless(cb or command, 'expected command or callback')
+
+	if not command then
+		function callback(opts)
+			cb(opts)
+			append(buffers, buffer.bufnr())
+		end
+	end
+
+	self.event = event
+	self.pattern = pattern
+	self.group = group
+	self.name = name
+	self.callback = callback
+	self.command = command
+	self.buffer = buf
+
+	opts = {
+		pattern = pattern,
+		command = command,
+		callback = callback,
+		nested = nested,
+		once = once,
+		group = group,
+		desc = desc,
+		buffer = buf,
 	}
-end
 
-function autocmd.init(self)
-    local callback = self.callback
+	if group then
+		create_augroup(group, {clear = false })
+	end
 
-    function self.callback(opts)
-        if is_string(callback) then
-            vim.cmd(callback)
-        else
-            callback(opts)
-        end
-        append(self.buffers, buffer.bufnr())
-    end
+	self.id =  enable(event, opts)
 
-    if self.name then
-        local name = self.name
-
-        if self.group then
-            name = self.group .. '.' .. name
+    if name then
+        if group then
+            name = group .. '.' .. name
         end
 
-        local exists = autocmd.autocmds[name]
-        if exists and autocmd.exists(exists) then return exists end
-
-        autocmd.autocmds[self.name] = self
+        autocmd.autocmds[name] = self
     end
 
-    return self
+	return self
 end
 
 function autocmd.exists(self)
@@ -71,7 +90,7 @@ function autocmd.exists(self)
     end
 
     found = msg
-    found = array.grep(found, function (x)
+    found = each(found, function (x)
         return self.id and x.id == self.id
     end)
 
@@ -105,7 +124,7 @@ function autocmd.disable(self)
 end
 
 function autocmd.find(spec)
-    return get(spec)
+    return getinfo(spec)
 end
 
 function autocmd.map(...)
@@ -120,7 +139,7 @@ function autocmd.map_group(group, mappings, compile)
     local apply = mappings.apply
     local mapped = {}
 
-    dict.each(mappings, function (key, value)
+    teach(mappings, function (key, value)
         if key == 'opts' or key == 'apply' then
             return 
         end
@@ -155,7 +174,7 @@ end
 function autocmd.map_groups(groups, compile)
     local all_groups = {}
 
-    dict.each(groups, function(name, group)
+    tmap(groups, function(name, group)
         merge(all_groups, autocmd.map_group(name, group, compile))
     end)
 

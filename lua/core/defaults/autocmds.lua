@@ -28,7 +28,7 @@ autocmd.map('BufAdd', {
             return 
         end
 
-        dict.each(user.temp_buffer_patterns, function (_, pat)
+        user.temp_buffer_patterns, function (_, pat)
             if is_callable(pat) then
                 if pat(bufname) then
                     map_quit()

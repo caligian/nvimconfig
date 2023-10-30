@@ -21,7 +21,7 @@ local function close_other_windows()
     local current_tab = vim.api.nvim_get_current_tabpage()
     local wins = vim.api.nvim_tabpage_list_wins(current_tab)
 
-    array.each(wins, function(winid)
+    each(wins, function(winid)
         if winid == current_winid then
             return
         else
@@ -34,7 +34,7 @@ end
 
 user.mappings = user.mappings or {}
 
-dict.merge(user.mappings, {
+merge(user.mappings, {
     opts = {
         noremap = true,
         leader = true,
@@ -86,11 +86,11 @@ dict.merge(user.mappings, {
                     return
                 end
 
-                if not Filetype.filetypes[ft] then
+                if not filetype.filetypes[ft] then
                     pp(sprintf("no formatter defined for " .. ft))
                 else
-                    local x = Filetype.filetypes[ft]
-                    Filetype.format_buffer(x)
+                    local x = filetype.filetypes[ft]
+                    filetype.format_buffer(x)
                 end
             end,
             { desc = "format buffer" },
@@ -105,11 +105,11 @@ dict.merge(user.mappings, {
                     return
                 end
 
-                if not Filetype.filetypes[ft] then
+                if not filetype.filetypes[ft] then
                     pp(sprintf("no formatter defined for " .. ft))
                 else
-                    local x = Filetype.filetypes[ft]
-                    Filetype.format_buffer(x)
+                    local x = filetype.filetypes[ft]
+                    filetype.format_buffer(x)
                 end
             end,
             { desc = "format current directory" },
@@ -172,7 +172,7 @@ dict.merge(user.mappings, {
         },
         region = {
             "ee",
-            "<esc><cmd>NvimEvalRegion<CR>",
+            "<esc>:NvimEvalRegion<CR>",
             { desc = "Lua source range", mode = "v", name = "Lua source range" },
         },
     },
@@ -270,20 +270,20 @@ dict.merge(user.mappings, {
         inherit = true,
         compile = {
             "cc",
-            Filetype.compile_buffer,
+            partial(filetype.compile_buffer),
             "compile current buffer",
         },
         test = {
             "ct",
             function()
-                Filetype.compile_buffer(buffer.current(), "test")
+                filetype.compile_buffer(buffer.current(), "test")
             end,
             "test current buffer",
         },
         build = {
             "cb",
             function()
-                Filetype.compile_buffer(buffer.current(), "build")
+                filetype.compile_buffer(buffer.current(), "build")
             end,
             "build current buffer",
         },
@@ -291,12 +291,13 @@ dict.merge(user.mappings, {
             "cr",
             function()
                 local cmd = vim.fn.input "Shell command % "
+
                 if #cmd == 0 then
                     print "no command provided"
                     return
                 end
 
-                Filetype.run_buffer(buffer.current(), cmd, "qf")
+                run_buffer(buffer.current(), cmd, "qf")
             end,
         },
     },
@@ -328,7 +329,7 @@ dict.merge(user.mappings, {
 
 kbd.map("n", "<leader>bl", function()
     if buffer.recent and buffer.exists(buffer.recent) then
-        vim.cmd(':b ' .. buffer.recent)
+        vim.cmd(":b " .. buffer.recent)
     end
 end, { desc = "(pop N and) open recent" })
 

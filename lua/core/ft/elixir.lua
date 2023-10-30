@@ -1,4 +1,4 @@
-local elixir = Filetype "elixir"
+local elixir = plugin.get("elixir")
 local function is_project(current_dir)
     local prev_dir = vim.fn.fnamemodify(current_dir, ':h')
     local ls = dir.getallfiles(prev_dir)
@@ -14,7 +14,7 @@ local function is_project(current_dir)
 end
 
 elixir.repl = {
-    { "iex", [is_project] = "cd ../ ; iex -S mix" },
+    { "iex", workspace = 'iex' },
 }
 
 elixir.formatter = {
@@ -22,7 +22,14 @@ elixir.formatter = {
     stdin = true,
 }
 
-elixir.compile = "elixir"
+elixir.compile = {
+    "elixir %s",
+    workspace = "mix run",
+}
+
+elixir.test = {
+    workspace = "mix test"
+}
 
 elixir.lsp_server = {
     "elixirls",
@@ -30,8 +37,6 @@ elixir.lsp_server = {
         path.join(user.data_dir, "lsp-servers", "elixir-ls", "scripts", "language_server.sh"),
     },
 }
-
-elixir.test = "cd ../ ; mix test"
 
 elixir.mappings = {
     compile_and_run_buffer = {

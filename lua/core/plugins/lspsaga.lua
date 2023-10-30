@@ -1,4 +1,4 @@
-local lspsaga = Plugin.get('lspsaga')
+local lspsaga = plugin.get('lspsaga')
 
 lspsaga.config = {
     ui = {
@@ -82,10 +82,9 @@ function lspsaga:setup()
     require('lspsaga').setup(lspsaga.config)
 
     kbd.map_group('lspsaga', {
+        line_diag = {'n', '<A-k>', '<cmd>Lspsaga show_line_diagnostics<CR>', {desc = 'line diagnostics'}},
         doc = {'n', 'K', '<cmd>Lspsaga hover_doc<CR>', {desc = 'hover doc'}},
-
         next_diag = {'n', ']e', '<cmd>Lspsaga diagnostic_jump_next<CR>', {desc = 'next diag'}},
-
         prev_diag = {'n', '[e', '<cmd>Lspsaga diagnostic_jump_prev<CR>', {desc = 'prev diag'}},
 
     })

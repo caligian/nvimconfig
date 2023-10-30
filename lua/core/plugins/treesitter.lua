@@ -1,5 +1,5 @@
 -- Textobjects are broken for some reason
-local treesitter = Plugin.get "treesitter"
+local treesitter = plugin.get "treesitter"
 
 treesitter.config = {
     refactor = {

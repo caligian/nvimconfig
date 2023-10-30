@@ -1,1 +1,1 @@
-return Plugin.get('suda')
+return plugin.get('suda')

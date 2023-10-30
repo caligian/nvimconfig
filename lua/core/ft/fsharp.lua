@@ -1,9 +1,9 @@
-local fsharp = Filetype "fsharp"
+local fsharp = plugin.get("fsharp")
 
 fsharp.repl = {
     "dotnet fsi",
     on_input = function(s)
-        local has = array.grep(s, function(x)
+        local has = s, function(x)
             return #x ~= 0
         end)
         local n = #has
@@ -16,6 +16,6 @@ fsharp.repl = {
     end,
 }
 
-fsharp.compile = "dotnet fsi"
+fsharp.compile = "dotnet fsi %s"
 
 return fsharp

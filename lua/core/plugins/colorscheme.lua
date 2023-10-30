@@ -1,4 +1,4 @@
-local colorscheme = Plugin.get "colorscheme"
+local colorscheme = plugin.get "colorscheme"
 
 colorscheme.config = {
     starry = {
@@ -22,8 +22,8 @@ colorscheme.config = {
         },
         setup = function(self, opts)
             opts = opts or {}
-            opts = dict.merge(copy(self.config), opts)
-            dict.each(opts, function(key, value)
+            opts = merge(copy(self.config), opts)
+            each(opts, function(key, value)
                 vim.g[key] = value
             end)
             vim.cmd ":colorscheme starry"
@@ -66,7 +66,7 @@ colorscheme.config = {
         },
         setup = function(self, opts)
             opts = opts or {}
-            opts = dict.merge(copy(self.config), opts)
+            opts = merge(copy(self.config), opts)
             require("rose-pine").setup(opts)
         end,
     },
@@ -116,7 +116,7 @@ colorscheme.config = {
         },
         setup = function(self, opts)
             opts = opts or {}
-            opts = dict.merge(copy(self.config), opts)
+            opts = merge(copy(self.config), opts)
             require("tokyonight").setup(opts)
             vim.cmd ":color tokyonight"
         end,
@@ -156,7 +156,7 @@ autocmd.map_group('colorscheme', {
         {
             pattern = "*",
             callback = function ()
-                local normal = hi("normal").guibg
+                local normal = highlight("normal").guibg
                 highlightset("LineNr", {guibg=normal})
                 highlightset("SignColumn", {guibg=normal})
             end
@@ -167,8 +167,8 @@ autocmd.map_group('colorscheme', {
         {
             pattern = "*",
             callback = function()
-                local colorcol = hi "ColorColumn"
-                local normal = hi "normal"
+                local colorcol = highlight "ColorColumn"
+                local normal = highlight "normal"
                 local dark = is_dark(normal.guibg)
 
                 if dark then
@@ -188,8 +188,8 @@ autocmd.map_group('colorscheme', {
         {
             pattern = "*",
             callback = function()
-                local cursorline = hi "cursorline"
-                local normal = hi "normal"
+                local cursorline = highlight "cursorline"
+                local normal = highlight "normal"
                 local dark = is_dark(normal.guibg)
 
                 if dark then

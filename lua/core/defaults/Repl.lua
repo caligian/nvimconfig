@@ -17,7 +17,7 @@ local function get_repl(bufnr, callback, opts)
             if repl.connected then
                 say("Repl is already running: " .. tostring(repl))
             else
-                say("Filetype Repl is already running: " .. tostring(repl))
+                say("Repl is already running: " .. tostring(repl))
             end
 
             if callback then
@@ -75,7 +75,7 @@ local function create_mod(opts)
                     elseif ft then
                         ft = args[1] or buffer.option(buffer.bufnr(), "filetype")
 
-                        if not Filetype.get(ft, "repl") then
+                        if not get(ft, "repl") then
                             say("No Repl command exists for filetype " .. ft)
                             return
                         end
@@ -91,7 +91,7 @@ local function create_mod(opts)
                 elseif ft then
                     ft = args[1] or buffer.option(buffer.bufnr(), "filetype")
 
-                    if not Filetype.get(ft, "repl") then
+                    if not get(ft, "repl") then
                         say("No Repl command exists for filetype " .. ft)
                         return
                     end
@@ -107,7 +107,7 @@ local function create_mod(opts)
                     local bufnr = buffer.bufnr()
                     local ft = buffer.option(bufnr, "filetype")
 
-                    if not Filetype.get(ft, "repl") then
+                    if not get(ft, "repl") then
                         say("No Repl command exists for filetype " .. ft)
                         return
                     end
@@ -149,7 +149,7 @@ local funs = {
     "aboveleft",
 }
 
-array.each(funs, function(fun)
+funs, function(fun)
     buffer_mod[fun] = Repl[fun]
     ft_mod[fun] = Repl[fun]
     sh_mod[fun] = Repl[fun]
@@ -157,11 +157,11 @@ end)
 
 local function to_camelcase(name)
     name = string.split(name, "_")
-    name = array.map(name, function(x)
+    name = name, function(x)
         return string.gsub(x, "^([a-z])", string.upper)
     end)
 
-    return array.join(name, "")
+    return name, "")
 end
 
 local function wrap_command(tp, callback)
@@ -185,7 +185,7 @@ local function wrap_command(tp, callback)
 end
 
 local commands = {}
-array.each(keys(buffer_mod), function(fun)
+keys(buffer_mod), function(fun)
     local buf_name = to_camelcase("repl_buffer_" .. fun)
     local ft_name = to_camelcase("repl_ft_" .. fun)
     local sh_name = to_camelcase("repl_sh_" .. fun)
@@ -211,7 +211,7 @@ local cmds = {
     [";"] = "send_textsubject_at_cursor",
 }
 
-dict.each(cmds, function(key, fun)
+cmds, function(key, fun)
     mappings["buffer_" .. fun] = { "<leader>r" .. key, "<cmd>" .. to_camelcase("repl_buffer_" .. fun) .. "<cr>" }
     mappings["ft_" .. fun] = { "<localleader>r" .. key, "<cmd>" .. to_camelcase("repl_ft_" .. fun) .. "<cr>" }
     mappings["sh_" .. fun] =
@@ -228,6 +228,6 @@ Repl.mappings = kbd.map_group('Repl', mappings, true)
 
 return function()
     Repl.load_commands(Repl.commands)
-    Repl.load_autocmds(Repl.autocmds)
-    Repl.load_mappings(Repl.mappings)
+    Repl.set_autocmds(Repl.autocmds)
+    Repl.set_mappings(Repl.mappings)
 end
