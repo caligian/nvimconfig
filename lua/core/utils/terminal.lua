@@ -68,7 +68,7 @@ function terminal.start(self, callback)
         has_started = filter(has_started, function (x) return #x ~= 0 end)
 
         while #has_started == 0 do
-            vim.wait(10)
+            vim.wait(2)
             has_started = buffer.lines(scratch, 0, -1)
             has_started = filter(has_started, function (x) return #x ~= 0 end)
         end
