@@ -1,4 +1,4 @@
-local elixir = plugin.get("elixir")
+local elixir = filetype("elixir")
 local function is_project(current_dir)
     local prev_dir = vim.fn.fnamemodify(current_dir, ':h')
     local ls = dir.getallfiles(prev_dir)

@@ -28,12 +28,12 @@ autocmd.map('BufAdd', {
             return 
         end
 
-        user.temp_buffer_patterns, function (_, pat)
+        teach(user.temp_buffer_patterns, function (_, pat)
             if is_callable(pat) then
                 if pat(bufname) then
                     map_quit()
                 end
-            elseif is_array_of(pat, 'string') then
+            elseif is_string(pat[1]) then
                 for i = 1, #pat do
                     if bufname:match(pat[i]) then
                         map_quit()

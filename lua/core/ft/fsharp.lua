@@ -1,4 +1,4 @@
-local fsharp = plugin.get("fsharp")
+local fsharp = filetype("fsharp")
 
 fsharp.repl = {
     "dotnet fsi",

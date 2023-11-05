@@ -1,4 +1,4 @@
-local mysql = plugin.get("mysql")
+local mysql = filetype("mysql")
 mysql.repl = "mysql"
 mysql.lsp_server = "sqlls"
 mysql.formatter = {

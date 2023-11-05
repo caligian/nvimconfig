@@ -412,16 +412,15 @@ end
 
 function win.range_text(winnr)
     return win.call(winnr, function()
+        vim.cmd 'normal! '
         local _, csrow, cscol, _ = unpack(vim.fn.getpos "'<")
         local _, cerow, cecol, _ = unpack(vim.fn.getpos "'>")
         local last_line = vim.fn.getline(cerow)
 
-        if cecol >= #last_line then
+        if cecol >= #last_line  then
             cecol = 0
-        end
-
-        if csrow > cerow then
-            return
+        elseif cscol > cecol then
+            csrow, cerow = cerow, csrow
         end
 
         if csrow < cerow or (csrow == cerow and cscol <= cecol) then

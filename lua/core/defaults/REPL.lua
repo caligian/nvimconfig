@@ -13,7 +13,5 @@ kbd.map('n', '<leader>r!', ':lua REPL.stop_all()<CR>', {noremap = true})
 
 autocmd.map('ExitPre', {
     pattern = '*',
-    callback = function ()
-        REPL.stop_all()
-    end
+    callback = function () REPL.stop_all() end
 })

@@ -1,9 +1,9 @@
-require 'core.utils.BufferGroup'
+require 'core.utils.buffer_group'
 
 local home = os.getenv "HOME"
 
-BufferGroup.defaults = {
-    event = "BufEnter",
+buffer_group.defaults = {
+    event = "BufAdd",
     nvim = user.dir,
     user_nvim = user.user_dir,
     plugins = user.data_dir,
@@ -23,16 +23,16 @@ BufferGroup.defaults = {
 }
 
 local function run_picker()
-    BufferGroup.buffer.run_picker(buffer.bufnr())
+    buffer_group.buffer.run_picker(buffer.bufnr())
 end
 
-BufferGroup.mappings = {
+buffer_group.mappings = {
     opts = {leader=true, noremap=true},
     buffer_picker = {'.', run_picker}
 }
 
 return function ()
-    BufferGroup.load_defaults(BufferGroup.defaults)
-    BufferGroup.set_autocmds(BufferGroup.autocmds)
-    BufferGroup.set_mappings(BufferGroup.mappings)
+    buffer_group.load_defaults(buffer_group.defaults)
+    buffer_group.set_autocmds(buffer_group.autocmds)
+    buffer_group.set_mappings(buffer_group.mappings)
 end

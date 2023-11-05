@@ -142,7 +142,7 @@ function bookmark.del_and_save(file_path, lines)
 end
 
 function bookmark.get_context(file_path, line)
-    data = string.split(file.read(file_path), "\n")
+    data = split(file.read(file_path), "\n")
 
     if line > #data or #data < 1 then
         error(sprintf("invalid line %d provided for %s", line, file_path))

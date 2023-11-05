@@ -68,7 +68,7 @@ function terminal.start(self, callback)
         has_started = filter(has_started, function (x) return #x ~= 0 end)
 
         while #has_started == 0 do
-            vim.wait(2)
+            vim.wait(10)
             has_started = buffer.lines(scratch, 0, -1)
             has_started = filter(has_started, function (x) return #x ~= 0 end)
         end
@@ -253,6 +253,7 @@ function terminal.send(self, s)
         if self.on_input then
             s = self.on_input(s)
         end
+
         send_string(self.load_file("/tmp/nvim_repl_last_input", function(fname)
             file.write(fname, join(s, "\n"))
         end))
@@ -279,6 +280,7 @@ function terminal.float(self, opts)
     if not terminal.is_running(self) then
         return
     end
+
     if not terminal.is_visible(self) and self.buffer then
         return buffer.float(self.buffer, opts)
     end
@@ -332,12 +334,7 @@ end
 each({
     "vsplit",
     "tabnew",
-    "botright",
-    "belowright",
-    "rightbelow",
-    "leftabove",
-    "aboveleft",
-}, function (fun)
+ }, function (fun)
     terminal[fun] = function (self)
         return terminal.split(self, fun)
     end

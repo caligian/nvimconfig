@@ -582,10 +582,14 @@ local function find_buffer_workspace(bufnr, pats, maxdepth, _depth)
         return false
     end
 
+
     local lspconfig = require "lspconfig"
     local server = filetype.get(buffer.option(bufnr, "filetype"), "lsp_server")
+
+    assert_type(server, union('string', 'table'))
+
     local bufname = buffer.name(bufnr)
-    local config = lspconfig[server[1]]
+    local config = is_string(server) and lspconfig[server] or lspconfig[server[1]]
     local root_dir_checker = config.document_config.default_config.root_dir
 
     if not server then
@@ -618,6 +622,10 @@ end
 
 function filetype.command(self, attrib)
     return filetype.attrib(self, attrib, function(config)
+        if is_string(config) then
+            config = {{config}}
+        end
+
         if not config.cmd and not config[1] then
             return
         end
@@ -626,7 +634,7 @@ function filetype.command(self, attrib)
 
         validate {
             command = {
-                union("table", "callable"),
+                union('string', "table", "callable"),
                 cmd,
             },
         }
@@ -708,11 +716,14 @@ local function get_compile_command(bufnr, action)
     bufnr = resolvebuf(bufnr)
     local bufname = buffer.name(bufnr)
     action = action or "compile"
-    local cmd, ws = filetype.command(bufnr, action)(bufname)
+    local cmd, ws
+    cmd, ws = filetype.command(bufnr, action)
 
     if not cmd then
         return
     end
+
+    cmd = cmd(bufname)
 
     if ws then
         return sprintf(cmd, ws)

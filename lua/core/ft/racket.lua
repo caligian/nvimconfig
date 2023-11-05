@@ -1,4 +1,4 @@
-local racket = plugin.get("racket")
+local racket = filetype("racket")
 racket.repl = "racket"
 racket.compile = "racket %s"
 racket.lsp_server = "racket_langserver"

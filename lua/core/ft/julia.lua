@@ -1,4 +1,4 @@
-local julia = plugin.get("julia")
+local julia = filetype("julia")
 
 julia.compile = "julia %s"
 

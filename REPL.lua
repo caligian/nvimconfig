@@ -201,7 +201,7 @@ function REPL.init(self, opts)
         if wsobj then
             return wsobj
         elseif not ws then
-            error(path.basename(bufname) .. ': not in workspace')
+            error(path.basename(bufname), ': not in workspace')
         end
 
         self.workspace = ws
@@ -223,7 +223,7 @@ function REPL.init(self, opts)
 
     self.buf = buf
 
-    return terminal.init(self, cmd, {on_input = conf.on_input, load_file = conf.load_file})
+    return terminal.init(self, cmd, {})
 end
 
 function REPL.start(self)
@@ -390,17 +390,14 @@ end
 local function create_proxy(what)
     REPL[what] = setmetatable({
         bufstop = function (bufnr)
-            bufnr = bufnr or buffer.bufnr()
             return REPL.bufstop(bufnr, what:sub(1, 1))
         end,
         start_and_split = function (direction)
-            direction = direction or 'split'
-            local bufnr = buffer.bufnr()
+            direction = direction or 's'
             return REPL.start_and_split({[what] = bufnr, split = direction})
         end
     }, {
         __call = function (self, bufnr)
-            bufnr = bufnr or buffer.bufnr()
             return REPL {[what] = buffer.bufnr(bufnr)}
         end,
         __index = function (self, key)
@@ -409,7 +406,7 @@ local function create_proxy(what)
             local f = REPL[key]
             assert(REPL[key], 'invalid method ' .. key)
 
-            return  function (arg, ...)
+            rawset(self, key, function (arg, ...)
                 arg = buffer.bufnr(arg or buffer.current())
 
                 if key == 'stop' then
@@ -430,7 +427,9 @@ local function create_proxy(what)
                 return method(arg, function (obj, ...)
                     return f(obj, ...)
                 end)
-            end
+            end)
+
+            return self[key]
         end
     })
 end
@@ -440,23 +439,29 @@ create_proxy('buffer')
 create_proxy('workspace')
 create_shell_proxy()
 
-
-function REPL.map(mode, key, fun, sp)
-    local wsfun, buffun, ftfun, shfun
-    local wsdesc, bufdesc, ftdesc
-
+function REPL.map(mode, key, fun, ...)
     mode = mode or 'n'
-    wsfun =  REPL.workspace[fun]
+    wsfun = REPL.workspace[fun]
     buffun = REPL.buffer[fun]
-    ftfun =  REPL.filetype[fun]
-    shfun =  REPL.sh[fun]
+    ftfun = REPL.filetype[fun]
+    shfun = REPL.sh[fun]
+    local args = {...}
 
+    local function wrap(f)
+        return function ()
+            return f(unpack(args))
+        end
+    end
+
+    if #args > 0 then
+        wsfun = wrap(wsfun)
+        buffun = wrap(buffun)
+        ftfun = wrap(ftfun)
+        shfun = wrap(shfun)
+    end
+
+    local wsdesc, bufdesc, ftdesc
     if fun == 'start_and_split' and key == 'v' then
-        sp = sp or 'split'
-        wsfun = partial(wsfun, sp)
-        buffun = partial(buffun, sp)
-        ftfun = partial(ftfun, sp)
-        shfun = partial(shfun, sp)
         wsdesc = 'workspace_' ..  "v" .. fun
         ftdesc = 'filetype_' ..  "v" .. fun
         bufdesc = 'buffer_' ..  "v" .. fun
@@ -479,3 +484,9 @@ function REPL.map(mode, key, fun, sp)
 
     kbd.map(mode, key, shfun, {noremap = true, leader = true, prefix = 'x', desc = shdesc})
 end
+
+a = 1; b = 97
+a = REPL {buffer = a}
+b = REPL {buffer = b}
+print(a)
+REPL.split(a, 'vsplit')

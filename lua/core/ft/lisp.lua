@@ -1,4 +1,4 @@
-local lisp = plugin.get("lisp")
+local lisp = filetype("lisp")
 lisp.repl = "rebar3 lfe repl"
 lisp.filetype = { extension = { lfe = "lisp" } }
 

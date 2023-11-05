@@ -1,4 +1,4 @@
-local python = plugin.get("python")
+local python = filetype("python")
 
 python.linters = "pylint %s"
 
@@ -6,12 +6,18 @@ python.formatter = { "black -q -", stdin = true }
 
 python.test = "pytest %s"
 
-python.repl = {"ipython3", load_file = function (fname, make_file)
-    local new_fname = fname .. '.py'
-    make_file(new_fname)
+python.repl = {
+    {"ipython3"}, 
+    on_input = function (lines)
+        return append(filter(lines, function (x) return #x > 0 end), "")
+    end,
+    load_file = function (fname, make_file)
+        local new_fname = fname .. '.py'
+        make_file(new_fname)
 
-    return sprintf("%%load %s\n\n", new_fname)
-end}
+        return sprintf("%%load %s\n\n", new_fname)
+    end
+}
 
 python.lsp_server = "pyright"
 

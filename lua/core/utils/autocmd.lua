@@ -33,7 +33,7 @@ function autocmd.init(self, event, opts)
 	local desc = opts.desc
 	local buf = opts.buffer
 
-	assert_unless(cb or command, 'expected command or callback')
+	assert(cb or command, 'expected command or callback')
 
 	if not command then
 		function callback(opts)

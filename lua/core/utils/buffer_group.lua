@@ -426,7 +426,7 @@ function buffer_group.load_defaults(defaults)
     defaults.event = nil
     local out = {}
 
-    each(defaults, function(name, spec)
+    teach(defaults, function(name, spec)
         local pattern
 
         if is_a.string(spec) then
