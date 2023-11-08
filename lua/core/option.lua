@@ -44,7 +44,9 @@ user.option = {
     },
 }
 
-req "user.option"
+if req2path('user.option') then
+    require('user.option')
+end
 
 for t, opts in pairs(user.option) do
     for k, v in pairs(opts) do

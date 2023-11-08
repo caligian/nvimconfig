@@ -327,12 +327,6 @@ merge(user.mappings, {
     },
 })
 
-kbd.map("n", "<leader>bl", function()
-    if buffer.recent and buffer.exists(buffer.recent) then
-        vim.cmd(":b " .. buffer.recent)
-    end
-end, { desc = "(pop N and) open recent" })
-
 kbd.map("n", "<leader>bH", function()
     buffer.history.print()
 end, { desc = "(pop N and) open recent" })
