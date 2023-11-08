@@ -176,7 +176,7 @@ function statusline.methods:setup_evil()
 
     ins_left {
         function()
-            return "(, %l/%L, %c)"
+            return "(%l/%L, %c)"
         end,
     }
 
