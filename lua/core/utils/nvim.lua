@@ -307,6 +307,7 @@ function kill_pid(pid, signal)
         return false
     end
 
+    signal = signal or ''
     local out = system('kill -s ' .. signal  .. ' ' .. pid)
     if #out == 0 then
         return false

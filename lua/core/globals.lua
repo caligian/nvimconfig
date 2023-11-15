@@ -1,8 +1,8 @@
 local data_dir = vim.fn.stdpath("data")
 
-user.colorscheme = 'middlenight_blue'
-user.dir = vim.fn.stdpath "config"
-user.user_dir = path.join(os.getenv "HOME", ".nvim")
+user.colorscheme = "github_light"
+user.dir = vim.fn.stdpath("config")
+user.user_dir = path.join(os.getenv("HOME"), ".nvim")
 user.data_dir = data_dir
 user.plugins_dir = path.join(data_dir, "lazy")
 user.temp_buffer_patterns = {
@@ -11,9 +11,10 @@ user.temp_buffer_patterns = {
     vim_help = "/usr/share/nvim/runtime/doc",
     help_files = { ft = "help" },
     log_files = "%.log$",
-    startuptime = {ft = 'startuptime'},
+    startuptime = { ft = "startuptime" },
 }
 
-if req2path('user.globals') then
-    require('user.globals')
+if req2path("user.globals") then
+    require("user.globals")
 end
+

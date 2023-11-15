@@ -4,10 +4,10 @@ local formatter_path = path.join(os.getenv "HOME", ".cargo", "bin", "stylua")
 local formatter_cmd = formatter_path
 
 local default_args = {
-    "--call-parentheses None",
+    "--call-parentheses Always",
     "--collapse-simple-statement Never",
     "--line-endings Unix",
-    "--column-width 120",
+    "--column-width 200",
     "--quote-style AutoPreferDouble",
     "--indent-type Spaces",
     "--indent-width 4",

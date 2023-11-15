@@ -245,6 +245,10 @@ merge(user.mappings, {
             function()
                 local tw = vim.bo.textwidth
                 local comment = split(vim.bo.commentstring or "#", " ")[1]
+                if not comment then
+                    return
+                end
+
                 local l = #comment
                 tw = tw == 0 and 50 or tw
 

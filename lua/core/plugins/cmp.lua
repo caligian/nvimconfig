@@ -1,8 +1,8 @@
-local nvim_cmp = require "cmp"
-local cmp_zsh = require "cmp_zsh"
-local luasnip = require "luasnip"
-local lspkind = require 'lspkind'
-local cmp = plugin.get "cmp"
+local nvim_cmp = require("cmp")
+local cmp_zsh = require("cmp_zsh")
+local luasnip = require("luasnip")
+local lspkind = require("lspkind")
+local cmp = plugin.get("cmp")
 
 cmp.config = {
     mapping = {
@@ -30,7 +30,7 @@ cmp.config = {
         ["<C-p>"] = nvim_cmp.mapping.select_prev_item(),
         ["<C-Space>"] = nvim_cmp.mapping.complete(),
         ["<C-e>"] = nvim_cmp.mapping.abort(),
-        ["<CR>"] = nvim_cmp.mapping.confirm { select = true },
+        ["<CR>"] = nvim_cmp.mapping.confirm({ select = true }),
     },
     snippet = {
         expand = function(args)
@@ -58,33 +58,27 @@ cmp.config = {
         },
     },
     window = {
-        completion = { -- rounded border; thin-style scrollbar
-            border = "",
+        completion = {
+            border = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" },
             scrollbar = "║",
         },
 
-        documentation = { -- no border; native-style scrollbar
-            border = "",
+        documentation = {
+            border = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" },
             scrollbar = "|",
             -- other options
         },
     },
     formatting = {
-        format = lspkind.cmp_format {
-            mode = 'symbol',
-            maxwidth = 50,
-            ellipsis_char = '...'
-        }
-    }, 
+        format = lspkind.cmp_format({ maxwidth = 50 }),
+    },
 }
 
 function cmp:setup()
-    cmp_zsh.setup { zshrc = true, filetypes = { "zsh" } }
+    cmp_zsh.setup({ zshrc = true, filetypes = { "zsh" } })
 
     nvim_cmp.setup.cmdline("/", {
-        sources = nvim_cmp.config.sources {
-            { name = "nvim_lsp_document_symbol" },
-        },
+        sources = nvim_cmp.config.sources({ { name = "nvim_lsp_document_symbol" } }),
     })
 
     nvim_cmp.setup(self.config)
