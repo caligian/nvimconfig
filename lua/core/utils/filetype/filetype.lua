@@ -21,7 +21,7 @@ vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
 	title = "hover",
 })
 
-vim.diagnostic.config(lsp.diagnostic)
+vim.diagnostic.config(lang.lsp.diagnostic)
 
 lang.lsp.mappings = lang.lsp.mappings
 	or {
@@ -115,7 +115,7 @@ lang.lsp.mappings = lang.lsp.mappings
 		},
 	}
 
-function lang.lsp.fix_omnisharp(client, bufnr)
+function lang.lsp.fix_omnisharp(client, _)
 	client.server_capabilities.semanticTokensProvider = {
 		full = vim.empty_dict(),
 		legend = {
@@ -303,18 +303,18 @@ function lang:setbo(bo)
 end
 
 function lang:setwo(wo)
-	bo = bo or self.bo
-	asserttype(bo, "table")
+	wo = wo or self.wo
+	asserttype(wo, "table")
 
 	self:autocmd(function(opts)
-		win.set_option(opts.buf, bo)
+		win.set_option(opts.buf, wo)
 	end)
 end
 
 --- @param specs { [1]: string, config: table }
 function lang:setuplsp(specs)
 	specs = specs or self.lsp
-	specs = isstring(specs) and { specs }
+	specs = isstring(specs) and { specs } --[[@as table]]
 
 	if not specs then
 		return
@@ -323,16 +323,6 @@ function lang:setuplsp(specs)
 	lang.lsp.setup_server(specs[1], specs.config)
 
 	return self
-end
-
-function lang:registerjob(action, jobname, j)
-	params({
-		action = { "string", action },
-		jobname = { "string", action },
-		j = { "job", j },
-	})
-
-	dict.set(self.jobs, { action, jobname }, j)
 end
 
 function lang:getjob(name, noprefix)
@@ -392,6 +382,7 @@ function lang.workspace(bufnr, pats, maxdepth, _depth)
 	end
 
 	local lspconfig = require("lspconfig")
+	---@diagnostic disable-next-line: param-type-mismatch
 	local server = lang.query(buffer.filetype(bufnr), "server")
 
 	asserttype(server, union("string", "table"))
@@ -414,95 +405,115 @@ function lang.workspace(bufnr, pats, maxdepth, _depth)
 end
 
 local function getcmd(ft, x, p)
-  if istable(x) then
-    for i, v in pairs(x) do
-      if p:match(i) then
-        return v 
-      end
-    end
-  elseif isstring(x) then
-    return x
-  elseif isfunction(x) then
-    return x(p)
-  end
+	assert(buffer.exists(p), "invalid buffer: " .. dump(p))
+	p = buffer.name(p)
 
-  error(ft .. '.formatter: no command found for ' .. p)
+	local function getfromtable(X, what)
+		for key, value in pairs(X) do
+			if what:match(key) then
+				return value
+			end
+		end
+	end
+
+	local function dwim(X, what)
+		if isfunction(X) then
+			return X(what)
+		elseif isstring(X) then
+			return X
+		else
+			return getfromtable(X, what)
+		end
+	end
+
+	if istable(x) then
+		if x.workspace then
+			local ws = lang.workspace(bufnr)
+			assert(ws, bufname .. ": not in workspace")
+			return dwim(x.workspace, ws), ws
+		elseif x.dir then
+			local d = path.dirname(p)
+			return dwim(x.dir, d), d
+		else
+			return dwim(x[1] or x.buffer, d), d
+		end
+	elseif isstring(x) then
+		return x
+	elseif isfunction(x) then
+		return x(p)
+	end
+
+	error(ft .. ".formatter: no command found for " .. p)
 end
 
 function lang:format(bufnr, opts)
-  local config = isstring(self.formatter) and { self.formatter } or self.formatter
-  opts = opts or {}
-  opts = copy(opts)
-  dict.merge(opts, config or {})
+	local config = not istable(self.formatter) and { self.formatter } or self.formatter
+	local strtablefn = union("string", "table", "function")
 
-	if not opts or isempty(opts) then
-		return nil, "no formatter for filetype " .. self.name
-	end
+	assert(isa[strtablefn](config))
 
+	params({
+		cmd = {
+			{
+				[1] = strtablefn,
+				["workspace?"] = strtablefn,
+				["dir?"] = strtablefn,
+			},
+			config,
+		},
+	})
+
+	opts = opts or {}
+	opts = copy(opts)
+	dict.merge(opts, config or {})
+
+	local ws_or_d
 	bufnr = bufnr or buffer.bufnr()
-	local cmd = isstring(opts) and opts or opts.cmd or opts[1]
-	local args = opts.args
-
-	if isa.list(args) then
-		cmd = cmd .. " " .. join(args, " ")
-	end
-
-  local strtable = union('string', 'table', 'function')
-  assert(isa[strtable](cmd))
-
-  if istable(cmd) then
-    params {
-      cmd = {
-        {
-          [1] = strtable,
-          ['workspace?'] = strtable,
-          ['dir?'] = strtable,
-        },
-        cmd
-      }
-    }
-  end
-
-  local wscmd, dircmd
-	bufnr = bufnr or buffer.bufnr()
+	cmd, ws_or_d = getcmd(self.name, opts, bufnr)
 	local stdin = opts.stdin
 	local write = opts.write
 	local append_filename = opts.append_filename
-	local bufname = buffer.name(bufnr)
 	opts.stdin = nil
 	opts.write = nil
 	opts.append_filename = nil
 	local bufname = buffer.name(bufnr)
 
 	if opts.workspace then
-		local ws = lang.workspace(bufnr)
-    local wscmd = getcmd(self.name, cmd.workspace, ws)
+		cmd = cmd .. " " .. ws_or_d
 
-    assert(wscmd, errmsg)
-		assert(ws, bufname .. ": not in workspace")
-
-		cmd = wscmd .. ' ' .. ws
+		local args = opts.args
+		if isa.list(args) then
+			cmd = cmd .. " " .. join(args, " ")
+		end
 	elseif opts.dir then
-    local d = path.dirname(bufname)
-    local dircmd = getcmd(self.name, cmd.dir, d)
-		cmd = dircmd .. ' ' .. d
+		cmd = cmd .. " " .. ws_or_d
+
+		local args = opts.args
+		if isa.list(args) then
+			cmd = cmd .. " " .. join(args, " ")
+		end
 	else
+		local args = opts.args
+		if isa.list(args) then
+			cmd = cmd .. " " .. join(args, " ")
+		end
+
 		if append_filename == nil and stdin == nil then
 			stdin = true
 		end
+
 		if stdin then
+			---@diagnostic disable-next-line
 			cmd = sprintf('sh -c "cat %%path | %s"', cmd)
 		elseif append_filename then
 			cmd = cmd .. " " .. bufname
 		end
 	end
 
+	opts.args = {}
+
 	vim.cmd(":w! " .. bufname)
 	buffer.set_option(bufnr, "modifiable", false)
-	buffer.map(bufnr, "n", "q", function()
-		buffer.hide(bufnr)
-	end, { desc = "hide buffer" })
-
 	local winnr = buffer.winnr(bufnr)
 	local view = winnr and win.save_view(winnr)
 	local proc = self:job(bufnr, cmd, {
@@ -546,20 +557,22 @@ function lang:format(bufnr, opts)
 			local out = x.lines
 			if not out then
 				return
-      elseif #out > 0 then
-        buffer.set_lines(bufnr, 0, -1, out)
+			elseif #out > 0 then
+				buffer.set_lines(bufnr, 0, -1, out)
 			end
 
 			if view then
 				win.restore_view(winnr, view)
 			end
+
+			vim.cmd(":e!")
 		end,
 	})
 
 	return proc
 end
 
-function lang:formatdir(bufnr, opts)
+function lang:format_dir(bufnr, opts)
 	opts = opts or {}
 	opts.dir = true
 	return self:format(bufnr, opts)
@@ -586,7 +599,7 @@ function lang:job(bufnr, cmd, opts)
 			for i = 1, #args do
 				if args[i]:match("%%path") then
 					args[i] = args[i]:gsub("%%path", usepath)
-					return args[i], args
+					return x, args
 				end
 			end
 
@@ -596,6 +609,7 @@ function lang:job(bufnr, cmd, opts)
 	opts.name = nil
 	opts.workspace = nil
 	opts.dir = nil
+	opts.template = nil
 
 	if name then
 		name = "filetype." .. self.name .. "." .. name
@@ -611,26 +625,14 @@ function lang:job(bufnr, cmd, opts)
 
 	local usepath
 	local bufname = buffer.name(bufnr)
+
 	if ws then
 		usepath = lang.workspace(bufnr)
 		assert(usepath, bufname .. ": not in workspace")
-	elseif dir then
+	elseif fordir then
 		usepath = path.dirname(bufname)
 	else
 		usepath = bufname
-	end
-
-	if istable(cmd) then
-		local _cmd
-		for key, value in pairs(cmd) do
-			--- @cast usepath string
-			if usepath:match(key) then
-				_cmd = value
-				break
-			end
-		end
-
-		cmd = _cmd
 	end
 
 	assert(cmd, bufname .. ": no command provided")
@@ -640,7 +642,20 @@ function lang:job(bufnr, cmd, opts)
 	opts.cwd = ws and usepath or fordir and usepath or path.dirname(bufname)
 	opts.stderr = true
 
-	j = job(template(cmd, opts.args, usepath), opts)
+	local _cmd, _args = template(cmd, opts.args, usepath)
+	cmd = _cmd
+	opts.args = _args
+
+	---@diagnostic disable-next-line: param-type-mismatch
+	local ok, msg = pcall(job, cmd, opts)
+
+	if not ok then
+		tostderr(msg)
+		buffer.set_option(bufnr, "modifiable", true)
+		return
+	else
+		j = msg
+	end
 
 	if name then
 		self.jobs[name] = j
@@ -651,12 +666,10 @@ end
 
 lang({
 	name = "lua",
-	server = "lua_ls",
 	formatter = {
-    {
-      filetype.filetypes.lua.formatter[1] .. " - ",
-      workspace = 'stylua',
-      dir = 'stylua',
-    }, 
-  }
+		"stylua -",
+		dir = "stylua",
+	},
 })
+
+j = lang.langs.lua:format_dir()
