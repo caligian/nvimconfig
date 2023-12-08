@@ -1,4 +1,4 @@
-local sexp = plugin.get 'sexp'
+local sexp = plugin.get("sexp")
 local cmd = [=[
  function! s:vim_sexp_mappings()
             xmap <silent><buffer> af              <Plug>(sexp_outer_list)
@@ -17,30 +17,30 @@ local cmd = [=[
             omap <silent><buffer> ae              <Plug>(sexp_outer_element)
             xmap <silent><buffer> ie              <Plug>(sexp_inner_element)
             omap <silent><buffer> ie              <Plug>(sexp_inner_element)
-            nmap <silent><buffer> (               <Plug>(sexp_move_to_prev_bracket)
-            xmap <silent><buffer> (               <Plug>(sexp_move_to_prev_bracket)
-            omap <silent><buffer> (               <Plug>(sexp_move_to_prev_bracket)
-            nmap <silent><buffer> )               <Plug>(sexp_move_to_next_bracket)
-            xmap <silent><buffer> )               <Plug>(sexp_move_to_next_bracket)
-            omap <silent><buffer> )               <Plug>(sexp_move_to_next_bracket)
-            nmap <silent><buffer> <M-b>           <Plug>(sexp_move_to_prev_element_head)
-            xmap <silent><buffer> <M-b>           <Plug>(sexp_move_to_prev_element_head)
-            omap <silent><buffer> <M-b>           <Plug>(sexp_move_to_prev_element_head)
-            nmap <silent><buffer> <M-w>           <Plug>(sexp_move_to_next_element_head)
-            xmap <silent><buffer> <M-w>           <Plug>(sexp_move_to_next_element_head)
-            omap <silent><buffer> <M-w>           <Plug>(sexp_move_to_next_element_head)
-            nmap <silent><buffer> g<M-e>          <Plug>(sexp_move_to_prev_element_tail)
-            xmap <silent><buffer> g<M-e>          <Plug>(sexp_move_to_prev_element_tail)
-            omap <silent><buffer> g<M-e>          <Plug>(sexp_move_to_prev_element_tail)
-            nmap <silent><buffer> <M-e>           <Plug>(sexp_move_to_next_element_tail)
-            xmap <silent><buffer> <M-e>           <Plug>(sexp_move_to_next_element_tail)
-            omap <silent><buffer> <M-e>           <Plug>(sexp_move_to_next_element_tail)
-            nmap <silent><buffer> [[              <Plug>(sexp_move_to_prev_top_element)
-            xmap <silent><buffer> [[              <Plug>(sexp_move_to_prev_top_element)
-            omap <silent><buffer> [[              <Plug>(sexp_move_to_prev_top_element)
-            nmap <silent><buffer> ]]              <Plug>(sexp_move_to_next_top_element)
-            xmap <silent><buffer> ]]              <Plug>(sexp_move_to_next_top_element)
-            omap <silent><buffer> ]]              <Plug>(sexp_move_to_next_top_element)
+            nmap <silent><buffer> (               <Plug>(sexp_move_toprev_bracket)
+            xmap <silent><buffer> (               <Plug>(sexp_move_toprev_bracket)
+            omap <silent><buffer> (               <Plug>(sexp_move_toprev_bracket)
+            nmap <silent><buffer> )               <Plug>(sexp_move_tonext_bracket)
+            xmap <silent><buffer> )               <Plug>(sexp_move_tonext_bracket)
+            omap <silent><buffer> )               <Plug>(sexp_move_tonext_bracket)
+            nmap <silent><buffer> <M-b>           <Plug>(sexp_move_toprev_element_head)
+            xmap <silent><buffer> <M-b>           <Plug>(sexp_move_toprev_element_head)
+            omap <silent><buffer> <M-b>           <Plug>(sexp_move_toprev_element_head)
+            nmap <silent><buffer> <M-w>           <Plug>(sexp_move_tonext_element_head)
+            xmap <silent><buffer> <M-w>           <Plug>(sexp_move_tonext_element_head)
+            omap <silent><buffer> <M-w>           <Plug>(sexp_move_tonext_element_head)
+            nmap <silent><buffer> g<M-e>          <Plug>(sexp_move_toprev_element_tail)
+            xmap <silent><buffer> g<M-e>          <Plug>(sexp_move_toprev_element_tail)
+            omap <silent><buffer> g<M-e>          <Plug>(sexp_move_toprev_element_tail)
+            nmap <silent><buffer> <M-e>           <Plug>(sexp_move_tonext_element_tail)
+            xmap <silent><buffer> <M-e>           <Plug>(sexp_move_tonext_element_tail)
+            omap <silent><buffer> <M-e>           <Plug>(sexp_move_tonext_element_tail)
+            nmap <silent><buffer> [[              <Plug>(sexp_move_toprev_top_element)
+            xmap <silent><buffer> [[              <Plug>(sexp_move_toprev_top_element)
+            omap <silent><buffer> [[              <Plug>(sexp_move_toprev_top_element)
+            nmap <silent><buffer> ]]              <Plug>(sexp_move_tonext_top_element)
+            xmap <silent><buffer> ]]              <Plug>(sexp_move_tonext_top_element)
+            omap <silent><buffer> ]]              <Plug>(sexp_move_tonext_top_element)
             nmap <silent><buffer> [e              <Plug>(sexp_select_prev_element)
             xmap <silent><buffer> [e              <Plug>(sexp_select_prev_element)
             omap <silent><buffer> [e              <Plug>(sexp_select_prev_element)
@@ -107,8 +107,8 @@ local cmd = [=[
         endfunction
 
     augroup vim_sexp_mappings
-        autocmd!
-        autocmd! FileType clojure,scheme,lisp,timl call s:vim_sexp_mappings()
+        au!
+        au! FileType clojure,scheme,lisp,timl call s:vim_sexp_mappings()
     augroup end
 
 
@@ -117,7 +117,7 @@ local cmd = [=[
 ]=]
 
 function sexp:setup()
-    vim.cmd(cmd)
+	vim.cmd(cmd)
 end
 
 return sexp

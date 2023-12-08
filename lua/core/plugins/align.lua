@@ -1,21 +1,21 @@
 local align = plugin.get("align")
 
 align.mappings = {
-    opts = { leader = true, noremap = true },
-    align = { "=", ":EasyAlign ", { desc = "Align by regexp" } },
-    align_region = {
-        "=",
-        ":'<,'>EasyAlign ",
-        { mode = "v", desc = "Align by regexp" },
-    },
+	opts = { leader = true, noremap = true },
+	align = { "=", ":EasyAlign ", { desc = "Align by regexp" } },
+	align_region = {
+		"=",
+		":'<,'>EasyAlign ",
+		{ mode = "v", desc = "Align by regexp" },
+	},
 }
 
 align.config = {}
 
 function align:setup()
-    each(self.config or {}, function(key, value)
-        vim.g[key] = value
-    end)
+	list.each(self.config or {}, function(key, value)
+		vim.g[key] = value
+	end)
 end
 
 return align

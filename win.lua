@@ -182,7 +182,7 @@ end
 
 function win.restore_view(winnr, view)
 	return win.call(winnr, function()
-		if isa.string(view) then
+		if is_a.string(view) then
 			vim.cmd(view)
 		else
 			vim.fn.winrestview(view)
@@ -231,17 +231,17 @@ function win.bufnr(winnr)
 	return vim.fn.winbufnr(winnr)
 end
 
-function win.move(from_winnr, towinnr, opts)
+function win.move(from_winnr, to_winnr, opts)
 	from_winnr = from_winnr or win.current()
 
 	if not win.exists(from_winnr) then
 		return
 	end
-	if not win.exists(towinnr) then
+	if not win.exists(to_winnr) then
 		return
 	end
 
-	vim.fn.win_splitmove(from_winnr, towinnr, opts or { right = true })
+	vim.fn.win_splitmove(from_winnr, to_winnr, opts or { right = true })
 
 	return true
 end
@@ -418,7 +418,7 @@ end
 
 local function range_text(buf, ...)
 	local args = { ... }
-	args = list.map(args, function(x)
+	args = map(args, function(x)
 		return x - 1
 	end)
 	args[#args + 1] = {}
@@ -440,16 +440,16 @@ function win.range_text(winnr)
 	return range_text(buf, csrow, cscol, cerow, cecol)
 end
 
-function win.isvisible(winnr)
+function win.is_visible(winnr)
 	return win.nr2id(winnr)
 end
 
-function win.id.isvisible(winid)
-	return win.isvisible(win.id2nr(winid))
+function win.id.is_visible(winid)
+	return win.is_visible(win.id2nr(winid))
 end
 
 function win.id.hide(winid)
-	if not win.id.isvisible(winid) then
+	if not win.id.is_visible(winid) then
 		return
 	end
 
@@ -458,7 +458,7 @@ function win.id.hide(winid)
 end
 
 function win.id.close(winid, force)
-	if not win.id.isvisible(winid) then
+	if not win.id.is_visible(winid) then
 		return
 	end
 
@@ -499,15 +499,19 @@ function win.info(winnr)
 end
 
 function win.set_var(winnr, k, v)
+	validate({
+		key = { union("string", "dict"), k },
+	})
+
 	winnr = winnr or win.winnr()
 	if not win.exists(winnr) then
 		return
 	end
 
-	if isa.string(k) then
+	if is_a.string(k) then
 		vim.api.nvim_win_set_var(winnr, k, v)
 	else
-		dict.each(k, function(key, value)
+		each(k, function(key, value)
 			win.set_var(winnr, key, value)
 		end)
 	end
@@ -516,15 +520,19 @@ function win.set_var(winnr, k, v)
 end
 
 function win.set_option(winnr, k, v)
+	validate({
+		key = { union("string", "dict"), k },
+	})
+
 	winnr = winnr or win.winnr()
-	if not win.isvisible(winnr) then
+	if not win.is_visible(winnr) then
 		return
 	end
 
-	if isa.string(k) then
+	if is_a.string(k) then
 		vim.api.nvim_win_set_option(win.nr2id(winnr), k, v)
 	else
-		dict.each(k, function(key, value)
+		each(k, function(key, value)
 			win.set_option(winnr, key, value)
 		end)
 	end
@@ -588,6 +596,18 @@ function float:__call(winnr, opts)
 	else
 		bufnr = win.bufnr(winnr)
 	end
+
+	validate({
+		win_options = {
+			{
+				__nonexistent = true,
+				["?center"] = "list",
+				["?panel"] = "number",
+				["?dock"] = "number",
+			},
+			opts or {},
+		},
+	})
 
 	opts = opts or {}
 	local dock = opts.dock
@@ -670,14 +690,14 @@ function float.panel(winnr, size, opts)
 		size = 30
 	end
 
-	local o = dict.merge({ panel = size }, opts or {})
+	local o = merge({ panel = size }, opts or {})
 	return float(winnr, o)
 end
 
 function float.center(winnr, size, opts)
 	if not size then
 		size = { 80, 80 }
-	elseif isnumber(size) then
+	elseif is_number(size) then
 		local n = size
 		size = { n, n }
 	elseif #size == 1 then
@@ -685,12 +705,12 @@ function float.center(winnr, size, opts)
 		size = { n, n }
 	end
 
-	return float(winnr, dict.merge({ center = size }, opts))
+	return float(winnr, merge({ center = size }, opts))
 end
 
 function float.dock(winnr, size, opts)
 	size = size or 10
-	return float(winnr, dict.merge({ dock = size }, opts or {}))
+	return float(winnr, merge({ dock = size }, opts or {}))
 end
 
 function float.set_config(winnr, config)

@@ -1,4 +1,4 @@
-local dispatch = plugin.get "dispatch"
+local dispatch = plugin.get("dispatch")
 dispatch.methods = {}
 
 -- function dispatch.methods.get_command(action, bufnr)
@@ -11,9 +11,9 @@ dispatch.methods = {}
 --     local cmd = Filetype.get(vim.bo.filetype, action)
 --     if not cmd then
 --         return nil, 'no command found for ' .. bufnr
---     elseif is_callable(cmd) then
+--     elseif iscallable(cmd) then
 --         cmd = cmd(bufnr)
---     elseif is_string(cmd) then
+--     elseif isstring(cmd) then
 --         if not cmd:match "%%%%" then
 --             cmd = cmd .. " " .. name
 --         else

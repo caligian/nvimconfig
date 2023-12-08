@@ -1,1 +1,1 @@
-return plugin.get('vimtex')
+return plugin.get("vimtex")

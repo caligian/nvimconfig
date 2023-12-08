@@ -1,270 +1,274 @@
 return {
-    statusline = {
-        "nvim-lualine/lualine.nvim",
-    },
+	statusline = {
+		"nvim-lualine/lualine.nvim",
+	},
 
-    plenary = {
-        "nvim-lua/plenary.nvim",
-    },
+	neorg = {
+		"nvim-neorg/neorg",
+	},
 
-    telescope = {
-        "nvim-telescope/telescope.nvim",
-        dependencies = {
-            "nvim-telescope/telescope-fzy-native.nvim",
-            "nvim-telescope/telescope-file-browser.nvim",
-        },
-    },
+	plenary = {
+		"nvim-lua/plenary.nvim",
+	},
 
-    hy = {
-        "hylang/vim-hy",
-        ft = "hy",
-    },
+	telescope = {
+		"nvim-telescope/telescope.nvim",
+		dependencies = {
+			"nvim-telescope/telescope-fzy-native.nvim",
+			"nvim-telescope/telescope-file-browser.nvim",
+		},
+	},
 
-    notify = {
-        "rcarriga/nvim-notify",
-    },
+	hy = {
+		"hylang/vim-hy",
+		ft = "hy",
+	},
 
-    signs = {
-        "lewis6991/gitsigns.nvim",
-        event = 'BufEnter',
-    },
+	notify = {
+		"rcarriga/nvim-notify",
+	},
 
-    indentblankline = {
-        "lukas-reineke/indent-blankline.nvim",
-        event = 'InsertEnter'
-    },
+	signs = {
+		"lewis6991/gitsigns.nvim",
+		event = "BufEnter",
+	},
 
-    align = {
-        "junegunn/vim-easy-align",
-    },
+	indentblankline = {
+		"lukas-reineke/indent-blankline.nvim",
+		event = "InsertEnter",
+	},
 
-    suda = {
-        "lambdalisue/suda.vim",
-    },
+	align = {
+		"junegunn/vim-easy-align",
+	},
 
-    colorscheme = {
-        "maxmx03/solarized.nvim",
-        dependencies = {
-            "RRethy/nvim-base16",
-            "sainnhe/everforest",
-            "rktjmp/lush.nvim",
-            "rose-pine/neovim",
-            "navarasu/onedark.nvim",
-            "Shatur/neovim-ayu",
-            "mcchrish/zenbones.nvim",
-            "tjdevries/colorbuddy.nvim",
-            "jesseleite/nvim-noirbuddy",
-            "ray-x/starry.nvim",
-            "catppuccin/nvim",
-            "marko-cerovac/material.nvim",
-            "fenetikm/falcon",
-            "shaunsingh/nord.nvim",
-            "rebelot/kanagawa.nvim",
-            "EdenEast/nightfox.nvim",
-            "projekt0n/github-nvim-theme",
-            "bluz71/vim-nightfly-colors",
-            "bluz71/vim-moonfly-colors",
-            "folke/lsp-colors.nvim",
-            "savq/melange-nvim",
-            "AlexvZyl/nordic.nvim",
-            "mhartington/oceanic-next",
-            "folke/tokyonight.nvim",
-        },
-        priority = 300,
-    },
+	suda = {
+		"lambdalisue/suda.vim",
+	},
 
-    vimtex = {
-        "lervag/vimtex",
-        ft = "tex",
-    },
+	colorscheme = {
+		"maxmx03/solarized.nvim",
+		dependencies = {
+			"sainnhe/everforest",
+			"rktjmp/lush.nvim",
+			"rose-pine/neovim",
+			"navarasu/onedark.nvim",
+			"Shatur/neovim-ayu",
+			"mcchrish/zenbones.nvim",
+			"tjdevries/colorbuddy.nvim",
+			"jesseleite/nvim-noirbuddy",
+			"ray-x/starry.nvim",
+			"catppuccin/nvim",
+			"marko-cerovac/material.nvim",
+			"fenetikm/falcon",
+			"shaunsingh/nord.nvim",
+			"rebelot/kanagawa.nvim",
+			"EdenEast/nightfox.nvim",
+			"projekt0n/github-nvim-theme",
+			"bluz71/vim-nightfly-colors",
+			"bluz71/vim-moonfly-colors",
+			"folke/lsp-colors.nvim",
+			"savq/melange-nvim",
+			"AlexvZyl/nordic.nvim",
+			"mhartington/oceanic-next",
+			"folke/tokyonight.nvim",
+		},
+		priority = 300,
+	},
 
-    devicons = {
-        "nvim-tree/nvim-web-devicons",
-    },
+	vimtex = {
+		"lervag/vimtex",
+		ft = "tex",
+	},
 
-    netrw = {
-        "prichrd/netrw.nvim",
-    },
+	devicons = {
+		"nvim-tree/nvim-web-devicons",
+	},
 
-    surround = {
-        "kylechui/nvim-surround",
-        event = "InsertEnter",
-    },
+	netrw = {
+		"prichrd/netrw.nvim",
+	},
 
-    autopairs = {
-        "windwp/nvim-autopairs",
-        event = "InsertEnter",
-    },
+	surround = {
+		"kylechui/nvim-surround",
+		event = "InsertEnter",
+	},
 
-    lint = {
-        "mfussenegger/nvim-lint",
-        event = "BufEnter",
-    },
+	autopairs = {
+		"windwp/nvim-autopairs",
+		event = "InsertEnter",
+	},
 
-    clipboard = {
-        "jasonccox/vim-wayland-clipboard",
-        keys = '"',
-        event = "BufEnter",
-    },
+	lint = {
+		"mfussenegger/nvim-lint",
+		event = "BufEnter",
+	},
 
-    startuptime = {
-        "dstein64/vim-startuptime",
-        config = function()
-            kbd.map("ni", "q", "<cmd>hide<CR>", {
-                name = "startuptime.hide_buffer",
-                event = "FileType",
-                pattern = "startuptime",
-            })
+	clipboard = {
+		"jasonccox/vim-wayland-clipboard",
+		keys = '"',
+		event = "BufEnter",
+	},
 
-            kbd.noremap("n", "<leader>hs", "<cmd>StartupTime<CR>", {
-                name = "startuptime",
-            })
-        end,
-    },
+	startuptime = {
+		"dstein64/vim-startuptime",
+		config = function()
+			kbd.map("ni", "q", "<cmd>hide<CR>", {
+				name = "startuptime.hide_buffer",
+				event = "FileType",
+				pattern = "startuptime",
+			})
 
-    comment = {
-        "tpope/vim-commentary",
-        event = "InsertEnter",
-    },
+			kbd.noremap("n", "<leader>hs", "<cmd>StartupTime<CR>", {
+				name = "startuptime",
+			})
+		end,
+	},
 
-    fennel = {
-        "jaawerth/fennel.vim",
-        ft = "fennel",
-    },
+	comment = {
+		"tpope/vim-commentary",
+		event = "InsertEnter",
+	},
 
-    hop = {
-        "phaazon/hop.nvim",
-        event = "BufEnter",
-    },
+	fennel = {
+		"jaawerth/fennel.vim",
+		ft = "fennel",
+	},
 
-    illuminate = { "RRethy/vim-illuminate", event = "InsertEnter" },
+	hop = {
+		"phaazon/hop.nvim",
+		event = "BufEnter",
+	},
 
-    treesitter = {
-        "nvim-treesitter/nvim-treesitter",
-        event = "InsertEnter",
-        dependencies = {
-            "windwp/nvim-autopairs",
-            "RRethy/vim-illuminate",
-            "RRethy/nvim-treesitter-textsubjects",
-            "nvim-treesitter/nvim-treesitter-textobjects",
-            {
-                "kiyoon/treesitter-indent-object.nvim",
-                keys = {
-                    {
-                        "ai",
-                        "<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_outer()<CR>",
-                        mode = { "x", "o" },
-                        desc = "Select indent (outer)",
-                    },
-                    {
-                        "aI",
-                        "<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_outer(true)<CR>",
-                        mode = { "x", "o" },
-                        desc = "Select indent (outer, line-wise)",
-                    },
-                    {
-                        "ii",
-                        "<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_inner()<CR>",
-                        mode = { "x", "o" },
-                        desc = "Select indent (inner, partial range)",
-                    },
-                    {
-                        "iI",
-                        "<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_inner(true)<CR>",
-                        mode = { "x", "o" },
-                        desc = "Select indent (inner, entire range)",
-                    },
-                },
-                event = "BufReadPost",
-            },
-            {
-                "mfussenegger/nvim-treehopper",
-                dependencies = { "phaazon/hop.nvim" },
-            },
-            "kiyoon/treesitter-indent-object.nvim",
-            "cshuaimin/ssr.nvim",
-            "nvim-treesitter/nvim-treesitter-refactor",
-            "MunifTanjim/nui.nvim",
-        },
-    },
+	illuminate = { "RRethy/vim-illuminate", event = "InsertEnter" },
 
-    treehopper = {
-        "mfussenegger/nvim-treehopper",
-        dependencies = { "phaazon/hop.nvim" },
-        event = { "BufEnter" },
-    },
+	treesitter = {
+		"nvim-treesitter/nvim-treesitter",
+		event = "InsertEnter",
+		dependencies = {
+			"windwp/nvim-autopairs",
+			"RRethy/vim-illuminate",
+			"RRethy/nvim-treesitter-textsubjects",
+			"nvim-treesitter/nvim-treesitter-textobjects",
+			{
+				"kiyoon/treesitter-indent-object.nvim",
+				keys = {
+					{
+						"ai",
+						"<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_outer()<CR>",
+						mode = { "x", "o" },
+						desc = "Select indent (outer)",
+					},
+					{
+						"aI",
+						"<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_outer(true)<CR>",
+						mode = { "x", "o" },
+						desc = "Select indent (outer, line-wise)",
+					},
+					{
+						"ii",
+						"<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_inner()<CR>",
+						mode = { "x", "o" },
+						desc = "Select indent (inner, partial range)",
+					},
+					{
+						"iI",
+						"<Cmd>lua require'treesitter_indent_object.textobj'.select_indent_inner(true)<CR>",
+						mode = { "x", "o" },
+						desc = "Select indent (inner, entire range)",
+					},
+				},
+				event = "BufReadPost",
+			},
+			{
+				"mfussenegger/nvim-treehopper",
+				dependencies = { "phaazon/hop.nvim" },
+			},
+			"kiyoon/treesitter-indent-object.nvim",
+			"cshuaimin/ssr.nvim",
+			"nvim-treesitter/nvim-treesitter-refactor",
+			"MunifTanjim/nui.nvim",
+		},
+	},
 
-    snippets = {
-        "L3MON4D3/LuaSnip",
-        dependencies = { "rafamadriz/friendly-snippets" },
-        event = "InsertEnter",
-    },
+	treehopper = {
+		"mfussenegger/nvim-treehopper",
+		dependencies = { "phaazon/hop.nvim" },
+		event = { "BufEnter" },
+	},
 
-    cmp = {
-        "hrsh7th/nvim-cmp",
-        event = "InsertEnter",
-        dependencies = {
-            "onsails/lspkind.nvim",
-            "L3MON4D3/LuaSnip",
-            "saadparwaiz1/cmp_luasnip",
-            "tamago324/cmp-zsh",
-            "hrsh7th/cmp-nvim-lsp",
-            "ray-x/cmp-treesitter",
-            "hrsh7th/cmp-nvim-lua",
-            "hrsh7th/cmp-path",
-            "hrsh7th/cmp-nvim-lsp-signature-help",
-            "hrsh7th/cmp-nvim-lsp-document-symbol",
-            "ray-x/navigator.lua",
-        },
-    },
+	snippets = {
+		"L3MON4D3/LuaSnip",
+		dependencies = { "rafamadriz/friendly-snippets" },
+		event = "InsertEnter",
+	},
 
-    fugitive = {
-        "tpope/vim-fugitive",
-        dependencies = { "tpope/vim-git" },
-    },
+	cmp = {
+		"hrsh7th/nvim-cmp",
+		event = "InsertEnter",
+		dependencies = {
+			"onsails/lspkind.nvim",
+			"L3MON4D3/LuaSnip",
+			"saadparwaiz1/cmp_luasnip",
+			"tamago324/cmp-zsh",
+			"hrsh7th/cmp-nvim-lsp",
+			"ray-x/cmp-treesitter",
+			"hrsh7th/cmp-nvim-lua",
+			"hrsh7th/cmp-path",
+			"hrsh7th/cmp-nvim-lsp-signature-help",
+			"hrsh7th/cmp-nvim-lsp-document-symbol",
+			"ray-x/navigator.lua",
+		},
+	},
 
-    tagbar = {
-        "preservim/tagbar",
-        config = function() kbd.map("n", "<localleader>t", ":TagbarToggle<CR>", { desc = "Tagbar", name = "tagbar" }) end,
-        event = "InsertEnter",
-    },
+	fugitive = {
+		"tpope/vim-fugitive",
+		dependencies = { "tpope/vim-git" },
+	},
 
-    whichkey = {
-        "folke/which-key.nvim",
-    },
+	tagbar = {
+		"preservim/tagbar",
+		config = function()
+			kbd.map("n", "<localleader>t", ":TagbarToggle<CR>", { desc = "Tagbar", name = "tagbar" })
+		end,
+		event = "InsertEnter",
+	},
 
-    markdownpreview = {
-        "iamcco/markdown-preview.nvim",
-        build = "cd app && yarn install",
-        ft = "markdown",
-    },
+	whichkey = {
+		"folke/which-key.nvim",
+	},
 
-    lspsaga = {
-        "nvimdev/lspsaga.nvim",
-        event = "BufEnter",
-    },
+	markdownpreview = {
+		"iamcco/markdown-preview.nvim",
+		build = "cd app && yarn install",
+		ft = "markdown",
+	},
 
-    lsp = {
-        "neovim/nvim-lspconfig",
-        dependencies = {
-            "lukas-reineke/lsp-format.nvim",
-        },
-    },
+	lspsaga = {
+		"nvimdev/lspsaga.nvim",
+		event = "BufEnter",
+	},
 
-    undotree = {
-        "mbbill/undotree",
-        event = "InsertEnter",
-    },
+	lsp = {
+		"neovim/nvim-lspconfig",
+		dependencies = {
+			"lukas-reineke/lsp-format.nvim",
+			{ "folke/neodev.nvim", opts = {} },
+		},
+	},
 
-    elixir = {
-        "elixir-editors/vim-elixir",
-        ft = "elixir",
-    },
+	undotree = {
+		"mbbill/undotree",
+		event = "InsertEnter",
+	},
 
-    sexp = {
-        "guns/vim-sexp",
-        ft = { "lisp", "clojure", "scheme" },
-    },
+	elixir = {
+		"elixir-editors/vim-elixir",
+		ft = "elixir",
+	},
+
+	sexp = {
+		"guns/vim-sexp",
+		ft = { "lisp", "clojure", "scheme" },
+	},
 }
-
-
