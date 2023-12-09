@@ -4,7 +4,7 @@ require "core.utils.win"
 require "core.utils.kbd"
 require "core.utils.job"
 
---- @alias lang_command_spec string|table|fun(path:string): string
+--- @alias lang.commandspec string|table|fun(path:string): string
 --- @alias lang.mapping table<string,list>
 --- @alias lang.autocmd table<string,fun(table)>
 
@@ -27,9 +27,9 @@ require "core.utils.job"
 --- @overload fun(string): lang
 
 --- @class lang.command
---- @field buffer lang_command_spec
---- @field workspace lang_command_spec
---- @field dir lang_command_spec
+--- @field buffer lang.commandspec
+--- @field workspace lang.commandspec
+--- @field dir lang.commandspec
 
 --- @class lang.formatter : lang.command
 --- @field stdin boolean
