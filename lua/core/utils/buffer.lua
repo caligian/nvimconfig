@@ -1135,9 +1135,9 @@ function buffer.hide(bufnr)
 	end
 end
 
-function buffer.goto(bufnr)
+function buffer.focus(bufnr)
 	if buffer.isvisible(bufnr) then
-		return win.goto(buffer.winnr(bufnr))
+		return win.focus(buffer.winnr(bufnr))
 	end
 end
 

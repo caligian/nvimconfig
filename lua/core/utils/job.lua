@@ -5,7 +5,6 @@ local uv = vim.loop
 
 job = job
 	or struct("job", {
-		"real_cmd",
 		"exit_code",
 		"cmd",
 		"args",
@@ -17,26 +16,8 @@ job = job
 		"output_buffer",
 		"stdout_buffer",
 		"stderr_buffer",
-		"cmd_path",
 		"cwd",
 	})
-
-function job.writecmd(self)
-	local dirname = self.cwd
-	local cmd = self.real_cmd
-	local fname = system("mktemp")[1]
-
-	local contents = {
-		"#!/bin/bash",
-		"",
-		"cd " .. dirname,
-		"exec " .. cmd,
-		"",
-	}
-
-	file.write(fname, concat(contents, "\n"))
-	return fname
-end
 
 function job.mkpipes(self)
 	self.pipes = {}
@@ -65,11 +46,8 @@ function job.init(self, cmd, opts)
 	opts = deepcopy(opts or {})
 	local cwd = opts.cwd or path.dirname(buffer.name())
 	opts.cwd = nil
-	self.real_cmd = cmd
+  self.cmd = cmd
 	self.cwd = cwd
-	-- self.cmd_path = job.writecmd(self)
-	-- cmd = "bash"
-	-- opts.args = { self.cmd_path }
 	local args = opts.args
 	local check = uv.new_check()
 	local stdout = opts.stdout
@@ -77,6 +55,7 @@ function job.init(self, cmd, opts)
 	local output = opts.output
 	local bufsplit = opts.split
 	local float = opts.float
+  local before = opts.before
 	local on_exit = opts.on_exit
 	local stdout_buffer = opts.stdout_buffer
 	local stderr_buffer = opts.stderr_buffer
@@ -119,7 +98,7 @@ function job.init(self, cmd, opts)
 
 	local function write_output(cls)
 		if output_buffer then
-			local cmd_s = "COMMAND: " .. cls.real_cmd
+			local cmd_s = "COMMAND: " .. cls.cmd
 			local lines = { cmd_s, "" }
 			local ok_lines = has_lines(cls.lines)
 			local ok_errors = has_lines(cls.errors)
@@ -194,6 +173,10 @@ function job.init(self, cmd, opts)
 		cmd = cmd[1]
 	end
 
+  if before then
+    before()
+  end
+
 	local fh = uv.spawn(
 		cmd,
 		opts,
@@ -207,7 +190,6 @@ function job.init(self, cmd, opts)
 			end
 
 			write_output(self)
-			-- system("rm " .. self.cmd_path)
 		end)
 	)
 

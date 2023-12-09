@@ -273,7 +273,7 @@ function win.tabwin(winnr)
 	return out
 end
 
-function win.id.goto(id)
+function win.id.focus(id)
 	return vim.fn.win_gotoid(id) ~= 0
 end
 
@@ -660,7 +660,7 @@ function float:__call(winnr, opts)
 		return false
 	end
 
-	win.id.goto(winid)
+	win.id.focus(winid)
 
 	return winid
 end
@@ -725,8 +725,8 @@ function win.hide(winnr)
 	return win.id.hide(win.nr2id(winnr))
 end
 
-function win.goto(winnr)
-	return win.id.goto(win.nr2id(winnr))
+function win.focus(winnr)
+	return win.id.focus(win.nr2id(winnr))
 end
 
 function win.id.float:__call(winid, opts)
