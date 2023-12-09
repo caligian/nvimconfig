@@ -160,10 +160,7 @@ function REPL.init(self, opts)
 	elseif ftlocal == true then
 		buf = buffer.current()
 		ftlocal = true
-	elseif buflocal == true then
-		buf = buffer.current()
-		buflocal = true
-	else
+  else
 		buf = buflocal or buffer.current()
 		buflocal = true
 	end

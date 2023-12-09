@@ -167,7 +167,7 @@ function req2path(s, isfile)
 	end
 
 	local isdir = path.exists(test)
-	local isfile = path.exists(test .. ".lua")
+	isfile = path.exists(test .. ".lua")
 
 	if isfile and isfile then
 		return test .. ".lua", "file"
