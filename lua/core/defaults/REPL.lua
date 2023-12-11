@@ -1,4 +1,4 @@
-require("core.utils.REPL")
+require "core.utils.REPL"
 
 REPL.map("n", "r", "start_and_split", "split")
 REPL.map("n", "s", "start_and_split", "split")

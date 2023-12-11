@@ -1,11 +1,5 @@
-require("core.utils.lsp")
+list.each(filetype.list(), function(x)
+  filetype(x):setup_lsp()
+end)
 
-local lsp = plugin.get("lsp")
-
-for ft, obj in pairs(filetype.filetypes) do
-	if obj.lsp_server then
-		filetype.setup_lsp(obj)
-	end
-end
-
-return lsp
+return {}

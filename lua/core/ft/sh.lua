@@ -1,4 +1,4 @@
-local sh = filetype.get("sh")
+local sh = filetype.get "sh"
 
 sh.repl = "/bin/bash"
 sh.compile = "/bin/bash %s"
