@@ -1,5 +1,6 @@
 local colorscheme = {}
 
+
 colorscheme.config = {
   starry = {
     config = {
@@ -210,15 +211,6 @@ colorscheme.autocmds = {
       end,
     },
   },
-  visual_mode_colors = {
-    "ColorScheme",
-    {
-      pattern = '*',
-      callback = function ()
-        highlightset('Visual', {guibg = '#18088d', guifg='#ffffff'})
-      end
-    }
-  }
 }
 
 return colorscheme

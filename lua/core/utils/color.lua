@@ -141,7 +141,7 @@ function highlightset(hi, set, defaults)
 end
 
 --- ttps://stackoverflow.com/questions/22603510/is-this-possible-to-detect-a-colour-is-a-light-or-dark-colour
-function isdark(hex_or_r, g, b)
+function islight(hex_or_r, g, b)
   local r
 
   if g then
@@ -160,8 +160,8 @@ function isdark(hex_or_r, g, b)
   return isdark(hex2rgb(hex_or_r))
 end
 
-function islight(...)
-  return not isdark(...)
+function isdark(...)
+  return not islight(...)
 end
 
 function luminance(red_or_hex, green, blue)

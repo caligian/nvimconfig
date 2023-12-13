@@ -263,7 +263,6 @@ function plugin.lazy_spec()
     assertisa(spec[1], "string")
 
     local conf = spec.config
-
     function spec.config()
       local ok, msg = pcall(function()
         local plug = plugin(name)

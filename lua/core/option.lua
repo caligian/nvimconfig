@@ -33,7 +33,7 @@ user.option = {
     foldmethod = "indent",
     inccommand = "split",
     background = "dark",
-    guifont = "Liberation Mono:h12",
+    guifont = "Liberation Mono:h11",
     virtualedit = "onemore",
   },
   g = {

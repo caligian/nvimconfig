@@ -1,9 +1,11 @@
 require "core.utils.kbd"
 
-bookmark = bookmark or module "bookmark"
-bookmark.path =
-  path.join(os.getenv "HOME", ".bookmarks.json")
-bookmark.bookmarks = bookmark.bookmarks or {}
+if not bookmark then
+  bookmark = module "bookmark"
+  bookmark.path = path.join(os.getenv "HOME", ".bookmarks.json")
+  bookmark.bookmarks = {}
+end
+
 local bookmarks = bookmark.bookmarks
 
 function string_keys(x)
@@ -60,6 +62,42 @@ function bookmark.main()
   s = from_string_keys(json.decode(s))
 
   bookmark.bookmarks = s
+
+  kbd.fromdict {
+    add_bookmark = {
+      'n',
+      'gba',
+      function ()
+        bookmark.add_and_save(buffer.name(), win.pos(win.winnr()).row)
+      end,
+      {
+        desc = 'add and save bookmark'
+      }
+    },
+
+    bookmark_line_picker = {
+      'n',
+      'g.',
+      function ()
+        bookmark.run_line_picker(buffer.current())
+      end,
+      {
+        desc = 'run bookmark line picker'
+      }
+    },
+
+    bookmark_picker = {
+      'n',
+      'g<space>',
+      function ()
+        bookmark.run_dwim_picker()
+      end,
+      {
+        desc = 'run bookmark picker'
+      }
+    },
+  }
+
   return s
 end
 
@@ -96,7 +134,7 @@ function bookmark.add(file_path, lines, desc)
   end
 
   obj.creation_time = now
-  dict.merge(obj.context, tolist(lines))
+  dict.merge(obj.context, dict.fromkeys(tolist(lines)))
   obj.file = isfile
   obj.dir = isdir
   obj.desc = desc
@@ -152,6 +190,7 @@ end
 
 function bookmark.get_context(file_path, line)
   data = split(file.read(file_path), "\n")
+  line = tonumber(line) or line
 
   if line > #data or #data < 1 then
     error(
@@ -240,6 +279,7 @@ function bookmark.picker_results(file_path)
 end
 
 function bookmark.create_line_picker(file_path)
+  file_path = isnumber(file_path) and buffer.exists(file_path) and buffer.name(file_path) or file_path
   local obj = bookmark.bookmarks[file_path]
   local fail = not obj
     or obj.dir
@@ -270,7 +310,6 @@ function bookmark.create_line_picker(file_path)
   end
 
   local context = bookmark.picker_results(obj.path)
-
   local picker = t:create_picker(context, {
     line_mod.default_action,
     { "n", "x", line_mod.del },
@@ -365,5 +404,3 @@ function bookmark.run_dwim_picker()
 
   return true
 end
-
-return bookmark

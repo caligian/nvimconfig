@@ -5,6 +5,7 @@ return {
 
   neorg = {
     "nvim-neorg/neorg",
+    ft = "norg",
   },
 
   plenary = {
@@ -26,6 +27,7 @@ return {
 
   notify = {
     "rcarriga/nvim-notify",
+    event = "BufEnter",
   },
 
   signs = {
@@ -35,21 +37,21 @@ return {
 
   indentblankline = {
     "lukas-reineke/indent-blankline.nvim",
-    event = "InsertEnter",
   },
 
   align = {
     "junegunn/vim-easy-align",
+    event = "InsertEnter",
   },
 
   suda = {
     "lambdalisue/suda.vim",
+    event = "BufEnter",
   },
 
   colorscheme = {
-    "maxmx03/solarized.nvim",
+    "sainnhe/everforest",
     dependencies = {
-      "sainnhe/everforest",
       "rktjmp/lush.nvim",
       "rose-pine/neovim",
       "navarasu/onedark.nvim",
@@ -73,9 +75,6 @@ return {
       "mhartington/oceanic-next",
       "folke/tokyonight.nvim",
     },
-    config = function ()
-      plugin.plugins.colorscheme:setup()
-    end,
     priority = 300,
   },
 
@@ -230,6 +229,7 @@ return {
   fugitive = {
     "tpope/vim-fugitive",
     dependencies = { "tpope/vim-git" },
+    event = "BufEnter",
   },
 
   tagbar = {
@@ -266,6 +266,7 @@ return {
       "lukas-reineke/lsp-format.nvim",
       { "folke/neodev.nvim", opts = {} },
     },
+    event = "BufAdd",
   },
 
   undotree = {
@@ -283,3 +284,4 @@ return {
     ft = { "lisp", "clojure", "scheme" },
   },
 }
+

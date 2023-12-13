@@ -1,3 +1,5 @@
 return {
-  nvim_lua = { "BufEnter", "*.config/nvim*lua" },
+  nvim_lua = { "BufAdd", "*.config/nvim*lua" },
+  xdg_config = {'BufAdd', os.getenv('HOME') .. '/.config/*'},
+  all = {'BufAdd', '*'},
 }

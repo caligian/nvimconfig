@@ -1,9 +1,22 @@
 local M = {}
 
+local function getivy()
+  return
+    dict.merge(require("telescope.themes").get_dropdown(), {
+      disable_devicons = true,
+      previewer = false,
+      extensions = {},
+      layout_config = {
+        height = 0.8,
+        width = 0.9,
+      },
+    })
+end
+
 local function picker(p, conf)
   return function()
     require("telescope.builtin")[p](
-      dict.merge(conf or {}, ivy)
+      dict.merge(conf or {}, getivy())
     )
   end
 end
@@ -178,74 +191,64 @@ M.mappings = {
     "n",
     "\\",
     function()
-      require("telescope").extensions.file_browser.file_browser(
-        ivy
-      )
+      require("telescope").extensions.file_browser.file_browser()
     end,
     O { desc = "Open file browser" },
   },
 }
 
-function M:setup()
-  local buffer_actions =
-    require "core.plugins.telescope.actions.buffer"
+local buffer_actions =
+  require "core.plugins.telescope.actions.buffer"
 
-  local find_files_actions =
-    require "core.plugins.telescope.actions.find-files"
+local find_files_actions =
+  require "core.plugins.telescope.actions.find-files"
 
-  local file_browser_actions =
-    require "core.plugins.telescope.actions.file-browser"
+local file_browser_actions =
+  require "core.plugins.telescope.actions.file-browser"
 
-  local ivy =
-    dict.merge(require("telescope.themes").get_dropdown(), {
-      disable_devicons = true,
-      previewer = false,
-      extensions = {},
-      layout_config = {
-        height = 0.8,
-        width = 0.9,
+M.config = {}
+M.config.extensions = {
+  file_browser = {
+    hijack_netrw = true,
+    mappings = {
+      n = {
+        x = file_browser_actions.delete,
+        X = file_browser_actions.force_delete,
+        ["%"] = file_browser_actions.touch,
       },
-    })
+    },
+  },
+}
 
-  local T = copy(ivy)
+M.config.pickers = {
+  buffers = {
+    show_all_buffers = true,
+    mappings = {
+      n = {
+        x = buffer_actions.bwipeout,
+        ["!"] = buffer_actions.nomodified,
+        w = buffer_actions.save,
+        r = buffer_actions.readonly,
+      },
+    },
+  },
+  find_files = {
+    mappings = {
+      n = {
+        n = find_files_actions.touch_and_open,
+        ["%"] = find_files_actions.touch,
+        x = find_files_actions.delete,
+      },
+    },
+  },
+}
+
+function M:setup()
+  local ivy = getivy()
+  local T = T
+
   --------------------------------------------------------------------------------
   -- Some default overrides
-  T.extensions = {
-    file_browser = {
-      hijack_netrw = true,
-      mappings = {
-        n = {
-          x = file_browser_actions.delete,
-          X = file_browser_actions.force_delete,
-          ["%"] = file_browser_actions.touch,
-        },
-      },
-    },
-  }
-
-  T.pickers = {
-    buffers = {
-      show_all_buffers = true,
-      mappings = {
-        n = {
-          x = buffer_actions.bwipeout,
-          ["!"] = buffer_actions.nomodified,
-          w = buffer_actions.save,
-          r = buffer_actions.readonly,
-        },
-      },
-    },
-    find_files = {
-      mappings = {
-        n = {
-          n = find_files_actions.touch_and_open,
-          ["%"] = find_files_actions.touch,
-          x = find_files_actions.delete,
-        },
-      },
-    },
-  }
-
   local ts = require "telescope"
   ts.setup(T)
   ts.load_extension "file_browser"

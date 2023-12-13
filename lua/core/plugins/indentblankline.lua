@@ -1,12 +1,13 @@
 local indent = require "ibl"
 local indentblankline = {}
-indentblankline.methods = {}
 
-function indentblankline.methods.set_highlight()
+function indentblankline.set_highlight()
   local normal = highlight "Normal"
-  normal.guibg = normal.guibg or "#000000"
+  if not normal.guibg then
+    return
+  end
 
-  if islight(normal.guibg) then
+  if isdark(normal.guibg) then
     normal.guifg = darken(normal.guibg, 20)
   else
     normal.guifg = lighten(normal.guibg, 20)
@@ -20,13 +21,13 @@ indentblankline.autocmds = {
     "ColorScheme",
     {
       pattern = "*",
-      callback = indentblankline.methods.set_highlight,
+      callback = indentblankline.set_highlight,
     },
   },
 }
 
 function indentblankline:setup()
-  indentblankline.methods.set_highlight()
+  indentblankline.set_highlight()
   indent.setup(self.config or {})
 end
 
