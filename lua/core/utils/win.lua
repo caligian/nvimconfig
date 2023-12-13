@@ -24,7 +24,8 @@ local function default_winnr()
 end
 
 function win.exists(winnr)
-  local ok = vim.api.nvim_win_is_valid(win.nr2id(winnr) or -1)
+  local ok =
+    vim.api.nvim_win_is_valid(win.nr2id(winnr) or -1)
   if not ok then
     return
   end
@@ -99,7 +100,8 @@ function win.var(winnr, var)
     return
   end
 
-  local ok, msg = pcall(vim.api.nvim_win_get_var, win.nr2id(winnr), var)
+  local ok, msg =
+    pcall(vim.api.nvim_win_get_var, win.nr2id(winnr), var)
 
   if not ok then
     return false, msg
@@ -115,7 +117,11 @@ function win.option(winnr, opt)
     return
   end
 
-  local ok, msg = pcall(vim.api.nvim_win_get_option, win.nr2id(winnr), opt)
+  local ok, msg = pcall(
+    vim.api.nvim_win_get_option,
+    win.nr2id(winnr),
+    opt
+  )
 
   if not ok then
     return false, msg
@@ -131,7 +137,8 @@ function win.del_var(winnr, var)
     return
   end
 
-  local ok, msg = pcall(vim.api.nvim_win_del_var, winnr, var)
+  local ok, msg =
+    pcall(vim.api.nvim_win_del_var, winnr, var)
 
   if not ok then
     return false, msg
@@ -241,7 +248,11 @@ function win.move(from_winnr, towinnr, opts)
     return
   end
 
-  vim.fn.win_splitmove(from_winnr, towinnr, opts or { right = true })
+  vim.fn.win_splitmove(
+    from_winnr,
+    towinnr,
+    opts or { right = true }
+  )
 
   return true
 end
@@ -301,9 +312,15 @@ function win.split(winnr, direction)
     cmd(direction)
   elseif direction:match_any("aboveleft", "leftabove") then
     cmd(direction)
-  elseif direction:match_any("belowright", "rightbelow") then
+  elseif
+    direction:match_any("belowright", "rightbelow")
+  then
     cmd(direction)
-  elseif direction == "tabnew" or direction == "t" or direction == "tab" then
+  elseif
+    direction == "tabnew"
+    or direction == "t"
+    or direction == "tab"
+  then
     cmd ":tabnew"
   end
 
@@ -616,8 +633,10 @@ function float:__call(winnr, opts)
     end
 
     local width, height = unpack(center)
-    width = math.floor(from_percent(current_width, width, 10))
-    height = math.floor(from_percent(current_height, height, 5))
+    width =
+      math.floor(from_percent(current_width, width, 10))
+    height =
+      math.floor(from_percent(current_height, height, 5))
     local col = (current_width - width) / 2
     local row = (current_height - height) / 2
     opts.width = width
@@ -647,7 +666,8 @@ function float:__call(winnr, opts)
     opts.col = 0
     opts.row = opts.height - dock
     opts.height = from_percent(current_height, dock, 5)
-    opts.width = current_width > 5 and current_width - 2 or current_width
+    opts.width = current_width > 5 and current_width - 2
+      or current_width
 
     if reverse then
       opts.row = opts.height
@@ -690,12 +710,19 @@ end
 
 function float.dock(winnr, size, opts)
   size = size or 10
-  return float(winnr, dict.merge({ dock = size }, opts or {}))
+  return float(
+    winnr,
+    dict.merge({ dock = size }, opts or {})
+  )
 end
 
 function float.set_config(winnr, config)
   config = config or {}
-  local ok, msg = pcall(vim.api.nvim_win_set_config, win.nr2id(winnr), config)
+  local ok, msg = pcall(
+    vim.api.nvim_win_set_config,
+    win.nr2id(winnr),
+    config
+  )
 
   if not ok then
     return false, msg
@@ -709,7 +736,8 @@ function float.get_config(winnr)
     return
   end
 
-  local ok, msg = pcall(vim.api.nvim_win_get_config, win.nr2id(winnr))
+  local ok, msg =
+    pcall(vim.api.nvim_win_get_config, win.nr2id(winnr))
   if not ok then
     return false, msg
   end

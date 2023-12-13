@@ -1,7 +1,7 @@
-local ruby = "ruby"
+local ruby = {}
 ruby.compile = "ruby %s"
 ruby.repl = "irb --inf-ruby-mode"
 ruby.test = "rspec"
-ruby.lsp_server = "solargraph"
+ruby.server = "solargraph"
 
 return ruby

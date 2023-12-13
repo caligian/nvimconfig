@@ -1,13 +1,15 @@
 say = vim.notify
 
 require "core.globals"
-require "core.option"
-require "core.defaults"
 require "core.netrw"
+require "core.option"
 
 bookmark.main()
 filetype.main()
+repl.main()
+buffergroup.main()
+kbd.main()
+au.main()
 plugin.main()
-repl.set_mappings()
 
--- say = plugin.get('notify').methods.say or vim.notify
+require 'core.defaults.commands'

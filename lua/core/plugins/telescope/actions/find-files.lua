@@ -6,7 +6,7 @@ end
 
 local mod = {
   delete = function(prompt_bufnr)
-    local sel = _.selected(prompt_bufnr, true)
+    local sel = _:selected(prompt_bufnr, true)
     list.each(sel, function(x)
       x = get_fname(x)
       print("rm -r " .. x)

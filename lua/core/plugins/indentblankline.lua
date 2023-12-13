@@ -18,7 +18,10 @@ end
 indentblankline.autocmds = {
   set_indentchar_color = {
     "ColorScheme",
-    { pattern = "*", callback = indentblankline.methods.set_highlight },
+    {
+      pattern = "*",
+      callback = indentblankline.methods.set_highlight,
+    },
   },
 }
 

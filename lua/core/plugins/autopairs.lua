@@ -1,7 +1,13 @@
 local autopairs = {}
 
 autopairs.config = {
-  disable_filetype = { "TelescopePrompt", "spectre_panel", "lisp", "clojure", "scheme" },
+  disable_filetype = {
+    "TelescopePrompt",
+    "spectre_panel",
+    "lisp",
+    "clojure",
+    "scheme",
+  },
   disable_in_macro = false,
   disable_in_visualblock = false,
   disable_in_replace_mode = true,

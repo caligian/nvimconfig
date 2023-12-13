@@ -3,20 +3,10 @@ local disable = vim.api.nvim_del_autocmd
 local getinfo = vim.api.nvim_get_autocmds
 local create_augroup = vim.api.nvim_create_augroup
 
-au = au
-  or struct("au", {
-    "id",
-    "command",
-    "name",
-    "event",
-    "pattern",
-    "callback",
-    "group",
-    "once",
-    "buffers",
-    "buffer",
-    "nested",
-  })
+if not au then
+  au = class "au"
+  au.autocmds = {}
+end
 
 au.autocmds = au.autocmds or {}
 
@@ -80,7 +70,11 @@ function au.init(self, event, opts)
 end
 
 function au.exists(self)
-  local found, msg = pcall(get, { group = self.group, event = self.event, buffer = self.buffers })
+  local found, msg = pcall(get, {
+    group = self.group,
+    event = self.event,
+    buffer = self.buffers,
+  })
 
   if not found then
     if msg and msg:match "Invalid .group." then
@@ -176,8 +170,102 @@ function au.map_groups(groups, compile)
   local all_groups = {}
 
   dict.map(groups, function(name, group)
-    dict.merge(all_groups, au.map_group(name, group, compile))
+    dict.merge(
+      all_groups,
+      au.map_group(name, group, compile)
+    )
   end)
 
   return all_groups
+end
+
+function au.fromdict(specs)
+  assertisa(specs, function(x)
+    return dict.isa(x, function(arg)
+      return islist(arg)
+        and #arg == 2
+        and isdict(arg[2])
+        and arg[2].callback
+        and arg[2].pattern
+    end)
+  end)
+
+  local out = {}
+  for key, value in pairs(specs) do
+    params {
+      {
+        {
+          union("string", "table"),
+          {
+            __extra = true,
+            callback = union("string", "callable"),
+            pattern = union("string", "table"),
+          },
+        },
+        value,
+      },
+    }
+
+    value[2] = isstring(value[2]) and { desc = value[2] }
+      or value[2]
+    value[2].name = key
+
+    out[key] = au.map(unpack(value))
+  end
+
+  return out
+end
+
+function au.loadfile()
+  local src = req2path "core.defaults.autocmds"
+  local usersrc = req2path "user.autocmds"
+  local specs = {}
+
+  if src then
+    local config = loadfile(src)
+    if isfunction(config) then
+      config = config()
+      if istable(config) then
+        dict.merge(specs, config)
+      end
+    end
+  end
+
+  if usersrc then
+    local config = loadfile(usersrc)
+    if isfunction(config) then
+      config = config()
+      if istable(config) then
+        dict.merge(specs, config)
+      end
+    end
+  end
+
+  return au.fromdict(specs)
+end
+
+function au.require()
+  local src = req2path "core.defaults.autocmds"
+  local usersrc = req2path "user.autocmds"
+  local specs = {}
+
+  if usersrc then
+    local config = requirex "core.defaults.autocmds"
+    if istable(config) then
+      dict.merge(specs, config)
+    end
+  end
+
+  if src then
+    local config = requirex "core.defaults.autocmds"
+    if istable(config) then
+      dict.merge(specs, config)
+    end
+  end
+
+  return au.fromdict(specs)
+end
+
+function au.main()
+  return au.require()
 end

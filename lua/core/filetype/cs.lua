@@ -1,17 +1,27 @@
-local cs = filetype "cs"
+local cs = {}
 
 cs.repl = "csharp"
-cs.compile = function(bufnr)
-  local name = buffer.name(bufnr)
-  local exe = name:gsub("cs$", "exe")
 
-  return sprintf("csc %s && [[ -f %s ]] && mono %s", name, exe, exe)
+cs.compile = function(bufname)
+  local exe = name:gsub("cs$", "exe")
+  return template "csc {path}  && [[ -f %s ]] && mono {path}" {
+    path = bufname,
+  }
 end
+
 cs.build = "csc %%"
-cs.lsp_server = {
+
+cs.server = {
   "omnisharp",
   config = {
-    cmd = { path.join(os.getenv "HOME", "Downloads", "omnisharp", "run") },
+    cmd = {
+      path.join(
+        os.getenv "HOME",
+        "Downloads",
+        "omnisharp",
+        "run"
+      ),
+    },
     settings = {
       FormattingOptions = {
         EnableEditorConfigSupport = true,

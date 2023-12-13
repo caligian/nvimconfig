@@ -112,7 +112,16 @@ cmp.config = {
     scrollbar = "║",
 
     documentation = {
-      border = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" },
+      border = {
+        "╭",
+        "─",
+        "╮",
+        "│",
+        "╯",
+        "─",
+        "╰",
+        "│",
+      },
       scrollbar = "|",
       -- other options
     },
@@ -129,7 +138,9 @@ function cmp:setup()
   cmp_zsh.setup { zshrc = true, filetypes = { "zsh" } }
 
   nvim_cmp.setup.cmdline("/", {
-    sources = nvim_cmp.config.sources { { name = "nvim_lsp_document_symbol" } },
+    sources = nvim_cmp.config.sources {
+      { name = "nvim_lsp_document_symbol" },
+    },
   })
 
   nvim_cmp.setup(self.config)

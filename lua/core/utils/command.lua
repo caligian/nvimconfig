@@ -132,7 +132,13 @@ function command.init_before(name, callback, opts)
       if validate then
         for i = 1, #o.fargs do
           if not validate(o.fargs[i]) then
-            error(name .. ": validation error for arg " .. i .. ": " .. o.fargs[i])
+            error(
+              name
+                .. ": validation error for arg "
+                .. i
+                .. ": "
+                .. o.fargs[i]
+            )
           end
         end
       end
@@ -146,7 +152,8 @@ function command.init_before(name, callback, opts)
   end
 
   if opts.buffer then
-    local use = opts.buffer == true and buffer.bufnr() or opts.buffer
+    local use = opts.buffer == true and buffer.bufnr()
+      or opts.buffer
     bufcreate(use, name, callback, command.opts(opts))
   else
     create(name, callback, command.opts(opts))

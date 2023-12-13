@@ -97,7 +97,12 @@ signs.mappings = {
     end,
     "Diff this (~)",
   },
-  toggled_deleted = { "n", "<leader>gtd", gs.toggle_deleted, {} },
+  toggled_deleted = {
+    "n",
+    "<leader>gtd",
+    gs.toggle_deleted,
+    {},
+  },
 }
 
 function signs:setup()

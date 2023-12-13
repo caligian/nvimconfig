@@ -73,6 +73,9 @@ return {
       "mhartington/oceanic-next",
       "folke/tokyonight.nvim",
     },
+    config = function ()
+      plugin.plugins.colorscheme:setup()
+    end,
     priority = 300,
   },
 
@@ -99,11 +102,6 @@ return {
     event = "InsertEnter",
   },
 
-  lint = {
-    "mfussenegger/nvim-lint",
-    event = "BufEnter",
-  },
-
   clipboard = {
     "jasonccox/vim-wayland-clipboard",
     keys = '"',
@@ -119,9 +117,14 @@ return {
         pattern = "startuptime",
       })
 
-      kbd.noremap("n", "<leader>hs", "<cmd>StartupTime<CR>", {
-        name = "startuptime",
-      })
+      kbd.noremap(
+        "n",
+        "<leader>hs",
+        "<cmd>StartupTime<CR>",
+        {
+          name = "startuptime",
+        }
+      )
     end,
   },
 
@@ -140,7 +143,10 @@ return {
     event = "BufEnter",
   },
 
-  illuminate = { "RRethy/vim-illuminate", event = "InsertEnter" },
+  illuminate = {
+    "RRethy/vim-illuminate",
+    event = "InsertEnter",
+  },
 
   treesitter = {
     "nvim-treesitter/nvim-treesitter",
@@ -229,7 +235,12 @@ return {
   tagbar = {
     "preservim/tagbar",
     config = function()
-      kbd.map("n", "<localleader>t", ":TagbarToggle<CR>", { desc = "Tagbar", name = "tagbar" })
+      kbd.map(
+        "n",
+        "<localleader>t",
+        ":TagbarToggle<CR>",
+        { desc = "Tagbar", name = "tagbar" }
+      )
     end,
     event = "InsertEnter",
   },

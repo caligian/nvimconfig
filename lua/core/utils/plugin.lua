@@ -2,8 +2,10 @@ require "core.utils.au"
 require "core.utils.kbd"
 require "core.utils.logger"
 
-plugin = plugin or class "plugin"
-plugin.plugins = plugin.plugins or {}
+if not plugin then
+  plugin = class "plugin"
+  plugin.plugins = {}
+end
 
 function plugin.init(self, name, opts)
   if isstring(name) and plugin.plugins[name] then
@@ -33,7 +35,13 @@ function plugin.init(self, name, opts)
 end
 
 function plugin.list()
-  local p = path.join(vim.fn.stdpath "config", "lua", "core", "plugins")
+  local p = path.join(
+    vim.fn.stdpath "config",
+    "lua",
+    "core",
+    "plugins"
+  )
+
   local fs = glob(p, "*")
   fs = list.filter(fs, function(x)
     if path.isdir(x) then
@@ -214,7 +222,8 @@ function plugin.set_mappings(self, mappings)
 
     name = "plugin." .. self.name .. "." .. name
     spec[4] = spec[4] or {}
-    spec[4] = isstring(spec[4]) and { desc = spec[4] } or spec[4]
+    spec[4] = isstring(spec[4]) and { desc = spec[4] }
+      or spec[4]
 
     dict.merge(spec[4], opts)
 
@@ -232,8 +241,10 @@ function plugin.configureall()
 end
 
 function plugin.lazy_spec()
-  local corepath = path.join(user.dir, "lua", "core", "plugins.lua")
-  local userpath = path.join(user.user_dir, "lua", "user", "plugins.lua")
+  local corepath =
+    path.join(user.dir, "lua", "core", "plugins.lua")
+  local userpath =
+    path.join(user.user_dir, "lua", "user", "plugins.lua")
   local core = requirex "core.plugins"
   local userconfig = requirex "user.plugins"
 

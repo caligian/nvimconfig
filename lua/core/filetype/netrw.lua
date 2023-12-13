@@ -1,4 +1,4 @@
-local netrw = "netrw"
+local netrw = {}
 
 netrw.autocmds = {
   temp_buffer = function(au)

@@ -4,7 +4,8 @@ local BLUE = 0.0722
 local GAMMA = 2.4
 
 function highlight(hi)
-  local ok, out = pcall(vim.api.nvim_exec, "hi " .. hi, true)
+  local ok, out =
+    pcall(vim.api.nvim_exec, "hi " .. hi, true)
   if not ok then
     return {}
   end
@@ -95,7 +96,8 @@ function darken(hex, darker_n)
       bg_numeric_value = 255
     end
 
-    result = result .. string.format("%2.2x", bg_numeric_value)
+    result = result
+      .. string.format("%2.2x", bg_numeric_value)
   end
 
   return result
@@ -124,10 +126,14 @@ function highlightset(hi, set, defaults)
 
     if isa.callable(transformer) then
       hi[attrib] = transformer(hi[attrib])
-      vim.cmd(sprintf("hi %s %s=%s", group, attrib, hi[attrib]))
+      vim.cmd(
+        sprintf("hi %s %s=%s", group, attrib, hi[attrib])
+      )
     else
       hi[attrib] = transformer
-      vim.cmd(sprintf("hi %s %s=%s", group, attrib, transformer))
+      vim.cmd(
+        sprintf("hi %s %s=%s", group, attrib, transformer)
+      )
     end
   end)
 
@@ -140,7 +146,9 @@ function isdark(hex_or_r, g, b)
 
   if g then
     r = hex_or_r
-    local hsp = 0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b)
+    local hsp = 0.299 * (r * r)
+      + 0.587 * (g * g)
+      + 0.114 * (b * b)
 
     if hsp > 127.5 then
       return false

@@ -1,11 +1,10 @@
 local data_dir = vim.fn.stdpath "data"
 
-user.colorscheme = "carbonfox"
+user.colorscheme = "solarized"
 user.dir = vim.fn.stdpath "config"
 user.user_dir = path.join(os.getenv "HOME", ".nvim")
 user.data_dir = data_dir
 user.plugins_dir = path.join(data_dir, "lazy")
-
 user.temp_buffer_patterns = {
   qflist = { ft = "qf" },
   temp_buffers = "^__",
@@ -16,5 +15,5 @@ user.temp_buffer_patterns = {
 }
 
 if req2path "user.globals" then
-  require "user.globals"
+  requirex "user.globals"
 end

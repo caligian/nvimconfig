@@ -6,7 +6,7 @@ require "core.utils.buffer"
 require "core.utils.au"
 require "core.utils.plugin"
 require "core.utils.filetype"
--- require("core.utils.buffer_group")
+require "core.utils.buffergroup"
 require "core.utils.bookmark"
 require "core.utils.job"
 require "core.utils.terminal"

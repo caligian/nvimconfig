@@ -2,14 +2,16 @@
 local function _toggle_option(option)
   local bufnr = vim.fn.bufnr()
   local winid = vim.fn.bufwinid(bufnr)
-  local ok, out = pcall(vim.api.nvim_buf_get_option, bufnr, option)
+  local ok, out =
+    pcall(vim.api.nvim_buf_get_option, bufnr, option)
 
   if ok then
     vim.api.nvim_buf_set_option(bufnr, option, not out)
   end
 
   if not ok then
-    ok, out = pcall(vim.api.nvim_win_get_option, winid, option)
+    ok, out =
+      pcall(vim.api.nvim_win_get_option, winid, option)
     if ok then
       vim.api.nvim_win_set_option(winid, option, not out)
     end
@@ -32,281 +34,520 @@ local function close_other_windows()
   end)
 end
 
-user.mappings = user.mappings or {}
+local opts = { noremap = true, leader = true }
+local withopts = function(overrides)
+  overrides = isstring(overrides) and { desc = overrides }
+    or overrides
+  return dict.lmerge(overrides, opts)
+end
 
-dict.merge(user.mappings, {
-  opts = {
-    noremap = true,
-    leader = true,
+return {
+  print_buffer_history = {
+    "n",
+    "<leader>bH",
+    function()
+      buffer.history.print()
+    end,
+    { desc = "(pop N and) open recent" },
+  },
+
+  pop_n_open_recent = {
+    "n",
+    "<leader>bh",
+    function()
+      local n = vim.v.count
+
+      if n == 0 then
+        buffer.history.open()
+      else
+        buffer.history.pop_open(n)
+      end
+    end,
+    { desc = "(pop N and) open recent" },
   },
 
   netrw = {
-    inherit = true,
-    netrw = { "|", ":Lexplore <bar> vert resize 40<CR>", "Open netrw" },
-    netrw_quickmap1 = {
-      "g?",
-      ":h netrw-quickmap<CR>",
-      { event = "FileType", pattern = "netrw", desc = "Help" },
+    "n",
+    "|",
+    ":Lexplore <bar> vert resize 40<CR>",
+    withopts "Open netrw",
+  },
+
+  netrw_quickmap1 = {
+    "n",
+    "g?",
+    ":h netrw-quickmap<CR>",
+    {
+      event = "FileType",
+      pattern = "netrw",
+      desc = "Help",
     },
   },
 
-  misc = {
-    noh = {
-      "n",
-      "\\\\",
-      ":noh<CR>",
-      { desc = "No highlight", noremap = true },
-    },
-    term_normal_mode = {
-      "t",
-      "<esc>",
-      "<C-\\><C-n>",
-      { desc = "Terminal to normal mode" },
+  noh = {
+    "n",
+    "\\\\",
+    ":noh<CR>",
+    { desc = "No highlight", noremap = true },
+  },
+
+  term_normal_mode = {
+    "t",
+    "<esc>",
+    "<C-\\><C-n>",
+    { desc = "Terminal to normal mode" },
+  },
+
+  zenmode = {
+    "n",
+    "oz",
+    ":ToggleZenMode<CR>",
+    withopts "Toggle Zen mode",
+  },
+
+  save_bookmark = {
+    "n",
+    "fb",
+    "mA",
+    withopts { desc = "Bookmark current file at pos" },
+  },
+
+  open_doom_config = {
+    "n",
+    "fP",
+    ":chdir ~/.config/nvim <bar> e .<CR>",
+    withopts { desc = "Open framework config" },
+  },
+
+  open_user_config = {
+    "n",
+    "fp",
+    ":chdir ~/.nvim <bar> e .<CR>",
+    withopts { desc = "Open user config" },
+  },
+
+  reload_buffer = {
+    "n",
+    "be",
+    ":e!<CR>",
+    withopts { desc = "Reload buffer" },
+  },
+
+  save_buffer = {
+    "n",
+    "fs",
+    ":w! %<CR>",
+    withopts { desc = "Save buffer" },
+  },
+
+  hide_buffer = {
+    "n",
+    "bk",
+    ":hide<CR>",
+    { desc = "Hide buffer" },
+  },
+
+  wipeout_buffer = {
+    "n",
+    "bq",
+    ":bwipeout! %<CR>",
+    { desc = "Wipeout buffer" },
+  },
+
+  save_and_hide = {
+    "n",
+    "bK",
+    ":w! <bar> hide<CR>",
+    { desc = "Save and hide buffer" },
+  },
+
+  previous_buffer = {
+    "n",
+    "bp",
+    ":bprev<CR>",
+    { desc = "Previous buffer" },
+  },
+
+  next_buffer = {
+    "n",
+    "bn",
+    ":bnext<CR>",
+    { desc = "Next buffer" },
+  },
+
+  first = {
+    "n",
+    "b0",
+    ":bfirst<CR>",
+    { desc = "First buffer" },
+  },
+
+  last = {
+    "n",
+    "b$",
+    ":blast<CR>",
+    { desc = "Last buffer" },
+  },
+
+  source = {
+    "n",
+    "fv",
+    ":w! % <bar> :source %<CR>",
+    {
+      event = "BufEnter",
+      pattern = { "*.vim", "*.lua" },
+      desc = "Source vim or lua buffer",
     },
   },
 
-  ui = {
-    inherit = true,
-    zenmode = {
-      "oz",
-      ":ToggleZenMode<CR>",
-      "Toggle Zen mode",
-    },
+  eval_line = {
+    "n",
+    "ee",
+    "<cmd>NvimEvalLine<CR>",
+    withopts { desc = "Lua source line" },
   },
 
-  buffers = {
-    inherit = true,
-    save_bookmark = {
-      "fb",
-      "mA",
-      { desc = "Bookmark current file at pos" },
-    },
-    open_doom_config = {
-      "fP",
-      ":chdir ~/.config/nvim <bar> e .<CR>",
-      { desc = "Open framework config" },
-    },
-    open_user_config = {
-      "fp",
-      ":chdir ~/.nvim <bar> e .<CR>",
-      { desc = "Open user config" },
-    },
-    reload = { "be", ":e!<CR>", { desc = "Reload buffer" } },
-    save = { "fs", ":w! %<CR>", { desc = "Save buffer" } },
-    hide = { "bk", ":hide<CR>", { desc = "Hide buffer" } },
-    wipeout = { "bq", ":bwipeout! %<CR>", { desc = "Wipeout buffer" } },
-    save_and_hide = {
-      "bK",
-      ":w! <bar> hide<CR>",
-      { desc = "Save and hide buffer" },
-    },
-    previous = { "bp", ":bprev<CR>", { desc = "Previous buffer" } },
-    next = { "bn", ":bnext<CR>", { desc = "Next buffer" } },
-    first = { "b0", ":bfirst<CR>", { desc = "First buffer" } },
-    last = { "b$", ":blast<CR>", { desc = "Last buffer" } },
-    source = {
-      "fv",
-      ":w! % <bar> :source %<CR>",
-      {
-        event = "BufEnter",
-        pattern = { "*.vim", "*.lua" },
-        desc = "Source vim or lua buffer",
-      },
-    },
+  eval_buffer = {
+    "n",
+    "eb",
+    "<cmd>NvimEvalBuffer<CR>",
+    withopts { desc = "Lua source buffer" },
   },
 
-  lua_eval = {
-    inherit = true,
-    line = {
-      "ee",
-      "<cmd>NvimEvalLine<CR>",
-      { desc = "Lua source line", name = "eval line" },
-    },
-    buffer = {
-      "eb",
-      "<cmd>NvimEvalBuffer<CR>",
-      { desc = "Lua source buffer", name = "source_buffer" },
-    },
-    till_cursor = {
-      "e.",
-      "<cmd>NvimEvalTillCursor<CR>",
-      { desc = "Lua source till point", name = "source_till_point" },
-    },
-    region = {
-      "ee",
-      "<esc>:NvimEvalRegion<CR>",
-      { desc = "Lua source range", mode = "v", name = "Lua source range" },
-    },
+  eval_till_cursor = {
+    "n",
+    "e.",
+    "<cmd>NvimEvalTillCursor<CR>",
+    withopts { desc = "Lua source till point" },
   },
 
-  scratch = {
-    inherit = true,
-    split = { ",", ":OpenScratch<CR>" },
-    float = { "F", ":OpenScratchFloat<CR>" },
-    vsplit = { ";", ":OpenScratchVertically<CR>" },
+  eval_region = {
+    "v",
+    "ee",
+    "<esc>:NvimEvalRegion<CR>",
+    withopts { desc = "Lua source range" },
   },
 
-  tabs = {
-    inherit = true,
-    new = { "tt", ":tabnew<CR>", { desc = "New tab" } },
-    hide = { "tk", ":tabclose<CR>", { desc = "Close tab" } },
-    next = { "tn", ":tabnext<CR>", { desc = "Next tab" } },
-    previous = { "tp", ":tabprev<CR>", { desc = "Previous tab" } },
+  scratch_split = {
+    "n",
+    ",",
+    ":OpenScratch<CR>",
+    withopts "split scratch",
   },
 
-  help = {
-    inherit = true,
+  scratch_float = {
+    "n",
+    "F",
+    ":OpenScratchFloat<CR>",
+    withopts "float scratch",
+  },
+
+  scratch_vsplit = {
+    "n",
+    ";",
+    ":OpenScratchVertically<CR>",
+    withopts "vsplit scratch",
+  },
+
+  tab_new = {
+    "n",
+    "tt",
+    ":tabnew<CR>",
+    withopts { desc = "New tab" },
+  },
+
+  tab_hide = {
+    "n",
+    "tk",
+    ":tabclose<CR>",
+    withopts { desc = "Close tab" },
+  },
+
+  tab_next = {
+    "n",
+    "tn",
+    ":tabnext<CR>",
+    withopts { desc = "Next tab" },
+  },
+
+  tab_previous = {
+    "n",
+    "tp",
+    ":tabprev<CR>",
+    withopts { desc = "Previous tab" },
   },
 
   quit = {
-    inherit = true,
-    quit = { "qa", ":qa<CR>", ":qall" },
-    force_quit = { "qq", ":qa!<CR>", ":qall!" },
-    save_and_quite = { "qx", ":xa<CR>", ":xa" },
+    "n",
+    "qa",
+    ":qa<CR>",
+    withopts "quit",
   },
 
-  options = {
-    inherit = true,
-    wrap = { "ot", partial(_toggle_option, "textwrap"), "Toggle wrapping" },
-    readonly = { "or", partial(_toggle_option, "readonly"), "Toggle readonly" },
-    cursorline = { "oc", partial(_toggle_option, "cursorline"), "Toggle cursorline" },
-    buflisted = { "ol", partial(_toggle_option, "buflisted"), "Toggle buflisted" },
-    backup = { "ob", partial(_toggle_option, "backup"), "Toggle backup" },
-    expandtab = { "oe", partial(_toggle_option, "expandtab"), "Toggle expandtab" },
-    smartindent = { "os", partial(_toggle_option, "smartindent"), "Toggle smartindent" },
-    modified = { "o!", partial(_toggle_option, "modified"), "Toggle modified status" },
-    ruler = { "ou", partial(_toggle_option, "ruler"), "Toggle ruler" },
-    modifiable = { "om", partial(_toggle_option, "modifiable"), "Toggle modifiable" },
+  force_quit = {
+    "n",
+    "qq",
+    ":qa!<CR>",
+    withopts "force quit",
   },
 
-  windows = {
-    inherit = true,
-    left = { "wh", "<C-w>h", "Left win" },
-    hide_others = { "wo", close_other_windows, "Hide other wins" },
-    max_height = { "w_", "<C-w>_", "Max out height" },
-    max_width = { "w|", "<C-w>|", "Max out width" },
-    down = { "wj", "<C-w>j", "Down win" },
-    up = { "wk", "<C-w>k", "Up win" },
-    right = { "wl", "<C-w>l", "Right win" },
-    inc_height = { "w+", "<C-w>+", "Increase height" },
-    dec_height = { "w-", "<C-w>-", "Decrease height" },
-    equalize = { "w=", "<C-w>=", "Equalize height and width" },
-    inc_width = { "w>", "<C-w>>", "Increase width" },
-    dec_width = { "w<", "<C-w><", "Decrease width" },
-    split = { "ws", "<C-w>s", "Split win" },
-    vspilt = { "wv", "<C-w>v", "Vsplit win" },
-    tabnew = { "wt", "<C-w>T", "Tabnew win" },
-    other = { "ww", "<C-w>w", "Other win" },
-    swap = { "wx", "<C-w>x", "Swap win" },
+  save_and_quit = {
+    "n",
+    "qx",
+    ":xa<CR>",
+    withopts "save and quit",
   },
 
-  editor = {
-    inherit = true,
-    insert_separator = {
-      "#",
-      function()
-        local tw = vim.bo.textwidth
-        local comment = split(vim.bo.commentstring or "#", " ")[1]
-        if not comment then
-          return
-        end
-
-        local l = #comment
-        tw = tw == 0 and 50 or tw
-
-        if l > 1 then
-          comment = string.rep(comment, math.floor(tw / l))
-        else
-          comment = string.rep(comment, tw)
-        end
-
-        vim.api.nvim_put({ comment }, "l", true, true)
-      end,
-      "Add separator line",
-    },
+  wrap = {
+    "n",
+    "ot",
+    partial(_toggle_option, "textwrap"),
+    withopts "Toggle wrapping",
   },
 
-  qflist = {
-    inherit = true,
-    open = { "cq", ":botright copen<CR>", "open qflist" },
-    close = { "ck", ":cclose<CR>", "close qflist" },
+  readonly = {
+    "n",
+    "or",
+    partial(_toggle_option, "readonly"),
+    withopts "Toggle readonly",
   },
 
-  compile = {
-    inherit = true,
-    compile = {
-      "cc",
-      partial(filetype.compile_buffer),
-      "compile current buffer",
-    },
-    test = {
-      "ct",
-      function()
-        filetype.compile_buffer(buffer.current(), "test")
-      end,
-      "test current buffer",
-    },
-    build = {
-      "cb",
-      function()
-        filetype.compile_buffer(buffer.current(), "build")
-      end,
-      "build current buffer",
-    },
-    run = {
-      "cr",
-      function()
-        local cmd = vim.fn.input "Shell command % "
-
-        if #cmd == 0 then
-          print "no command provided"
-          return
-        end
-
-        run_buffer(buffer.current(), cmd, "qf")
-      end,
-    },
+  cursorline = {
+    "n",
+    "oc",
+    partial(_toggle_option, "cursorline"),
+    withopts "Toggle cursorline",
   },
 
-  lsp = {
-    inherit = true,
-    info = {
-      "li",
-      ":LspInfo<CR>",
-      "lsp info",
-    },
-    stop_lsp = {
-      "lL",
-      ":LspStop<CR>",
-      "stop lsp",
-    },
-    restart_lsp = {
-      "l!",
-      ":LspRestart<CR>",
-      "restart lsp",
-    },
-    start_lsp = {
-      "ll",
-      ":LspStart<CR>",
-      "start lsp",
-    },
+  buflisted = {
+    "n",
+    "ol",
+    partial(_toggle_option, "buflisted"),
+    withopts "Toggle buflisted",
   },
-})
 
-kbd.map("n", "<leader>bH", function()
-  buffer.history.print()
-end, { desc = "(pop N and) open recent" })
+  backup = {
+    "n",
+    "ob",
+    partial(_toggle_option, "backup"),
+    withopts "Toggle backup",
+  },
 
-kbd.map("n", "<leader>bh", function()
-  local n = vim.v.count
+  expandtab = {
+    "n",
+    "oe",
+    partial(_toggle_option, "expandtab"),
+    withopts "Toggle expandtab",
+  },
 
-  if n == 0 then
-    buffer.history.open()
-  else
-    buffer.history.pop_open(n)
-  end
-end, { desc = "(pop N and) open recent" })
+  smartindent = {
+    "n",
+    "os",
+    partial(_toggle_option, "smartindent"),
+    withopts "Toggle smartindent",
+  },
 
-return function()
-  kbd.map_groups(user.mappings)
-end
+  modified = {
+    "n",
+    "o!",
+    partial(_toggle_option, "modified"),
+    withopts "Toggle modified status",
+  },
+
+  ruler = {
+    "n",
+    "ou",
+    partial(_toggle_option, "ruler"),
+    withopts "Toggle ruler",
+  },
+
+  modifiable = {
+    "n",
+    "om",
+    partial(_toggle_option, "modifiable"),
+    withopts "Toggle modifiable",
+  },
+
+  left = {
+    "n",
+    "wh",
+    "<C-w>h",
+    withopts "Left win",
+  },
+
+  hide_others = {
+    "n",
+    "wo",
+    close_other_windows,
+    withopts "Hide other wins",
+  },
+
+  max_height = {
+    "n",
+    "w_",
+    "<C-w>_",
+    withopts "Max out height",
+  },
+
+  max_width = {
+    "n",
+    "w|",
+    "<C-w>|",
+    withopts "Max out width",
+  },
+
+  down = {
+    "n",
+    "wj",
+    "<C-w>j",
+    withopts "Down win",
+  },
+
+  up = {
+    "n",
+    "wk",
+    "<C-w>k",
+    withopts "Up win",
+  },
+
+  right = {
+    "n",
+    "wl",
+    "<C-w>l",
+    withopts "Right win",
+  },
+
+  inc_height = {
+    "n",
+    "w+",
+    "<C-w>+",
+    withopts "Increase height",
+  },
+
+  dec_height = {
+    "n",
+    "w-",
+    "<C-w>-",
+    withopts "Decrease height",
+  },
+
+  equalize = {
+    "n",
+    "w=",
+    "<C-w>=",
+    withopts "Equalize height and width",
+  },
+
+  inc_width = {
+    "n",
+    "w>",
+    "<C-w>>",
+    withopts "Increase width",
+  },
+
+  dec_width = {
+    "n",
+    "w<",
+    "<C-w><",
+    withopts "Decrease width",
+  },
+
+  split = {
+    "n",
+    "ws",
+    "<C-w>s",
+    withopts "Split win",
+  },
+
+  vspilt = {
+    "n",
+    "wv",
+    "<C-w>v",
+    withopts "Vsplit win",
+  },
+
+  tabnew = {
+    "n",
+    "wt",
+    "<C-w>T",
+    withopts "Tabnew win",
+  },
+
+  other = {
+    "n",
+    "ww",
+    "<C-w>w",
+    withopts "Other win",
+  },
+
+  swap = {
+    "n",
+    "wx",
+    "<C-w>x",
+    withopts "Swap win",
+  },
+
+  insert_separator = {
+    "n",
+    "#",
+    function()
+      local tw = vim.bo.textwidth
+      local comment =
+        split(vim.bo.commentstring or "#", " ")[1]
+      if not comment then
+        return
+      end
+
+      local l = #comment
+      tw = tw == 0 and 50 or tw
+
+      if l > 1 then
+        comment = string.rep(comment, math.floor(tw / l))
+      else
+        comment = string.rep(comment, tw)
+      end
+
+      vim.api.nvim_put({ comment }, "l", true, true)
+    end,
+    withopts "Add separator line",
+  },
+
+  open_qflist = {
+    "n",
+    "cq",
+    ":botright copen<CR>",
+    withopts "open qflist",
+  },
+
+  close_qflist = {
+    "n",
+    "ck",
+    ":cclose<CR>",
+    withopts "close qflist",
+  },
+
+  lsp_info = {
+    "n",
+    "li",
+    ":LspInfo<CR>",
+    withopts "lsp info",
+  },
+  stop_lsp = {
+    "n",
+    "lL",
+    ":LspStop<CR>",
+    withopts "stop lsp",
+  },
+  restart_lsp = {
+    "n",
+    "l!",
+    ":LspRestart<CR>",
+    withopts "restart lsp",
+  },
+  start_lsp = {
+    "n",
+    "ll",
+    ":LspStart<CR>",
+    withopts "start lsp",
+  },
+}

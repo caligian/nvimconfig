@@ -7,7 +7,12 @@ lspsaga.config = {
 }
 
 lspsaga.mappings = {
-  opts = { leader = true, prefix = "l", silent = true, noremap = true },
+  opts = {
+    leader = true,
+    prefix = "l",
+    silent = true,
+    noremap = true,
+  },
 
   finder = {
     "f",
@@ -86,9 +91,24 @@ function lspsaga:setup()
       "<cmd>Lspsaga show_line_diagnostics<CR>",
       { desc = "line diagnostics" },
     },
-    doc = { "n", "K", "<cmd>Lspsaga hover_doc<CR>", { desc = "hover doc" } },
-    next_diag = { "n", "]e", "<cmd>Lspsaga diagnostic_jump_next<CR>", { desc = "next diag" } },
-    prev_diag = { "n", "[e", "<cmd>Lspsaga diagnostic_jump_prev<CR>", { desc = "prev diag" } },
+    doc = {
+      "n",
+      "K",
+      "<cmd>Lspsaga hover_doc<CR>",
+      { desc = "hover doc" },
+    },
+    next_diag = {
+      "n",
+      "]e",
+      "<cmd>Lspsaga diagnostic_jump_next<CR>",
+      { desc = "next diag" },
+    },
+    prev_diag = {
+      "n",
+      "[e",
+      "<cmd>Lspsaga diagnostic_jump_prev<CR>",
+      { desc = "prev diag" },
+    },
   })
 end
 

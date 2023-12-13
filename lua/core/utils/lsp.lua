@@ -1,10 +1,15 @@
 lsp = lsp or {}
-lsp.diagnostic = { virtual_text = false, underline = false, update_in_insert = false }
+lsp.diagnostic = {
+  virtual_text = false,
+  underline = false,
+  update_in_insert = false,
+}
 
-vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
-  border = "single",
-  title = "hover",
-})
+vim.lsp.handlers["textDocument/hover"] =
+  vim.lsp.with(vim.lsp.handlers.hover, {
+    border = "single",
+    title = "hover",
+  })
 
 vim.diagnostic.config(lsp.diagnostic)
 
@@ -14,7 +19,10 @@ lsp.mappings = lsp.mappings
       opts = { noremap = true, leader = true },
       float_diagnostic = {
         "<leader>li",
-        partial(vim.diagnostic.open_float, { scope = "l", focus = false }),
+        partial(
+          vim.diagnostic.open_float,
+          { scope = "l", focus = false }
+        ),
         { desc = "LSP diagnostic float" },
       },
       previous_diagnostic = {
@@ -73,7 +81,11 @@ lsp.mappings = lsp.mappings
       list_workspace_folders = {
         "<leader>lwl",
         function()
-          print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
+          print(
+            vim.inspect(
+              vim.lsp.buf.list_workspace_folders()
+            )
+          )
         end,
         { desc = "List workspace folders" },
       },
@@ -185,7 +197,11 @@ function lsp.on_attach(client, bufnr)
   if client.name == "omnisharp" then
     lsp.fix_omnisharp(client)
   else
-    buffer.set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
+    buffer.set_option(
+      bufnr,
+      "omnifunc",
+      "v:lua.vim.lsp.omnifunc"
+    )
 
     local ft = vim.bo.filetype
     local has_formatter = filetype(ft)
@@ -204,10 +220,15 @@ end
 
 function lsp.setup_server(server, opts)
   opts = opts or {}
-  local capabilities = opts.capabilities or require("cmp_nvim_lsp").default_capabilities()
+  local capabilities = opts.capabilities
+    or require("cmp_nvim_lsp").default_capabilities()
   local on_attach = opts.on_attach or lsp.on_attach
   local flags = opts.flags or lsp.flags
-  local default_conf = { capabilities = capabilities, on_attach = on_attach, flags = flags }
+  local default_conf = {
+    capabilities = capabilities,
+    on_attach = on_attach,
+    flags = flags,
+  }
 
   default_conf = dict.merge(default_conf, opts)
 

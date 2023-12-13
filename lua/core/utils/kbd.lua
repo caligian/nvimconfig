@@ -1,36 +1,10 @@
 require "core.utils.au"
 
-kbd = kbd
-  or struct("kbd", {
-    -- nvim_set_keymap opts
-    "buffer",
-    "nowait",
-    "silent",
-    "script",
-    "expr",
-    "unique",
-    "noremap",
-    "desc",
-    "callback",
-    "replace_keycodes",
+if not kbd then
+  kbd = class "kbd"
+  kbd.kbds = {}
+end
 
-    -- extract opts
-    "command",
-    "mode",
-    "keys",
-    "event",
-    "pattern",
-    "name",
-    "once",
-    "leader",
-    "localleader",
-    "prefix",
-    "enabled",
-    "au",
-    "group",
-  })
-
-kbd.kbds = kbd.kbds or {}
 local enable = vim.keymap.set
 local delete = vim.keymap.del
 local del = delete
@@ -220,7 +194,8 @@ function kbd.map_group(group_name, specs, compile)
     end
 
     if apply then
-      mode, ks, callback, rest = apply(mode, ks, callback, rest)
+      mode, ks, callback, rest =
+        apply(mode, ks, callback, rest)
     end
 
     if compile then
@@ -255,8 +230,96 @@ function kbd.map_groups(specs, compile)
   end)
 
   dict.each(specs, function(group, spec)
-    dict.merge(all_mapped, kbd.map_group(group, spec, compile))
+    dict.merge(
+      all_mapped,
+      kbd.map_group(group, spec, compile)
+    )
   end)
 
   return all_mapped
+end
+
+function kbd.fromdict(specs)
+  assertisa(specs, function(x)
+    return dict.isa(x, function(arg)
+      return islist(arg) and #arg == 4
+    end)
+  end)
+
+  local out = {}
+  for key, value in pairs(specs) do
+    params {
+      {
+        {
+          union("string", "table"),
+          "string",
+          union("string", "callable"),
+          union("string", "table"),
+        },
+        value,
+      },
+    }
+
+    value[4] = isstring(value[4]) and { desc = value[4] }
+      or value[4]
+    value[4].name = key
+
+    out[key] = kbd.map(unpack(value))
+  end
+
+  return out
+end
+
+function kbd.loadfile()
+  local src = req2path "core.defaults.kbd"
+  local usersrc = req2path "user.kbd"
+  local specs = {}
+
+  if src then
+    local config = loadfile(src)
+    if isfunction(config) then
+      config = config()
+      if istable(config) then
+        dict.merge(specs, config)
+      end
+    end
+  end
+
+  if usersrc then
+    local config = loadfile(usersrc)
+    if isfunction(config) then
+      config = config()
+      if istable(config) then
+        dict.merge(specs, config)
+      end
+    end
+  end
+
+  return kbd.fromdict(specs)
+end
+
+function kbd.require()
+  local src = req2path "core.defaults.kbd"
+  local usersrc = req2path "user.kbd"
+  local specs = {}
+
+  if usersrc then
+    local config = requirex "core.defaults.kbd"
+    if istable(config) then
+      dict.merge(specs, config)
+    end
+  end
+
+  if src then
+    local config = requirex "core.defaults.kbd"
+    if istable(config) then
+      dict.merge(specs, config)
+    end
+  end
+
+  return kbd.fromdict(specs)
+end
+
+function kbd.main()
+  return kbd.require()
 end

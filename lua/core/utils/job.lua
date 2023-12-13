@@ -2,7 +2,7 @@ require "core.utils.shlex"
 local uv = vim.loop
 
 --- @class job
-job = class 'job'
+job = class "job"
 
 function job.mkpipes(self)
   self.pipes = {}
@@ -23,7 +23,11 @@ function job.opts(self, opts)
 
   return dict.merge(opts, {
     args = self.args,
-    stdio = { self.pipes.stdin, self.pipes.stdout, self.pipes.stderr },
+    stdio = {
+      self.pipes.stdin,
+      self.pipes.stdout,
+      self.pipes.stderr,
+    },
   })
 end
 
@@ -233,7 +237,9 @@ end
 function job.wait(self, timeout, tries, inc)
   if self.exit_code then
     return true
-  elseif not self.handle or not uv.is_active(self.handle) then
+  elseif
+    not self.handle or not uv.is_active(self.handle)
+  then
     return false
   end
 
@@ -247,7 +253,10 @@ function job.wait(self, timeout, tries, inc)
       break
     elseif uv.is_closing(self.handle) then
       break
-    elseif job.isclosing(self, "stdout") or job.isclosing(self, "stderr") then
+    elseif
+      job.isclosing(self, "stdout")
+      or job.isclosing(self, "stderr")
+    then
       break
     end
 
@@ -295,22 +304,30 @@ function job.isclosing(self, pipes)
   if not self.handle then
     return false
   elseif pipes == true then
-    return self.pipes.stdin and uv.is_closing(self.pipes.stdin),
+    return self.pipes.stdin and uv.is_closing(
+      self.pipes.stdin
+    ),
       self.pipes.stdout and uv.is_closing(self.pipes.stdout),
       self.pipes.stderr and uv.is_closing(self.pipes.stderr)
   elseif pipes == "stdout" then
-    return self.pipes.stdout and uv.is_closing(self.pipes.stdout)
+    return self.pipes.stdout
+      and uv.is_closing(self.pipes.stdout)
   elseif types == "stdin" then
-    return self.pipes.stdin and uv.is_closing(self.pipes.stdin)
+    return self.pipes.stdin
+      and uv.is_closing(self.pipes.stdin)
   elseif types == "stderr" then
-    return self.pipes.stderr and uv.is_closing(self.pipes.stderr)
+    return self.pipes.stderr
+      and uv.is_closing(self.pipes.stderr)
   else
     return uv.is_closing(self.handle)
   end
 end
 
 function job.close_stderr_pipe(self)
-  if self.pipes.stderr and not uv.is_closing(self.pipes.stderr) then
+  if
+    self.pipes.stderr
+    and not uv.is_closing(self.pipes.stderr)
+  then
     self.pipes.stderr:shutdown()
     return true
   end
@@ -319,7 +336,9 @@ function job.close_stderr_pipe(self)
 end
 
 function job.close_stdin_pipe(self)
-  if self.pipes.stdin and not uv.is_closing(self.pipes.stdin) then
+  if
+    self.pipes.stdin and not uv.is_closing(self.pipes.stdin)
+  then
     self.pipes.stdin:shutdown()
     return true
   end
@@ -328,7 +347,10 @@ function job.close_stdin_pipe(self)
 end
 
 function job.close_stdout_pipe(self)
-  if self.pipes.stdout and not uv.is_closing(self.pipes.stdout) then
+  if
+    self.pipes.stdout
+    and not uv.is_closing(self.pipes.stdout)
+  then
     self.pipes.stdout:shutdown()
     return true
   end
@@ -337,7 +359,9 @@ function job.close_stdout_pipe(self)
 end
 
 function job.close_pipes(self)
-  return job.close_stdout_pipe(self), job.close_stderr_pipe(self), job.close_stdin_pipe(self)
+  return job.close_stdout_pipe(self),
+    job.close_stderr_pipe(self),
+    job.close_stdin_pipe(self)
 end
 
 function job.send(self, s)

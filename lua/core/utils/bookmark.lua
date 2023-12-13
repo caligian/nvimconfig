@@ -1,7 +1,8 @@
 require "core.utils.kbd"
 
 bookmark = bookmark or module "bookmark"
-bookmark.path = path.join(os.getenv "HOME", ".bookmarks.json")
+bookmark.path =
+  path.join(os.getenv "HOME", ".bookmarks.json")
 bookmark.bookmarks = bookmark.bookmarks or {}
 local bookmarks = bookmark.bookmarks
 
@@ -64,7 +65,10 @@ end
 
 function bookmark.save()
   local bookmarks = bookmark.bookmarks
-  file.write(bookmark.path, json.encode(string_keys(bookmarks)))
+  file.write(
+    bookmark.path,
+    json.encode(string_keys(bookmarks))
+  )
 
   bookmark.main()
 
@@ -72,15 +76,21 @@ function bookmark.save()
 end
 
 function bookmark.add(file_path, lines, desc)
-  local obj = bookmark.bookmarks[file_path] or { context = {} }
+  local obj = bookmark.bookmarks[file_path]
+    or { context = {} }
   local now = os.time()
   local isfile = path.isfile(file_path)
   local isdir = path.isdir(file_path)
 
   if not isfile and not isdir then
-    error(file_path .. " is neither a binary file or a directory")
+    error(
+      file_path
+        .. " is neither a binary file or a directory"
+    )
   elseif lines and isdir then
-    error(file_path .. " cannot use linesnum with a directory")
+    error(
+      file_path .. " cannot use linesnum with a directory"
+    )
   elseif lines then
     context = bookmark.get_context(file_path, lines)
   end
@@ -144,7 +154,13 @@ function bookmark.get_context(file_path, line)
   data = split(file.read(file_path), "\n")
 
   if line > #data or #data < 1 then
-    error(sprintf("invalid line %d provided for %s", line, file_path))
+    error(
+      sprintf(
+        "invalid line %d provided for %s",
+        line,
+        file_path
+      )
+    )
   end
 
   return data[line]
@@ -210,7 +226,11 @@ function bookmark.picker_results(file_path)
     results = keys(obj.context),
     entry_maker = function(linenum)
       return {
-        display = sprintf("%d | %s", linenum, obj.context[linenum]),
+        display = sprintf(
+          "%d | %s",
+          linenum,
+          obj.context[linenum]
+        ),
         value = linenum,
         path = obj.path,
         ordinal = linenum,
@@ -221,7 +241,10 @@ end
 
 function bookmark.create_line_picker(file_path)
   local obj = bookmark.bookmarks[file_path]
-  local fail = not obj or obj.dir or not obj.context or isempty(obj.context)
+  local fail = not obj
+    or obj.dir
+    or not obj.context
+    or isempty(obj.context)
   if fail then
     return
   end
@@ -248,7 +271,7 @@ function bookmark.create_line_picker(file_path)
 
   local context = bookmark.picker_results(obj.path)
 
-  local picker = t.create(context, {
+  local picker = t:create_picker(context, {
     line_mod.default_action,
     { "n", "x", line_mod.del },
   }, {
@@ -282,7 +305,8 @@ function bookmark.create_picker()
     local obj = sel[1]
 
     if obj.file then
-      local line_picker = bookmark.create_line_picker(obj.path)
+      local line_picker =
+        bookmark.create_line_picker(obj.path)
       if line_picker then
         line_picker:find()
       end
@@ -298,7 +322,7 @@ function bookmark.create_picker()
     end)
   end
 
-  return t.create(
+  return t:create_picker(
     results,
     { mod.default_action, { "n", "x", mod.del } },
     { prompt_title = "bookmarks" }

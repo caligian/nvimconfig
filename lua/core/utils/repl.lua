@@ -1,8 +1,11 @@
 require "core.utils.terminal"
 
-repl = repl or class "repl"
-repl.repls = repl.repls or {}
-dict.merge(repl, terminal)
+if not repl then
+  repl = class "repl"
+  repl.repls = {}
+
+  dict.merge(repl, terminal)
+end
 
 function repl.exists(self, tp)
   assertisa(self, union("repl", "string", "number"))
@@ -38,8 +41,12 @@ function repl:init(bufnr, opts)
     return
   end
 
-  local exists =
-    repl.exists(bufnr, opts.workspace and "workspace" or opts.buffer and "buffer" or "dir")
+  local exists = repl.exists(
+    bufnr,
+    opts.workspace and "workspace"
+      or opts.buffer and "buffer"
+      or "dir"
+  )
 
   if exists then
     return exists
@@ -52,14 +59,25 @@ function repl:init(bufnr, opts)
 
   self._bufnr = bufnr
   local ftobj = filetype(ft):loadfile()
-  local replcmd = ftobj:command(bufnr, "repl")
+  if not ftobj then
+    return
+  end
+
+  local replcmd, _opts = ftobj:command(bufnr, "repl")
   local isws = opts.workspace
   local isdir = opts.dir
   local isbuf = opts.buffer
   local isshell = opts.shell
 
+  if _opts then
+    dict.merge(opts, _opts)
+  end
+
   self.filetype = ft
-  self.type = isdir and "dir" or isbuf and "buffer" or isws and "workspace" or isshell and "shell"
+  self.type = isdir and "dir"
+    or isbuf and "buffer"
+    or isws and "workspace"
+    or isshell and "shell"
   local cmd
 
   if isshell then
@@ -109,11 +127,15 @@ function repl:stop()
   return self:reset()
 end
 
+function repl.main()
+  repl.set_mappings()
+end
+
 function repl.set_mappings()
   local function start(tp)
     local key, desc
     if tp == "buffer" then
-      key = "<localleader>--"
+      key = "<localleader>rr"
       desc = "start buffer"
     elseif tp == "workspace" then
       key = "<leader>rr"
@@ -130,15 +152,29 @@ function repl.set_mappings()
       local buf = buffer.bufnr()
       local self = repl(buf, { [tp] = true })
 
+      if not self then
+        return
+      end
+
       if not self:running() then
         self = self:reset()
       end
 
       self:start()
       if self:running() then
-        print("started REPL for buffer with cmd: " .. self.cmd)
+        print(
+          "started REPL for "
+            .. tp
+            .. " with cmd: "
+            .. self.cmd
+        )
       else
-        tostderr("could not start REPL for buffer with cmd: " .. self.cmd)
+        tostderr(
+          "could not start REPL for "
+            .. tp
+            .. " with cmd: "
+            .. self.cmd
+        )
       end
     end, desc)
   end
@@ -146,7 +182,7 @@ function repl.set_mappings()
   local function mkkeys(action, tp, ks)
     local key, desc
     if tp == "buffer" then
-      key = "<localleader>-"
+      key = "<localleader>r"
       desc = action .. " buffer"
     elseif tp == "workspace" then
       key = "<leader>r"
@@ -231,15 +267,18 @@ function repl.set_mappings()
     end)
   end
 
-  list.each({ "buffer", "workspace", "dir", "shell" }, function(x)
-    start(x)
-    stop(x)
-    split(x)
-    vsplit(x)
-    send_till_cursor(x)
-    send_visual_range(x)
-    send_buffer(x)
-    send_current_line(x)
-    float(x)
-  end)
+  list.each(
+    { "buffer", "workspace", "dir", "shell" },
+    function(x)
+      start(x)
+      stop(x)
+      split(x)
+      vsplit(x)
+      send_till_cursor(x)
+      send_visual_range(x)
+      send_buffer(x)
+      send_current_line(x)
+      float(x)
+    end
+  )
 end

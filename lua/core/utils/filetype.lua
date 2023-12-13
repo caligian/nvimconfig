@@ -45,22 +45,26 @@ require "core.utils.job"
 --- @class filetype.server
 --- @field config table lsp server config
 
--- filetype = filetype or class "filetype"
-filetype = class "filetype"
+filetype = filetype or class "filetype"
+filetype = filetype or class "filetype"
 filetype.filetypes = filetype.filetypes or {}
 filetype.jobs = filetype.jobs or {}
+filetype.lsp = module()
 
 --- @class lsp
 --- @field diagnostic table<string,any> diagnostic config for vim.lsp
 --- @field mappings table
-filetype.lsp = module()
 local lsp = filetype.lsp
-lsp.diagnostic = { virtual_text = false, underline = false, update_in_insert = false }
-
-vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
-  border = "single",
-  title = "hover",
-})
+lsp.diagnostic = {
+  virtual_text = false,
+  underline = false,
+  update_in_insert = false,
+}
+vim.lsp.handlers["textDocument/hover"] =
+  vim.lsp.with(vim.lsp.handlers.hover, {
+    border = "single",
+    title = "hover",
+  })
 
 vim.diagnostic.config(lsp.diagnostic)
 
@@ -68,85 +72,154 @@ lsp.mappings = lsp.mappings
   or {
     float_diagnostic = {
       "<leader>li",
-      partial(vim.diagnostic.open_float, { scope = "l", focus = false }),
-      { desc = "LSP diagnostic float", noremap = true, leader = true },
+      partial(
+        vim.diagnostic.open_float,
+        { scope = "l", focus = false }
+      ),
+      {
+        desc = "LSP diagnostic float",
+        noremap = true,
+        leader = true,
+      },
     },
     previous_diagnostic = {
       "[d",
       vim.diagnostic.gotoprev,
-      { desc = "LSP go to previous diagnostic", noremap = true, leader = true },
+      {
+        desc = "LSP go to previous diagnostic",
+        noremap = true,
+        leader = true,
+      },
     },
     next_diagnostic = {
       "]d",
       vim.diagnostic.gotonext,
-      { desc = "LSP go to next diagnostic", noremap = true, leader = true },
+      {
+        desc = "LSP go to next diagnostic",
+        noremap = true,
+        leader = true,
+      },
     },
     set_loclist = {
       "lq",
       vim.diagnostic.setloclist,
-      { desc = "LSP set loclist", noremap = true, leader = true },
+      {
+        desc = "LSP set loclist",
+        noremap = true,
+        leader = true,
+      },
     },
     buffer_declarations = {
       "gD",
       vim.lsp.buf.declaration,
-      { desc = "Buffer declarations", silent = true, noremap = true },
+      {
+        desc = "Buffer declarations",
+        silent = true,
+        noremap = true,
+      },
     },
     buffer_definitions = {
       "gd",
       vim.lsp.buf.definition,
-      { desc = "Buffer definitions", silent = true, noremap = true },
+      {
+        desc = "Buffer definitions",
+        silent = true,
+        noremap = true,
+      },
     },
     float_documentation = {
       "K",
       vim.lsp.buf.hover,
-      { desc = "Show float UI", silent = true, noremap = true },
+      {
+        desc = "Show float UI",
+        silent = true,
+        noremap = true,
+      },
     },
     implementations = {
       "gi",
       vim.lsp.buf.implementation,
-      { desc = "Show implementations", silent = true, noremap = true },
+      {
+        desc = "Show implementations",
+        silent = true,
+        noremap = true,
+      },
     },
     signatures = {
       "<C-k>",
       vim.lsp.buf.signature_help,
-      { desc = "Signatures", silent = true, noremap = true },
+      {
+        desc = "Signatures",
+        silent = true,
+        noremap = true,
+      },
     },
     add_workspace_folder = {
       "<leader>lwa",
       vim.lsp.buf.add_workspace_folder,
-      { desc = "Add workspace folder", silent = true, noremap = true },
+      {
+        desc = "Add workspace folder",
+        silent = true,
+        noremap = true,
+      },
     },
     remove_workspace_folder = {
       "<leader>lwr",
       vim.lsp.buf.remove_workspace_folder,
-      { desc = "Remove workspace folder", silent = true, noremap = true },
+      {
+        desc = "Remove workspace folder",
+        silent = true,
+        noremap = true,
+      },
     },
     list_workspace_folders = {
       "<leader>lwl",
       function()
-        print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
+        print(
+          vim.inspect(vim.lsp.buf.list_workspace_folders())
+        )
       end,
-      { desc = "List workspace folders", silent = true, noremap = true },
+      {
+        desc = "List workspace folders",
+        silent = true,
+        noremap = true,
+      },
     },
     type_definition = {
       "<leader>lD",
       vim.lsp.buf.type_definition,
-      { desc = "Show type definitions", silent = true, noremap = true },
+      {
+        desc = "Show type definitions",
+        silent = true,
+        noremap = true,
+      },
     },
     buffer_rename = {
       "<leader>lR",
       vim.lsp.buf.rename,
-      { desc = "Rename buffer", silent = true, noremap = true },
+      {
+        desc = "Rename buffer",
+        silent = true,
+        noremap = true,
+      },
     },
     code_action = {
       "<leader>la",
       vim.lsp.buf.code_action,
-      { desc = "Show code actions", silent = true, noremap = true },
+      {
+        desc = "Show code actions",
+        silent = true,
+        noremap = true,
+      },
     },
     buffer_references = {
       "gr",
       vim.lsp.buf.references,
-      { desc = "Show buffer references", silent = true, noremap = true },
+      {
+        desc = "Show buffer references",
+        silent = true,
+        noremap = true,
+      },
     },
   }
 
@@ -236,7 +309,11 @@ function lsp.on_attach(client, bufnr)
   if client.name == "omnisharp" then
     lsp.fix_omnisharp(client)
   else
-    buffer.set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
+    buffer.set_option(
+      bufnr,
+      "omnifunc",
+      "v:lua.vim.lsp.omnifunc"
+    )
 
     local ft = vim.bo.filetype
     local has_formatter = filetype(ft)
@@ -255,10 +332,15 @@ end
 
 function lsp.setup_server(server, opts)
   opts = opts or {}
-  local capabilities = opts.capabilities or require("cmp_nvim_lsp").default_capabilities()
+  local capabilities = opts.capabilities
+    or require("cmp_nvim_lsp").default_capabilities()
   local on_attach = opts.on_attach or lsp.on_attach
-  local flags = opts.flags or lsp.flags
-  local default_conf = { capabilities = capabilities, on_attach = on_attach, flags = flags }
+  local flags = opts.flags
+  local default_conf = {
+    capabilities = capabilities,
+    on_attach = on_attach,
+    flags = flags,
+  }
 
   default_conf = dict.merge(default_conf, opts)
 
@@ -269,12 +351,12 @@ function lsp.setup_server(server, opts)
   require("lspconfig")[server].setup(default_conf)
 end
 
-function filetype:isfiletype()
-  return typeof(x) == "filetype"
+function filetype:isa()
+  return typeof(self) == "filetype"
 end
 
 function filetype:init(name)
-  if filetype.isfiletype(name) then
+  if filetype.isa(name) then
     return name
   elseif istable(name) then
     assert(name.name, "name is missing in " .. dump(name))
@@ -299,28 +381,26 @@ function filetype:init(name)
   return self
 end
 
-function filetype:fromdict(specs)
-  local name = specs.name
-  local x = filetype(name)
-  dict.merge(x, specs)
-
-  return x
-end
-
 function filetype:setbo(bo)
   bo = bo or self.bo
-  asserttype(bo, "table")
+  if not bo or size(bo) == 0 then
+    return
+  end
 
-  self:autocmd(function(opts)
+  self:au(function(opts)
     buffer.set_option(opts.buf, bo)
   end)
 end
 
 function filetype:setwo(wo)
   wo = wo or self.wo
+  if not wo or size(wo) == 0 then
+    return
+  end
+
   asserttype(wo, "table")
 
-  self:autocmd(function(opts)
+  self:au(function(opts)
     local winnr = buffer.winnr(opts.buf)
     if winnr then
       win.set_option(winnr, wo)
@@ -336,7 +416,9 @@ end
 function filetype:vimcommand(name, callback, opts)
   opts = opts or {}
   local createcmd = vim.api.nvim_buf_create_user_command
-  name = "Filetype" .. capitalize(self.name) .. capitalize(name)
+  name = "Filetype"
+    .. capitalize(self.name)
+    .. capitalize(name)
 
   return self:au(function(bufopts)
     createcmd(bufopts.buf, name, callback, opts)
@@ -358,7 +440,12 @@ function filetype:setup_lsp(specs)
   return self
 end
 
-local function find_workspace(start_dir, pats, maxdepth, _depth)
+local function find_workspace(
+  start_dir,
+  pats,
+  maxdepth,
+  _depth
+)
   maxdepth = maxdepth or 5
   _depth = _depth or 0
   pats = tolist(pats or "%.git$")
@@ -407,13 +494,16 @@ function filetype.workspace(bufnr, pats, maxdepth, _depth)
 
   local lspconfig = require "lspconfig"
   ---@diagnostic disable-next-line: param-type-mismatch
-  local server = filetype.query(buffer.filetype(bufnr), "server")
+  local server =
+    filetype.query(buffer.filetype(bufnr), "server")
   local bufname = buffer.name(bufnr)
 
   if server then
     assertisa(server, union("string", "table"))
-    local config = isstring(server) and lspconfig[server] or lspconfig[server[1]]
-    local root_dir_checker = config.document_config.default_config.root_dir
+    local config = isstring(server) and lspconfig[server]
+      or lspconfig[server[1]]
+    local root_dir_checker =
+      config.document_config.default_config.root_dir
     if not config.get_root_dir then
       return find_workspace(bufname, pats, maxdepth, _depth)
     elseif root_dir_checker then
@@ -428,7 +518,8 @@ end
 
 function filetype:command(bufnr, action)
   action = action or "compile"
-  local validactions = { "compile", "build", "test", "repl", "formatter" }
+  local validactions =
+    { "compile", "build", "test", "repl", "formatter" }
 
   params {
     buffer = { "number", bufnr },
@@ -440,7 +531,10 @@ function filetype:command(bufnr, action)
     },
   }
 
-  assert(buffer.exists(bufnr), "invalid buffer: " .. dump(bufnr))
+  assert(
+    buffer.exists(bufnr),
+    "invalid buffer: " .. dump(bufnr)
+  )
 
   local bufname = buffer.name(bufnr)
   local compile = self[action]
@@ -452,8 +546,14 @@ function filetype:command(bufnr, action)
     assert(isa[spec](compile))
   end
 
+  local opts = dict.filter(compile, function(key, _)
+    return key ~= "buffer"
+      and key ~= "workspace"
+      and key ~= "dir"
+  end)
+
   if not istable(compile) then
-    compile = { buffer = spec }
+    compile = dict.merge({ buffer = spec }, opts)
   end
 
   params {
@@ -489,64 +589,74 @@ function filetype:command(bufnr, action)
 
       return cmd, X
     else
-      return getfromtable(X, what)
+      local out = getfromtable(X, what)
+      return dwim(out, what)
     end
   end
 
-  local out = dict.filter(compile, function(k, v)
-    return (k ~= "buffer" and k ~= "workspace" and k ~= "dir" and k ~= 1) and v
-  end)
-
-  local function withpath(cmd, p, opts)
-    if cmd:match('%%path') then
-      cmd = cmd:gsub('%%path', p)
-      return cmd
-    elseif opts.append_filename then
-      return cmd .. ' ' .. p
-    else
-      return cmd
+  local out = {}
+  local function withpath(cmd, p)
+    if istemplate(cmd) then
+      local templ = template(cmd)
+      cmd = templ { assert = true, path = p }
     end
+
+    return { cmd, p }
   end
 
   if compile[1] or compile.buffer then
-    local cmd, opts = dwim(compile[1] or compile.buffer, bufname)
-    opts = opts or {}
+    local cmd, _opts =
+      dwim(compile[1] or compile.buffer, bufname)
+    _opts = _opts or {}
+
+    dict.lmerge(_opts, opts)
+
     if cmd then
-      out.buffer = withpath(cmd, bufname, opts)
+      out.buffer = withpath(cmd, bufname)
     end
   end
 
   if compile.dir then
     local d = path.dirname(bufname)
-    local cmd, opts = dwim(compile.dir, d)
+    local cmd, _opts = dwim(compile.dir, d)
+    _opts = _opts or {}
+
+    dict.lmerge(_opts, opts)
+
     if cmd then
-      out.dir = withpath(cmd, d, opts)
+      out.dir = withpath(cmd, d)
     end
   end
 
   if compile.workspace then
     local ws = filetype.workspace(bufnr)
     if ws then
-      local cmd, opts = dwim(compile.workspace, ws)
+      local cmd, _opts = dwim(compile.workspace, ws)
+      _opts = _opts or {}
+
+      dict.lmerge(_opts, opts)
+
       if cmd then
-        out.workspace = withpath(cmd, ws, opts)
+        out.workspace = withpath(cmd, ws)
       end
     end
   end
 
   if size(out) == 0 then
-    error(self.name .. "." .. action .. ": no commands exist")
+    error(
+      self.name .. "." .. action .. ": no commands exist"
+    )
   end
 
-  return out
+  return out, opts
 end
 
 function filetype:format(bufnr, opts)
   opts = opts or {}
-  local cmd, target = self:command(bufnr, "formatter")
-  opts = copy(opts)
-  local stdin = opts.stdin or config.stdin
-  local write = opts.write or config.write
+  local cmd, _opts = self:command(bufnr, "formatter")
+  local target
+  opts = dict.lmerge(copy(opts), _opts)
+  local stdin = opts.stdin
   local bufname = buffer.name(bufnr)
   local name
 
@@ -558,29 +668,32 @@ function filetype:format(bufnr, opts)
     name = "filetype.formatter.buffer."
   end
 
-  name = name .. bufname
-
   if opts.workspace then
-    cmd = cmd.workspace
-
+    cmd, target = unpack(cmd.workspace)
   elseif opts.buffer then
-    cmd = cmd.dir
+    cmd, target = unpack(cmd.buffer)
     if opts.stdin then
       cmd = sprintf('sh -c "cat %s | %s"', target, cmd)
     end
-  else
-    cmd = cmd.dir
+  elseif opts.dir then
+    cmd, target = unpack(cmd.dir)
   end
 
-  assert(cmd, 'filetype.' .. self.name .. ".formatter" .. ": no command exists")
+  target = target or bufname
+  name = name .. target
+  assert(
+    cmd,
+    "filetype."
+      .. self.name
+      .. ".formatter"
+      .. ": no command exists"
+  )
 
   local function createcmd(tp)
-
     if tp == "buffer" then
       if append_filename == nil and stdin == nil then
         stdin = true
       end
-
     end
 
     return cmd, target
@@ -600,7 +713,8 @@ function filetype:format(bufnr, opts)
 
   local proc = filetype.job(cmd, {
     name = name,
-    cwd = (opts.workspace or opts.dir) and target or path.dirname(bufname),
+    cwd = (opts.workspace or opts.dir) and target
+      or path.dirname(bufname),
     before = function()
       vim.cmd(":w! " .. bufname)
       buffer.set_option(bufnr, "modifiable", false)
@@ -609,13 +723,16 @@ function filetype:format(bufnr, opts)
       if x.exit_code ~= 0 then
         buffer.set_option(bufnr, "modifiable", true)
 
-        local err = #x.errors > 1 and x.errors or #x.lines > 1 and x.lines
+        local err = #x.errors > 1 and x.errors
+          or #x.lines > 1 and x.lines
         if err then
           ---@diagnostic disable-next-line: cast-local-type
           err = join(err, "\n")
           tostderr(err)
         else
-          print("check source syntax for buffer " .. bufname)
+          print(
+            "check source syntax for buffer " .. bufname
+          )
         end
 
         return
@@ -739,7 +856,9 @@ function filetype:action(bufnr, action, opts)
   opts = opts or {}
   local ws = opts.workspace
   local isdir = opts.dir
-  local tp = opts.workspace and "workspace" or opts.dir and "dir" or "buffer"
+  local tp = opts.workspace and "workspace"
+    or opts.dir and "dir"
+    or "buffer"
 
   if not config then
     return
@@ -749,7 +868,9 @@ function filetype:action(bufnr, action, opts)
   local cmd = self:command(bufnr, action)
   local target
 
-  if (ws and not cmd.workspace) or (isdir and not cmd.dir) then
+  if
+    (ws and not cmd.workspace) or (isdir and not cmd.dir)
+  then
     return false
   elseif ws then
     cmd, target = unpack(cmd.workspace)
@@ -763,7 +884,6 @@ function filetype:action(bufnr, action, opts)
   return filetype.job(cmd, {
     name = name,
     cwd = isdir or ws and target,
-    name = target .. action,
     on_exit = function(x)
       local err = x.errors or {}
       local lines = x.lines or {}
@@ -808,12 +928,18 @@ function filetype:setup(should_loadfile)
     self:require()
   end
 
-  self:set_mappings()
   self:setup_triggers()
+  self:set_mappings()
   self:set_autocmds()
+  self:setbo()
+  self:setwo()
 
   self:map("n", "<leader>ct", function()
-    self:action(buffer.bufnr(), "test", { workspace = true })
+    self:action(
+      buffer.bufnr(),
+      "test",
+      { workspace = true }
+    )
   end, { desc = "test buffer" })
 
   self:map("n", "<leader>ct", function()
@@ -821,7 +947,11 @@ function filetype:setup(should_loadfile)
   end, { desc = "test workspace" })
 
   self:map("n", "<leader>cb", function()
-    self:action(buffer.bufnr(), "build", { workspace = true })
+    self:action(
+      buffer.bufnr(),
+      "build",
+      { workspace = true }
+    )
   end, { desc = "build buffer" })
 
   self:map("n", "<leader>cB", function()
@@ -829,7 +959,11 @@ function filetype:setup(should_loadfile)
   end, { desc = "build workspace" })
 
   self:map("n", "<leader>cC", function()
-    self:action(buffer.bufnr(), "compile", { workspace = true })
+    self:action(
+      buffer.bufnr(),
+      "compile",
+      { workspace = true }
+    )
   end, { desc = "compile workspace" })
 
   self:map("n", "<leader>cc", function()
@@ -840,10 +974,23 @@ function filetype:setup(should_loadfile)
 end
 
 function filetype.list()
-  local builtin_path = path.join(vim.fn.stdpath "config", "lua", "core", "filetype")
-  local user_path = path.join(os.getenv "HOME", ".nvim", "lua", "user", "filetype")
+  local builtin_path = path.join(
+    vim.fn.stdpath "config",
+    "lua",
+    "core",
+    "filetype"
+  )
+  local user_path = path.join(
+    os.getenv "HOME",
+    ".nvim",
+    "lua",
+    "user",
+    "filetype"
+  )
   local builtin = dir.getallfiles(builtin_path)
-  local userconfig = path.isdir(user_path) and dir.getallfiles(user_path) or {}
+  local userconfig = path.isdir(user_path)
+      and dir.getallfiles(user_path)
+    or {}
   builtin = list.filter(builtin, function(x)
     return x:match "%.lua$"
   end)
@@ -851,9 +998,12 @@ function filetype.list()
     return x:match "%.lua$"
   end)
 
-  return list.map(list.union(builtin, userconfig), function(x)
-    return (path.basename(x):gsub("%.lua$", ""))
-  end)
+  return list.map(
+    list.union(builtin, userconfig),
+    function(x)
+      return (path.basename(x):gsub("%.lua$", ""))
+    end
+  )
 end
 
 function filetype.setup_lsp_all()
@@ -872,12 +1022,14 @@ function filetype:set_autocmds()
     assertisa(opts, union("function", "table"))
 
     local cb, options
+    options = {}
     if istable(opts) then
       cb, options = unpack(opts)
     else
       cb = opts
     end
 
+    options.name = name
     self:au(cb, options)
   end)
 end
@@ -902,7 +1054,8 @@ function filetype:set_mappings()
     end
 
     spec[4] = spec[4] or {}
-    spec[4] = isstring(spec[4]) and { desc = spec[4] } or spec[4]
+    spec[4] = isstring(spec[4]) and { desc = spec[4] }
+      or spec[4]
     spec[4].name = name
 
     dict.merge(spec[4], opts)
@@ -931,37 +1084,51 @@ function filetype.main(use_loadfile)
 
   kbd.map("n", "<leader>cB", function()
     local buf = buffer.current()
-    filetype(buf):require():action(buf, "build", { dir = true })
+    filetype(buf)
+      :require()
+      :action(buf, "build", { dir = true })
   end, "build dir")
 
   kbd.map("n", "<leader>mt", function()
     local buf = buffer.current()
-    filetype(buf):require():action(buf, "test", { workspace = true })
+    filetype(buf)
+      :require()
+      :action(buf, "test", { workspace = true })
   end, "test workspace")
 
   kbd.map("n", "<leader>ct", function()
     local buf = buffer.current()
-    filetype(buf):require():action(buf, "test", { buffer = true })
+    filetype(buf)
+      :require()
+      :action(buf, "test", { buffer = true })
   end, "test buffer")
 
   kbd.map("n", "<leader>cT", function()
     local buf = buffer.current()
-    filetype(buf):require():action(buf, "test", { dir = true })
+    filetype(buf)
+      :require()
+      :action(buf, "test", { dir = true })
   end, "test dir")
 
   kbd.map("n", "<leader>mc", function()
     local buf = buffer.current()
-    filetype(buf):require():action(buf, "compile", { workspace = true })
+    filetype(buf)
+      :require()
+      :action(buf, "compile", { workspace = true })
   end, "compile workspace")
 
   kbd.map("n", "<leader>cc", function()
     local buf = buffer.current()
-    filetype(buf):require():action(buf, "compile", { buffer = true })
+    filetype(buf)
+      :require()
+      :action(buf, "compile", { buffer = true })
   end, "compile buffer")
 
   kbd.map("n", "<leader>cC", function()
     local buf = buffer.current()
-    filetype(buf):require():action(buf, "compile", { dir = true })
+    filetype(buf)
+      :require()
+      :action(buf, "compile", { dir = true })
   end, "compile dir")
 
   kbd.map("n", "<leader>mf", function()
@@ -971,7 +1138,7 @@ function filetype.main(use_loadfile)
 
   kbd.map("n", "<leader>bf", function()
     local buf = buffer.current()
-    filetype(buf):format(buf)
+    filetype(buf):format(buf, { buffer = true })
   end, "format buffer")
 
   kbd.map("n", "<leader>bF", function()

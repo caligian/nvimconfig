@@ -1,140 +1,131 @@
-local ivy = load_telescope().theme
-local buffer_actions = require "core.plugins.telescope.actions.buffer"
-local find_files_actions = require "core.plugins.telescope.actions.find-files"
-local file_browser_actions = require "core.plugins.telescope.actions.file-browser"
-local T = copy(ivy)
-local telescope = {}
+local M = {}
 
---------------------------------------------------------------------------------
--- Some default overrides
-T.extensions = {
-  file_browser = {
-    hijack_netrw = true,
-    mappings = {
-      n = {
-        x = file_browser_actions.delete,
-        X = file_browser_actions.force_delete,
-        ["%"] = file_browser_actions.touch,
-      },
-    },
-  },
-}
-
-T.pickers = {
-  buffers = {
-    show_all_buffers = true,
-    mappings = {
-      n = {
-        x = buffer_actions.bwipeout,
-        ["!"] = buffer_actions.nomodified,
-        w = buffer_actions.save,
-        r = buffer_actions.readonly,
-      },
-    },
-  },
-  find_files = {
-    mappings = {
-      n = {
-        n = find_files_actions.touch_and_open,
-        ["%"] = find_files_actions.touch,
-        x = find_files_actions.delete,
-      },
-    },
-  },
-}
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- Start keymappings
 local function picker(p, conf)
   return function()
-    require("telescope.builtin")[p](dict.merge(conf or {}, ivy))
+    require("telescope.builtin")[p](
+      dict.merge(conf or {}, ivy)
+    )
   end
 end
 
-telescope.mappings = {
-  opts = {
-    noremap = true,
-    leader = true,
-  },
+local function O(overrides)
+  return dict.lmerge(
+    overrides,
+    { noremap = true, leader = true }
+  )
+end
+
+M.mappings = {
   grep = {
     "n",
     "/",
     function()
-      picker("live_grep", { search_dirs = { vim.fn.expand "%:p" } })()
+      picker(
+        "live_grep",
+        { search_dirs = { vim.fn.expand "%:p" } }
+      )()
     end,
-    { desc = "Grep string in workspace" },
+    O { desc = "Grep string in workspace" },
   },
+
   live_grep = {
     "n",
     "?",
     picker "live_grep",
-    { desc = "Live grep in workspace" },
+    O { desc = "Live grep in workspace" },
   },
-  marks = { "n", "'", picker "marks", { desc = "Show marks" } },
+
+  marks = {
+    "n",
+    "'",
+    picker "marks",
+    O { desc = "Show marks" },
+  },
+
   registers = {
     "n",
     '"',
     picker "registers",
-    { desc = "Show registers" },
+    O { desc = "Show registers" },
   },
+
   resume = {
     "n",
     "<leader>",
     picker "resume",
-    { desc = "Resume telescope" },
+    O { desc = "Resume telescope" },
   },
+
   options = {
     "n",
     "ho",
     picker "vim_options",
-    { desc = "Show vim options" },
+    O { desc = "Show vim options" },
   },
+
   find_files = {
     "n",
     "ff",
     function()
       picker("find_files", { cwd = vim.fn.expand "%:p:h" })()
     end,
-    { desc = "Find files in workspace" },
+    O { desc = "Find files in workspace" },
   },
+
   git_files = {
     "n",
     "gf",
     picker "git_files",
-    { desc = "Do git ls-files" },
+    O { desc = "Do git ls-files" },
   },
-  buffers = { "n", "bb", picker "buffers", { desc = "Show buffers" } },
+
+  buffers = {
+    "n",
+    "bb",
+    picker "buffers",
+    O { desc = "Show buffers" },
+  },
+
   oldfiles = {
     "n",
     "fr",
     picker "oldfiles",
-    { desc = "Show recently opened files" },
+    O { desc = "Show recently opened files" },
   },
-  man = { "n", "hm", picker "man_pages", { desc = "Show man pages" } },
+
+  man = {
+    "n",
+    "hm",
+    picker "man_pages",
+    O { desc = "Show man pages" },
+  },
+
   treesitter = {
     "n",
     "lt",
     picker "treesitter",
-    { desc = "Telescope treesitter" },
+    O { desc = "Telescope treesitter" },
   },
+
   lsp_references = {
     "n",
     "lr",
     picker "lsp_references",
-    { desc = "Show references" },
+    O { desc = "Show references" },
   },
+
   lsp_document_symbols = {
     "n",
     "ls",
     picker "lsp_document_symbols",
-    { desc = "Buffer symbols" },
+    O { desc = "Buffer symbols" },
   },
+
   lsp_workspace_symbols = {
     "n",
     "lS",
     picker "lsp_workspace_symbols",
-    { desc = "Workspace symbols" },
+    O { desc = "Workspace symbols" },
   },
   -- lsp_buffer_diagnostics = {
   --     "ld",
@@ -152,46 +143,112 @@ telescope.mappings = {
     "n",
     "gC",
     picker "git_commits",
-    { desc = "Show commits" },
+    O { desc = "Show commits" },
   },
+
   git_bcommits = {
     "n",
     "gB",
     picker "git_bcommits",
-    { desc = "Show branch commits" },
+    O { desc = "Show branch commits" },
   },
+
   git_status = {
     "n",
     "g?",
     picker "git_status",
-    { desc = "Git status" },
+    O { desc = "Git status" },
   },
+
   command_history = {
     "n",
     "h;",
     picker "command_history",
-    { desc = "Command history" },
+    O { desc = "Command history" },
   },
+
   colorschemes = {
     "n",
     "hc",
     picker "colorscheme",
-    { desc = "Colorscheme picker" },
+    O { desc = "Colorscheme picker" },
   },
+
   file_browser = {
     "n",
     "\\",
     function()
-      require("telescope").extensions.file_browser.file_browser(ivy)
+      require("telescope").extensions.file_browser.file_browser(
+        ivy
+      )
     end,
-    { desc = "Open file browser" },
+    O { desc = "Open file browser" },
   },
 }
 
-function telescope:setup()
+function M:setup()
+  local buffer_actions =
+    require "core.plugins.telescope.actions.buffer"
+
+  local find_files_actions =
+    require "core.plugins.telescope.actions.find-files"
+
+  local file_browser_actions =
+    require "core.plugins.telescope.actions.file-browser"
+
+  local ivy =
+    dict.merge(require("telescope.themes").get_dropdown(), {
+      disable_devicons = true,
+      previewer = false,
+      extensions = {},
+      layout_config = {
+        height = 0.8,
+        width = 0.9,
+      },
+    })
+
+  local T = copy(ivy)
+  --------------------------------------------------------------------------------
+  -- Some default overrides
+  T.extensions = {
+    file_browser = {
+      hijack_netrw = true,
+      mappings = {
+        n = {
+          x = file_browser_actions.delete,
+          X = file_browser_actions.force_delete,
+          ["%"] = file_browser_actions.touch,
+        },
+      },
+    },
+  }
+
+  T.pickers = {
+    buffers = {
+      show_all_buffers = true,
+      mappings = {
+        n = {
+          x = buffer_actions.bwipeout,
+          ["!"] = buffer_actions.nomodified,
+          w = buffer_actions.save,
+          r = buffer_actions.readonly,
+        },
+      },
+    },
+    find_files = {
+      mappings = {
+        n = {
+          n = find_files_actions.touch_and_open,
+          ["%"] = find_files_actions.touch,
+          x = find_files_actions.delete,
+        },
+      },
+    },
+  }
+
   local ts = require "telescope"
   ts.setup(T)
   ts.load_extension "file_browser"
 end
 
-return telescope
+return M

@@ -37,8 +37,15 @@ function notify.methods.show_history()
     return
   end
 
-  local notifications = string.split(dump(nf.history()), "\n")
-  buffer.map(bufnr, "n", "q", ":hide<CR>", { desc = "hide buffer", silent = true })
+  local notifications =
+    string.split(dump(nf.history()), "\n")
+  buffer.map(
+    bufnr,
+    "n",
+    "q",
+    ":hide<CR>",
+    { desc = "hide buffer", silent = true }
+  )
   buffer.set_lines(bufnr, 0, -1, notifications)
   buffer.float(bufnr, { center = { 80, 30 } })
   buffer.au(bufnr, "WinLeave", function()
@@ -57,7 +64,11 @@ notify.mappings = {
     notify.methods.show_history,
     { desc = "show notification history" },
   },
-  dismiss = { "<leader>hN", notify.methods.dismiss_all, { desc = "hide notifications" } },
+  dismiss = {
+    "<leader>hN",
+    notify.methods.dismiss_all,
+    { desc = "hide notifications" },
+  },
 }
 
 return notify

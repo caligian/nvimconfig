@@ -20,26 +20,58 @@ end
 
 local data_dir = vim.fn.stdpath "data"
 local home_dir = os.getenv "HOME" .. "/.nvim"
-local luarocks = table.concat({ os.getenv "HOME", ".luarocks" }, "/")
+local luarocks =
+  table.concat({ os.getenv "HOME", ".luarocks" }, "/")
 
-package.cpath = package.cpath .. ";" .. luarocks .. "/share/lua/5.1/?.so"
-package.cpath = package.cpath .. ";" .. luarocks .. "/lib/lua/5.1/?.so"
-package.path = package.path .. ";" .. luarocks .. "/share/lua/5.1/?.lua"
-package.path = package.path .. ";" .. luarocks .. "/share/lua/5.1/?/?.lua"
-package.path = package.path .. ";" .. luarocks .. "/share/lua/5.1/?/init.lua"
+package.cpath = package.cpath
+  .. ";"
+  .. luarocks
+  .. "/share/lua/5.1/?.so"
+package.cpath = package.cpath
+  .. ";"
+  .. luarocks
+  .. "/lib/lua/5.1/?.so"
+package.path = package.path
+  .. ";"
+  .. luarocks
+  .. "/share/lua/5.1/?.lua"
+package.path = package.path
+  .. ";"
+  .. luarocks
+  .. "/share/lua/5.1/?/?.lua"
+package.path = package.path
+  .. ";"
+  .. luarocks
+  .. "/share/lua/5.1/?/init.lua"
 
 -- Enable support for user config in ~/.nvim
-package.path = package.path .. ";" .. home_dir .. "/lua/?.lua"
-package.path = package.path .. ";" .. home_dir .. "/lua/init.lua"
-package.path = package.path .. ";" .. home_dir .. "/lua/?/init.lua"
+package.path = package.path
+  .. ";"
+  .. home_dir
+  .. "/lua/?.lua"
+package.path = package.path
+  .. ";"
+  .. home_dir
+  .. "/lua/init.lua"
+package.path = package.path
+  .. ";"
+  .. home_dir
+  .. "/lua/?/init.lua"
 
 require "logging.file"
 
 user = user or {}
-json = { encode = vim.fn.json_encode, decode = vim.fn.json_decode }
+json = {
+  encode = vim.fn.json_encode,
+  decode = vim.fn.json_decode,
+}
 
 local log_path = vim.fn.stdpath "config" .. "/nvim.log"
-logger = logging.file(log_path, "", "[%date] [%level]\n %message\n\n")
+logger = logging.file(
+  log_path,
+  "",
+  "[%date] [%level]\n %message\n\n"
+)
 dir = require "pl.dir"
 path = require "pl.path"
 file = require "pl.file"

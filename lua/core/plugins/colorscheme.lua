@@ -61,7 +61,11 @@ colorscheme.config = {
       highlight_groups = {
         ColorColumn = { bg = "rose" },
         CursorLine = { bg = "foam", blend = 10 },
-        StatusLine = { fg = "love", bg = "love", blend = 10 },
+        StatusLine = {
+          fg = "love",
+          bg = "love",
+          blend = 10,
+        },
       },
     },
     setup = function(self, opts)
@@ -84,7 +88,10 @@ colorscheme.config = {
             CursorLine = { bg = colors.base02 },
             Function = { italic = false },
             Visual = { bg = colors.cyan },
-            CmpKindBorder = { fg = colors.base01, bg = colors.base04 },
+            CmpKindBorder = {
+              fg = colors.base01,
+              bg = colors.base04,
+            },
           }
         end,
       }
@@ -149,7 +156,7 @@ function colorscheme:setup(name, config)
   end
 end
 
-au.map_group("colorscheme", {
+colorscheme.autocmds = {
   update_line_and_sign_columns_bg = {
     "ColorScheme",
     {
@@ -203,6 +210,15 @@ au.map_group("colorscheme", {
       end,
     },
   },
-})
+  visual_mode_colors = {
+    "ColorScheme",
+    {
+      pattern = '*',
+      callback = function ()
+        highlightset('Visual', {guibg = '#18088d', guifg='#ffffff'})
+      end
+    }
+  }
+}
 
 return colorscheme

@@ -45,7 +45,8 @@ end, {})
 
 command("NvimEvalTillCursor", function()
   local line = vim.fn.line "."
-  local lines = vim.api.nvim_buf_get_lines(0, 0, line - 1, false)
+  local lines =
+    vim.api.nvim_buf_get_lines(0, 0, line - 1, false)
   compile_and_run(lines)
 end, {})
 

@@ -1,6 +1,6 @@
 local statusline = {}
 
-local colors = {
+statusline.colors = {
   bg = "#000000",
   fg = "#ffffff",
   yellow = "#ECBE7B",
@@ -16,8 +16,7 @@ local colors = {
 
 function statusline:update_colors()
   local normal = highlight "Normal"
-
-  colors = copy(colors)
+  local colors = copy(self.colors)
   colors.bg = normal.guibg or colors.bg
   colors.fg = normal.guifg or colors.fg
 
@@ -80,7 +79,9 @@ function statusline:setup_evil()
         -- right section. Both are highlighted by c theme .  So we
         -- are just setting default looks o statusline
         normal = { c = { fg = colors.fg, bg = colors.bg } },
-        inactive = { c = { fg = colors.fg, bg = colors.bg } },
+        inactive = {
+          c = { fg = colors.fg, bg = colors.bg },
+        },
       },
     },
     sections = {
@@ -167,8 +168,20 @@ function statusline:setup_evil()
   }
 
   ins_left {
+    function()
+      local bufnr = vim.fn.bufnr()
+      local groups = buffergroup._buffers[bufnr]
+      if not groups then
+        return "<!>"
+      end
+
+      return sprintf("<%s>", join(keys(groups), ","))
+    end,
+  }
+
+  ins_left {
     "branch",
-    icon = "in",
+    icon = "branch:",
     color = { fg = colors.violet, gui = "bold" },
   }
 
@@ -183,7 +196,12 @@ function statusline:setup_evil()
   ins_left {
     "diagnostics",
     sources = { "nvim_diagnostic" },
-    symbols = { error = "!!", warn = "!", info = "~", hint = "?" },
+    symbols = {
+      error = "!!",
+      warn = "!",
+      info = "~",
+      hint = "?",
+    },
     diagnostics_color = {
       color_error = { fg = colors.red },
       color_warn = { fg = colors.yellow },
@@ -220,32 +238,12 @@ function statusline:setup_evil()
   --   color = { fg = "#ffffff", gui = "bold" },
   -- }
 
-  -- Bufgroup
-  ins_right {
-    function()
-      local bufnr = vim.fn.bufnr()
-      local groups = buffer_group.buffers[bufnr]
-      if not groups then
-        return "<!>"
-      end
-
-      return sprintf("<%s>", join(keys(groups), ","))
-    end,
-  }
-
   -- Add components to right sections
   ins_right {
     "o:encoding", -- option component same as &encoding in viml
     fmt = string.upper, -- I'm not sure why it's upper case either ;)
     cond = conditions.hide_in_width,
     color = { fg = colors.green, gui = "italic" },
-  }
-
-  ins_right {
-    "fileformat",
-    fmt = string.upper,
-    icons_enabled = false, -- I think icons are cool but Eviline doesn't have them. sigh
-    color = { fg = colors.green, gui = "bold" },
   }
 
   ins_right {

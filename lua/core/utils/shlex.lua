@@ -4,7 +4,8 @@ shlex = module "shlex"
 -- @tparam string cmd
 -- @treturn list[string] quoted contents
 local function get_quoted(cmd)
-  local first_quote = string.find(cmd, "'") or string.find(cmd, '"')
+  local first_quote = string.find(cmd, "'")
+    or string.find(cmd, '"')
 
   if not first_quote then
     return list.map(split(cmd, " "), function(x)
@@ -14,7 +15,8 @@ local function get_quoted(cmd)
 
   local quote = string.sub(cmd, first_quote, first_quote)
   local cache = { true }
-  local res = { { false, substr(cmd, 1, first_quote - 1) or "" } }
+  local res =
+    { { false, substr(cmd, 1, first_quote - 1) or "" } }
   local lim = #cmd
   local i = first_quote + 1
   local other_quote = quote == "'" and '"' or "'"
@@ -29,11 +31,15 @@ local function get_quoted(cmd)
     if escaped or not isquote then
       list.append(cache, c)
     elseif isquote and not escaped then
-      list.append(res, { true, join(list.sub(cache, 2), "") })
+      list.append(
+        res,
+        { true, join(list.sub(cache, 2), "") }
+      )
 
       cache = { true }
 
-      local new_i = string.find(cmd, quote, i + 1) or string.find(cmd, other_quote, i + 1)
+      local new_i = string.find(cmd, quote, i + 1)
+        or string.find(cmd, other_quote, i + 1)
 
       if not new_i then
         break
@@ -49,7 +55,10 @@ local function get_quoted(cmd)
   end
 
   if i <= lim then
-    list.append(res, { false, substr(cmd, i + 1, lim) or "" })
+    list.append(
+      res,
+      { false, substr(cmd, i + 1, lim) or "" }
+    )
   end
 
   return res
@@ -67,7 +76,12 @@ function shlex.parse(cmd)
     local prev_status = parsed[i - 1]
     prev_status = prev_status and prev_status[2]
     local prev_status_len = prev_status and #prev_status
-    local last_char = prev_status and substr(prev_status, prev_status_len, prev_status_len)
+    local last_char = prev_status
+      and substr(
+        prev_status,
+        prev_status_len,
+        prev_status_len
+      )
     local ends_with_dollar = last_char == "$" and isquoted
 
     if ends_with_dollar then

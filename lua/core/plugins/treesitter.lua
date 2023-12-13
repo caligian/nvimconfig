@@ -64,7 +64,10 @@ treesitter.config = {
       set_jumps = true,
       gotonext_start = {
         ["]m"] = "@function.outer",
-        ["]]"] = { query = "@class.outer", desc = "Next class start" },
+        ["]]"] = {
+          query = "@class.outer",
+          desc = "Next class start",
+        },
       },
       gotonext_end = {
         ["]M"] = "@function.outer",

@@ -33,7 +33,8 @@ end
 
 function glob(d, expr, nosuf, alllinks)
   nosuf = nosuf == nil and true or false
-  return vim.fn.globpath(d, expr, nosuf, true, alllinks) or {}
+  return vim.fn.globpath(d, expr, nosuf, true, alllinks)
+    or {}
 end
 
 function get_font()
@@ -67,9 +68,13 @@ function loadfilex(s)
   end
 
   if s[1] == "user" then
-    return _loadfile(path.join(os.getenv "HOME", ".nvim", unpack(s)))
+    return _loadfile(
+      path.join(os.getenv "HOME", ".nvim", unpack(s))
+    )
   elseif s[1] then
-    return _loadfile(path.join(vim.fn.stdpath "config", "lua", unpack(s)))
+    return _loadfile(
+      path.join(vim.fn.stdpath "config", "lua", unpack(s))
+    )
   end
 end
 
@@ -105,7 +110,10 @@ local function process_input(key, value)
   end
 
   if required then
-    assert(userint, "no input passed for non-optional key " .. key)
+    assert(
+      userint,
+      "no input passed for non-optional key " .. key
+    )
   end
 
   out[key] = value
@@ -130,7 +138,11 @@ function input(spec)
 end
 
 function whereis(bin, regex)
-  local out = vim.fn.system("whereis " .. bin .. [[ | cut -d : -f 2- | sed -r "s/(^ *| *$)//mg"]])
+  local out = vim.fn.system(
+    "whereis "
+      .. bin
+      .. [[ | cut -d : -f 2- | sed -r "s/(^ *| *$)//mg"]]
+  )
   out = trim(out)
   out = split(out, " ")
 
@@ -157,7 +169,8 @@ end
 function req2path(s, isfile)
   local p = split(s, "[./]") or { s }
   local test
-  user.user_dir = user.user_dir or path.join(os.getenv "HOME", ".nvim")
+  user.user_dir = user.user_dir
+    or path.join(os.getenv "HOME", ".nvim")
   user.dir = user.dir or vim.fn.stdpath "config"
 
   if p[1]:match "user" then
@@ -197,13 +210,19 @@ function requirem(s)
 
   if not builtin then
     return
-  elseif builtin_tp == "dir" and path.exists(builtin .. "/init.lua") then
+  elseif
+    builtin_tp == "dir"
+    and path.exists(builtin .. "/init.lua")
+  then
     builtin = requirex(s)
   else
     builtin = requirex(s)
   end
 
-  if user_tp == "dir" and path.exists(path.join(_user, "init.lua")) then
+  if
+    user_tp == "dir"
+    and path.exists(path.join(_user, "init.lua"))
+  then
     _user = requirex(s)
   else
     _user = requirex(s)

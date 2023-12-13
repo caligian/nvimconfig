@@ -120,7 +120,8 @@ function buffer.option(bufnr, opt)
     return
   end
 
-  local _, out = pcall(vim.api.nvim_buf_get_option, bufnr, opt)
+  local _, out =
+    pcall(vim.api.nvim_buf_get_option, bufnr, opt)
   if out ~= nil then
     return out
   end
@@ -135,7 +136,8 @@ function buffer.var(bufnr, var)
     return
   end
 
-  local ok, out = pcall(vim.api.nvim_buf_get_var, bufnr, var)
+  local ok, out =
+    pcall(vim.api.nvim_buf_get_var, bufnr, var)
   if ok then
     return out
   end
@@ -254,7 +256,12 @@ function buffer.lines(bufnr, startrow, tillrow)
   startrow = startrow or 0
   tillrow = tillrow or -1
 
-  return vim.api.nvim_buf_get_lines(bufnr, startrow, tillrow, false)
+  return vim.api.nvim_buf_get_lines(
+    bufnr,
+    startrow,
+    tillrow,
+    false
+  )
 end
 
 --- Get buffer text
@@ -264,13 +271,27 @@ end
 -- @tparam number end_col Ending column
 -- @tparam[opt] dict Options
 -- @return
-function buffer.text(bufnr, start_row, start_col, end_row, end_col, opts)
+function buffer.text(
+  bufnr,
+  start_row,
+  start_col,
+  end_row,
+  end_col,
+  opts
+)
   bufnr = bufnr or vim.fn.bufnr()
   if not buffer.exists(bufnr) then
     return
   end
 
-  return vim.api.nvim_buf_get_text(bufnr, start_row, start_col, end_row, end_col, opts or {})
+  return vim.api.nvim_buf_get_text(
+    bufnr,
+    start_row,
+    start_col,
+    end_row,
+    end_col,
+    opts or {}
+  )
 end
 
 --- Set buffer lines
@@ -290,7 +311,13 @@ function buffer.set_lines(bufnr, startrow, endrow, repl)
     repl = vim.split(repl, "[\n\r]")
   end
 
-  vim.api.nvim_buf_set_lines(bufnr, startrow, endrow, false, repl)
+  vim.api.nvim_buf_set_lines(
+    bufnr,
+    startrow,
+    endrow,
+    false,
+    repl
+  )
 
   return true
 end
@@ -305,7 +332,14 @@ function buffer.set_text(bufnr, start, till, repl)
     return
   end
 
-  vim.api.nvim_buf_set_text(self.bufnr, start[1], till[1], start[2], till[2], repl)
+  vim.api.nvim_buf_set_text(
+    self.bufnr,
+    start[1],
+    till[1],
+    start[2],
+    till[2],
+    repl
+  )
 
   return true
 end
@@ -628,7 +662,8 @@ function buffer.isempty(bufnr)
 end
 
 function buffer.create(name)
-  return (buffer.exists(name) and buffer.bufnr(name)) or buffer.bufadd(name)
+  return (buffer.exists(name) and buffer.bufnr(name))
+    or buffer.bufadd(name)
 end
 
 function buffer.scratch(name, filetype)
@@ -642,7 +677,11 @@ function buffer.scratch(name, filetype)
     return
   end
 
-  buffer.set_option(bufnr, { buflisted = false, buftype = "nofile", filetype = filetype })
+  buffer.set_option(bufnr, {
+    buflisted = false,
+    buftype = "nofile",
+    filetype = filetype,
+  })
   buffer.noremap(bufnr, "n", "q", ":hide<CR>", {})
 
   return bufnr
@@ -664,7 +703,11 @@ function buffer.input(text, cb, opts)
     buffer.wipeout(buf)
   end)
   buffer.set_lines(buf, 0, -1, text)
-  buffer.split(buf, split, { reverse = opts.reverse, resize = opts.resize })
+  buffer.split(
+    buf,
+    split,
+    { reverse = opts.reverse, resize = opts.resize }
+  )
   buffer.noremap(buf, "n", "q", function()
     buffer.hide(buf)
   end, "Close buffer")
@@ -697,12 +740,18 @@ function buffer.get_node_text_at_pos(bufnr, row, col)
     return
   end
 
-  local node = vim.treesitter.get_node { bufnr = bufnr, pos = { row, col } }
+  local node = vim.treesitter.get_node {
+    bufnr = bufnr,
+    pos = { row, col },
+  }
   if not node then
     return
   end
 
-  return table.concat(buffer.text(bufnr, node:range()), "\n")
+  return table.concat(
+    buffer.text(bufnr, node:range()),
+    "\n"
+  )
 end
 
 function buffer.windows(bufnr)
@@ -754,9 +803,15 @@ function buffer.split(bufnr, direction)
     cmd(direction)
   elseif strmatch(direction, "aboveleft", "leftabove") then
     cmd(direction)
-  elseif strmatch(direction, "belowright", "rightbelow") then
+  elseif
+    strmatch(direction, "belowright", "rightbelow")
+  then
     cmd(direction)
-  elseif direction == "tabnew" or direction == "t" or direction == "tab" then
+  elseif
+    direction == "tabnew"
+    or direction == "t"
+    or direction == "tab"
+  then
     cmd ":tabnew"
   elseif string.match(direction, "qf") then
     local lines = buffer.lines(bufnr, 0, -1)
@@ -878,8 +933,10 @@ function float:__call(bufnr, opts)
     end
 
     local width, height = unpack(center)
-    width = math.floor(from_percent(current_width, width, 10))
-    height = math.floor(from_percent(current_height, height, 5))
+    width =
+      math.floor(from_percent(current_width, width, 10))
+    height =
+      math.floor(from_percent(current_height, height, 5))
     local col = (current_width - width) / 2
     local row = (current_height - height) / 2
     opts.width = width
@@ -909,7 +966,8 @@ function float:__call(bufnr, opts)
     opts.col = 0
     opts.row = opts.height - dock
     opts.height = from_percent(current_height, dock, 5)
-    opts.width = current_width > 5 and current_width - 2 or current_width
+    opts.width = current_width > 5 and current_width - 2
+      or current_width
 
     if reverse then
       opts.row = opts.height
@@ -950,13 +1008,20 @@ end
 
 function float.dock(bufnr, size, opts)
   size = size or 10
-  return float(bufnr, dict.merge({ dock = size }, opts or {}))
+  return float(
+    bufnr,
+    dict.merge({ dock = size }, opts or {})
+  )
 end
 
 function float.set_config(bufnr, config)
   config = config or {}
   local winnr = buffer.winnr(bufnr)
-  local ok, msg = pcall(vim.api.nvim_win_set_config, win.nr2id(winnr), config)
+  local ok, msg = pcall(
+    vim.api.nvim_win_set_config,
+    win.nr2id(winnr),
+    config
+  )
 
   if not ok then
     return
@@ -972,7 +1037,8 @@ function float.get_config(bufnr)
     return
   end
 
-  local ok, msg = pcall(vim.api.nvim_win_get_config, win.nr2id(winnr))
+  local ok, msg =
+    pcall(vim.api.nvim_win_get_config, win.nr2id(winnr))
   if not ok then
     return
   end
@@ -985,7 +1051,12 @@ end
 au.map("FileType", {
   pattern = "qf",
   callback = function()
-    kbd.map("ni", "q", ":hide<CR>", { desc = "kill buffer", buffer = buffer.current() })
+    kbd.map(
+      "ni",
+      "q",
+      ":hide<CR>",
+      { desc = "kill buffer", buffer = buffer.current() }
+    )
   end,
 })
 
@@ -1037,7 +1108,9 @@ function hist.push(bufnr)
     return
   elseif history[#history] == buffer.current() then
     return
-  elseif hist.ignore_filetypes[buffer.option(bufnr, "filetype")] then
+  elseif
+    hist.ignore_filetypes[buffer.option(bufnr, "filetype")]
+  then
     return
   end
 

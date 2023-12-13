@@ -1,7 +1,13 @@
 require "core.utils.buffer"
 
 logger = logger or {}
-logger.path = path.join(os.getenv "HOME", ".local", "share", "nvim", "messages")
+logger.path = path.join(
+  os.getenv "HOME",
+  ".local",
+  "share",
+  "nvim",
+  "messages"
+)
 logger.bufname = logger.path
 
 if not logger.bufnr or not buffer.exists(logger.bufnr) then
@@ -74,6 +80,21 @@ function logger.get_caller(level)
   return debug.getinfo(level or 2, "n").name
 end
 
-vim.keymap.set("n", "<space>hl", logger.split, { desc = "split show logs" })
-vim.keymap.set("n", "<space>hL", partial(logger.split, "v"), { desc = "vsplit show logs" })
-vim.keymap.set({ "i", "n" }, "q", ":hide<CR>", { buffer = logger.bufnr })
+vim.keymap.set(
+  "n",
+  "<space>hl",
+  logger.split,
+  { desc = "split show logs" }
+)
+vim.keymap.set(
+  "n",
+  "<space>hL",
+  partial(logger.split, "v"),
+  { desc = "vsplit show logs" }
+)
+vim.keymap.set(
+  { "i", "n" },
+  "q",
+  ":hide<CR>",
+  { buffer = logger.bufnr }
+)

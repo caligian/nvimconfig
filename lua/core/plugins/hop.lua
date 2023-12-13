@@ -20,7 +20,9 @@ plug.mappings = {
   after_cursor = {
     "gJ",
     function()
-      hop.hint_lines_skip_whitespace { direction = directions.AFTER_CURSOR }
+      hop.hint_lines_skip_whitespace {
+        direction = directions.AFTER_CURSOR,
+      }
     end,
   },
   before_cursor = {

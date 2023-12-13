@@ -1,4 +1,5 @@
-local elixir = filetype "elixir"
+local elixir = {}
+
 local function isproject(current_dir)
   local prev_dir = vim.fn.fnamemodify(current_dir, ":h")
   local ls = dir.getallfiles(prev_dir)
@@ -14,16 +15,17 @@ local function isproject(current_dir)
 end
 
 elixir.repl = {
-  { "iex", workspace = "iex" },
+  buffer = "iex",
+  workspace = "iex",
 }
 
 elixir.formatter = {
-  "mix format - ",
+  buffer = "mix format - ",
   stdin = true,
 }
 
 elixir.compile = {
-  "elixir %s",
+  buffer = "elixir {path}",
   workspace = "mix run",
 }
 
@@ -31,44 +33,47 @@ elixir.test = {
   workspace = "mix test",
 }
 
-elixir.lsp_server = {
+elixir.server = {
   "elixirls",
-  cmd = {
-    path.join(user.data_dir, "lsp-servers", "elixir-ls", "scripts", "language_server.sh"),
+  config = {
+    cmd = {
+      path.join(
+        user.data_dir,
+        "lsp-servers",
+        "elixir-ls",
+        "scripts",
+        "language_server.sh"
+      ),
+    },
   },
 }
 
 elixir.mappings = {
-  compile_and_run_buffer = {
+  compile_and_run_buffer_in_workspace = {
     "n",
     "<leader>rc",
     function()
       local bufnr = buffer.bufnr()
-      Repl.if_running(bufnr, function(x)
-        buffer.save(bufnr)
-        Repl.send(x, sprintf('c("%s")', buffer.name()))
-      end)
+      local x = repl(buffer.bufnr(), { workspace = true })
+      if x then
+        x:send(sprintf('c("%s")', buffer.name()))
+      end
     end,
     { desc = "compile and run buffer" },
   },
-  filetype_compile_and_run_buffer = {
+
+  compile_and_run_buffer = {
     "n",
     "<localleader>rc",
     function()
       local bufnr = buffer.bufnr()
-      Repl.if_running("elixir", function(x)
-        buffer.save(bufnr)
-        Repl.send(x, sprintf('c("%s")', buffer.name()))
-      end)
+      local x = repl(buffer.bufnr(), { buffer = true })
+      if x then
+        x:send(sprintf('c("%s")', buffer.name()))
+      end
     end,
     { desc = "compile and run buffer" },
   },
-}
-
-elixir.abbrevs = {
-  puts = "IO.inspect",
-  dump = "inspect",
-  print = "IO.write",
 }
 
 return elixir

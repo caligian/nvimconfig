@@ -2,7 +2,11 @@ local align = {}
 
 align.mappings = {
   opts = { leader = true, noremap = true },
-  align = { "=", ":EasyAlign ", { desc = "Align by regexp" } },
+  align = {
+    "=",
+    ":EasyAlign ",
+    { desc = "Align by regexp" },
+  },
   align_region = {
     "=",
     ":'<,'>EasyAlign ",

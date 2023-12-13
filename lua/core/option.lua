@@ -4,7 +4,7 @@ user.option = {
   o = {
     scrolloff = 5,
     number = true,
-    incsearch = false,
+    incsearch = true,
     hidden = false,
     relativenumber = true,
     showcmd = true,
@@ -27,8 +27,8 @@ user.option = {
     mousefocus = true,
     shell = "/bin/bash",
     backspace = "indent,eol,start",
-    tabstop = 4,
-    shiftwidth = 4,
+    tabstop = 2,
+    shiftwidth = 2,
     expandtab = true,
     foldmethod = "indent",
     inccommand = "split",
@@ -38,18 +38,26 @@ user.option = {
   },
   g = {
     mapleader = " ",
-    maplocalleader = "-",
+    maplocalleader = ",",
     neovide_cursor_vfx_mode = "sonicboom",
     netrw_keepdir = 0,
   },
 }
 
-if req2path "user.option" then
-  require "user.option"
-end
+local function setopts()
+  if req2path "user.option" then
+    requirex "user.option"
+  end
 
-for t, opts in pairs(user.option) do
-  for k, v in pairs(opts) do
-    vim[t][k] = v
+  for t, opts in pairs(user.option) do
+    for k, v in pairs(opts) do
+      vim[t][k] = v
+    end
   end
 end
+
+setopts()
+
+vim.api.nvim_create_user_command('ReloadOptions', function ()
+  setopts()
+end, {})
