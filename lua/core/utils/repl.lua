@@ -40,6 +40,7 @@ function repl:init(bufnr, opts)
 
   local exists =
     repl.exists(bufnr, opts.workspace and "workspace" or opts.buffer and "buffer" or "dir")
+
   if exists then
     return exists
   end
@@ -58,7 +59,7 @@ function repl:init(bufnr, opts)
   local isshell = opts.shell
 
   self.filetype = ft
-  self.type = isdir and "dir" or isbuf and "buffer" or "workspace" or isshell and "shell"
+  self.type = isdir and "dir" or isbuf and "buffer" or isws and "workspace" or isshell and "shell"
   local cmd
 
   if isshell then
@@ -83,7 +84,11 @@ function repl:init(bufnr, opts)
     cmd = replcmd.buffer
   end
 
-  self.src = cmd[2]
+  if istable(cmd) then
+    self.src = cmd[2]
+    cmd = cmd[1]
+  end
+
   self.name = self.src
 
   if not isshell then
@@ -92,7 +97,7 @@ function repl:init(bufnr, opts)
     repl.repls.shell = self
   end
 
-  return terminal.init(self, cmd[1], opts)
+  return terminal.init(self, cmd, opts)
 end
 
 function repl:reset()
@@ -113,6 +118,9 @@ function repl.set_mappings()
     elseif tp == "workspace" then
       key = "<leader>rr"
       desc = "start workspace"
+    elseif tp == "shell" then
+      key = "<leader>xx"
+      desc = "start shell"
     else
       key = "<leader>rR"
       desc = "start dir"
@@ -127,7 +135,11 @@ function repl.set_mappings()
       end
 
       self:start()
-      self:split()
+      if self:running() then
+        print("started REPL for buffer with cmd: " .. self.cmd)
+      else
+        tostderr("could not start REPL for buffer with cmd: " .. self.cmd)
+      end
     end, desc)
   end
 
@@ -139,42 +151,95 @@ function repl.set_mappings()
     elseif tp == "workspace" then
       key = "<leader>r"
       desc = action .. " workspace"
+    elseif tp == "shell" then
+      key = "<leader>x"
+      desc = action .. " shell"
     else
       key = "<leader>r"
       desc = action .. " dir"
     end
 
+    local mode = "n"
+    if istable(ks) then
+      mode, ks = unpack(ks)
+    end
+
     if tp ~= "dir" then
-      return key .. ks, desc
+      return mode, key .. ks, desc
     else
-      return key .. string.upper(ks), desc
+      return mode, key .. string.upper(ks), desc
     end
   end
 
-  local function stop(tp)
-    local key, desc = mkkeys("stop", tp, "q")
-    kbd.map("n", key, function()
+  local function map(name, tp, key, callback)
+    local mode, key, desc = mkkeys(name, tp, key)
+
+    kbd.map(mode, key, function()
       local buf = buffer.current()
       local self = repl(buf, { [tp] = true })
-
-      if self and self:running() then
-        self:stop()
+      if self then
+        callback(self)
       end
-    end, desc)
+    end, { noremap = true, silent = true, desc = desc })
   end
 
-  list.each({ "buffer", "workspace", "dir" }, function(x)
+  local function stop(tp)
+    map("stop", tp, "q", function(self)
+      self:stop()
+    end)
+  end
+
+  local function float(tp)
+    map("float", tp, "f", function(self)
+      self:center_float()
+    end)
+  end
+
+  local function split(tp)
+    map("split", tp, "s", function(self)
+      self:split()
+    end)
+  end
+
+  local function vsplit(tp)
+    map("vsplit", tp, "v", function(self)
+      self:vsplit()
+    end)
+  end
+
+  local function send_visual_range(tp)
+    map("send range", tp, { "v", "e" }, function(self)
+      self:send_range()
+    end)
+  end
+
+  local function send_buffer(tp)
+    map("send buffer", tp, "b", function(self)
+      self:send_buffer()
+    end)
+  end
+
+  local function send_current_line(tp)
+    map("send line", tp, "e", function(self)
+      self:send_current_line()
+    end)
+  end
+
+  local function send_till_cursor(tp)
+    map("send till cursor", tp, "m", function(self)
+      self:send_till_cursor()
+    end)
+  end
+
+  list.each({ "buffer", "workspace", "dir", "shell" }, function(x)
     start(x)
     stop(x)
-    -- split(x)
-    -- vsplit(x)
-    -- send(x)
+    split(x)
+    vsplit(x)
+    send_till_cursor(x)
+    send_visual_range(x)
+    send_buffer(x)
+    send_current_line(x)
+    float(x)
   end)
 end
-
-repl.set_mappings()
-
--- x = repl(buffer.current(), {buffer = true})
--- x:start()
--- x:split()
--- x:hide()

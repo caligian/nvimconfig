@@ -8,5 +8,6 @@ require "core.netrw"
 bookmark.main()
 filetype.main()
 plugin.main()
+repl.set_mappings()
 
 -- say = plugin.get('notify').methods.say or vim.notify

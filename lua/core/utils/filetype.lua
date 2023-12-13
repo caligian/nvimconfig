@@ -45,7 +45,8 @@ require "core.utils.job"
 --- @class filetype.server
 --- @field config table lsp server config
 
-filetype = filetype or class "filetype"
+-- filetype = filetype or class "filetype"
+filetype = class "filetype"
 filetype.filetypes = filetype.filetypes or {}
 filetype.jobs = filetype.jobs or {}
 
@@ -357,15 +358,6 @@ function filetype:setup_lsp(specs)
   return self
 end
 
-function filetype:getjob(name, noprefix)
-  if not name then
-    return
-  end
-
-  name = not noprefix and ("filetype." .. self.name .. "." .. name) or name
-  return self.jobs[name]
-end
-
 local function find_workspace(start_dir, pats, maxdepth, _depth)
   maxdepth = maxdepth or 5
   _depth = _depth or 0
@@ -490,6 +482,12 @@ function filetype:command(bufnr, action)
       return X(what)
     elseif isstring(X) then
       return X
+    elseif isstring(X[1]) then
+      X = copy(X)
+      local cmd = X[1]
+      X[1] = nil
+
+      return cmd, X
     else
       return getfromtable(X, what)
     end
@@ -499,27 +497,39 @@ function filetype:command(bufnr, action)
     return (k ~= "buffer" and k ~= "workspace" and k ~= "dir" and k ~= 1) and v
   end)
 
+  local function withpath(cmd, p, opts)
+    if cmd:match('%%path') then
+      cmd = cmd:gsub('%%path', p)
+      return cmd
+    elseif opts.append_filename then
+      return cmd .. ' ' .. p
+    else
+      return cmd
+    end
+  end
+
   if compile[1] or compile.buffer then
-    local cmd = dwim(compile[1] or compile.buffer, bufname)
+    local cmd, opts = dwim(compile[1] or compile.buffer, bufname)
+    opts = opts or {}
     if cmd then
-      out.buffer = { cmd, bufname }
+      out.buffer = withpath(cmd, bufname, opts)
     end
   end
 
   if compile.dir then
     local d = path.dirname(bufname)
-    local cmd = dwim(compile.dir, d)
+    local cmd, opts = dwim(compile.dir, d)
     if cmd then
-      out.dir = { cmd, d }
+      out.dir = withpath(cmd, d, opts)
     end
   end
 
   if compile.workspace then
     local ws = filetype.workspace(bufnr)
     if ws then
-      local cmd = dwim(compile.workspace, ws)
+      local cmd, opts = dwim(compile.workspace, ws)
       if cmd then
-        out.workspace = { cmd, ws }
+        out.workspace = withpath(cmd, ws, opts)
       end
     end
   end
@@ -533,56 +543,49 @@ end
 
 function filetype:format(bufnr, opts)
   opts = opts or {}
-  local config = self:command(bufnr, "formatter")
+  local cmd, target = self:command(bufnr, "formatter")
   opts = copy(opts)
   local stdin = opts.stdin or config.stdin
   local write = opts.write or config.write
-  local append_filename = opts.append_filename or config.append_filename
   local bufname = buffer.name(bufnr)
   local name
 
   if opts.dir then
-    name = self.name .. ".formatter.dir."
+    name = "filetype.formatter.dir."
   elseif opts.workspace then
-    name = self.name .. ".formatter.workspace."
+    name = "filetype.formatter.workspace."
   else
-    name = self.name .. ".formatter.buffer."
+    name = "filetype.formatter.buffer."
   end
 
   name = name .. bufname
 
-  local function createcmd(tp)
-    assert(config[tp], self.name .. ".formatter." .. tp .. ": no command exists")
+  if opts.workspace then
+    cmd = cmd.workspace
 
-    local cmd, target = unpack(config[tp])
-    cmd = isa.list(args) and (cmd .. " " .. join(args, " ")) or cmd
+  elseif opts.buffer then
+    cmd = cmd.dir
+    if opts.stdin then
+      cmd = sprintf('sh -c "cat %s | %s"', target, cmd)
+    end
+  else
+    cmd = cmd.dir
+  end
+
+  assert(cmd, 'filetype.' .. self.name .. ".formatter" .. ": no command exists")
+
+  local function createcmd(tp)
 
     if tp == "buffer" then
       if append_filename == nil and stdin == nil then
         stdin = true
       end
 
-      if append_filename then
-        cmd = cmd .. " " .. target
-      elseif stdin then
-        cmd = sprintf('sh -c "cat %s | %s"', target, cmd)
-      elseif cmd:match "%%path" then
-        cmd = cmd:gsub("%%path", target)
-      else
-        cmd = cmd .. " " .. target
-      end
-    else
-      if cmd:match "%%path" then
-        cmd = cmd:gsub("%%path", target)
-      else
-        cmd = cmd .. " " .. target
-      end
     end
 
     return cmd, target
   end
 
-  local cmd, target
   if opts.workspace then
     cmd = createcmd "workspace"
   elseif opts.dir then
@@ -736,11 +739,13 @@ function filetype:action(bufnr, action, opts)
   opts = opts or {}
   local ws = opts.workspace
   local isdir = opts.dir
+  local tp = opts.workspace and "workspace" or opts.dir and "dir" or "buffer"
 
   if not config then
     return
   end
 
+  local name = "filetype." .. action .. "." .. tp .. "."
   local cmd = self:command(bufnr, action)
   local target
 
@@ -748,32 +753,17 @@ function filetype:action(bufnr, action, opts)
     return false
   elseif ws then
     cmd, target = unpack(cmd.workspace)
-    if cmd:match "%%path" then
-      cmd = cmd:gsub("%%path", target)
-    else
-      cmd = cmd .. " " .. target
-    end
   elseif isdir then
     cmd, target = unpack(cmd.dir)
-    if cmd:match "%%path" then
-      cmd = cmd:gsub("%%path", target)
-    else
-      cmd = cmd .. " " .. target
-    end
   else
     cmd, target = unpack(cmd.buffer)
-    if cmd:match "%%path" then
-      cmd = cmd:gsub("%%path", target)
-    else
-      cmd = cmd .. " " .. target
-    end
   end
 
+  name = name .. target
   return filetype.job(cmd, {
+    name = name,
+    cwd = isdir or ws and target,
     name = target .. action,
-    before = function()
-      buffer.save(bufnr)
-    end,
     on_exit = function(x)
       local err = x.errors or {}
       local lines = x.lines or {}
@@ -931,7 +921,7 @@ function filetype.main(use_loadfile)
 
   kbd.map("n", "<leader>mb", function()
     local buf = buffer.current()
-    filetype(buf):action(buf, "build", { dir = true })
+    filetype(buf):action(buf, "build", { workspace = true })
   end, "build workspace")
 
   kbd.map("n", "<leader>cb", function()
@@ -941,37 +931,37 @@ function filetype.main(use_loadfile)
 
   kbd.map("n", "<leader>cB", function()
     local buf = buffer.current()
-    filetype(buf):action(buf, "build", { workspace = true })
+    filetype(buf):require():action(buf, "build", { dir = true })
   end, "build dir")
 
   kbd.map("n", "<leader>mt", function()
     local buf = buffer.current()
-    filetype(buf):action(buf, "test", { dir = true })
+    filetype(buf):require():action(buf, "test", { workspace = true })
   end, "test workspace")
 
   kbd.map("n", "<leader>ct", function()
     local buf = buffer.current()
-    filetype(buf):action(buf, "test", { buffer = true })
+    filetype(buf):require():action(buf, "test", { buffer = true })
   end, "test buffer")
 
   kbd.map("n", "<leader>cT", function()
     local buf = buffer.current()
-    filetype(buf):action(buf, "test", { workspace = true })
+    filetype(buf):require():action(buf, "test", { dir = true })
   end, "test dir")
 
   kbd.map("n", "<leader>mc", function()
     local buf = buffer.current()
-    filetype(buf):action(buf, "compile", { dir = true })
+    filetype(buf):require():action(buf, "compile", { workspace = true })
   end, "compile workspace")
 
   kbd.map("n", "<leader>cc", function()
     local buf = buffer.current()
-    filetype(buf):action(buf, "compile", { buffer = true })
+    filetype(buf):require():action(buf, "compile", { buffer = true })
   end, "compile buffer")
 
   kbd.map("n", "<leader>cC", function()
     local buf = buffer.current()
-    filetype(buf):action(buf, "compile", { workspace = true })
+    filetype(buf):require():action(buf, "compile", { dir = true })
   end, "compile dir")
 
   kbd.map("n", "<leader>mf", function()

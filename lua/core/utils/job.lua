@@ -2,22 +2,7 @@ require "core.utils.shlex"
 local uv = vim.loop
 
 --- @class job
-
-job = job
-  or struct("job", {
-    "exit_code",
-    "cmd",
-    "args",
-    "pipes",
-    "lines",
-    "errors",
-    "handle",
-    "check",
-    "output_buffer",
-    "stdout_buffer",
-    "stderr_buffer",
-    "cwd",
-  })
+job = class 'job'
 
 function job.mkpipes(self)
   self.pipes = {}
@@ -105,12 +90,12 @@ function job.init(self, cmd, opts)
 
       if ok_lines then
         list.append(lines, "STDOUT", "")
-        list.extend(lines, cls.lines)
+        list.extend(lines, cls.lines or {})
       end
 
       if ok_errors then
         list.append(lines, "STDERR", "")
-        list.extend(errors, cls.errors)
+        list.extend(lines, cls.errors or {})
       end
 
       buffer.set_lines(output_buffer, 0, -1, lines)
@@ -215,6 +200,7 @@ function job.init(self, cmd, opts)
   if stdout or stderr then
     local function collect(err, data, tp)
       if err then
+        err = vim.split(err, "\n")
         list.extend(self.errors, err)
       elseif data then
         data = vim.split(data, "\n")

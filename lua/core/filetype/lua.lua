@@ -24,14 +24,25 @@ return {
 
   formatter = {
     buffer = formatter_cmd,
-    workspace = formatter_cmd,
+    workspace = { formatter_cmd, append_filename = false },
     dir = formatter_cmd,
     stdin = true,
   },
 
   compile = {
-    buffer = "luajit",
-    workspace = "luarocks --local build",
+    buffer = "luajit %path",
+    workspace = function (ws)
+      local kids = split(vim.fn.glob(ws .. "/*.rockspec"), "\n")
+      if #kids == 0 then
+        tostderr('no rockspec exists for ' .. ws)
+        return
+      end
+
+      local cmd = 'luarocks --local build ' .. kids[1]
+      print('running command: ' .. cmd)
+
+      return cmd
+    end
   },
 
   repl = {

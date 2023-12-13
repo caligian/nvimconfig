@@ -468,3 +468,4 @@ function buffer_group.get_statusline_string(bufnr)
 
   return "<" .. join(keys(state), " ") .. ">"
 end
+
