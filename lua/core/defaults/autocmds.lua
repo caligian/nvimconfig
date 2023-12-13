@@ -1,6 +1,3 @@
-user.exclude_recent_buffer_filetypes = user.exclude_recent_buffer_filetypes
-  or { TelescopePrompt = true, netrw = true, [""] = true }
-
 return {
   highlight_on_yank = {
     "TextYankPost",
@@ -76,6 +73,8 @@ return {
           return
         end
 
+        assert(dict.isa(user.temp_buffer_patterns, union('string', 'function', 'table')))
+
         dict.each(
           user.temp_buffer_patterns,
           function(_, pat)
@@ -107,3 +106,4 @@ return {
     },
   },
 }
+

@@ -8,10 +8,22 @@ repl.main()
 buffergroup.main()
 kbd.main()
 au.main()
-plugin.main()
 
+plugin.main()
 plugin.plugins.colorscheme:setup()
 plugin.plugins.indentblankline:setup()
 plugin.plugins.statusline:setup()
+
+vim.api.nvim_create_user_command('ReloadStatusline', function ()
+  plugin.plugins.statusline:setup()
+end, {})
+
+vim.api.nvim_create_user_command('ReloadColorscheme', function ()
+  plugin.plugins.colorscheme:setup()
+end, {})
+
+kbd.map('n', '<leader>hC', ':ReloadColorscheme<CR>', 'reload colorscheme')
+kbd.map('n', '<leader>h=', ':ReloadStatusline<CR>', 'reload statusline')
+
 
 require 'core.defaults.commands'

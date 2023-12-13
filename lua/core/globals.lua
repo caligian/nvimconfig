@@ -1,6 +1,6 @@
 local data_dir = vim.fn.stdpath "data"
 
-user.colorscheme = "rosebones"
+user.colorscheme = "earlysummer"
 
 user.dir = vim.fn.stdpath "config"
 
@@ -18,6 +18,9 @@ user.temp_buffer_patterns = {
   log_files = "%.log$",
   startuptime = { ft = "startuptime" },
 }
+
+user.exclude_recent_buffer_filetypes = { TelescopePrompt = true, netrw = true, [""] = true, tagbar = true }
+
 
 if req2path "user.globals" then
   requirex "user.globals"
