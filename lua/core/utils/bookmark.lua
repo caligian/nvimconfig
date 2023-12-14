@@ -289,7 +289,7 @@ function bookmark.create_line_picker(file_path)
     return
   end
 
-  local t = load_telescope()
+  local t = require('core.utils.telescope')()
   local line_mod = {}
 
   function line_mod.default_action(sel)
@@ -337,7 +337,7 @@ function bookmark.create_picker()
     return
   end
 
-  local t = load_telescope()
+  local t = require("core.utils.telescope")()
   local mod = {}
 
   function mod.default_action(sel)

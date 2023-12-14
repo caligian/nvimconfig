@@ -71,6 +71,7 @@ vim.diagnostic.config(lsp.diagnostic)
 lsp.mappings = lsp.mappings
   or {
     float_diagnostic = {
+      "n",
       "<leader>li",
       partial(
         vim.diagnostic.open_float,
@@ -79,28 +80,10 @@ lsp.mappings = lsp.mappings
       {
         desc = "LSP diagnostic float",
         noremap = true,
-        leader = true,
-      },
-    },
-    previous_diagnostic = {
-      "[d",
-      vim.diagnostic.gotoprev,
-      {
-        desc = "LSP go to previous diagnostic",
-        noremap = true,
-        leader = true,
-      },
-    },
-    next_diagnostic = {
-      "]d",
-      vim.diagnostic.gotonext,
-      {
-        desc = "LSP go to next diagnostic",
-        noremap = true,
-        leader = true,
       },
     },
     set_loclist = {
+      "n",
       "lq",
       vim.diagnostic.setloclist,
       {
@@ -110,6 +93,7 @@ lsp.mappings = lsp.mappings
       },
     },
     buffer_declarations = {
+      "n",
       "gD",
       vim.lsp.buf.declaration,
       {
@@ -119,6 +103,7 @@ lsp.mappings = lsp.mappings
       },
     },
     buffer_definitions = {
+      "n",
       "gd",
       vim.lsp.buf.definition,
       {
@@ -128,6 +113,7 @@ lsp.mappings = lsp.mappings
       },
     },
     float_documentation = {
+      "n",
       "K",
       vim.lsp.buf.hover,
       {
@@ -137,6 +123,7 @@ lsp.mappings = lsp.mappings
       },
     },
     implementations = {
+      "n",
       "gi",
       vim.lsp.buf.implementation,
       {
@@ -146,6 +133,7 @@ lsp.mappings = lsp.mappings
       },
     },
     signatures = {
+      "n",
       "<C-k>",
       vim.lsp.buf.signature_help,
       {
@@ -155,6 +143,7 @@ lsp.mappings = lsp.mappings
       },
     },
     add_workspace_folder = {
+      "n",
       "<leader>lwa",
       vim.lsp.buf.add_workspace_folder,
       {
@@ -164,7 +153,8 @@ lsp.mappings = lsp.mappings
       },
     },
     remove_workspace_folder = {
-      "<leader>lwr",
+      "n",
+      "<leader>lwx",
       vim.lsp.buf.remove_workspace_folder,
       {
         desc = "Remove workspace folder",
@@ -173,6 +163,7 @@ lsp.mappings = lsp.mappings
       },
     },
     list_workspace_folders = {
+      "n",
       "<leader>lwl",
       function()
         print(
@@ -186,6 +177,7 @@ lsp.mappings = lsp.mappings
       },
     },
     type_definition = {
+      "n",
       "<leader>lD",
       vim.lsp.buf.type_definition,
       {
@@ -195,6 +187,7 @@ lsp.mappings = lsp.mappings
       },
     },
     buffer_rename = {
+      "n",
       "<leader>lR",
       vim.lsp.buf.rename,
       {
@@ -204,6 +197,7 @@ lsp.mappings = lsp.mappings
       },
     },
     code_action = {
+      "n",
       "<leader>la",
       vim.lsp.buf.code_action,
       {
@@ -213,6 +207,7 @@ lsp.mappings = lsp.mappings
       },
     },
     buffer_references = {
+      "n",
       "gr",
       vim.lsp.buf.references,
       {
@@ -323,10 +318,11 @@ function lsp.on_attach(client, bufnr)
 
     local mappings = deepcopy(lsp.mappings)
     for _, value in pairs(mappings) do
-      value.buffer = bufnr
+      value[4] = value[4] or {}
+      value[4].buffer = bufnr
     end
 
-    kbd.map_groups(mappings)
+    kbd.fromdict(mappings)
   end
 end
 
@@ -496,21 +492,24 @@ function filetype.workspace(bufnr, pats, maxdepth, _depth)
   ---@diagnostic disable-next-line: param-type-mismatch
   local server =
     filetype.query(buffer.filetype(bufnr), "server")
+
   local bufname = buffer.name(bufnr)
 
   if server then
-    assertisa(server, union("string", "table"))
+    server = tolist(server)
+
     local config = isstring(server) and lspconfig[server]
       or lspconfig[server[1]]
-    local root_dir_checker =
-      config.document_config.default_config.root_dir
-    if not config.get_root_dir then
-      return find_workspace(bufname, pats, maxdepth, _depth)
-    elseif root_dir_checker then
-      return root_dir_checker(bufname)
-    end
 
-    return config.get_root_dir(bufname)
+    local root_dir_checker = server.get_root_dir
+      or config.document_config.default_config.root_dir
+      or config.get_root_dir
+
+    if root_dir_checker then
+      return root_dir_checker(bufname)
+    else
+      return find_workspace(bufname, pats, maxdepth, _depth)
+    end
   else
     return find_workspace(bufname, pats, maxdepth, _depth)
   end
@@ -866,12 +865,17 @@ function filetype:action(bufnr, action, opts)
 
   local name = "filetype." .. action .. "." .. tp .. "."
   local cmd = self:command(bufnr, action)
+
+  if not cmd then
+    return
+  end
+
   local target
 
   if
     (ws and not cmd.workspace) or (isdir and not cmd.dir)
   then
-    return false
+    return
   elseif ws then
     cmd, target = unpack(cmd.workspace)
   elseif isdir then
@@ -1146,3 +1150,4 @@ function filetype.main(use_loadfile)
     filetype(buf):format_dir(buf)
   end, "format dir")
 end
+

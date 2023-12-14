@@ -240,30 +240,10 @@ function kbd.map_groups(specs, compile)
 end
 
 function kbd.fromdict(specs)
-  assertisa(specs, function(x)
-    return dict.isa(x, function(arg)
-      return islist(arg) and #arg == 4
-    end)
-  end)
-
   local out = {}
   for key, value in pairs(specs) do
-    params {
-      {
-        {
-          union("string", "table"),
-          "string",
-          union("string", "callable"),
-          union("string", "table"),
-        },
-        value,
-      },
-    }
-
-    value[4] = isstring(value[4]) and { desc = value[4] }
-      or value[4]
+    value[4] = isstring(value[4]) and { desc = value[4] } or value[4]
     value[4].name = key
-
     out[key] = kbd.map(unpack(value))
   end
 

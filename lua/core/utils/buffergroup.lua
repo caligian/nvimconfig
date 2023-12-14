@@ -1,6 +1,5 @@
 require "core.utils.au"
 require "core.utils.kbd"
-require "core.utils.telescope"
 
 if not buffergroup then
   buffergroup = class "buffergroup"
@@ -98,8 +97,8 @@ function buffergroup.create_picker(self)
       )
     end
 
-    local tscope = load_telescope()
-    return tscope:create_picker(ls, function(group)
+    local T = require("core.utils.telescope")()
+    return T:create_picker(ls, function(group)
       if #group == 0 then
         return
       end
@@ -119,8 +118,8 @@ function buffergroup.create_picker(self)
     return
   end
 
-  local tscope = load_telescope()
-  return tscope:create_picker(ls, {
+  local T = require("core.utils.telescope")()
+  return T:create_picker(ls, {
     function(bufs)
       if #bufs == 0 then
         return

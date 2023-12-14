@@ -6,6 +6,7 @@ local GAMMA = 2.4
 function highlight(hi)
   local ok, out =
     pcall(vim.api.nvim_exec, "hi " .. hi, true)
+
   if not ok then
     return {}
   end
@@ -21,7 +22,6 @@ function highlight(hi)
   end)
 
   out = list.sub(out, 1, #out)
-
   list.each(out, function(i)
     local attrib, value = unpack(vim.split(i, "="))
     if value then

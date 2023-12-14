@@ -1,12 +1,12 @@
-local _ = load_telescope()
-
 local function get_fname(sel)
   return sel.cwd .. "/" .. sel[1]
 end
 
 local mod = {
   delete = function(prompt_bufnr)
+    local _ = require('core.utils.telescope')()
     local sel = _:selected(prompt_bufnr, true)
+
     list.each(sel, function(x)
       x = get_fname(x)
       print("rm -r " .. x)
@@ -14,6 +14,7 @@ local mod = {
     end)
   end,
   touch_and_open = function(prompt_bufnr)
+    local _ = require('core.utils.telescope')()
     _.actions.close(prompt_bufnr)
 
     local filename = vim.fn.input "touch file % "
@@ -30,6 +31,7 @@ local mod = {
     vim.cmd(":e " .. filename)
   end,
   touch = function(prompt_bufnr)
+    local _ = require('core.utils.telescope')()
     _.actions.close(prompt_bufnr)
 
     local filename = vim.fn.input "touch file % "

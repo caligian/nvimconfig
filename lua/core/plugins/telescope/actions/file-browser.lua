@@ -1,8 +1,7 @@
-require "core.utils.telescope"
-local _ = load_telescope()
 local mod = {}
 
 function mod.delete(bufnr)
+  local _ = require('core.utils.telescope')()
   local sels = _:selected(bufnr, true)
 
   list.each(sels, function(sel)
@@ -12,6 +11,7 @@ function mod.delete(bufnr)
 end
 
 function mod.force_delete(bufnr)
+  local _ = require('core.utils.telescope')()
   local sels = _:selected(bufnr)
 
   list.each(sels, function(sel)
@@ -21,6 +21,7 @@ function mod.force_delete(bufnr)
 end
 
 function mod.touch(bufnr)
+  local _ = require('core.utils.telescope')()
   local sel = _:selected(bufnr, true)
   local cwd = sel.Path._cwd
   local fname = vim.fn.input "Filename % "

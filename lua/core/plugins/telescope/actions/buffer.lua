@@ -1,7 +1,7 @@
-local _ = load_telescope()
 local mod = {}
 
 function mod.bwipeout(bufnr)
+  local _ = require('core.utils.telescope')()
   local sel = _:selected(bufnr, true)
 
   list.each(sel, function(x)
@@ -11,6 +11,7 @@ function mod.bwipeout(bufnr)
 end
 
 function mod.nomodified(bufnr)
+  local _ = require('core.utils.telescope')()
   local sels = _:selected(bufnr, true)
 
   list.each(sels, function(sel)
@@ -25,7 +26,9 @@ function mod.nomodified(bufnr)
 end
 
 function mod.save(bufnr)
+  local _ = require('core.utils.telescope')()
   local sels = _:selected(bufnr, true)
+
   list.each(sels, function()
     print("Saving buffer " .. sel.bufnr)
     local name = vim.fn.bufname(sel.bufnr)
@@ -34,6 +37,7 @@ function mod.save(bufnr)
 end
 
 function mod.readonly(bufnr)
+  local _ = require('core.utils.telescope')()
   local sels = _:selected(bufnr, true)
   list.each(sels, function(sel)
     print(

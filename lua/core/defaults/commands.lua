@@ -1,4 +1,16 @@
 local command = vim.api.nvim_create_user_command
+local function compile_and_run(lines)
+  if isa(lines, "table") then
+    lines = table.concat(lines, "\n")
+  end
+
+  local compiled, err = loadstring(lines)
+  if err then
+    tostderr(err)
+  elseif compiled then
+    compiled()
+  end
+end
 
 -- Open logs
 command("ShowLogs", function()
@@ -18,19 +30,6 @@ end, {})
 command("OpenScratchVertically", function()
   buffer.split(buffer.scratch "scratch", "v")
 end, {})
-
-local function compile_and_run(lines)
-  if isa(lines, "table") then
-    lines = table.concat(lines, "\n")
-  end
-
-  local compiled, err = loadstring(lines)
-  if err then
-    tostderr(err)
-  elseif compiled then
-    compiled()
-  end
-end
 
 -- Setup commands
 command("NvimEvalRegion", function(opts)

@@ -84,8 +84,4 @@ function T:selected(bufnr)
   end
 end
 
-function load_telescope()
-  return T()
-end
-
 return T

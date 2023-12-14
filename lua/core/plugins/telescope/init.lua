@@ -245,12 +245,11 @@ M.config.pickers = {
 
 function M:setup()
   local ivy = getivy()
-  local T = T
 
   --------------------------------------------------------------------------------
   -- Some default overrides
   local ts = require "telescope"
-  ts.setup(T)
+  ts.setup(M.config)
   ts.load_extension "file_browser"
 end
 
