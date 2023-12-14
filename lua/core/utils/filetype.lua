@@ -779,7 +779,7 @@ function filetype.job(cmd, opts)
 
   if name then
     local j = filetype.jobs[name]
-    if j and job.isactive(j) then
+    if j and job.is_active(j) then
       job.close(j)
     end
   end

@@ -98,6 +98,9 @@ function split(x, sep, maxtimes, _prev, _n, _res)
   return split(x, sep, maxtimes, prev, n + 1, res)
 end
 
+strsplit = split
+strrsplit = rsplit
+
 --- Matching multiple patterns
 --- @param x string
 --- @param ... string
