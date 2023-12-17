@@ -2,11 +2,15 @@ local autopairs = {}
 
 autopairs.config = {
   disable_filetype = {
+    "netrw",
+    "",
+    "tagbar",
     "TelescopePrompt",
     "spectre_panel",
     "lisp",
     "clojure",
     "scheme",
+    "quickfixlist",
   },
   disable_in_macro = false,
   disable_in_visualblock = false,
@@ -15,9 +19,9 @@ autopairs.config = {
   enable_moveright = true,
   enable_afterquote = true,
   enable_check_bracket_line = false,
-  enable_bracket_in_quote = true,
+  enable_bracket_in_quote = false,
   enable_abbr = false,
-  break_undo = true,
+  break_undo = false,
   map_cr = true,
   map_bs = true,
   map_c_h = true,
@@ -28,16 +32,7 @@ autopairs.config = {
     ruby = { "string" },
     python = { "string" },
   },
-  fast_wrap = {
-    map = "<M-e>",
-    chars = { "{", "[", "(", '"', "'" },
-    pattern = [=[[`%'%"%>%]%)%}%,]]=],
-    end_key = "$",
-    keys = "qwertyuiopzxcvbnmasdfghjkl",
-    check_comma = true,
-    highlight = "Search",
-    highlight_grey = "Comment",
-  },
+  fast_wrap = {},
 }
 
 function autopairs:setup()

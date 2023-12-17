@@ -95,10 +95,10 @@ treesitter.config = {
         ["aa"] = "@parameter.outer",
         ["ia"] = "@parameter.inner",
         ["uc"] = "@comment.outer",
-        ["Ci"] = "@conditional.inner",
-        ["Ca"] = "@conditional.outer",
-        ["bi"] = "@block.inner",
-        ["ba"] = "@block.outer",
+        ["i?"] = "@conditional.inner",
+        ["a?"] = "@conditional.outer",
+        ["ib"] = "@block.inner",
+        ["ab"] = "@block.outer",
       },
       selection_modes = {
         ["@parameter.outer"] = "v",
@@ -117,16 +117,17 @@ treesitter.config = {
 }
 
 treesitter.mappings = {
-  opts = { silent = true },
   show_in_operator = {
-    "m",
+    'n',
+    "gm",
     ':<C-U>lua require("tsht").nodes()<CR>',
     { mode = "o" },
   },
   show_in_visual = {
+    'x',
     "m",
     ":lua require('tsht').nodes()<CR>",
-    { noremap = true, mode = "x" },
+    { noremap = true },
   },
 }
 

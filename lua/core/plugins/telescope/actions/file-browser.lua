@@ -33,12 +33,14 @@ function mod.touch(bufnr)
 
   if isdir then
     print("Creating directory", fname)
+
     vim.fn.system {
       "mkdir",
       fname,
     }
   else
     print("Creating empty file", fname)
+
     vim.fn.system {
       "touch",
       fname,

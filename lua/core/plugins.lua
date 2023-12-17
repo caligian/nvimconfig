@@ -15,6 +15,18 @@ return {
   telescope = {
     "nvim-telescope/telescope.nvim",
     dependencies = {
+      {
+        "nvim-telescope/telescope-project.nvim",
+        config = function()
+          require("telescope").load_extension "project"
+
+          kbd.map("n", "<leader>p", function()
+            require("telescope").extensions.project.project(
+              require "core.utils.telescope"().theme
+            )
+          end, "Projects")
+        end,
+      },
       "nvim-telescope/telescope-fzy-native.nvim",
       "nvim-telescope/telescope-file-browser.nvim",
     },
@@ -153,7 +165,6 @@ return {
     dependencies = {
       "windwp/nvim-autopairs",
       "RRethy/vim-illuminate",
-      "RRethy/nvim-treesitter-textsubjects",
       "nvim-treesitter/nvim-treesitter-textobjects",
       {
         "kiyoon/treesitter-indent-object.nvim",
@@ -277,11 +288,6 @@ return {
   elixir = {
     "elixir-editors/vim-elixir",
     ft = "elixir",
-  },
-
-  sexp = {
-    "guns/vim-sexp",
-    ft = { "lisp", "clojure", "scheme" },
   },
 }
 
