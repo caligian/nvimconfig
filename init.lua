@@ -1,22 +1,32 @@
 vim.o.autochdir = true
 vim.o.showcmd = false
 vim.opt.shortmess:append "I"
+
 vim.keymap.set(
   "n",
   "<space>fv",
   ":w <bar> :luafile %<CR>",
   { noremap = true }
 )
+
 vim.keymap.set(
   "n",
   "<space>fs",
   ":w<CR>",
   { noremap = true }
 )
+
+vim.keymap.set(
+  "n",
+  "<space>fP",
+  ":e ~/.nvim/ <CR>",
+  { noremap = true }
+)
+
 vim.keymap.set(
   "n",
   "<space>fp",
-  ":e ~/nvimconfig<CR>",
+  ":e ~/.config/nvim <CR>",
   { noremap = true }
 )
 

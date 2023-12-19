@@ -1,36 +1,22 @@
 require "logging.file"
 
-logger = logger
-  or logging.file {
-    filename = path.join(
-      os.getenv "HOME",
-      ".local",
-      "share",
-      "nvim",
-      "messages"
-    ),
+local log_path = path.join(
+  os.getenv "HOME",
+  ".local",
+  "share",
+  "nvim",
+  "messages"
+)
+
+logger = logging.file {
+    filename = log_path,
     datePattern = "%d-%m-%Y > ",
   }
 
-log = setmetatable({}, {
-  __index = function(self, level)
-    return function(...)
-      return logger:log(logger[level:upper()], ...)
-    end
-  end,
-})
+logger.log_path = log_path
 
-vim.keymap.set("n", "<leader>hl", function()
-  vim.cmd(
-    ":split | e "
-      .. path.join(
-        os.getenv "HOME",
-        ".local",
-        "share",
-        "nvim",
-        "messages"
-      )
-  )
+vim.keymap.set("n", "<space>hl", function()
+  vim.cmd(":split | e " .. log_path)
 
   vim.bo.modifiable = false
   vim.bo.filetype = "nvimlog"

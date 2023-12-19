@@ -1,8 +1,8 @@
-local mysql = "sql"
+local mysql = {}
 mysql.repl = "mysql"
-mysql.lsp_server = "sqlls"
+mysql.server = "sqlls"
 mysql.formatter = {
-  path.join(
+  buffer = path.join(
     os.getenv "HOME",
     "node_modules",
     ".bin",
