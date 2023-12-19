@@ -80,6 +80,8 @@ function terminal:start(callback)
       error("Could not run command successfully " .. cmd)
     end
 
+    buffer.set_option(term, 'bufhidden', 'hide')
+
     buffer.map(
       scratch,
       "n",
@@ -382,3 +384,4 @@ end
 function terminal:reset()
   return terminal(self.cmd, self.opts)
 end
+

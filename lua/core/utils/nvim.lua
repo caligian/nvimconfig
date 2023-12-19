@@ -4,11 +4,11 @@ function tostderr(...)
   end
 end
 
-function nvim_exec(s, output)
-  if output == nil then
-    output = true
+function nvimexec(s, as_string)
+  local ok, res = pcall(vim.api.nvim_exec2, s, {output = true})
+  if ok and res and res.output then
+    return not as_string and split(res.output, "\n") or res.output
   end
-  return vim.api.nvim_exec2(s, output)
 end
 
 function system(...)
@@ -271,4 +271,22 @@ function kill_pid(pid, signal)
   end
 
   return true
+end
+
+function nvimcommand(name, callback, opts)
+  opts = copy(opts or {})
+  local use = vim.api.nvim_create_user_command
+  local buf
+
+  if opts.buffer then
+    buf = opts.buffer == true and buffer.current() or opts.buffer
+    use = vim.api.nvim_buf_create_user_command
+  end
+
+  opts.buffer = nil
+  if buf then
+    return use(buf, name, callback, opts)
+  end
+
+  return use(name, callback, opts)
 end

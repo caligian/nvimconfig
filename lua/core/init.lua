@@ -25,5 +25,8 @@ end, {})
 kbd.map('n', '<leader>hC', ':ReloadColorscheme<CR>', 'reload colorscheme')
 kbd.map('n', '<leader>h=', ':ReloadStatusline<CR>', 'reload statusline')
 
+if vim.fn.has('gui') then
+  require('core.utils.font').main()
+end
 
 require 'core.defaults.commands'

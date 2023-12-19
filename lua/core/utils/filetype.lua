@@ -1150,4 +1150,3 @@ function filetype.main(use_loadfile)
     filetype(buf):format_dir(buf)
   end, "format dir")
 end
-

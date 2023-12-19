@@ -53,12 +53,12 @@ return {
 
   align = {
     "junegunn/vim-easy-align",
-    event = "InsertEnter",
+    event = "BufAdd",
   },
 
   suda = {
     "lambdalisue/suda.vim",
-    event = "BufEnter",
+    event = "BufAdd",
   },
 
   colorscheme = {

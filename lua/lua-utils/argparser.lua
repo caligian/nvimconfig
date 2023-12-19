@@ -106,7 +106,7 @@ end
 function Argparser:init(desc, short_desc)
   self.parsed = {}
   self.args = arg or {}
-  self.desc = desc
+  self.header = desc
   self.summary = short_desc
   self.options = {}
   self.required = {}
@@ -380,17 +380,59 @@ function Argparser:parse(args)
   return pos, parsed
 end
 
+function Argparser:_withmetavars()
+  local res = {}
+  local pos = self.positional
+  local options = self.options
+
+  local function getvars(x)
+    if x.required then
+      return sprintf('%s {%s}', x.name, x.type)
+    else
+      return sprintf('%s [%s]', x.name, x.type)
+    end
+  end
+
+  local posnames = list.map(pos, getvars)
+  local optnames = list.map(values(options), getvars)
+end
+
 function Argparser:tostring()
   local header = self.header
   local summary = self.summary
-  local usage = {}
   local scriptname
   do
     local str = debug.getinfo(2, "S").source:sub(2)
     scriptname = str:match "^.*/(.*).lua$" or str
   end
 
+  local usage = {scriptname .. ': ' .. summary or '', header or '', ""}
+  if #self.positional > 0 then
+    list.append(usage, 'Positional arguments:')
 
+    local names = list.map(self.positional, function (opt) return {opt.name, opt.type, opt.required or false, opt.help or ''} end)
+    names = list.sort(names, function (a, b) return #a[1] < #b[1] end)
+    local longest = names[#names]
+    local longestlen = #longest
+
+    list.each(names, function (name)
+      local _name, _type, _required, _help = unpack(name)
+      local fmt = '%-' .. longestlen .. 's'
+
+      if _required then
+        fmt = fmt .. sprintf(' %-10s', sprintf(' {%s}:', _type))
+      else
+        fmt = fmt .. sprintf(' %-10s', sprintf(' [%s]:', _type))
+      end
+
+      fmt = fmt .. ' ' .. _help
+      fmt = sprintf(fmt, _name)
+
+      list.append(usage, fmt)
+    end)
+
+    print(concat(usage, "\n"))
+  end
 end
 
 local s =
@@ -414,7 +456,20 @@ parser:on {
 
 parser:on {
   pos = true,
-  name = "POSITIONAL",
+  name = "X",
   post = tonumber,
+  help = 'this is X',
+  type = 'number',
+  required = true,
 }
 
+parser:on {
+  pos = true,
+  name = "Y",
+  post = tonumber,
+  help = 'this is Y',
+  type = 'number',
+  required = true,
+}
+
+pp(parser:tostring())

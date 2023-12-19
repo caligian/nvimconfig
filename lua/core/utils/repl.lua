@@ -225,13 +225,19 @@ function repl.set_mappings()
     end)
   end
 
+  local function dock(tp)
+    map("dock", tp, "d", function(self)
+      self:dock()
+    end)
+  end
+
   local function float(tp)
     map("float", tp, "f", function(self)
       self:center_float()
     end)
   end
 
-  local function split(tp)
+  local function _split(tp)
     map("split", tp, "s", function(self)
       self:split()
     end)
@@ -272,13 +278,14 @@ function repl.set_mappings()
     function(x)
       start(x)
       stop(x)
-      split(x)
+      _split(x)
       vsplit(x)
       send_till_cursor(x)
       send_visual_range(x)
       send_buffer(x)
       send_current_line(x)
       float(x)
+      dock(x)
     end
   )
 end

@@ -1,17 +1,19 @@
+require 'core.utils.nvim'
+
 local RED = 0.2126
 local GREEN = 0.7152
 local BLUE = 0.0722
 local GAMMA = 2.4
 
 function highlight(hi)
-  local ok, out =
-    pcall(vim.api.nvim_exec, "hi " .. hi, true)
-
-  if not ok then
-    return {}
+  hi = hi or 'Normal'
+  local out = nvimexec(':hi ' .. hi, true)
+  if not out or #out == 0 then
+    return
   end
 
   hi = {}
+
   out = vim.split(out, " +")
   out = list.filter(out, function(c)
     if strmatch(c, "xxx", "cleared") then
@@ -110,6 +112,10 @@ end
 function highlightset(hi, set, defaults)
   local group = hi
   hi = highlight(hi)
+
+  if not hi then
+    return
+  end
 
   if isempty(hi) then
     if defaults then
