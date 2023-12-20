@@ -241,12 +241,10 @@ function plugin.configureall()
 end
 
 function plugin.lazy_spec()
-  local corepath =
-    path.join(user.dir, "lua", "core", "plugins.lua")
   local userpath =
     path.join(user.user_dir, "lua", "user", "plugins.lua")
   local core = requirex "core.plugins"
-  local userconfig = requirex "user.plugins"
+  local userconfig = userpath and requirex "user.plugins"
 
   if not core and not userconfig then
   elseif core then
