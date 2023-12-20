@@ -128,7 +128,7 @@ function plugin.require(self)
   local userluapath = req2path("user.plugins." .. name)
   local builtin, userconfig
 
-  builtin = builtin and requirex("core.plugins." .. name)
+  builtin = luapath and requirex("core.plugins." .. name)
   userconfig = userluapath and requirex("user.plugins." .. name)
   local plug = plugin(name)
 
