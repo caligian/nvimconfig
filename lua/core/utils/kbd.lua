@@ -208,37 +208,6 @@ function kbd.map_group(group_name, specs, compile)
   return mapped
 end
 
-function kbd.map_groups(specs, compile)
-  local all_mapped = {}
-  local opts = specs.opts
-  specs = deepcopy(specs)
-  specs.opts = nil
-
-  dict.each(specs, function(group, spec)
-    if dict.isa(spec, "kbd") then
-      dict.merge(all_mapped, kbd.map_group(group, spec))
-    elseif group == "inherit" then
-      return
-    elseif spec.opts and opts then
-      dict.merge(spec.opts, opts)
-    elseif spec.inherit then
-      spec.opts = opts
-    end
-
-    spec.inherit = nil
-    specs[group] = spec
-  end)
-
-  dict.each(specs, function(group, spec)
-    dict.merge(
-      all_mapped,
-      kbd.map_group(group, spec, compile)
-    )
-  end)
-
-  return all_mapped
-end
-
 function kbd.fromdict(specs)
   local out = {}
   for key, value in pairs(specs) do

@@ -1,10 +1,10 @@
 local data_dir = vim.fn.stdpath "data"
 
-user.colorscheme = "material-palenight"
+user.colorscheme = "github_light"
 
 user.dir = vim.fn.stdpath "config"
 
-user.font = {'Liberation Mono', '12'}
+user.font = {'Ubuntu Mono', '12'}
 
 user.user_dir = path.join(os.getenv "HOME", ".nvim")
 

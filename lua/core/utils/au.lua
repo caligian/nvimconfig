@@ -8,8 +8,6 @@ if not au then
   au.autocmds = {}
 end
 
-au.autocmds = au.autocmds or {}
-
 function au.init(self, event, opts)
   local pattern = opts.pattern
   local callback = opts.callback
@@ -127,56 +125,6 @@ function au.map(...)
   local id = au.enable(x)
 
   return x, id
-end
-
-function au.map_group(group, mappings, compile)
-  local opts = mappings.opts
-  local apply = mappings.apply
-  local mapped = {}
-
-  dict.each(mappings, function(key, value)
-    if key == "opts" or key == "apply" then
-      return
-    end
-
-    value = deepcopy(value)
-
-    local event, rest
-    local event, rest = unpack(value)
-    local name = group .. "." .. key
-    rest.group = group
-
-    if opts then
-      rest = dict.merge(copy(rest), opts)
-    end
-
-    rest.name = name
-
-    if apply then
-      event, rest = apply(event, rest)
-    end
-
-    if compile then
-      mapped[name] = au(event, rest)
-    else
-      mapped[name] = au.map(event, rest)
-    end
-  end)
-
-  return mapped
-end
-
-function au.map_groups(groups, compile)
-  local all_groups = {}
-
-  dict.map(groups, function(name, group)
-    dict.merge(
-      all_groups,
-      au.map_group(name, group, compile)
-    )
-  end)
-
-  return all_groups
 end
 
 function au.fromdict(specs)

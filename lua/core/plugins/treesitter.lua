@@ -29,16 +29,6 @@ treesitter.config = {
 
   ensure_installed = {},
 
-  textsubjects = {
-    enable = true,
-    prev_selection = ",", -- (Optional) keymap to select the previous selection
-    keymaps = {
-      ["."] = "textsubjects-smart",
-      [";"] = "textsubjects-container-outer",
-      ["i;"] = "textsubjects-container-inner",
-    },
-  },
-
   incremental_selection = {
     enable = true,
     keymaps = {
