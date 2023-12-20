@@ -1,4 +1,3 @@
-local indent = require "ibl"
 local indentblankline = {}
 
 function indentblankline.set_highlight()
@@ -27,8 +26,16 @@ indentblankline.autocmds = {
 }
 
 function indentblankline:setup()
+  local indent = require "ibl"
   indentblankline.set_highlight()
   indent.setup(self.config or {})
 end
+
+au.map('Colorscheme', {
+  pattern = '*',
+  callback = function ()
+    indentblankline:setup()
+  end
+})
 
 return indentblankline

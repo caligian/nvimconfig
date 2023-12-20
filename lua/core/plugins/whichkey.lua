@@ -1,4 +1,3 @@
-local wk = require "which-key"
 local whichkey = {}
 
 whichkey.config = {
@@ -78,6 +77,8 @@ whichkey.config = {
 }
 
 function whichkey:setup()
+  local wk = require "which-key"
+
   wk.setup(whichkey.config)
 
   wk.register({

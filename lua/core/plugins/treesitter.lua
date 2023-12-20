@@ -1,4 +1,3 @@
--- Textobjects are broken for some reason
 local treesitter = {}
 
 treesitter.config = {

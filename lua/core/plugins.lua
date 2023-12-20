@@ -49,6 +49,7 @@ return {
 
   indentblankline = {
     "lukas-reineke/indent-blankline.nvim",
+    event = 'BufAdd',
   },
 
   align = {

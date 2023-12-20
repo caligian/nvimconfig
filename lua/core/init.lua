@@ -11,7 +11,6 @@ au.main()
 
 plugin.main()
 plugin.plugins.colorscheme:setup()
-plugin.plugins.indentblankline:setup()
 plugin.plugins.statusline:setup()
 
 vim.api.nvim_create_user_command('ReloadStatusline', function ()

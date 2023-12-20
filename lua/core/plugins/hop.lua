@@ -1,12 +1,12 @@
 local plug = {}
-local hop = require "hop"
-local directions = require("hop.hint").HintDirection
 
 plug.mappings = {
   hint_patterns = {
     "nvx",
     "g/",
     function()
+      local hop = require "hop"
+      local directions = require("hop.hint").HintDirection
       hop.hint_patterns {}
     end,
     "jmp to pattern",
@@ -15,6 +15,9 @@ plug.mappings = {
     "nvx",
     "gl",
     function()
+      local hop = require "hop"
+      local directions = require("hop.hint").HintDirection
+
       hop.hint_lines_skip_whitespace {}
     end,
     "hint lines",
@@ -23,6 +26,9 @@ plug.mappings = {
     "nvx",
     "gJ",
     function()
+      local hop = require "hop"
+      local directions = require("hop.hint").HintDirection
+
       hop.hint_lines_skip_whitespace {
         direction = directions.AFTER_CURSOR,
       }
@@ -33,6 +39,9 @@ plug.mappings = {
     "nvx",
     "gK",
     function()
+      local hop = require "hop"
+      local directions = require("hop.hint").HintDirection
+
       hop.hint_lines_skip_whitespace {
         direction = directions.BEFORE_CURSOR,
       }
@@ -43,6 +52,9 @@ plug.mappings = {
     "nvx",
     "s",
     function()
+      local hop = require "hop"
+      local directions = require("hop.hint").HintDirection
+
       hop.hint_char2 { direction = directions.AFTER_CURSOR }
     end,
     "hint after 2 chars",
@@ -51,13 +63,17 @@ plug.mappings = {
     "nvx",
     "S",
     function()
+      local hop = require "hop"
+      local directions = require("hop.hint").HintDirection
       hop.hint_char2 { direction = directions.BEFORE_CURSOR }
     end,
-    'hint before 2 chars'
+    "hint before 2 chars",
   },
 }
 
 function plug:setup()
+  local hop = require "hop"
+  local directions = require("hop.hint").HintDirection
   hop.setup()
 end
 
