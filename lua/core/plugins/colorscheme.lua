@@ -1,6 +1,5 @@
 local colorscheme = {}
 
-
 colorscheme.config = {
   starry = {
     config = {

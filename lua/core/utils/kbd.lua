@@ -1,8 +1,10 @@
 require "core.utils.au"
 
+--- @class kbd
+
 if not kbd then
   kbd = class "kbd"
-  kbd.kbds = {}
+  user.kbds = {}
 end
 
 local enable = vim.keymap.set
@@ -30,10 +32,8 @@ end
 function kbd.init(self, mode, ks, callback, rest)
   rest = rest or {}
   mode = mode or "n"
-
   local _rest = rest
   rest = isstring(_rest) and { desc = _rest } or _rest
-
   mode = isstring(mode) and split(mode, "") or mode
   local command = isstring(callback) and callback
   callback = iscallable(callback) and callback
@@ -85,9 +85,15 @@ function kbd.init(self, mode, ks, callback, rest)
   self.enabled = false
   self.au = false
   self.callback = callback
+  self.map = nil
+  self.noremap = nil
+  self.fromdict = nil
+  self.require = nil
+  self.loadfile = nil
+  self.main = nil
 
   if name then
-    kbd.kbds[name] = self
+    user.kbds[name] = self
   end
 
   return self
@@ -119,7 +125,7 @@ function kbd.enable(self)
           return
         end
         opts = copy(opts)
-        opts.buffer = buffer.bufnr()
+        opts.buffer = au_opts.buf
 
         enable(self.mode, self.keys, callback, opts)
         self.enabled = true
@@ -141,7 +147,7 @@ function kbd.disable(self)
   elseif self.events and self.pattern then
     del(self.mode, self.keys, { buffer = buffer.bufnr() })
   else
-    del(self.mode, self.keys)
+    del(self.mode, self.keys, {})
   end
 
   if self.au then
@@ -163,56 +169,18 @@ function kbd.noremap(mode, ks, callback, opts)
   return kbd.map(mode, ks, callback, opts)
 end
 
-function kbd.map_group(group_name, specs, compile)
-  local mapped = {}
-  local opts = specs.opts
-  local apply = specs.apply
-
-  dict.each(specs, function(name, spec)
-    if name == "opts" or name == "apply" then
-      return
-    end
-
-    if isa.kbd(spec) then
-      kbd.enable(spec)
-      return
-    end
-
-    name = group_name .. "." .. name
-    local mode, ks, callback, rest
-
-    if opts then
-      ks, callback, rest = unpack(spec)
-      rest = isstring(rest) and { desc = rest } or rest
-      rest = dict.merge(copy(rest or {}), opts or {})
-      mode = rest.mode or "n"
-    else
-      mode, ks, callback, rest = unpack(spec)
-      rest = isstring(rest) and { desc = rest } or rest
-      rest = copy(rest or {})
-      rest.name = name
-    end
-
-    if apply then
-      mode, ks, callback, rest =
-        apply(mode, ks, callback, rest)
-    end
-
-    if compile then
-      mapped[name] = kbd(mode, ks, callback, rest)
-    else
-      mapped[name] = kbd.map(mode, ks, callback, rest)
-    end
-  end)
-
-  return mapped
-end
-
 function kbd.fromdict(specs)
   local out = {}
   for key, value in pairs(specs) do
-    value[4] = isstring(value[4]) and { desc = value[4] } or value[4]
+    value[4] = not value[4] and { desc = key }
+      or isstring(value[4]) and { desc = value[4] }
+      or istable(value[4]) and value[4]
+      or {desc = key}
+
+    value[4] = copy(value[4])
     value[4].name = key
+    value[4].desc = value[4].desc or key
+
     out[key] = kbd.map(unpack(value))
   end
 
@@ -227,7 +195,7 @@ function kbd.loadfile()
   if src then
     local config = loadfile(src)
     if isfunction(config) then
-      config = config()
+      config = config--[[@as function]]()
       if istable(config) then
         dict.merge(specs, config)
       end
@@ -237,7 +205,7 @@ function kbd.loadfile()
   if usersrc then
     local config = loadfile(usersrc)
     if isfunction(config) then
-      config = config()
+      config = config--[[@as function]]()
       if istable(config) then
         dict.merge(specs, config)
       end

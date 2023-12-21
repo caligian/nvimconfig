@@ -19,7 +19,6 @@ end
 --- @alias list any[]
 --- @alias bool boolean
 --- @alias num number
---- @alias iterable string|table
 --- @alias str string
 --- @alias fn function
 
@@ -308,9 +307,9 @@ end
 --- @return boolean,string?
 function istable(x)
   local ok = type(x) == "table"
-  local msg = "expected table, got " .. type(x)
 
   if not ok then
+    local msg = "expected table, got " .. type(x)
     return false, msg
   end
 
@@ -336,9 +335,9 @@ end
 --- @return boolean,string?
 function isuserdata(x)
   local ok = type(x) == "userdata"
-  local msg = "expected userdata, got " .. type(x)
 
   if not ok then
+    local msg = "expected userdata, got " .. type(x)
     return false, msg
   end
 
@@ -364,9 +363,9 @@ end
 --- @return boolean,string?
 function isboolean(x)
   local ok = type(x) == "boolean"
-  local msg = "expected boolean, got " .. type(x)
 
   if not ok then
+    local msg = "expected boolean, got " .. type(x)
     return false, msg
   end
 
@@ -378,9 +377,9 @@ end
 --- @return boolean,string?
 function isnumber(x)
   local ok = type(x) == "number"
-  local msg = "expected number, got " .. type(x)
 
   if not ok then
+    local msg = "expected number, got " .. type(x)
     return false, msg
   end
 
@@ -392,21 +391,23 @@ end
 --- @return boolean,string?
 function iscallable(x)
   local tp = type(x)
-  local msg = "expected callable, got " .. dump(x)
 
   if tp == "function" then
     return true
   elseif tp ~= "table" then
+    local msg = "expected callable, got " .. dump(x)
     return false, msg
   end
 
   local mt = getmetatable(x)
   if not mt then
+    local msg = "expected callable, got " .. dump(x)
     return false, msg
   end
 
   local ok = mt.__call ~= nil
   if not ok then
+    local msg = "expected callable, got " .. dump(x)
     return false, msg
   end
 
@@ -425,19 +426,21 @@ end
 --- @return boolean, string?
 function islist(x)
   local tp = type(x)
-  local msg = "expected list, got " .. dump(x)
 
   if tp ~= "table" then
+    local msg = "expected list, got " .. dump(x)
     return false, msg
   end
 
   local ks = #keys(x)
   if ks == 0 then
-    return false
+    local msg = "expected list, got " .. dump(x)
+    return false, msg
   end
 
   local ok = ks == #x and not mtget(x, "type")
   if not ok then
+    local msg = "expected list, got " .. dump(x)
     return false, msg
   end
 
@@ -449,19 +452,21 @@ end
 --- @return boolean, string?
 function isdict(x)
   local tp = type(x)
-  local msg = "expected dict, got " .. dump(x)
 
   if tp ~= "table" then
+    local msg = "expected dict, got " .. dump(x)
     return false, msg
   end
 
   local ks = #keys(x)
   if ks == 0 then
+    local msg = "expected dict, got " .. dump(x)
     return false, msg
   end
 
   local ok = not islist(x) and not mtget(x, "type")
   if not ok then
+    local msg = "expected dict, got " .. dump(x)
     return false, msg
   end
 
@@ -607,17 +612,17 @@ local function _istypes(x, ...)
 
     if not res then
       failed_ctr = failed_ctr + 1
-      err[#err + 1] = args[i]
+      err[#err + 1] = not isstring(args[i]) and typeof(args[i]) or args[i]
     end
+  end
+
+  if failed_ctr < #args then
+    return true
   end
 
   local err_s = "[" .. concat(err, ", ") .. "]"
   err_s =
     sprintf("expected any of %s, got %s", err_s, dump(x))
-
-  if failed_ctr < #args then
-    return true
-  end
 
   return false, err_s
 end
@@ -639,6 +644,7 @@ function union(...)
 
   return function(x)
     local res, msg = _istypes(x, unpack(args))
+
     if res then
       return true
     end
@@ -873,4 +879,16 @@ function class(name)
   end
 
   return mod
+end
+
+--- X == nil?
+--- @param x any
+--- @param orelse? any
+--- @return any result if X is nonnil otherwise return `orelse`
+function defined(x, orelse)
+  if x ~= nil then
+    return x
+  else
+    return orelse
+  end
 end

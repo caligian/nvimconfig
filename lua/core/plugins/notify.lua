@@ -60,11 +60,13 @@ end
 notify.mappings = {
   opts = { silent = true, noremap = true },
   show_history = {
+    'n',
     "<leader>hn",
     notify.methods.show_history,
     { desc = "show notification history" },
   },
   dismiss = {
+    'n',
     "<leader>hN",
     notify.methods.dismiss_all,
     { desc = "hide notifications" },

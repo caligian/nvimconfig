@@ -1,18 +1,7 @@
-local data_dir = vim.fn.stdpath "data"
 
-user.colorscheme = "github_light"
+user.colorscheme = "material-oceanic"
 
-user.dir = vim.fn.stdpath "config"
-
-user.font = {'Ubuntu Mono', '12'}
-
-user.user_dir = path.join(os.getenv "HOME", ".nvim")
-
-user.data_dir = data_dir
-
-user.plugins_dir = path.join(data_dir, "lazy")
-
-user.log_path = path.join(data_dir, 'messages')
+user.font = { "Ubuntu Mono", "11" }
 
 user.temp_buffer_patterns = {
   qflist = { ft = "qf" },
@@ -23,7 +12,12 @@ user.temp_buffer_patterns = {
   startuptime = { ft = "startuptime" },
 }
 
-user.exclude_recent_buffer_filetypes = { TelescopePrompt = true, netrw = true, [""] = true, tagbar = true }
+user.exclude_recent_buffer_filetypes = {
+  TelescopePrompt = true,
+  netrw = true,
+  [""] = true,
+  tagbar = true,
+}
 
 if req2path "user.globals" then
   requirex "user.globals"

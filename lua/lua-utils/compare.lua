@@ -666,14 +666,13 @@ end
 
 function params(specs)
   for key, value in pairs(specs) do
+    assertisa(value, function (x)
+      return islist(x) and #x <= 2, 'expected at least 1 item long list, got ' .. dump(x)
+    end)
+
     local spec = value[1]
     local x = value[2]
     local name = key
-
-    assert(
-      spec or x,
-      "spec should be at least 1 element long"
-    )
 
     _claim(x, spec, name)
   end

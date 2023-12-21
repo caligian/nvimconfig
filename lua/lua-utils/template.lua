@@ -1,6 +1,66 @@
 require "lua-utils.table"
 require "lua-utils.string"
 
+local function varsx(x)
+  local out = {}
+  local new_x = x
+
+  for var in string.gmatch(x, ".?[{][0-9a-zA-Z_.-]+[}].?") do
+    local open = var:find "[{]"
+    local open1 = var:find("[{]", open + 1)
+    local close = var:find "[}]"
+    local close1 = var:find("[}]", close + 1)
+
+    if not close1 and not open1 then
+      var = var:sub(open + 1, close - 1)
+      out[var] = {open, close}
+      list.append(out, var)
+    else
+      new_x = new_x:gsub("[{][{]([^}]+)[}][}]", "{%1}")
+    end
+  end
+
+  return new_x, out
+end
+
+local function subx(x, repl, opts)
+  opts = opts or {}
+  local vars
+  x, vars = varsx(x)
+  local msg = {}
+  local ignore = opts.ignore
+  local _assert = opts.assert
+
+  for key, value in pairs(repl) do
+    local name = tostring(key)
+    local var = vars[name]
+    local open, close
+
+    if not vars[name] then
+      if _assert then
+        error(
+        "expected placeholder for "
+        .. name
+        .. ", got nil"
+        )
+      end
+
+      msg[#msg + 1] = name
+    else
+      open, close = unpack(var)
+
+      -- check start and end and replace accordingly
+      x = sub(x, name, value)
+    end
+  end
+
+  if #msg > 0 and not ignore then
+    return nil, msg
+  end
+
+  return x, msg
+end
+
 local function get_vars(x)
   local out = {}
   local new_x = x

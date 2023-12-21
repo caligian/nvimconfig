@@ -6,110 +6,122 @@ lspsaga.config = {
   },
 }
 
+local opts = {
+  leader = true,
+  prefix = "l",
+  silent = true,
+  noremap = true,
+}
+
 lspsaga.mappings = {
-  opts = {
-    leader = true,
-    prefix = "l",
-    silent = true,
-    noremap = true,
+  line_diag = {
+    "n",
+    "<A-k>",
+    "<cmd>Lspsaga show_line_diagnostics<CR>",
+    { desc = "line diagnostics" },
+  },
+
+  doc = {
+    "n",
+    "K",
+    "<cmd>Lspsaga hover_doc<CR>",
+    { desc = "hover doc" },
+  },
+
+  next_diag = {
+    "n",
+    "]e",
+    "<cmd>Lspsaga diagnostic_jump_next<CR>",
+    { desc = "next diag" },
+  },
+
+  prev_diag = {
+    "n",
+    "[e",
+    "<cmd>Lspsaga diagnostic_jump_prev<CR>",
+    { desc = "prev diag" },
   },
 
   finder = {
+    "n",
     "f",
     ":Lspsaga finder ref<CR>",
-    "show refs+defs+impl",
+    opts,
   },
 
   outgoing = {
+    "n",
     "I",
     ":Lspsaga outgoing_calls<CR>",
-    "outgoing calls",
+    opts,
   },
 
   incoming = {
+    "n",
     "i",
     ":Lspsaga incoming_calls<CR>",
-    "incoming calls",
+    opts,
   },
 
   actions = {
+    "n",
     "a",
     ":Lspsaga code_action<CR>",
-    "show code actions",
+    opts,
   },
 
   peek = {
+    "n",
     "p",
     ":Lspsaga peek_definition<CR>",
-    "peek def",
+    opts,
   },
 
   peek_type = {
+    "n",
     "P",
     ":Lspsaga peek_type_definition<CR>",
-    "peek typedef",
+    opts,
   },
 
   rename = {
+    "n",
     "/",
     "<cmd>Lspsaga rename<CR>",
-    "rename",
+    opts,
   },
 
   project_replace = {
+    "n",
     "%",
     ":Lspsaga project_replace",
-    "project replace",
+    opts,
   },
 
   outline = {
+    "n",
     "o",
     "<cmd>Lspsaga outline<CR>",
-    "outline",
+    opts,
   },
 
   buf_diags = {
+    "n",
     "d",
     "<cmd>Lspsaga show_buf_diagnostics ++float<CR>",
-    "diagnostics",
+    opts,
   },
 
   diags = {
+    "n",
     "D",
     "<cmd>Lspsaga show_workspace_diagnostics ++float<CR>",
-    "ws diagnostics",
+    opts,
   },
 }
 
 function lspsaga:setup()
   require("lspsaga").setup(lspsaga.config)
-
-  kbd.map_group("lspsaga", {
-    line_diag = {
-      "n",
-      "<A-k>",
-      "<cmd>Lspsaga show_line_diagnostics<CR>",
-      { desc = "line diagnostics" },
-    },
-    doc = {
-      "n",
-      "K",
-      "<cmd>Lspsaga hover_doc<CR>",
-      { desc = "hover doc" },
-    },
-    next_diag = {
-      "n",
-      "]e",
-      "<cmd>Lspsaga diagnostic_jump_next<CR>",
-      { desc = "next diag" },
-    },
-    prev_diag = {
-      "n",
-      "[e",
-      "<cmd>Lspsaga diagnostic_jump_prev<CR>",
-      { desc = "prev diag" },
-    },
-  })
 end
 
 return lspsaga

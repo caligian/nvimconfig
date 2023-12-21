@@ -86,7 +86,7 @@ function whichkey:setup()
     g = { name = "Git" },
     h = { name = "Help", t = { name = "Colorscheme" } },
     r = { name = "REPL" },
-    l = { name = "LSP", w = { name = "Workspaces" } },
+    l = { name = "LSP" },
     t = { name = "Tab" },
     o = { name = "Options" },
     b = { name = "Buffer" },
@@ -104,3 +104,4 @@ function whichkey:setup()
 end
 
 return whichkey
+

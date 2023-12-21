@@ -38,7 +38,7 @@ elixir.server = {
   config = {
     cmd = {
       path.join(
-        user.data_dir,
+        user.paths.data,
         "lsp-servers",
         "elixir-ls",
         "scripts",

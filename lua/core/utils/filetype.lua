@@ -47,7 +47,7 @@ require "core.utils.job"
 
 filetype = filetype or class "filetype"
 filetype = filetype or class "filetype"
-filetype.filetypes = filetype.filetypes or {}
+user.filetypes = user.filetypes or {}
 filetype.jobs = filetype.jobs or {}
 filetype.lsp = module()
 
@@ -359,20 +359,25 @@ function filetype:init(name)
     local l = filetype(name.name)
     dict.merge(l, name)
 
-    filetype.filetypes[name.name] = l
+    user.filetypes[name.name] = l
     return l
   elseif isnumber(name) then
     assert(buffer.exists(name), "invalid buffer " .. name)
     return filetype(buffer.filetype(name))
   else
-    local l = filetype.filetypes[name]
+    local l = user.filetypes[name]
     if l then
       return l
     end
   end
 
+  self.setup_lsp_all = nil
+  self.main = nil
+  self.workspace = nil
+  self.job = nil
+  self.list = nil
   self.name = name
-  filetype.filetypes[name] = self
+  user.filetypes[name] = self
 
   return self
 end

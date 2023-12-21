@@ -5,7 +5,7 @@ local create_augroup = vim.api.nvim_create_augroup
 
 if not au then
   au = class "au"
-  au.autocmds = {}
+  user.autocmds = {}
 end
 
 function au.init(self, event, opts)
@@ -31,6 +31,11 @@ function au.init(self, event, opts)
     end
   end
 
+  self.map = nil
+  self.fromdict = nil
+  self.require = nil
+  self.loadfile = nil
+  self.main = nil
   self.event = event
   self.pattern = pattern
   self.group = group
@@ -61,7 +66,7 @@ function au.init(self, event, opts)
       name = group .. "." .. name
     end
 
-    au.autocmds[name] = self
+    user.autocmds[name] = self
   end
 
   return self

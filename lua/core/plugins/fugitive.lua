@@ -1,28 +1,37 @@
 local fugitive = {}
 
 fugitive.mappings = {
-  opts = { leader = true, prefix = "g" },
   status = {
-    "g",
+    "n",
+    "<leader>gg",
     ":vert Git<CR>",
     { desc = "show status" },
   },
   stage = {
-    "s",
+    "n",
+    "<leader>gs",
     ":Git stage %<CR>",
     { desc = "stage buffer" },
   },
-  add = { "a", ":Git add %<CR>", { desc = "add buffer" } },
+  add = {
+    "n",
+    "<leader>ga",
+    ":Git add %<CR>",
+    { desc = "add buffer" },
+  },
   commit = {
-    "c",
+    "n",
+    "<leader>gc",
     ":Git commit<CR>",
     { desc = "commit buffer" },
   },
   push = {
-    "p",
+    "n",
+    "<leader>gp",
     ":! git push<CR>",
     { desc = "push buffer" },
   },
 }
 
 return fugitive
+

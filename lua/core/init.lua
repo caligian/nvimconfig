@@ -10,15 +10,15 @@ kbd.main()
 au.main()
 
 plugin.main()
-plugin.plugins.colorscheme:setup()
-plugin.plugins.statusline:setup()
+user.plugins.colorscheme:setup()
+user.plugins.statusline:setup()
 
 vim.api.nvim_create_user_command('ReloadStatusline', function ()
-  plugin.plugins.statusline:setup()
+  user.plugins.statusline:setup()
 end, {})
 
 vim.api.nvim_create_user_command('ReloadColorscheme', function ()
-  plugin.plugins.colorscheme:setup()
+  user.plugins.colorscheme:setup()
 end, {})
 
 kbd.map('n', '<leader>hC', ':ReloadColorscheme<CR>', 'reload colorscheme')

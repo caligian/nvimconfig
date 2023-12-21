@@ -15,7 +15,6 @@ function system(...)
   return vim.fn.systemlist(...)
 end
 
-user.logs = user.logs or {}
 function requirex(require_string, do_assert)
   local ok, out = pcall(require, require_string)
 
@@ -23,7 +22,6 @@ function requirex(require_string, do_assert)
     return out
   end
 
-  list.append(user.logs, out)
   logger:debug(out)
 
   if do_assert then
@@ -169,14 +167,11 @@ end
 function req2path(s, isfile)
   local p = split(s, "[./]") or { s }
   local test
-  user.user_dir = user.user_dir
-    or path.join(os.getenv "HOME", ".nvim")
-  user.dir = user.dir or vim.fn.stdpath "config"
-
+  
   if p[1]:match "user" then
-    test = path.join(user.user_dir, "lua", unpack(p))
+    test = path.join(user.paths.user, "lua", unpack(p))
   else
-    test = path.join(user.dir, "lua", unpack(p))
+    test = path.join(user.paths.config, "lua", unpack(p))
   end
 
   local isdir = path.exists(test)

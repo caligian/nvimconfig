@@ -4,12 +4,12 @@ require "core.utils.logger"
 
 if not plugin then
   plugin = class "plugin"
-  plugin.plugins = {}
+  user.plugins = {}
 end
 
 function plugin.init(self, name, opts)
-  if isstring(name) and plugin.plugins[name] then
-    return plugin.plugins[name]
+  if isstring(name) and user.plugins[name] then
+    return user.plugins[name]
   elseif istable(name) then
     assertisa(name.name, "string")
     return plugin(name.name, name)
@@ -21,15 +21,20 @@ function plugin.init(self, name, opts)
       mappings = false,
       user_config_require_path = "user.plugins." .. name,
       config_require_path = "core.plugins." .. name,
-      methods = {},
       setup = function() end,
       spec = {},
     }
 
+  self.configureall = nil
+  self.loadfileall = nil
+  self.lazy_spec = nil
+  self.main = nil
+  self.setup_lazy = nil
+  self.requireall = nil
   opts = copy(opts)
   opts.name = name
   dict.merge(self, opts)
-  plugin.plugins[self.name] = self
+  user.plugins[self.name] = self
 
   return self
 end
@@ -61,8 +66,8 @@ end
 
 local function conv(name)
   if isstring(name) then
-    if plugin.plugins[name] then
-      return plugin.plugins[name]
+    if user.plugins[name] then
+      return user.plugins[name]
     else
       return plugin(name)
     end
@@ -129,7 +134,8 @@ function plugin.require(self)
   local builtin, userconfig
 
   builtin = luapath and requirex("core.plugins." .. name)
-  userconfig = userluapath and requirex("user.plugins." .. name)
+  userconfig = userluapath
+    and requirex("user.plugins." .. name)
   local plug = plugin(name)
 
   if istable(builtin) and istable(userconfig) then
@@ -209,25 +215,27 @@ function plugin.set_mappings(self, mappings)
 
   local opts = mappings.opts or {}
   local mode = opts.mode or "n"
-  dict.each(mappings, function(name, spec)
-    if name == "opts" then
-      return
-    end
 
-    assert(#spec >= 3, "expected at least 3 arguments")
+  dict.each(mappings, function(key, spec)
+    assert(
+      #spec == 4,
+      "expected at least 4 arguments, got " .. dump(spec)
+    )
 
-    if #spec ~= 4 then
-      list.lappend(spec, mode)
-    end
+    local name = "plugin." .. self.name .. "." .. key
 
-    name = "plugin." .. self.name .. "." .. name
-    spec[4] = spec[4] or {}
-    spec[4] = isstring(spec[4]) and { desc = spec[4] }
-      or spec[4]
+    spec[4] = not spec[4] and { desc = key }
+      or isstring(spec[4]) and { desc = spec[4] }
+      or istable(spec[4]) and spec[4]
+      or { desc = key }
+
+    spec[4] = copy(spec[4])
+    spec[4].desc = spec[4].desc or key
 
     dict.merge(spec[4], opts)
 
     spec[4].name = name
+
     kbd.map(unpack(spec))
   end)
 end
@@ -241,8 +249,7 @@ function plugin.configureall()
 end
 
 function plugin.lazy_spec()
-  local userpath =
-    path.join(user.user_dir, "lua", "user", "plugins.lua")
+  local userpath = req2path "user.plugins"
   local core = requirex "core.plugins"
   local userconfig = userpath and requirex "user.plugins"
 
@@ -290,3 +297,4 @@ end
 function plugin.main()
   plugin.setup_lazy()
 end
+
