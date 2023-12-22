@@ -55,11 +55,13 @@ filetype.lsp = module()
 --- @field diagnostic table<string,any> diagnostic config for vim.lsp
 --- @field mappings table
 local lsp = filetype.lsp
+
 lsp.diagnostic = {
   virtual_text = false,
   underline = false,
   update_in_insert = false,
 }
+
 vim.lsp.handlers["textDocument/hover"] =
   vim.lsp.with(vim.lsp.handlers.hover, {
     border = "single",

@@ -569,15 +569,6 @@ function buffer.filter(bufnr, f)
   return list.filter(buffer.lines(bufnr, 0, -1), f)
 end
 
-function buffer.filter(bufnr, f)
-  bufnr = bufnr or vim.fn.bufnr()
-  if not buffer.exists(bufnr) then
-    return
-  end
-
-  return list.filter(buffer.lines(bufnr, 0, -1), f)
-end
-
 function buffer.match(bufnr, pat)
   bufnr = bufnr or vim.fn.bufnr()
   if not buffer.exists(bufnr) then

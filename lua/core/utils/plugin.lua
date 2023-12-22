@@ -153,12 +153,13 @@ end
 
 function plugin.configure(self)
   self = conv(self)
+
   if not self then
     return
   end
 
   if self.setup then
-    self:setup()
+    pcall_warn(self.setup, self)
   end
 
   self:set_autocmds()
@@ -169,6 +170,7 @@ end
 
 function plugin.loadfileall()
   local out = {}
+
   list.each(plugin.list(), function(x)
     local m = requirem("core.plugins." .. x)
     if istable(m) then
@@ -182,8 +184,10 @@ end
 
 function plugin.requireall()
   local out = {}
+
   list.each(plugin.list(), function(x)
     local m = requirem("core.plugins." .. x)
+
     if istable(m) then
       out[x] = plugin(x, m)
       out[x]:require()
@@ -193,7 +197,7 @@ function plugin.requireall()
   return out
 end
 
-function plugin.set_autocmds(self, autocmds)
+local function _set_autocmds(self, autocmds)
   autocmds = autocmds or self.autocmds
   if not autocmds or size(self.autocmds) == 0 then
     return
@@ -207,7 +211,11 @@ function plugin.set_autocmds(self, autocmds)
   end)
 end
 
-function plugin.set_mappings(self, mappings)
+function plugin.set_autocmds(self, autocmds)
+  return pcall_warn(_set_autocmds, self, autocmds)
+end
+
+local function _set_mappings(self, mappings)
   mappings = mappings or self.mappings
   if not mappings or size(self.mappings) == 0 then
     return
@@ -218,16 +226,16 @@ function plugin.set_mappings(self, mappings)
 
   dict.each(mappings, function(key, spec)
     assert(
-      #spec == 4,
-      "expected at least 4 arguments, got " .. dump(spec)
+    #spec == 4,
+    "expected at least 4 arguments, got " .. dump(spec)
     )
 
     local name = "plugin." .. self.name .. "." .. key
 
     spec[4] = not spec[4] and { desc = key }
-      or isstring(spec[4]) and { desc = spec[4] }
-      or istable(spec[4]) and spec[4]
-      or { desc = key }
+    or isstring(spec[4]) and { desc = spec[4] }
+    or istable(spec[4]) and spec[4]
+    or { desc = key }
 
     spec[4] = copy(spec[4])
     spec[4].desc = spec[4].desc or key
@@ -240,12 +248,20 @@ function plugin.set_mappings(self, mappings)
   end)
 end
 
-function plugin.configureall()
+function plugin.set_mappings(self, mappings)
+  return pcall_warn(_set_mappings, self, mappings)
+end
+
+local function _configureall()
   list.each(plugin.list(), function(x)
     local plug = plugin(x)
     plug:require()
     plug:configure()
   end)
+end
+
+function plugin.configure_all()
+  return pcall_warn(_configureall)
 end
 
 function plugin.lazy_spec()

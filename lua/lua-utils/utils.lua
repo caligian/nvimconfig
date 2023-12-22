@@ -878,6 +878,10 @@ function class(name)
     return mod.init(obj, ...)
   end
 
+  function mod:isa()
+    return class_mt.type == mtget(self, 'type')
+  end
+
   return mod
 end
 

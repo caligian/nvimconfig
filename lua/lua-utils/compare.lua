@@ -656,7 +656,8 @@ local function _claim(x, y, levelname)
           .. "."
           .. key
           .. (
-            #msg > 0 and (": " .. msg) or ": callable failed"
+            #msg > 0 and (": " .. msg)
+            or ": callable failed"
           )
         error(msg)
       end
@@ -666,8 +667,11 @@ end
 
 function params(specs)
   for key, value in pairs(specs) do
-    assertisa(value, function (x)
-      return islist(x) and #x <= 2, 'expected at least 1 item long list, got ' .. dump(x)
+    assertisa(value, function(x)
+      return islist(x) and #x <= 2,
+        "expected at least 1 item long list, got " .. dump(
+          x
+        )
     end)
 
     local spec = value[1]
@@ -697,3 +701,4 @@ end
 --- > )
 --- >
 --- > pp(print_name { a = { "user", "23" } })
+

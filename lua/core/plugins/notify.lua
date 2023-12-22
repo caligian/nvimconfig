@@ -58,7 +58,6 @@ function notify.methods.say(...)
 end
 
 notify.mappings = {
-  opts = { silent = true, noremap = true },
   show_history = {
     'n',
     "<leader>hn",
