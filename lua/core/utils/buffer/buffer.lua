@@ -66,6 +66,7 @@ end
 
 Buffer.current = Buffer.get
 Buffer.exists = Buffer.to_bufnr
+Buffer.bufnr = Buffer.get
 
 function Buffer.create(name)
   return (Buffer.exists(name) and Buffer.get(name))
