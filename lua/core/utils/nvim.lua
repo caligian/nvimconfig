@@ -1,3 +1,19 @@
+function vimsize()
+  local scratch = vim.api.nvim_create_buf(false, true)
+
+  vim.api.nvim_buf_call(scratch, function()
+    vim.cmd "tabnew"
+    local tabpage = vim.fn.tabpagenr()
+    width = vim.fn.winwidth(0)
+    height = vim.fn.winheight(0)
+    vim.cmd("tabclose " .. tabpage)
+  end)
+
+  vim.cmd(":bwipeout! " .. scratch)
+
+  return { width, height }
+end
+
 function tostderr(...)
   for _, s in ipairs { ... } do
     vim.api.nvim_err_writeln(s)
@@ -5,9 +21,11 @@ function tostderr(...)
 end
 
 function nvimexec(s, as_string)
-  local ok, res = pcall(vim.api.nvim_exec2, s, {output = true})
+  local ok, res =
+    pcall(vim.api.nvim_exec2, s, { output = true })
   if ok and res and res.output then
-    return not as_string and split(res.output, "\n") or res.output
+    return not as_string and split(res.output, "\n")
+      or res.output
   end
 end
 
@@ -33,19 +51,6 @@ function glob(d, expr, nosuf, alllinks)
   nosuf = nosuf == nil and true or false
   return vim.fn.globpath(d, expr, nosuf, true, alllinks)
     or {}
-end
-
-function get_font()
-  local font, height
-  font = user and user.font and user.font.family
-  height = user and user.font and user.font.height or "11"
-  if not font then
-    return
-  end
-  font = vim.o.guifont:match "^([^:]+)" or font
-  height = vim.o.guifont:match "h([0-9]+)" or height
-
-  return font, height
 end
 
 --- Only works for user and doom dirs
@@ -93,7 +98,8 @@ local function process_input(key, value)
     cancelreturn = cancelreturn,
     highlight = highlight,
   }
-  local userint = vim.fn.input(opts):trim()
+
+  local userint = trim(vim.fn.input(opts))
 
   if #userint == 0 then
     userint = false
@@ -119,7 +125,6 @@ local function process_input(key, value)
   return out
 end
 
---- @tparam table[input_args] | input_args
 function input(spec)
   if isa.table(spec) then
     local res = {}
@@ -141,6 +146,7 @@ function whereis(bin, regex)
       .. bin
       .. [[ | cut -d : -f 2- | sed -r "s/(^ *| *$)//mg"]]
   )
+
   out = trim(out)
   out = split(out, " ")
 
@@ -167,7 +173,7 @@ end
 function req2path(s, isfile)
   local p = split(s, "[./]") or { s }
   local test
-  
+
   if p[1]:match "user" then
     test = path.join(user.paths.user, "lua", unpack(p))
   else
@@ -203,14 +209,14 @@ function requirem(s)
   local builtin, builtin_tp = req2path(s)
   local _user, user_tp = req2path(p)
 
-  if not builtin then
+  if not builtin and not _user then
     return
   elseif
     builtin_tp == "dir"
     and path.exists(builtin .. "/init.lua")
   then
     builtin = requirex(s)
-  else
+  elseif builtin_tp then
     builtin = requirex(s)
   end
 
@@ -230,7 +236,15 @@ function requirem(s)
   return builtin
 end
 
-function pid_exists(pid)
+function reqloadfile(req_path)
+  local tp
+  req_path, tp = req2path(req_path)
+  if req_path and tp == "file" then
+    return loadfile(req_path)()
+  end
+end
+
+function getpid(pid)
   if not isnumber(pid) then
     return false
   end
@@ -252,7 +266,7 @@ function pid_exists(pid)
   return false
 end
 
-function kill_pid(pid, signal)
+function killpid(pid, signal)
   if not isnumber(pid) then
     return false
   end
@@ -268,13 +282,14 @@ function kill_pid(pid, signal)
   return true
 end
 
-function nvimcommand(name, callback, opts)
+function mkcommand(name, callback, opts)
   opts = copy(opts or {})
   local use = vim.api.nvim_create_user_command
   local buf
 
   if opts.buffer then
-    buf = opts.buffer == true and buffer.current() or opts.buffer
+    buf = opts.buffer == true and buffer.current()
+      or opts.buffer
     use = vim.api.nvim_buf_create_user_command
   end
 

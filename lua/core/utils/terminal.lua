@@ -40,7 +40,7 @@ function terminal:init(cmd, opts)
 end
 
 function terminal:start(callback)
-  if pid_exists(self.pid) then
+  if getpid(self.pid) then
     return self.id, self.pid
   end
 
@@ -75,7 +75,7 @@ function terminal:start(callback)
     pid = buffer.var(scratch, "terminal_job_pid")
     self.pid = pid
 
-    local ok = pid_exists(pid)
+    local ok = getpid(pid)
     if not ok then
       error("Could not run command successfully " .. cmd)
     end
@@ -112,14 +112,14 @@ function terminal:start(callback)
   return id, pid
 end
 
-function terminal:pid_exists()
-  return pid_exists(self.pid)
+function terminal:getpid()
+  return getpid(self.pid)
 end
 
 function terminal:running(success, failure)
-  if pid_exists(self.pid) then
+  if getpid(self.pid) then
     if not buffer.exists(self.termbuf) then
-      kill_pid(self.pid)
+      killpid(self.pid)
       self.termbuf = false
       return false
     end
@@ -307,7 +307,7 @@ function terminal.send(self, s)
 end
 
 function terminal.split(self, direction, opts)
-  if not pid_exists(self.pid) then
+  if not getpid(self.pid) then
     return
   end
 
@@ -340,7 +340,7 @@ function terminal.stop(self)
   elseif not terminal.running(self) then
     return false
   else
-    kill_pid(self.pid, 9)
+    killpid(self.pid, 9)
 
     self.pid = false
     self.id = false
