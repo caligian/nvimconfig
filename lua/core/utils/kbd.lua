@@ -2,8 +2,8 @@ require "core.utils.au"
 
 --- @class kbd
 
-if not kbd then
-  kbd = class "kbd"
+if not Kbd then
+  Kbd = class "Kbd"
   user.kbds = {}
 end
 
@@ -11,7 +11,7 @@ local enable = vim.keymap.set
 local delete = vim.keymap.del
 local del = delete
 
-function kbd.opts(self)
+function Kbd.opts(self)
   return dict.filter(self, function(key, _)
     return strmatch(
       key,
@@ -29,7 +29,7 @@ function kbd.opts(self)
   end)
 end
 
-function kbd.init(self, mode, ks, callback, rest)
+function Kbd.init(self, mode, ks, callback, rest)
   rest = rest or {}
   mode = mode or "n"
   local _rest = rest
@@ -99,12 +99,12 @@ function kbd.init(self, mode, ks, callback, rest)
   return self
 end
 
-function kbd.enable(self)
+function Kbd.enable(self)
   if self.au and au.exists(self.au) then
     return self
   end
 
-  local opts = copy(kbd.opts(self))
+  local opts = copy(Kbd.opts(self))
   local cond = self.cond
   local callback
 
@@ -139,7 +139,7 @@ function kbd.enable(self)
   return self
 end
 
-function kbd.disable(self)
+function Kbd.disable(self)
   if self.buffer then
     if self.buffer then
       del(self.mode, self.keys, { buffer = self.buffer })
@@ -157,19 +157,19 @@ function kbd.disable(self)
   return self
 end
 
-function kbd.map(mode, ks, callback, opts)
-  return kbd.enable(kbd(mode, ks, callback, opts))
+function Kbd.map(mode, ks, callback, opts)
+  return Kbd.enable(Kbd(mode, ks, callback, opts))
 end
 
-function kbd.noremap(mode, ks, callback, opts)
+function Kbd.noremap(mode, ks, callback, opts)
   opts = isstring(opts) and { desc = opts } or opts
   opts = opts or {}
   opts.noremap = true
 
-  return kbd.map(mode, ks, callback, opts)
+  return Kbd.map(mode, ks, callback, opts)
 end
 
-function kbd.fromdict(specs)
+function Kbd.fromdict(specs)
   local out = {}
   for key, value in pairs(specs) do
     value[4] = not value[4] and { desc = key }
@@ -181,13 +181,13 @@ function kbd.fromdict(specs)
     value[4].name = key
     value[4].desc = value[4].desc or key
 
-    out[key] = kbd.map(unpack(value))
+    out[key] = Kbd.map(unpack(value))
   end
 
   return out
 end
 
-function kbd.loadfile()
+function Kbd.loadfile()
   local src = req2path "core.defaults.kbd"
   local usersrc = req2path "user.kbd"
   local specs = {}
@@ -212,10 +212,10 @@ function kbd.loadfile()
     end
   end
 
-  return kbd.fromdict(specs)
+  return Kbd.fromdict(specs)
 end
 
-function kbd.require()
+function Kbd.require()
   local src = req2path "core.defaults.kbd"
   local usersrc = req2path "user.kbd"
   local specs = {}
@@ -234,9 +234,9 @@ function kbd.require()
     end
   end
 
-  return kbd.fromdict(specs)
+  return Kbd.fromdict(specs)
 end
 
-function kbd.main()
-  return kbd.require()
+function Kbd.main()
+  return Kbd.require()
 end

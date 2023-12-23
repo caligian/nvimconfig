@@ -1,61 +1,97 @@
 Win = module()
-Winid = dict.merge(module(), nvim.win)
+Winid = module()
 Tabpage = dict.merge(module(), nvim.tabpage)
 
-local function wrap(f)
-  return function(winnr, ...)
-    local exists = vim.fn.win_getid(winnr)
+dict.merge(Winid, nvim.win)
 
-    if exists == 0 then
-      return
-    else
-      return f(winnr, ...)
-    end
+local call = nvim.win.call
+wrap = identity
+
+local function valid_winid(winid, f)
+  local ok, msg = pcall(nvim.win.is_valid, winid)
+
+  if not ok then
+    return false, msg
+  else
+    return f(winid)
   end
 end
 
-Winid.exists = Winid.is_valid
+local function valid_winnr(winnr, f)
+  local exists = vim.fn.winbufnr(winnr)
+
+  if exists == -1 then
+    return false,
+      "expected valid winnr, got " .. dump(winnr)
+  else
+    return f(winnr)
+  end
+end
+
+function Winid.call(winid, f)
+  return valid_winid(winid, function(winid)
+    return call(winid, f)
+  end)
+end
 
 function Win.nr2id(winnr)
-  local id = vim.fn.win_getid(winnr)
-  if id == 0 then
-    return
-  end
+  return valid_winnr(winnr, function(winnr)
+    local id = vim.fn.win_getid(winnr)
 
-  return id
+    if id == 0 then
+      return
+    end
+
+    return id
+  end)
 end
 
-Win.exists = wrap(identity)
+function Winid.exists(winnr)
+  return valid_winid(winnr, function()
+    return true
+  end)
+end
+
+function Win.exists(winnr)
+  return valid_winnr(winnr, function()
+    return true
+  end)
+end
 
 function Winid.id2nr(winid)
-  local ok = vim.fn.win_id2win(winid)
+  return valid_winid(winid, function(winid)
+    local ok = vim.fn.win_id2win(winid)
 
-  if ok == 0 then
-    return
-  end
+    if ok == 0 then
+      return
+    end
 
-  return ok
+    return ok
+  end)
 end
 
 Winid.winnr = Winid.id2nr
 
 function Winid.bufnr(winid)
-  local winnr = Winid.winnr(winid)
+  return valid_winid(winid, function(winid)
+    local winnr = Winid.winnr(winid)
 
-  if not winnr then
-    return
-  end
+    if not winnr then
+      return
+    end
 
-  local bufnr = vim.fn.winbufnr(winnr)
-  return bufnr
+    local bufnr = vim.fn.winbufnr(winnr)
+
+    return bufnr
+  end)
 end
 
 function Winid.bufname(winid)
-  local bufnr = Winid.bufnr(winid)
-  return defined(bufnr and nvim.buf.get_name(bufnr))
+  return valid_winid(winid, function(winid)
+    local bufnr = Winid.bufnr(winid)
+    return defined(bufnr and nvim.buf.get_name(bufnr))
+  end)
 end
-
-Winid.winnr = Winid.id2nr
 
 function Win.winnr(expr)
   if expr == nil then
@@ -76,70 +112,80 @@ function Winid.current()
 end
 
 function Win.currentid()
-  return Win.id.current()
+  return Winid.current()
 end
 
-Win.height = wrap(function(winnr)
-  return vim.fn.winheight(winnr)
-end)
+function Win.height(winnr)
+  return valid_winnr(winnr, vim.fn.winheight)
+end
 
-Win.width = wrap(function(winnr)
-  return vim.fn.winwidth(winnr)
-end)
+function Win.width(winnr)
+  return valid_winnr(winnr, vim.fn.winwidth)
+end
 
-Win.size = wrap(function(winnr)
-  local width, height = Win.width(winnr), Win.height(winnr)
+function Win.size(winnr)
+  return valid_winnr(winnr, function(winnr)
+    local width, height =
+      Win.width(winnr), Win.height(winnr)
 
-  if not width or not height then
-    return
-  end
+    if not width or not height then
+      return
+    end
 
-  return { width, height }
-end)
+    return { width, height }
+  end)
+end
 
 function Winid.set_vars(winid, vars)
-  local out = {}
+  return valid_winid(winid, function(winid)
+    local out = {}
 
-  for key, value in pairs(vars) do
-    out[key] = nvim.win.set_var(winid, key, value)
-  end
+    for key, value in pairs(vars) do
+      out[key] = nvim.win.set_var(winid, key, value)
+    end
 
-  return out
+    return out
+  end)
 end
 
 function Winid.get_options(winid, options)
-  local out = {}
+  return valid_winid(winid, function(winid)
+    local out = {}
 
-  for i = 1, #options do
-    out[options[i]] = nvim.win.get_option(winid, options[i])
-  end
+    for i = 1, #options do
+      out[options[i]] =
+        nvim.win.get_option(winid, options[i])
+    end
 
-  return out
+    return out
+  end)
 end
 
 function Winid.set_options(winid, options)
-  local out = {}
+  return valid_winid(winid, function(winid)
+    local out = {}
 
-  for key, value in pairs(options) do
-    out[key] = nvim.win.set_option(winid, key, value)
-  end
+    for key, value in pairs(options) do
+      out[key] = nvim.win.set_option(winid, key, value)
+    end
 
-  return out
+    return out
+  end)
 end
 
 function Winid.get_vars(winid, vars)
-  local out = {}
+  return valid_winid(winid, function(winid)
+    local out = {}
 
-  for i = 1, #vars do
-    out[vars[i]] = nvim.win.get_var(winid, var)
-  end
+    for i = 1, #vars do
+      out[vars[i]] = nvim.win.get_var(winid, vars[i])
+    end
 
-  return out
+    return out
+  end)
 end
 
 function Winid.pos(winid, expr)
-  winid = winid or Winid.current()
-
   return Winid.call(winid, function()
     local pos = vim.fn.getpos(expr or ".")
     return {
@@ -153,7 +199,7 @@ function Winid.pos(winid, expr)
   end)
 end
 
-Win.getpos = Win.pos
+Winid.getpos = Winid.pos
 
 function Winid.restcmd(winid)
   return Winid.call(winid, function()
@@ -161,8 +207,10 @@ function Winid.restcmd(winid)
   end)
 end
 
-function Winid.focus(id)
-  return vim.fn.win_gotoid(id) ~= 0
+function Winid.focus(winid)
+  return valid_winid(winid, function(winid)
+    return vim.fn.win_gotoid(winid) ~= 0
+  end)
 end
 
 function Winid.restview(winid, view)
@@ -217,15 +265,15 @@ function Winid.virtualcol(winid)
   end)
 end
 
-Win.bufname = wrap(function(winnr)
+function Win.bufname(winnr)
   return nvim.buf.get_name(vim.fn.winbufnr(winnr))
-end)
+end
 
-Win.bufnr = wrap(function(winnr)
+function Win.bufnr(winnr)
   return vim.fn.winbufnr(winnr)
-end)
+end
 
-Win.move = wrap(function(from_winnr, towinnr, opts)
+function Win.move(from_winnr, towinnr, opts)
   if not Win.exists(towinnr) then
     return
   end
@@ -237,9 +285,9 @@ Win.move = wrap(function(from_winnr, towinnr, opts)
   )
 
   return true
-end)
+end
 
-Win.screenpos = wrap(function(winnr)
+function Win.screenpos(winnr)
   winnr = winnr or Win.current()
 
   if not Win.exists(winnr) then
@@ -247,28 +295,30 @@ Win.screenpos = wrap(function(winnr)
   end
 
   return vim.fn.win_screenpos(winnr)
-end)
+end
 
-Win.move_statusline = wrap(function(winnr, offset)
+function Win.move_statusline(winnr, offset)
   return vim.fn.win_move_statusline(winnr, offset) ~= 0
-end)
+end
 
-Win.move_separator = wrap(function(winnr, offset)
+function Win.move_separator(winnr, offset)
   return vim.fn.win_move_separator(winnr, offset) ~= 0
-end)
+end
 
-Winid.tabpage = wrap(function(winid)
-  local out = vim.fn.win_id2tabwin(winid)
-  if out[1] == 0 and out[2] == 0 then
-    return
-  end
+function Winid.tabpage(winid)
+  return valid_winid(winid, function(winid)
+    local out = vim.fn.win_id2tabwin(winid)
+    if out[1] == 0 and out[2] == 0 then
+      return
+    end
 
-  return out
-end)
+    return out
+  end)
+end
 
-Win.type = wrap(function(winnr)
-  return vim.fn.win_gettype(winnr)
-end)
+function Win.type(winnr)
+  return valid_winnr(winnr, vim.fn.win_gettype)
+end
 
 function Winid.col(winid, expr)
   return Winid.call(winid, function()
@@ -286,18 +336,20 @@ end
 
 function Winid.curpos(winid)
   local row = Winid.row(winid)
-  local col = Winid.col(winid)
-  if not row or not col then
+  if not row then
     return
   end
 
-  return { row, col, row = row, col = col }
+  local col = Winid.col(winid)
+  if not col then
+    return
+  end
+
+  return { row = row, col = col }
 end
 
 function Winid.range(winid)
-  local out = {}
-
-  Winid.call(winid or Winid.current(), function()
+  return Winid.call(winid or Winid.current(), function()
     if vim.fn.mode() == "v" then
       vim.cmd "normal! "
     end
@@ -309,18 +361,12 @@ function Winid.range(winid)
       return
     end
 
-    out = {
-      csrow,
-      cscol,
-      cerow,
-      cecol,
+    return {
       bufnr = Winid.bufnr(winid),
       row = { csrow, cerow },
       col = { cscol, cecol },
     }
   end)
-
-  return out
 end
 
 local function range_text(buf, ...)
@@ -334,17 +380,18 @@ local function range_text(buf, ...)
 end
 
 function Winid.range_text(winid)
-  winid = winid or Winid.current()
-  local range = Winid.range(winid)
-  if not range then
-    return
-  end
+  return valid_winid(winid, function(winid)
+    local range = Winid.range(winid)
+    if not range then
+      return
+    end
 
-  local csrow, cerow = unpack(range.row)
-  local cscol, cecol = unpack(range.col)
-  local buf = Winid.bufnr(winid)
+    local csrow, cerow = unpack(range.row)
+    local cscol, cecol = unpack(range.col)
+    local buf = Winid.bufnr(winid)
 
-  return range_text(buf, csrow, cscol, cerow, cecol)
+    return range_text(buf, csrow, cscol, cerow, cecol)
+  end)
 end
 
 function Winid.is_visible(winid)
@@ -358,16 +405,38 @@ local exclude = {
   bufnr = true,
   current = true,
   bufname = true,
+  nr2id = true,
+  winnr = true,
+  winid = true,
+  currentid = true,
 }
 
-dict.each(Winid, function(key, value)
+dict.each(Win, function(key, _)
   if not exclude[key] then
-    Win[key] = function(winnr, ...)
-      local winid = Win.nr2id(winnr)
+    Winid[key] = function(winid, ...)
+      local ok, msg = Winid.winnr(winid)
+      local value = Win[key]
 
-      if winid then
-        return value(winid, ...)
+      if ok then
+        return value(ok, ...)
+      else
+        return false, msg
       end
     end
   end
 end)
+
+dict.each(Winid, function(key, value)
+  if not exclude[key] and not Win[key] then
+    Win[key] = function(winnr, ...)
+      local ok, msg = Win.winid(winnr)
+
+      if ok then
+        return value(ok, ...)
+      else
+        return false, msg
+      end
+    end
+  end
+end)
+
