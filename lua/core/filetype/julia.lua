@@ -1,6 +1,6 @@
 local julia = {}
 
-julia.compile = "julia %s"
+julia.compile = "julia {path}"
 
 julia.repl = "julia"
 
