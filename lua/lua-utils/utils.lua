@@ -612,7 +612,9 @@ local function _istypes(x, ...)
 
     if not res then
       failed_ctr = failed_ctr + 1
-      err[#err + 1] = not isstring(args[i]) and typeof(args[i]) or args[i]
+      err[#err + 1] = not isstring(args[i])
+          and typeof(args[i])
+        or args[i]
     end
   end
 
@@ -879,7 +881,7 @@ function class(name)
   end
 
   function mod:isa()
-    return class_mt.type == mtget(self, 'type')
+    return class_mt.type == mtget(self, "type")
   end
 
   return mod

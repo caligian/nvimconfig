@@ -1,24 +1,24 @@
 require "core.utils.au"
 require "core.utils.kbd"
 
-if not buffergroup then
-  buffergroup = class "buffergroup"
-  buffergroup.buffergroups = {}
-  buffergroup._buffers = {}
+if not BufferGroup then
+  BufferGroup = class "BufferGroup"
+  BufferGroup.buffergroups = {}
+  BufferGroup._buffers = {}
 end
 
-function buffergroup:exclude_buffer(bufnr)
+function BufferGroup:exclude_buffer(bufnr)
   self.exclude[bufnr] = true
   self.buffers[bufnr] = nil
-  dict.unset(buffergroup._buffers, { bufnr, self.name })
+  dict.unset(BufferGroup._buffers, { bufnr, self.name })
 end
 
-function buffergroup.telescope_list_groups(bufnr)
+function BufferGroup.telescope_list_groups(bufnr)
   if not buffer.exists(bufnr) then
     return
   end
 
-  local groups = buffergroup._buffers[bufnr]
+  local groups = BufferGroup._buffers[bufnr]
   if not groups then
     return
   end
@@ -33,7 +33,7 @@ function buffergroup.telescope_list_groups(bufnr)
 
   local usegroups = {}
   list.each(ls, function(x)
-    usegroups[x] = buffergroup.buffergroups[x]
+    usegroups[x] = BufferGroup.buffergroups[x]
   end)
 
   return {
@@ -56,7 +56,7 @@ function buffergroup.telescope_list_groups(bufnr)
   }
 end
 
-function buffergroup:telescope_list_buffers()
+function BufferGroup:telescope_list_buffers()
   local ls = keys(self.buffers)
   if #ls == 0 then
     return
@@ -84,28 +84,28 @@ function buffergroup:telescope_list_buffers()
   }
 end
 
-function buffergroup.create_picker(self)
+function BufferGroup.create_picker(self)
   local ls
 
   if isnumber(self) then
-    ls = buffergroup.telescope_list_groups(self)
+    ls = BufferGroup.telescope_list_groups(self)
     if not ls then
       return
     elseif #ls.results == 1 then
-      return buffergroup.create_picker(
-        buffergroup.buffergroups[ls.results[1]]
+      return BufferGroup.create_picker(
+        BufferGroup.buffergroups[ls.results[1]]
       )
     end
 
-    local T = require("core.utils.telescope")()
+    local T = require "core.utils.telescope"()
     return T:create_picker(ls, function(group)
       if #group == 0 then
         return
       end
 
       group = group[1]
-      buffergroup.run_picker(
-        buffergroup.buffergroups[group.value]
+      BufferGroup.run_picker(
+        BufferGroup.buffergroups[group.value]
       )
     end, {
       prompt_title = "BufferGroups for buffer "
@@ -118,7 +118,7 @@ function buffergroup.create_picker(self)
     return
   end
 
-  local T = require("core.utils.telescope")()
+  local T = require "core.utils.telescope"()
   return T:create_picker(ls, {
     function(bufs)
       if #bufs == 0 then
@@ -142,28 +142,28 @@ function buffergroup.create_picker(self)
   }, { prompt_title = "Buffers in " .. self.name })
 end
 
-function buffergroup:run_picker()
-  local picker = buffergroup.create_picker(self)
+function BufferGroup:run_picker()
+  local picker = BufferGroup.create_picker(self)
   if picker then
     picker:find()
   end
 end
 
-function buffergroup.fromdict(specs)
+function BufferGroup.fromdict(specs)
   local out = {}
   for key, value in pairs(specs) do
     assertisa(value, function(x)
       return islist(x) and #x == 2
     end)
-    out[key] = buffergroup(key, unpack(value))
+    out[key] = BufferGroup(key, unpack(value))
   end
 
   return out
 end
 
-function buffergroup:init(name, event, pattern, opts)
-  if buffergroup.buffergroups[name] then
-    return buffergroup.buffergroups[name]
+function BufferGroup:init(name, event, pattern, opts)
+  if BufferGroup.buffergroups[name] then
+    return BufferGroup.buffergroups[name]
   end
 
   opts = opts or {}
@@ -173,20 +173,20 @@ function buffergroup:init(name, event, pattern, opts)
   self.exclude = exclude
   self.name = name
   self.buffers = {}
-  self.au = au.map(event, {
-    name = "buffergroup." .. self.name,
+  self.au = Autocmd.map(event, {
+    name = "BufferGroup." .. self.name,
     group = "MyBufferGroups",
     pattern = self.pattern,
     callback = function(o)
       local buf = o.buf
       if not self.exclude[buf] then
         self.buffers[buf] = true
-        dict.set(buffergroup._buffers, { buf, name }, true)
+        dict.set(BufferGroup._buffers, { buf, name }, true)
       end
     end,
   })
 
-  buffergroup.buffergroups[self.name] = self
+  BufferGroup.buffergroups[self.name] = self
   self.telescope = setmetatable({}, {
     __index = function(here, key)
       if T[key] then
@@ -200,7 +200,7 @@ function buffergroup:init(name, event, pattern, opts)
   return self
 end
 
-function buffergroup.loadfile()
+function BufferGroup.loadfile()
   local specs = {}
   local src = req2path "core.defaults.buffergroup"
   local usersrc = req2path "user.buffergroup"
@@ -224,11 +224,11 @@ function buffergroup.loadfile()
   end
 
   if size(specs) > 0 then
-    return buffergroup.fromdict(specs)
+    return BufferGroup.fromdict(specs)
   end
 end
 
-function buffergroup.require()
+function BufferGroup.require()
   local specs = {}
 
   if req2path "core.defaults.buffergroup" then
@@ -246,14 +246,13 @@ function buffergroup.require()
   end
 
   if size(specs) > 0 then
-    return buffergroup.fromdict(specs)
+    return BufferGroup.fromdict(specs)
   end
 end
 
-function buffergroup.main()
-  buffergroup.require()
-
-  kbd.map("n", "<leader>.", function()
-    buffergroup.run_picker(buffer.current())
+function BufferGroup.main()
+  BufferGroup.require()
+  Kbd.map("n", "<leader>.", function()
+    BufferGroup.run_picker(buffer.current())
   end, "show buffergroups")
 end

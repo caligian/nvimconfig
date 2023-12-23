@@ -20,7 +20,7 @@ return {
         config = function()
           require("telescope").load_extension "project"
 
-          kbd.map("n", "<leader>p", function()
+          Kbd.map("n", "<leader>p", function()
             require("telescope").extensions.project.project(
               require "core.utils.telescope"().theme
             )
@@ -49,7 +49,7 @@ return {
 
   indentblankline = {
     "lukas-reineke/indent-blankline.nvim",
-    event = 'BufAdd',
+    event = "BufAdd",
   },
 
   align = {
@@ -123,13 +123,13 @@ return {
   startuptime = {
     "dstein64/vim-startuptime",
     config = function()
-      kbd.map("ni", "q", "<cmd>hide<CR>", {
+      Kbd.map("ni", "q", "<cmd>hide<CR>", {
         name = "startuptime.hide_buffer",
         event = "FileType",
         pattern = "startuptime",
       })
 
-      kbd.noremap(
+      Kbd.noremap(
         "n",
         "<leader>hs",
         "<cmd>StartupTime<CR>",
@@ -247,7 +247,7 @@ return {
   tagbar = {
     "preservim/tagbar",
     config = function()
-      kbd.map(
+      Kbd.map(
         "n",
         "<localleader>t",
         ":TagbarToggle<CR>",
@@ -291,4 +291,3 @@ return {
     ft = "elixir",
   },
 }
-

@@ -55,10 +55,6 @@ if path.exists(user.paths.logs) then
   file.delete(user.paths.logs)
 end
 
--- Load the framework
-require "core.utils"
-require "core"
-
 local winapi = {}
 local bufapi = {}
 local api = {}
@@ -111,3 +107,7 @@ nvim = setmetatable(api, {
     end
   end,
 })
+
+-- Load the framework
+require "core.utils"
+require "core"

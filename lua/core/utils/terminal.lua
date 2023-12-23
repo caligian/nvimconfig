@@ -1,25 +1,25 @@
 require "core.utils.buffer"
 
-terminal = terminal or class "terminal"
-terminal.terminals = terminal.terminals or {}
+Terminal = Terminal or class "Terminal"
+Terminal.terminals = Terminal.terminals or {}
 
-terminal.exceptions = {
+Terminal.exceptions = {
   invalid_command = "expected valid command",
   shell_not_executable = "shell not executable",
   exited_with_error = "command exited with error",
-  interrupted = "terminal interrupted",
+  interrupted = "Terminal interrupted",
   invalid_id = "invalid job id",
   no_default_command = "no default command provided",
 }
 
-terminal.timeout = 200
+Terminal.timeout = 200
 
-function terminal.isa(x)
-  return mtget(x) == "terminal"
+function Terminal.isa(x)
+  return mtget(x) == "Terminal"
 end
 
-function terminal:init(cmd, opts)
-  if terminal.isa(cmd) then
+function Terminal:init(cmd, opts)
+  if Terminal.isa(cmd) then
     return cmd
   end
 
@@ -39,7 +39,7 @@ function terminal:init(cmd, opts)
   return self
 end
 
-function terminal:start(callback)
+function Terminal:start(callback)
   if getpid(self.pid) then
     return self.id, self.pid
   end
@@ -80,25 +80,29 @@ function terminal:start(callback)
       error("Could not run command successfully " .. cmd)
     end
 
-    buffer.set_option(term, 'bufhidden', 'hide')
+    buffer.set_option(term, "bufhidden", "hide")
 
     buffer.map(
       scratch,
       "n",
       "q",
       ":hide<CR>",
-      { name = "terminal.hide_buffer" }
+      { name = "Terminal.hide_buffer" }
     )
 
-    buffer.au(term, { "BufWipeout" }, function()
-      terminal.stop(self)
-      terminal.hide(self)
+    buffer.Autocmd(term, { "BufWipeout" }, function()
+      Terminal.stop(self)
+      Terminal.hide(self)
     end)
 
     if self.connected then
-      buffer.au(self.connected, { "BufWipeout" }, function()
-        terminal.stop(self)
-      end)
+      buffer.Autocmd(
+        self.connected,
+        { "BufWipeout" },
+        function()
+          Terminal.stop(self)
+        end
+      )
     end
 
     if callback then
@@ -107,16 +111,16 @@ function terminal:start(callback)
   end)
 
   self.termbuf = term
-  terminal.terminals[id] = self
+  Terminal.terminals[id] = self
 
   return id, pid
 end
 
-function terminal:getpid()
+function Terminal:getpid()
   return getpid(self.pid)
 end
 
-function terminal:running(success, failure)
+function Terminal:running(success, failure)
   if getpid(self.pid) then
     if not buffer.exists(self.termbuf) then
       killpid(self.pid)
@@ -136,91 +140,91 @@ function terminal:running(success, failure)
   end
 end
 
-function terminal.unless_running(self, callback)
-  return terminal.running(self, nil, callback)
+function Terminal.unless_running(self, callback)
+  return Terminal.running(self, nil, callback)
 end
 
-function terminal.if_running(self, callback)
-  return terminal.running(self, callback)
+function Terminal.if_running(self, callback)
+  return Terminal.running(self, callback)
 end
 
-function terminal.center_float(self, opts)
-  return terminal.float(
+function Terminal.center_float(self, opts)
+  return Terminal.float(
     self,
     dict.merge({ center = { 0.8, 0.8 } }, opts or {})
   )
 end
 
-function terminal.dock(self, opts)
-  return terminal.float(
+function Terminal.dock(self, opts)
+  return Terminal.float(
     self,
     dict.merge({ dock = 0.3 }, opts or {})
   )
 end
 
-function terminal.send_node_at_cursor(self, src_bufnr)
+function Terminal.send_node_at_cursor(self, src_bufnr)
   src_bufnr = src_bufnr or vim.fn.bufnr()
   local pos = buffer.pos(src_bufnr)
   local line, col = pos.row, pos.col
   line = line - 1
   col = col - 1
 
-  terminal.send(
+  Terminal.send(
     self,
     buffer.get_node_text_at_pos(src_bufnr, line, col)
   )
 end
 
-function terminal.send_current_line(self, src_bufnr)
-  if not terminal.running(self) then
+function Terminal.send_current_line(self, src_bufnr)
+  if not Terminal.running(self) then
     return
   end
 
   src_bufnr = src_bufnr or vim.fn.bufnr()
   return vim.api.nvim_buf_call(src_bufnr, function()
     local s = vim.fn.getline "."
-    return terminal.send(self, s)
+    return Terminal.send(self, s)
   end)
 end
 
-function terminal.send_buffer(self, src_bufnr)
-  if not terminal.running(self) then
+function Terminal.send_buffer(self, src_bufnr)
+  if not Terminal.running(self) then
     return
   end
 
   src_bufnr = src_bufnr or vim.fn.bufnr()
-  return terminal.send(
+  return Terminal.send(
     self,
     vim.api.nvim_buf_get_lines(src_bufnr, 0, -1, false)
   )
 end
 
-function terminal.send_till_cursor(self, src_bufnr)
-  if not terminal.running(self) then
+function Terminal.send_till_cursor(self, src_bufnr)
+  if not Terminal.running(self) then
     return
   end
 
   src_bufnr = src_bufnr or vim.fn.bufnr()
   return buffer.call(src_bufnr, function()
     local line = vim.fn.line "."
-    return terminal.send(
+    return Terminal.send(
       self,
       vim.api.nvim_buf_get_lines(src_bufnr, 0, line, false)
     )
   end)
 end
 
-function terminal.send_textsubject_at_cursor(
+function Terminal.send_textsubject_at_cursor(
   self,
   src_bufnr
 )
-  if not terminal.running(self) then
+  if not Terminal.running(self) then
     return
   end
 
   src_bufnr = src_bufnr or buffer.bufnr()
 
-  return terminal.send(
+  return Terminal.send(
     self,
     buffer.call(src_bufnr, function()
       vim.cmd "normal! v."
@@ -229,8 +233,8 @@ function terminal.send_textsubject_at_cursor(
   )
 end
 
-function terminal.send_range(self, src_bufnr)
-  if not terminal.running(self) then
+function Terminal.send_range(self, src_bufnr)
+  if not Terminal.running(self) then
     return
   end
 
@@ -240,14 +244,14 @@ function terminal.send_range(self, src_bufnr)
     return false
   end
 
-  return terminal.send(self, out)
+  return Terminal.send(self, out)
 end
 
-function terminal.terminate_input(self)
-  if not terminal.running(self) then
+function Terminal.terminate_input(self)
+  if not Terminal.running(self) then
     return
   end
-  return terminal.send(
+  return Terminal.send(
     self,
     vim.api.nvim_replace_termcodes(
       "<C-c>",
@@ -258,8 +262,8 @@ function terminal.terminate_input(self)
   )
 end
 
-function terminal.send(self, s)
-  if not terminal.running(self) then
+function Terminal.send(self, s)
+  if not Terminal.running(self) then
     return
   end
 
@@ -306,38 +310,38 @@ function terminal.send(self, s)
   return true
 end
 
-function terminal.split(self, direction, opts)
+function Terminal.split(self, direction, opts)
   if not getpid(self.pid) then
     return
   end
 
-  if not terminal.visible(self) then
+  if not Terminal.visible(self) then
     buffer.split(self.termbuf, direction, opts)
   end
 end
 
-function terminal.float(self, opts)
-  if not terminal.running(self) then
+function Terminal.float(self, opts)
+  if not Terminal.running(self) then
     return
   end
 
-  if not terminal.visible(self) and self.termbuf then
+  if not Terminal.visible(self) and self.termbuf then
     return buffer.float(self.termbuf, opts)
   end
 end
 
-function terminal.hide(self)
+function Terminal.hide(self)
   if self.termbuf then
     buffer.hide(self.termbuf)
   end
 end
 
-function terminal.stop(self)
-  terminal.hide(self)
+function Terminal.stop(self)
+  Terminal.hide(self)
 
   if not self.pid then
     return false
-  elseif not terminal.running(self) then
+  elseif not Terminal.running(self) then
     return false
   else
     killpid(self.pid, 9)
@@ -349,39 +353,38 @@ function terminal.stop(self)
   return true
 end
 
-function terminal.stop_deprecated(self)
-  if not terminal.running(self) then
+function Terminal.stop_deprecated(self)
+  if not Terminal.running(self) then
     return
   end
 
-  terminal.hide(self)
+  Terminal.hide(self)
   vim.fn.chanclose(self.id)
   self.termbuf = nil
-  terminal.terminals[self.id] = false
+  Terminal.terminals[self.id] = false
 
   return self
 end
 
-function terminal.visible(self)
+function Terminal.visible(self)
   if self.termbuf then
     return buffer.isvisible(self.termbuf)
   end
   return false
 end
 
-function terminal.stopall()
-  list.each(values(terminal.terminals), terminal.stop)
+function Terminal.stopall()
+  list.each(values(Terminal.terminals), Terminal.stop)
 end
 
-function terminal:tabnew(opts)
+function Terminal:tabnew(opts)
   return self:split("tabnew", opts)
 end
 
-function terminal:vsplit(opts)
+function Terminal:vsplit(opts)
   return self:split("vsplit", opts)
 end
 
-function terminal:reset()
-  return terminal(self.cmd, self.opts)
+function Terminal:reset()
+  return Terminal(self.cmd, self.opts)
 end
-

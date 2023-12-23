@@ -1,6 +1,6 @@
 local erlang = {}
 
-erlang.repl =  "erl" 
+erlang.repl = "erl"
 
 erlang.server = "erlangls"
 

@@ -194,7 +194,7 @@ function buffer.map(bufnr, mode, lhs, callback, opts)
   opts = opts or {}
   opts.buffer = bufnr
 
-  return kbd.map(mode, lhs, callback, opts)
+  return Kbd.map(mode, lhs, callback, opts)
 end
 
 --- Make a new buffer local nonrecursive list.mapping.
@@ -218,8 +218,8 @@ function buffer.noremap(bufnr, mode, lhs, callback, opts)
 end
 
 --- Create a buffer local autocommand. The  pattern will be automatically set to '<buffer=%d>'
--- @see au._init
-function buffer.au(bufnr, event, callback, opts)
+-- @see Autocmd._init
+function buffer.Autocmd(bufnr, event, callback, opts)
   bufnr = bufnr or vim.fn.bufnr()
   if not buffer.exists(bufnr) then
     return
@@ -227,7 +227,7 @@ function buffer.au(bufnr, event, callback, opts)
 
   opts = opts or {}
 
-  return au.map(
+  return Autocmd.map(
     event,
     dict.merge(opts, {
       pattern = sprintf("<buffer=%d>", bufnr),
@@ -1039,10 +1039,10 @@ end
 
 --------------------------------------------------
 
-au.map("FileType", {
+Autocmd.map("FileType", {
   pattern = "qf",
   callback = function()
-    kbd.map(
+    Kbd.map(
       "ni",
       "q",
       ":hide<CR>",
@@ -1174,7 +1174,7 @@ function hist.open()
   return buffer.open(current[1])
 end
 
-au.map("BufEnter", {
+Autocmd.map("BufEnter", {
   pattern = "*",
   callback = function(opts)
     if hist.push(opts.buf) then

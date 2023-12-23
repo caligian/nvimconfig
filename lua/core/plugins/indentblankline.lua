@@ -31,11 +31,11 @@ function indentblankline:setup()
   indent.setup(self.config or {})
 end
 
-au.map('Colorscheme', {
-  pattern = '*',
-  callback = function ()
+Autocmd.map("Colorscheme", {
+  pattern = "*",
+  callback = function()
     indentblankline:setup()
-  end
+  end,
 })
 
 return indentblankline

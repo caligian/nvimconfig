@@ -2,17 +2,17 @@ require "core.utils.au"
 require "core.utils.kbd"
 require "core.utils.logger"
 
-if not plugin then
-  plugin = class "plugin"
+if not Plugin then
+  Plugin = class "Plugin"
   user.plugins = {}
 end
 
-function plugin.init(self, name, opts)
+function Plugin.init(self, name, opts)
   if isstring(name) and user.plugins[name] then
     return user.plugins[name]
   elseif istable(name) then
     assertisa(name.name, "string")
-    return plugin(name.name, name)
+    return Plugin(name.name, name)
   end
 
   opts = opts
@@ -39,7 +39,7 @@ function plugin.init(self, name, opts)
   return self
 end
 
-function plugin.list()
+function Plugin.list()
   local p = path.join(
     vim.fn.stdpath "config",
     "lua",
@@ -69,18 +69,18 @@ local function conv(name)
     if user.plugins[name] then
       return user.plugins[name]
     else
-      return plugin(name)
+      return Plugin(name)
     end
   elseif istable(name) then
     if not name.name then
       return
     else
-      return plugin(name.name, name)
+      return Plugin(name.name, name)
     end
   end
 end
 
-function plugin.loadfile(self)
+function Plugin.loadfile(self)
   self = conv(self)
   if not self then
     return
@@ -98,7 +98,7 @@ function plugin.loadfile(self)
   builtin = luapath and loadfile(luapath)
   userconfig = userluapath and loadfile(userluapath)
 
-  local plug = plugin(name)
+  local plug = Plugin(name)
   local _, okuserconfig
 
   if isfunction(userconfig) then
@@ -122,7 +122,7 @@ function plugin.loadfile(self)
   return plug
 end
 
-function plugin.require(self)
+function Plugin.require(self)
   self = conv(self)
   if not self then
     return
@@ -136,7 +136,7 @@ function plugin.require(self)
   builtin = luapath and requirex("core.plugins." .. name)
   userconfig = userluapath
     and requirex("user.plugins." .. name)
-  local plug = plugin(name)
+  local plug = Plugin(name)
 
   if istable(builtin) and istable(userconfig) then
     dict.merge(plug, builtin, userconfig)
@@ -151,7 +151,7 @@ function plugin.require(self)
   return plug
 end
 
-function plugin.configure(self)
+function Plugin.configure(self)
   self = conv(self)
 
   if not self then
@@ -168,13 +168,13 @@ function plugin.configure(self)
   return self
 end
 
-function plugin.loadfileall()
+function Plugin.loadfileall()
   local out = {}
 
-  list.each(plugin.list(), function(x)
+  list.each(Plugin.list(), function(x)
     local m = requirem("core.plugins." .. x)
     if istable(m) then
-      out[x] = plugin(x, m)
+      out[x] = Plugin(x, m)
       out[x]:loadfile()
     end
   end)
@@ -182,14 +182,14 @@ function plugin.loadfileall()
   return out
 end
 
-function plugin.requireall()
+function Plugin.requireall()
   local out = {}
 
-  list.each(plugin.list(), function(x)
+  list.each(Plugin.list(), function(x)
     local m = requirem("core.plugins." .. x)
 
     if istable(m) then
-      out[x] = plugin(x, m)
+      out[x] = Plugin(x, m)
       out[x]:require()
     end
   end)
@@ -207,11 +207,11 @@ local function _set_autocmds(self, autocmds)
     name = "plugin." .. self.name .. "." .. name
     spec[2] = spec[2] or {}
     spec[2].name = name
-    au.map(unpack(spec))
+    Autocmd.map(unpack(spec))
   end)
 end
 
-function plugin.set_autocmds(self, autocmds)
+function Plugin.set_autocmds(self, autocmds)
   return pcall_warn(_set_autocmds, self, autocmds)
 end
 
@@ -226,16 +226,16 @@ local function _set_mappings(self, mappings)
 
   dict.each(mappings, function(key, spec)
     assert(
-    #spec == 4,
-    "expected at least 4 arguments, got " .. dump(spec)
+      #spec == 4,
+      "expected at least 4 arguments, got " .. dump(spec)
     )
 
     local name = "plugin." .. self.name .. "." .. key
 
     spec[4] = not spec[4] and { desc = key }
-    or isstring(spec[4]) and { desc = spec[4] }
-    or istable(spec[4]) and spec[4]
-    or { desc = key }
+      or isstring(spec[4]) and { desc = spec[4] }
+      or istable(spec[4]) and spec[4]
+      or { desc = key }
 
     spec[4] = copy(spec[4])
     spec[4].desc = spec[4].desc or key
@@ -244,27 +244,27 @@ local function _set_mappings(self, mappings)
 
     spec[4].name = name
 
-    kbd.map(unpack(spec))
+    Kbd.map(unpack(spec))
   end)
 end
 
-function plugin.set_mappings(self, mappings)
+function Plugin.set_mappings(self, mappings)
   return pcall_warn(_set_mappings, self, mappings)
 end
 
 local function _configureall()
-  list.each(plugin.list(), function(x)
-    local plug = plugin(x)
+  list.each(Plugin.list(), function(x)
+    local plug = Plugin(x)
     plug:require()
     plug:configure()
   end)
 end
 
-function plugin.configure_all()
+function Plugin.configure_all()
   return pcall_warn(_configureall)
 end
 
-function plugin.lazy_spec()
+function Plugin.lazy_spec()
   local userpath = req2path "user.plugins"
   local core = requirex "core.plugins"
   local userconfig = userpath and requirex "user.plugins"
@@ -286,7 +286,7 @@ function plugin.lazy_spec()
     local conf = spec.config
     function spec.config()
       local ok, msg = pcall(function()
-        local plug = plugin(name)
+        local plug = Plugin(name)
         plug:require()
         plug:configure()
 
@@ -306,11 +306,10 @@ function plugin.lazy_spec()
   return specs
 end
 
-function plugin.setup_lazy()
-  require("lazy").setup(plugin.lazy_spec())
+function Plugin.setup_lazy()
+  require("lazy").setup(Plugin.lazy_spec())
 end
 
-function plugin.main()
-  plugin.setup_lazy()
+function Plugin.main()
+  Plugin.setup_lazy()
 end
-

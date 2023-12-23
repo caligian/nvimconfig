@@ -1,4 +1,4 @@
-require 'core.utils.nvim'
+require "core.utils.nvim"
 
 local RED = 0.2126
 local GREEN = 0.7152
@@ -6,8 +6,8 @@ local BLUE = 0.0722
 local GAMMA = 2.4
 
 function highlight(hi)
-  hi = hi or 'Normal'
-  local out = nvimexec(':hi ' .. hi, true)
+  hi = hi or "Normal"
+  local out = nvimexec(":hi " .. hi, true)
   if not out or #out == 0 then
     return
   end

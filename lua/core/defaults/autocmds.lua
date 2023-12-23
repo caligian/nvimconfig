@@ -28,7 +28,7 @@ return {
           return
         end
 
-        kbd.map("n", "<leader>bl", function()
+        Kbd.map("n", "<leader>bl", function()
           buffer.open(recent)
         end, {
           buffer = current,
@@ -36,7 +36,7 @@ return {
         })
 
         if buffer.exists(recent) then
-          kbd.map("n", "<leader>bl", function()
+          Kbd.map("n", "<leader>bl", function()
             buffer.open(current)
           end, {
             buffer = recent,
@@ -73,7 +73,12 @@ return {
           return
         end
 
-        assert(dict.isa(user.temp_buffer_patterns, union('string', 'function', 'table')))
+        assert(
+          dict.isa(
+            user.temp_buffer_patterns,
+            union("string", "function", "table")
+          )
+        )
 
         dict.each(
           user.temp_buffer_patterns,
@@ -106,4 +111,3 @@ return {
     },
   },
 }
-

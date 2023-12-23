@@ -1,5 +1,5 @@
-list.each(filetype.list(), function(x)
-  filetype(x):setup_lsp()
+list.each(Filetype.list(), function(x)
+  Filetype(x):setup_lsp()
 end)
 
 return {}

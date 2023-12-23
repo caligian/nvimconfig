@@ -1,12 +1,13 @@
 require "core.utils.kbd"
 
-if not bookmark then
-  bookmark = module "bookmark"
-  bookmark.path = path.join(os.getenv "HOME", ".bookmarks.json")
-  bookmark.bookmarks = {}
+if not Bookmark then
+  Bookmark = module "Bookmark"
+  Bookmark.path =
+    path.join(os.getenv "HOME", ".bookmarks.json")
+  Bookmark.bookmarks = {}
 end
 
-local bookmarks = bookmark.bookmarks
+local bookmarks = Bookmark.bookmarks
 
 function string_keys(x)
   local out = {}
@@ -52,69 +53,72 @@ local function from_string_keys(parsed_json)
   return out
 end
 
-function bookmark.init()
-  bookmark.bookmarks = bookmark.main()
-  return bookmark.bookmarks
+function Bookmark.init()
+  Bookmark.bookmarks = Bookmark.main()
+  return Bookmark.bookmarks
 end
 
-function bookmark.main()
-  s = file.read(bookmark.path) or "{}"
+function Bookmark.main()
+  s = file.read(Bookmark.path) or "{}"
   s = from_string_keys(json.decode(s))
 
-  bookmark.bookmarks = s
+  Bookmark.bookmarks = s
 
-  kbd.fromdict {
-    add_bookmark = {
-      'n',
-      'gba',
-      function ()
-        bookmark.add_and_save(buffer.name(), win.pos(win.winnr()).row)
+  Kbd.fromdict {
+    add_Bookmark = {
+      "n",
+      "gba",
+      function()
+        Bookmark.add_and_save(
+          buffer.name(),
+          win.pos(win.winnr()).row
+        )
       end,
       {
-        desc = 'add and save bookmark'
-      }
+        desc = "add and save Bookmark",
+      },
     },
 
-    bookmark_line_picker = {
-      'n',
-      'g.',
-      function ()
-        bookmark.run_line_picker(buffer.current())
+    Bookmark_line_picker = {
+      "n",
+      "g.",
+      function()
+        Bookmark.run_line_picker(buffer.current())
       end,
       {
-        desc = 'run bookmark line picker'
-      }
+        desc = "run Bookmark line picker",
+      },
     },
 
-    bookmark_picker = {
-      'n',
-      'g<space>',
-      function ()
-        bookmark.run_dwim_picker()
+    Bookmark_picker = {
+      "n",
+      "g<space>",
+      function()
+        Bookmark.run_dwim_picker()
       end,
       {
-        desc = 'run bookmark picker'
-      }
+        desc = "run Bookmark picker",
+      },
     },
   }
 
   return s
 end
 
-function bookmark.save()
-  local bookmarks = bookmark.bookmarks
+function Bookmark.save()
+  local bookmarks = Bookmark.bookmarks
   file.write(
-    bookmark.path,
+    Bookmark.path,
     json.encode(string_keys(bookmarks))
   )
 
-  bookmark.main()
+  Bookmark.main()
 
-  return bookmark.bookmarks
+  return Bookmark.bookmarks
 end
 
-function bookmark.add(file_path, lines, desc)
-  local obj = bookmark.bookmarks[file_path]
+function Bookmark.add(file_path, lines, desc)
+  local obj = Bookmark.bookmarks[file_path]
     or { context = {} }
   local now = os.time()
   local isfile = path.isfile(file_path)
@@ -130,7 +134,7 @@ function bookmark.add(file_path, lines, desc)
       file_path .. " cannot use linesnum with a directory"
     )
   elseif lines then
-    context = bookmark.get_context(file_path, lines)
+    context = Bookmark.get_context(file_path, lines)
   end
 
   obj.creation_time = now
@@ -141,54 +145,54 @@ function bookmark.add(file_path, lines, desc)
   obj.path = file_path
 
   for key, _ in pairs(obj.context) do
-    obj.context[key] = bookmark.get_context(file_path, key)
+    obj.context[key] = Bookmark.get_context(file_path, key)
   end
 
-  bookmark.bookmarks[file_path] = obj
+  Bookmark.bookmarks[file_path] = obj
   return obj
 end
 
-function bookmark.del(file_path, lines)
-  if not bookmark.bookmarks[file_path] then
+function Bookmark.del(file_path, lines)
+  if not Bookmark.bookmarks[file_path] then
     return
   end
 
-  local obj = bookmark.bookmarks[file_path]
+  local obj = Bookmark.bookmarks[file_path]
   if lines then
     local context = obj.context
     for _, line in ipairs(tolist(lines)) do
       context[line] = nil
     end
   else
-    bookmark.bookmarks[file_path] = nil
+    Bookmark.bookmarks[file_path] = nil
   end
 
   return obj
 end
 
-function bookmark.add_and_save(file_path, lines, desc)
-  local ok = bookmark.add(file_path, lines, desc)
+function Bookmark.add_and_save(file_path, lines, desc)
+  local ok = Bookmark.add(file_path, lines, desc)
   if not ok then
     return
   end
 
-  bookmark.save()
+  Bookmark.save()
 
   return ok
 end
 
-function bookmark.del_and_save(file_path, lines)
-  local obj = bookmark.del(file_path, lines)
+function Bookmark.del_and_save(file_path, lines)
+  local obj = Bookmark.del(file_path, lines)
   if not obj then
     return
   end
 
-  bookmark.save()
+  Bookmark.save()
 
   return obj
 end
 
-function bookmark.get_context(file_path, line)
+function Bookmark.get_context(file_path, line)
   data = split(file.read(file_path), "\n")
   line = tonumber(line) or line
 
@@ -205,7 +209,7 @@ function bookmark.get_context(file_path, line)
   return data[line]
 end
 
-function bookmark.open(file_path, line)
+function Bookmark.open(file_path, line)
   if isstring(line) then
     split = line
   end
@@ -228,8 +232,8 @@ function bookmark.open(file_path, line)
   end
 end
 
-function bookmark.picker_results(file_path)
-  local bookmarks = bookmark.bookmarks
+function Bookmark.picker_results(file_path)
+  local bookmarks = Bookmark.bookmarks
 
   if isempty(bookmarks) then
     return
@@ -253,7 +257,7 @@ function bookmark.picker_results(file_path)
     }
   end
 
-  local obj = bookmark.bookmarks[file_path]
+  local obj = Bookmark.bookmarks[file_path]
 
   if not obj then
     return
@@ -278,9 +282,12 @@ function bookmark.picker_results(file_path)
   }
 end
 
-function bookmark.create_line_picker(file_path)
-  file_path = isnumber(file_path) and buffer.exists(file_path) and buffer.name(file_path) or file_path
-  local obj = bookmark.bookmarks[file_path]
+function Bookmark.create_line_picker(file_path)
+  file_path = isnumber(file_path)
+      and buffer.exists(file_path)
+      and buffer.name(file_path)
+    or file_path
+  local obj = Bookmark.bookmarks[file_path]
   local fail = not obj
     or obj.dir
     or not obj.context
@@ -289,7 +296,7 @@ function bookmark.create_line_picker(file_path)
     return
   end
 
-  local t = require('core.utils.telescope')()
+  local t = require "core.utils.telescope"()
   local line_mod = {}
 
   function line_mod.default_action(sel)
@@ -297,7 +304,7 @@ function bookmark.create_line_picker(file_path)
     local linenum = obj.value
     local file_path = obj.path
 
-    bookmark.open(file_path, linenum, "s")
+    Bookmark.open(file_path, linenum, "s")
   end
 
   function line_mod.del(sel)
@@ -305,23 +312,23 @@ function bookmark.create_line_picker(file_path)
       local linenum = value.value
       local file_path = obj.path
 
-      bookmark.del_and_save(file_path, linenum)
+      Bookmark.del_and_save(file_path, linenum)
     end)
   end
 
-  local context = bookmark.picker_results(obj.path)
+  local context = Bookmark.picker_results(obj.path)
   local picker = t:create_picker(context, {
     line_mod.default_action,
     { "n", "x", line_mod.del },
   }, {
-    prompt_title = "bookmarked lines",
+    prompt_title = "Bookmarked lines",
   })
 
   return picker
 end
 
-function bookmark.run_line_picker(file_path)
-  local picker = bookmark.create_line_picker(file_path)
+function Bookmark.run_line_picker(file_path)
+  local picker = Bookmark.create_line_picker(file_path)
   if not picker then
     return
   end
@@ -330,14 +337,14 @@ function bookmark.run_line_picker(file_path)
   return true
 end
 
-function bookmark.create_picker()
-  local results = bookmark.picker_results()
+function Bookmark.create_picker()
+  local results = Bookmark.picker_results()
 
   if not results then
     return
   end
 
-  local t = require("core.utils.telescope")()
+  local t = require "core.utils.telescope"()
   local mod = {}
 
   function mod.default_action(sel)
@@ -345,19 +352,19 @@ function bookmark.create_picker()
 
     if obj.file then
       local line_picker =
-        bookmark.create_line_picker(obj.path)
+        Bookmark.create_line_picker(obj.path)
       if line_picker then
         line_picker:find()
       end
     else
-      bookmark.open(obj.path, "s")
+      Bookmark.open(obj.path, "s")
     end
   end
 
   function mod.del(sel)
     list.each(sel, function(obj)
-      bookmark.del_and_save(obj.path)
-      say("removed bookmark " .. obj.path)
+      Bookmark.del_and_save(obj.path)
+      say("removed Bookmark " .. obj.path)
     end)
   end
 
@@ -368,8 +375,8 @@ function bookmark.create_picker()
   )
 end
 
-function bookmark.run_picker()
-  local picker = bookmark.create_picker()
+function Bookmark.run_picker()
+  local picker = Bookmark.create_picker()
   if not picker then
     return
   end
@@ -378,26 +385,26 @@ function bookmark.run_picker()
   return true
 end
 
-function bookmark.reset()
-  if path.exists(bookmark.path) then
-    file.delete(bookmark.path)
+function Bookmark.reset()
+  if path.exists(Bookmark.path) then
+    file.delete(Bookmark.path)
     return true
   end
 end
 
-function bookmark.create_dwim_picker()
+function Bookmark.create_dwim_picker()
   local bufname = buffer.name()
-  local obj = bookmark.bookmarks[bufname]
+  local obj = Bookmark.bookmarks[bufname]
 
   if not obj or (obj.context and isempty(obj.context)) then
-    return bookmark.create_picker()
+    return Bookmark.create_picker()
   else
-    return bookmark.create_line_picker(obj.path)
+    return Bookmark.create_line_picker(obj.path)
   end
 end
 
-function bookmark.run_dwim_picker()
-  local picker = bookmark.create_dwim_picker()
+function Bookmark.run_dwim_picker()
+  local picker = Bookmark.create_dwim_picker()
   if picker then
     picker:find()
   end

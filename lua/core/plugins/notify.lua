@@ -48,7 +48,7 @@ function notify.methods.show_history()
   )
   buffer.set_lines(bufnr, 0, -1, notifications)
   buffer.float(bufnr, { center = { 80, 30 } })
-  buffer.au(bufnr, "WinLeave", function()
+  buffer.Autocmd(bufnr, "WinLeave", function()
     buffer.wipeout(bufnr)
   end)
 end
@@ -59,13 +59,13 @@ end
 
 notify.mappings = {
   show_history = {
-    'n',
+    "n",
     "<leader>hn",
     notify.methods.show_history,
     { desc = "show notification history" },
   },
   dismiss = {
-    'n',
+    "n",
     "<leader>hN",
     notify.methods.dismiss_all,
     { desc = "hide notifications" },

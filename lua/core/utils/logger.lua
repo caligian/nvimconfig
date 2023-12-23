@@ -43,21 +43,27 @@ make_logger "error"
 
 local function make_pcall_wrapper(name)
   local function _pcall(f, ...)
-    local args = {...}
-    local ok, msg = pcall(function () return f(unpack(args)) end)
+    local args = { ... }
+    local ok, msg = pcall(function()
+      return f(unpack(args))
+    end)
     if not ok then
-      msg = msg or '[WARN]'
-      msg = sprintf("-- START --\nArguments: %s\n%s\n-- END --", dump({...}), msg)
+      msg = msg or "[WARN]"
+      msg = sprintf(
+        "-- START --\nArguments: %s\n%s\n-- END --",
+        dump { ... },
+        msg
+      )
       logger[name](logger, msg)
     end
 
     return msg
   end
 
-  _G['pcall_' .. name] = _pcall
+  _G["pcall_" .. name] = _pcall
 end
 
-make_pcall_wrapper 'debug'
-make_pcall_wrapper 'info'
-make_pcall_wrapper 'warn'
-make_pcall_wrapper 'error'
+make_pcall_wrapper "debug"
+make_pcall_wrapper "info"
+make_pcall_wrapper "warn"
+make_pcall_wrapper "error"

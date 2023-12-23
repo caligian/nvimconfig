@@ -2,13 +2,13 @@ local align = {}
 
 align.mappings = {
   align = {
-    'n',
+    "n",
     "<leader>=",
     ":EasyAlign //",
     { desc = "Align by regexp" },
   },
   align_region = {
-    'v',
+    "v",
     "<leader>=",
     ":'<,'>EasyAlign //",
     { desc = "Align by regexp" },

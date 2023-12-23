@@ -1,24 +1,25 @@
 require "core.utils.au"
-require "core.utils.buffer"
+require "core.utils.buffer.buffer"
+require "core.utils.buffer.win"
 require "core.utils.win"
 require "core.utils.kbd"
 require "core.utils.job"
 
---- @alias filetype.commandspec string|table|fun(path:string): string
---- @alias filetype.mapping table<string,list>
---- @alias filetype.autocmd table<string,fun(table)>
+--- @alias Filetype.commandspec string|table|fun(path:string): string
+--- @alias Filetype.mapping table<string,list>
+--- @alias Filetype.autocmd table<string,fun(table)>
 
 --- @class filetype
 --- @field filetypes table<string,filetype>
 --- @field on table see `:help vim.filetype`
---- @field linters string|string[]|filetype.linters[] or a combination of any
---- @field server filetype.server
---- @field formatter filetype.formatter
---- @field compile filetype.command
---- @field build filetype.command
---- @field test filetype.command
---- @field mappings filetype.mapping
---- @field autocmds filetype.autocmd
+--- @field linters string|string[]|Filetype.linters[] or a combination of any
+--- @field server Filetype.server
+--- @field formatter Filetype.formatter
+--- @field compile Filetype.command
+--- @field build Filetype.command
+--- @field test Filetype.command
+--- @field mappings Filetype.mapping
+--- @field autocmds Filetype.autocmd
 --- @field bo table<string,any> buffer options
 --- @field wo table<string,any> window options
 --- @field repl table
@@ -26,35 +27,34 @@ require "core.utils.job"
 --- @field lsp table<string,function> lsp utils
 --- @overload fun(string): filetype
 
---- @class filetype.command
---- @field buffer filetype.commandspec
---- @field workspace filetype.commandspec
---- @field dir filetype.commandspec
+--- @class Filetype.command
+--- @field buffer Filetype.commandspec
+--- @field workspace Filetype.commandspec
+--- @field dir Filetype.commandspec
 
---- @class filetype.formatter : filetype.command
+--- @class Filetype.formatter : Filetype.command
 --- @field stdin boolean
 --- @field append_filename boolean
 
---- @class filetype.repl : filetype.command
+--- @class Filetype.repl : Filetype.command
 --- @field on_input fun(lines:string[]): string[]
 --- @field loadfile fun(path:string, mkfile:fun(p: string))
 
---- @class filetype.linters
+--- @class Filetype.linters
 --- @field config table linter config
 
---- @class filetype.server
+--- @class Filetype.server
 --- @field config table lsp server config
 
-filetype = filetype or class "filetype"
-filetype = filetype or class "filetype"
+Filetype = Filetype or class "Filetype"
 user.filetypes = user.filetypes or {}
-filetype.jobs = filetype.jobs or {}
-filetype.lsp = module()
+Filetype.jobs = Filetype.jobs or {}
+Filetype.lsp = module()
 
 --- @class lsp
 --- @field diagnostic table<string,any> diagnostic config for vim.lsp
 --- @field mappings table
-local lsp = filetype.lsp
+local lsp = Filetype.lsp
 
 lsp.diagnostic = {
   virtual_text = false,
@@ -306,14 +306,14 @@ function lsp.on_attach(client, bufnr)
   if client.name == "omnisharp" then
     lsp.fix_omnisharp(client)
   else
-    buffer.set_option(
+    Buffer.set_option(
       bufnr,
       "omnifunc",
       "v:lua.vim.lsp.omnifunc"
     )
 
     local ft = vim.bo.filetype
-    local has_formatter = filetype(ft)
+    local has_formatter = Filetype(ft)
     if has_formatter and not has_formatter.formatter then
       lsp.attach_formatter(client)
     end
@@ -324,7 +324,7 @@ function lsp.on_attach(client, bufnr)
       value[4].buffer = bufnr
     end
 
-    kbd.fromdict(mappings)
+    Kbd.fromdict(mappings)
   end
 end
 
@@ -349,23 +349,23 @@ function lsp.setup_server(server, opts)
   require("lspconfig")[server].setup(default_conf)
 end
 
-function filetype:isa()
+function Filetype:isa()
   return typeof(self) == "filetype"
 end
 
-function filetype:init(name)
-  if filetype.isa(name) then
+function Filetype:init(name)
+  if Filetype.isa(name) then
     return name
   elseif istable(name) then
     assert(name.name, "name is missing in " .. dump(name))
-    local l = filetype(name.name)
+    local l = Filetype(name.name)
     dict.merge(l, name)
 
     user.filetypes[name.name] = l
     return l
   elseif isnumber(name) then
-    assert(buffer.exists(name), "invalid buffer " .. name)
-    return filetype(buffer.filetype(name))
+    assert(Buffer.exists(name), "invalid buffer " .. name)
+    return Filetype(Buffer.filetype(name))
   else
     local l = user.filetypes[name]
     if l then
@@ -384,18 +384,18 @@ function filetype:init(name)
   return self
 end
 
-function filetype:setbo(bo)
+function Filetype:setbo(bo)
   bo = bo or self.bo
   if not bo or size(bo) == 0 then
     return
   end
 
-  self:au(function(opts)
-    buffer.set_option(opts.buf, bo)
+  self:autocmd(function(opts)
+    Buffer.set_options(opts.buf, bo)
   end)
 end
 
-function filetype:setwo(wo)
+function Filetype:setwo(wo)
   wo = wo or self.wo
   if not wo or size(wo) == 0 then
     return
@@ -403,10 +403,10 @@ function filetype:setwo(wo)
 
   asserttype(wo, "table")
 
-  self:au(function(opts)
-    local winnr = buffer.winnr(opts.buf)
+  self:autocmd(function(opts)
+    local winnr = Buffer.winnr(opts.buf)
     if winnr then
-      win.set_option(winnr, wo)
+      Win.set_options(winnr, wo)
     end
   end)
 end
@@ -416,20 +416,20 @@ local function capitalize(name)
   return first:upper() .. substr(name, 2, -1)
 end
 
-function filetype:vimcommand(name, callback, opts)
+function Filetype:vimcommand(name, callback, opts)
   opts = opts or {}
   local createcmd = vim.api.nvim_buf_create_user_command
   name = "Filetype"
     .. capitalize(self.name)
     .. capitalize(name)
 
-  return self:au(function(bufopts)
+  return self:autocmd(function(bufopts)
     createcmd(bufopts.buf, name, callback, opts)
   end, opts)
 end
 
 --- @param specs? string|{ [1]: string, config: table }
-function filetype:setup_lsp(specs)
+function Filetype:setup_lsp(specs)
   specs = specs or self.server
   specs = isstring(specs) and { specs } --[[@as table]]
     or specs
@@ -477,30 +477,30 @@ local function find_workspace(
   return find_workspace(parent, pats, maxdepth, _depth + 1)
 end
 
-function filetype:query(attrib, f)
-  self = filetype(self)
+function Filetype:query(attrib, f)
+  self = Filetype(self)
 
   if self[attrib] then
     return f and f(self[attrib]) or self[attrib]
   end
 end
 
-function filetype.workspace(bufnr, pats, maxdepth, _depth)
-  bufnr = bufnr or buffer.bufnr()
+function Filetype.workspace(bufnr, pats, maxdepth, _depth)
+  bufnr = bufnr or Buffer.bufnr()
   if isstring(bufnr) then
-    bufnr = buffer.bufnr(bufnr)
+    bufnr = Buffer.bufnr(bufnr)
   end
 
-  if not buffer.exists(bufnr) then
+  if not Buffer.exists(bufnr) then
     return false
   end
 
   local lspconfig = require "lspconfig"
   ---@diagnostic disable-next-line: param-type-mismatch
   local server =
-    filetype.query(buffer.filetype(bufnr), "server")
+    Filetype.query(Buffer.filetype(bufnr), "server")
 
-  local bufname = buffer.name(bufnr)
+  local bufname = Buffer.name(bufnr)
 
   if server then
     server = tolist(server)
@@ -522,7 +522,7 @@ function filetype.workspace(bufnr, pats, maxdepth, _depth)
   end
 end
 
-function filetype:command(bufnr, action)
+function Filetype:command(bufnr, action)
   action = action or "compile"
   local validactions =
     { "compile", "build", "test", "repl", "formatter" }
@@ -538,11 +538,11 @@ function filetype:command(bufnr, action)
   }
 
   assert(
-    buffer.exists(bufnr),
+    Buffer.exists(bufnr),
     "invalid buffer: " .. dump(bufnr)
   )
 
-  local bufname = buffer.name(bufnr)
+  local bufname = Buffer.name(bufnr)
   local compile = self[action]
   local spec = union("string", "table", "function")
 
@@ -635,7 +635,7 @@ function filetype:command(bufnr, action)
   end
 
   if compile.workspace then
-    local ws = filetype.workspace(bufnr)
+    local ws = Filetype.workspace(bufnr)
     if ws then
       local cmd, _opts = dwim(compile.workspace, ws)
       _opts = _opts or {}
@@ -657,13 +657,20 @@ function filetype:command(bufnr, action)
   return out, opts
 end
 
-function filetype:format(bufnr, opts)
+function Filetype:format(bufnr, opts)
   opts = opts or {}
   local cmd, _opts = self:command(bufnr, "formatter")
+
+  if not cmd then
+    local msg = self.name .. ".formatter: no command exists"
+    tostderr(msg)
+    return nil, msg
+  end
+
   local target
   opts = dict.lmerge(copy(opts), _opts)
   local stdin = opts.stdin
-  local bufname = buffer.name(bufnr)
+  local bufname = Buffer.name(bufnr)
   local name
 
   if opts.dir then
@@ -671,7 +678,7 @@ function filetype:format(bufnr, opts)
   elseif opts.workspace then
     name = "filetype.formatter.workspace."
   else
-    name = "filetype.formatter.buffer."
+    name = "filetype.formatter.Buffer."
   end
 
   if opts.workspace then
@@ -713,21 +720,21 @@ function filetype:format(bufnr, opts)
     cmd = createcmd "buffer"
   end
 
-  local winnr = buffer.winnr(bufnr)
+  local winnr = Buffer.winnr(bufnr)
   local view = winnr and win.save_view(winnr)
   opts.args = {}
 
-  local proc = filetype.job(cmd, {
+  local proc = Filetype.job(cmd, {
     name = name,
     cwd = (opts.workspace or opts.dir) and target
       or path.dirname(bufname),
     before = function()
       vim.cmd(":w! " .. bufname)
-      buffer.set_option(bufnr, "modifiable", false)
+      Buffer.set_option(bufnr, "modifiable", false)
     end,
     on_exit = function(x)
       if x.exit_code ~= 0 then
-        buffer.set_option(bufnr, "modifiable", true)
+        Buffer.set_option(bufnr, "modifiable", true)
 
         local err = #x.errors > 1 and x.errors
           or #x.lines > 1 and x.lines
@@ -744,7 +751,7 @@ function filetype:format(bufnr, opts)
         return
       end
 
-      buffer.set_option(bufnr, "modifiable", true)
+      Buffer.set_option(bufnr, "modifiable", true)
 
       local err = x.errors
       if #err > 0 then
@@ -756,7 +763,7 @@ function filetype:format(bufnr, opts)
       if not out or #out == 0 then
         return
       else
-        buffer.set_lines(bufnr, 0, -1, out)
+        Buffer.set_lines(bufnr, 0, -1, false, out)
       end
 
       if view then
@@ -768,25 +775,25 @@ function filetype:format(bufnr, opts)
   return proc
 end
 
-function filetype:format_dir(bufnr, opts)
+function Filetype:format_dir(bufnr, opts)
   opts = opts or {}
   opts.dir = true
   return self:format(bufnr, opts)
 end
 
-function filetype:format_workspace(bufnr, opts)
+function Filetype:format_workspace(bufnr, opts)
   opts = opts or {}
   opts.workspace = true
   return self:format(bufnr, opts)
 end
 
-function filetype.job(cmd, opts)
+function Filetype.job(cmd, opts)
   local name = opts.name
 
   if name then
-    local j = filetype.jobs[name]
-    if j and job.is_active(j) then
-      job.close(j)
+    local j = Filetype.jobs[name]
+    if j and Job.is_active(j) then
+      Job.close(j)
     end
   end
 
@@ -796,7 +803,7 @@ function filetype.job(cmd, opts)
   opts.output = true
 
   --- @diagnostic disable-next-line: param-type-mismatch
-  local ok, msg = pcall(job, cmd, opts)
+  local ok, msg = pcall(Job, cmd, opts)
 
   if not ok then
     tostderr(msg)
@@ -806,20 +813,20 @@ function filetype.job(cmd, opts)
   end
 
   if name then
-    filetype.jobs[name] = j
+    Filetype.jobs[name] = j
   end
 
   return j
 end
 
-function filetype:require()
+function Filetype:require()
   local config = requirem("core.filetype." .. self.name)
   if config then
     return dict.merge(self, config)
   end
 end
 
-function filetype:loadfile()
+function Filetype:loadfile()
   local config = req2path("core.filetype." .. self.name)
   if config then
     local ok, msg = pcall(loadfile, config)
@@ -836,24 +843,24 @@ function filetype:loadfile()
   end
 end
 
-function filetype:map(mode, ks, callback, opts)
+function Filetype:map(mode, ks, callback, opts)
   opts = opts or {}
   opts.event = "FileType"
   opts.pattern = self.name
 
-  return kbd.map(mode, ks, callback, opts)
+  return Kbd.map(mode, ks, callback, opts)
 end
 
-function filetype:au(callback, opts)
+function Filetype:autocmd(callback, opts)
   opts = opts or {}
   opts.pattern = self.name
   opts.callback = callback
 
-  return au.map("FileType", opts)
+  return Autocmd.map("FileType", opts)
 end
 
-function filetype:action(bufnr, action, opts)
-  if not buffer.exists(bufnr) then
+function Filetype:action(bufnr, action, opts)
+  if not Buffer.exists(bufnr) then
     return
   end
 
@@ -870,7 +877,7 @@ function filetype:action(bufnr, action, opts)
     return
   end
 
-  local name = "filetype." .. action .. "." .. tp .. "."
+  local name = "Filetype." .. action .. "." .. tp .. "."
   local cmd = self:command(bufnr, action)
 
   if not cmd then
@@ -892,7 +899,7 @@ function filetype:action(bufnr, action, opts)
   end
 
   name = name .. target
-  return filetype.job(cmd, {
+  return Filetype.job(cmd, {
     name = name,
     cwd = isdir or ws and target,
     on_exit = function(x)
@@ -912,27 +919,27 @@ function filetype:action(bufnr, action, opts)
         return
       end
 
-      local outbuf = buffer.create()
-      buffer.au(outbuf, "WinClosed", function()
-        buffer.wipeout(outbuf)
+      local outbuf = Buffer.create()
+      Buffer.au(outbuf, "WinClosed", function()
+        Buffer.wipeout(outbuf)
       end)
-      buffer.map(outbuf, "n", "q", function()
-        buffer.wipeout(outbuf)
+      Buffer.map(outbuf, "n", "q", function()
+        Buffer.wipeout(outbuf)
       end, { desc = "wipeout buffer" })
-      buffer.set_lines(outbuf, 0, -1, lines)
-      buffer.botright(outbuf)
+      Buffer.set_lines(outbuf, 0, -1, false, lines)
+      Buffer.botright(outbuf)
     end,
   })
 end
 
-function filetype:setup_triggers()
+function Filetype:setup_triggers()
   if self.on then
-    vim.filetype.add(self.on)
+    vim.Filetype.add(self.on)
     return true
   end
 end
 
-function filetype:setup(should_loadfile)
+function Filetype:setup(should_loadfile)
   if should_loadfile then
     self:loadfile()
   else
@@ -947,44 +954,44 @@ function filetype:setup(should_loadfile)
 
   self:map("n", "<leader>ct", function()
     self:action(
-      buffer.bufnr(),
+      Buffer.bufnr(),
       "test",
       { workspace = true }
     )
   end, { desc = "test buffer" })
 
   self:map("n", "<leader>ct", function()
-    self:action(buffer.bufnr(), "test")
+    self:action(Buffer.bufnr(), "test")
   end, { desc = "test workspace" })
 
   self:map("n", "<leader>cb", function()
     self:action(
-      buffer.bufnr(),
+      Buffer.bufnr(),
       "build",
       { workspace = true }
     )
   end, { desc = "build buffer" })
 
   self:map("n", "<leader>cB", function()
-    self:action(buffer.bufnr(), "build")
+    self:action(Buffer.bufnr(), "build")
   end, { desc = "build workspace" })
 
   self:map("n", "<leader>cC", function()
     self:action(
-      buffer.bufnr(),
+      Buffer.bufnr(),
       "compile",
       { workspace = true }
     )
   end, { desc = "compile workspace" })
 
   self:map("n", "<leader>cc", function()
-    self:action(buffer.bufnr(), "compile")
+    self:action(Buffer.bufnr(), "compile")
   end, { desc = "compile buffer" })
 
   return self
 end
 
-function filetype.list()
+function Filetype.list()
   local builtin_path = path.join(
     vim.fn.stdpath "config",
     "lua",
@@ -1017,14 +1024,14 @@ function filetype.list()
   )
 end
 
-function filetype.setup_lsp_all()
-  local configured = filetype.list()
+function Filetype.setup_lsp_all()
+  local configured = Filetype.list()
   list.each(configured, function(x)
-    filetype(x):setup_lsp()
+    Filetype(x):setup_lsp()
   end)
 end
 
-function filetype:set_autocmds()
+function Filetype:set_autocmds()
   if not (self.autocmds and size(self.autocmds) > 0) then
     return
   end
@@ -1041,11 +1048,11 @@ function filetype:set_autocmds()
     end
 
     options.name = name
-    self:au(cb, options)
+    self:autocmd(cb, options)
   end)
 end
 
-function filetype:set_mappings()
+function Filetype:set_mappings()
   if not (self.mappings and size(self.mappings) > 0) then
     return
   end
@@ -1075,85 +1082,86 @@ function filetype:set_mappings()
   end)
 end
 
-function filetype.main(use_loadfile)
-  local configured = filetype.list()
+function Filetype.main(use_loadfile)
+  local configured = Filetype.list()
 
   list.each(configured, function(x)
-    local obj = filetype(x)
+    local obj = Filetype(x)
     obj:setup(use_loadfile)
   end)
 
-  kbd.map("n", "<leader>mb", function()
-    local buf = buffer.current()
-    filetype(buf):action(buf, "build", { workspace = true })
+  Kbd.map("n", "<leader>mb", function()
+    local buf = Buffer.current()
+    Filetype(buf):action(buf, "build", { workspace = true })
   end, "build workspace")
 
-  kbd.map("n", "<leader>cb", function()
-    local buf = buffer.current()
-    filetype(buf):action(buf, "build", { buffer = true })
+  Kbd.map("n", "<leader>cb", function()
+    local buf = Buffer.current()
+    Filetype(buf):action(buf, "build", { buffer = true })
   end, "build buffer")
 
-  kbd.map("n", "<leader>cB", function()
-    local buf = buffer.current()
-    filetype(buf)
+  Kbd.map("n", "<leader>cB", function()
+    local buf = Buffer.current()
+    Filetype(buf)
       :require()
       :action(buf, "build", { dir = true })
   end, "build dir")
 
-  kbd.map("n", "<leader>mt", function()
-    local buf = buffer.current()
-    filetype(buf)
+  Kbd.map("n", "<leader>mt", function()
+    local buf = Buffer.current()
+    Filetype(buf)
       :require()
       :action(buf, "test", { workspace = true })
   end, "test workspace")
 
-  kbd.map("n", "<leader>ct", function()
-    local buf = buffer.current()
-    filetype(buf)
+  Kbd.map("n", "<leader>ct", function()
+    local buf = Buffer.current()
+    Filetype(buf)
       :require()
       :action(buf, "test", { buffer = true })
   end, "test buffer")
 
-  kbd.map("n", "<leader>cT", function()
-    local buf = buffer.current()
-    filetype(buf)
+  Kbd.map("n", "<leader>cT", function()
+    local buf = Buffer.current()
+    Filetype(buf)
       :require()
       :action(buf, "test", { dir = true })
   end, "test dir")
 
-  kbd.map("n", "<leader>mc", function()
-    local buf = buffer.current()
-    filetype(buf)
+  Kbd.map("n", "<leader>mc", function()
+    local buf = Buffer.current()
+    Filetype(buf)
       :require()
       :action(buf, "compile", { workspace = true })
   end, "compile workspace")
 
-  kbd.map("n", "<leader>cc", function()
-    local buf = buffer.current()
-    filetype(buf)
+  Kbd.map("n", "<leader>cc", function()
+    local buf = Buffer.current()
+    Filetype(buf)
       :require()
       :action(buf, "compile", { buffer = true })
   end, "compile buffer")
 
-  kbd.map("n", "<leader>cC", function()
-    local buf = buffer.current()
-    filetype(buf)
+  Kbd.map("n", "<leader>cC", function()
+    local buf = Buffer.current()
+    Filetype(buf)
       :require()
       :action(buf, "compile", { dir = true })
   end, "compile dir")
 
-  kbd.map("n", "<leader>mf", function()
-    local buf = buffer.current()
-    filetype(buf):format_workspace(buf)
+  Kbd.map("n", "<leader>mf", function()
+    local buf = Buffer.current()
+    Filetype(buf):format_workspace(buf)
   end, "format workspace")
 
-  kbd.map("n", "<leader>bf", function()
-    local buf = buffer.current()
-    filetype(buf):format(buf, { buffer = true })
+  Kbd.map("n", "<leader>bf", function()
+    local buf = Buffer.current()
+    Filetype(buf):format(buf, { buffer = true })
   end, "format buffer")
 
-  kbd.map("n", "<leader>bF", function()
-    local buf = buffer.current()
-    filetype(buf):format_dir(buf)
+  Kbd.map("n", "<leader>bF", function()
+    local buf = Buffer.current()
+    Filetype(buf):format_dir(buf)
   end, "format dir")
 end
+

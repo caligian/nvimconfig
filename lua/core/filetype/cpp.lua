@@ -12,8 +12,7 @@ cpp.server = {
         excludeArgs = { "-frounding-math" },
       },
     },
-
-  }
+  },
 }
 
 return cpp

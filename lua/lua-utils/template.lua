@@ -13,7 +13,7 @@ local function varsx(x)
 
     if not close1 and not open1 then
       var = var:sub(open + 1, close - 1)
-      out[var] = {open, close}
+      out[var] = { open, close }
       list.append(out, var)
     else
       new_x = new_x:gsub("[{][{]([^}]+)[}][}]", "{%1}")
@@ -39,9 +39,7 @@ local function subx(x, repl, opts)
     if not vars[name] then
       if _assert then
         error(
-        "expected placeholder for "
-        .. name
-        .. ", got nil"
+          "expected placeholder for " .. name .. ", got nil"
         )
       end
 

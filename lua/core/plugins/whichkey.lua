@@ -104,4 +104,3 @@ function whichkey:setup()
 end
 
 return whichkey
-

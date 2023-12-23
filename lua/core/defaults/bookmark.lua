@@ -33,5 +33,5 @@ bookmark.mappings = {
 }
 
 return function()
-  kbd.map_group("bookmark", bookmark.mappings)
+  Kbd.map_group("bookmark", bookmark.mappings)
 end

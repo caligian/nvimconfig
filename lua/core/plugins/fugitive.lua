@@ -34,4 +34,3 @@ fugitive.mappings = {
 }
 
 return fugitive
-

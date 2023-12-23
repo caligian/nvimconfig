@@ -29,13 +29,13 @@ local function valid_winnr(winnr, f)
 end
 
 function Winid.call(winid, f)
-  return valid_winid(winid, function(winid)
+  return valid_winid(winid, function()
     return call(winid, f)
   end)
 end
 
 function Win.nr2id(winnr)
-  return valid_winnr(winnr, function(winnr)
+  return valid_winnr(winnr, function()
     local id = vim.fn.win_getid(winnr)
 
     if id == 0 then
@@ -59,7 +59,7 @@ function Win.exists(winnr)
 end
 
 function Winid.id2nr(winid)
-  return valid_winid(winid, function(winid)
+  return valid_winid(winid, function()
     local ok = vim.fn.win_id2win(winid)
 
     if ok == 0 then
@@ -73,7 +73,7 @@ end
 Winid.winnr = Winid.id2nr
 
 function Winid.bufnr(winid)
-  return valid_winid(winid, function(winid)
+  return valid_winid(winid, function()
     local winnr = Winid.winnr(winid)
 
     if not winnr then
@@ -87,7 +87,7 @@ function Winid.bufnr(winid)
 end
 
 function Winid.bufname(winid)
-  return valid_winid(winid, function(winid)
+  return valid_winid(winid, function()
     local bufnr = Winid.bufnr(winid)
     return defined(bufnr and nvim.buf.get_name(bufnr))
   end)
@@ -124,7 +124,7 @@ function Win.width(winnr)
 end
 
 function Win.size(winnr)
-  return valid_winnr(winnr, function(winnr)
+  return valid_winnr(winnr, function()
     local width, height =
       Win.width(winnr), Win.height(winnr)
 
@@ -137,7 +137,7 @@ function Win.size(winnr)
 end
 
 function Winid.set_vars(winid, vars)
-  return valid_winid(winid, function(winid)
+  return valid_winid(winid, function()
     local out = {}
 
     for key, value in pairs(vars) do
@@ -149,7 +149,7 @@ function Winid.set_vars(winid, vars)
 end
 
 function Winid.get_options(winid, options)
-  return valid_winid(winid, function(winid)
+  return valid_winid(winid, function()
     local out = {}
 
     for i = 1, #options do
@@ -162,7 +162,7 @@ function Winid.get_options(winid, options)
 end
 
 function Winid.set_options(winid, options)
-  return valid_winid(winid, function(winid)
+  return valid_winid(winid, function()
     local out = {}
 
     for key, value in pairs(options) do
@@ -174,7 +174,7 @@ function Winid.set_options(winid, options)
 end
 
 function Winid.get_vars(winid, vars)
-  return valid_winid(winid, function(winid)
+  return valid_winid(winid, function()
     local out = {}
 
     for i = 1, #vars do
@@ -208,7 +208,7 @@ function Winid.restcmd(winid)
 end
 
 function Winid.focus(winid)
-  return valid_winid(winid, function(winid)
+  return valid_winid(winid, function()
     return vim.fn.win_gotoid(winid) ~= 0
   end)
 end
@@ -306,7 +306,7 @@ function Win.move_separator(winnr, offset)
 end
 
 function Winid.tabpage(winid)
-  return valid_winid(winid, function(winid)
+  return valid_winid(winid, function()
     local out = vim.fn.win_id2tabwin(winid)
     if out[1] == 0 and out[2] == 0 then
       return
@@ -380,7 +380,7 @@ local function range_text(buf, ...)
 end
 
 function Winid.range_text(winid)
-  return valid_winid(winid, function(winid)
+  return valid_winid(winid, function()
     local range = Winid.range(winid)
     if not range then
       return
@@ -439,4 +439,3 @@ dict.each(Winid, function(key, value)
     end
   end
 end)
-

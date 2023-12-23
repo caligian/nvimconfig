@@ -3,12 +3,12 @@ local disable = vim.api.nvim_del_autocmd
 local getinfo = vim.api.nvim_get_autocmds
 local create_augroup = vim.api.nvim_create_augroup
 
-if not au then
-  au = class "au"
+if not Autocmd then
+  Autocmd = class "Autocmd"
   user.autocmds = {}
 end
 
-function au.init(self, event, opts)
+function Autocmd.init(self, event, opts)
   local pattern = opts.pattern
   local callback = opts.callback
   local group = opts.group or "MyGroup"
@@ -72,7 +72,7 @@ function au.init(self, event, opts)
   return self
 end
 
-function au.exists(self)
+function Autocmd.exists(self)
   local found, msg = pcall(get, {
     group = self.group,
     event = self.event,
@@ -97,8 +97,8 @@ function au.exists(self)
   end
 end
 
-function au.enable(self)
-  if au.exists(self) then
+function Autocmd.enable(self)
+  if Autocmd.exists(self) then
     return self.id
   end
 
@@ -113,26 +113,26 @@ function au.enable(self)
   return id
 end
 
-function au.disable(self)
-  if not au.exists(self) then
+function Autocmd.disable(self)
+  if not Autocmd.exists(self) then
     return
   end
 
   return disable(self.id)
 end
 
-function au.find(spec)
+function Autocmd.find(spec)
   return getinfo(spec)
 end
 
-function au.map(...)
-  local x = au(...)
-  local id = au.enable(x)
+function Autocmd.map(...)
+  local x = Autocmd(...)
+  local id = Autocmd.enable(x)
 
   return x, id
 end
 
-function au.fromdict(specs)
+function Autocmd.fromdict(specs)
   assertisa(specs, function(x)
     return dict.isa(x, function(arg)
       return islist(arg)
@@ -163,13 +163,13 @@ function au.fromdict(specs)
       or value[2]
     value[2].name = key
 
-    out[key] = au.map(unpack(value))
+    out[key] = Autocmd.map(unpack(value))
   end
 
   return out
 end
 
-function au.loadfile()
+function Autocmd.loadfile()
   local src = req2path "core.defaults.autocmds"
   local usersrc = req2path "user.autocmds"
   local specs = {}
@@ -194,10 +194,10 @@ function au.loadfile()
     end
   end
 
-  return au.fromdict(specs)
+  return Autocmd.fromdict(specs)
 end
 
-function au.require()
+function Autocmd.require()
   local src = req2path "core.defaults.autocmds"
   local usersrc = req2path "user.autocmds"
   local specs = {}
@@ -216,9 +216,9 @@ function au.require()
     end
   end
 
-  return au.fromdict(specs)
+  return Autocmd.fromdict(specs)
 end
 
-function au.main()
-  return au.require()
+function Autocmd.main()
+  return Autocmd.require()
 end

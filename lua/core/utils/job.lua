@@ -32,9 +32,9 @@ local uv = vim.loop
 --- @field pipes Job.pipes
 --- @field exit_code number
 --- @overload fun(cmd:string, opts?:Job.opts): Job
-job = class "job"
+Job = class "Job"
 
-function job.mkpipes(self)
+function Job.mkpipes(self)
   self.pipes = {} --[[@as Job.pipes]]
   local stdout, stderr, stdin
 
@@ -47,7 +47,7 @@ function job.mkpipes(self)
   self.pipes.stdin = stdin
 end
 
-function job.opts(self, opts)
+function Job.opts(self, opts)
   opts = opts or {}
   self.pipes = self.pipes or {}
 
@@ -61,7 +61,7 @@ function job.opts(self, opts)
   })
 end
 
-function job.init(self, cmd, opts)
+function Job.init(self, cmd, opts)
   opts = deepcopy(opts or {})
   local cwd = opts.cwd or path.dirname(buffer.name())
   opts.cwd = nil
@@ -168,7 +168,7 @@ function job.init(self, cmd, opts)
       end
 
       buffer.call(out_buf, function()
-        if not bufsplit:match 'vsplit' then
+        if not bufsplit:match "vsplit" then
           vim.cmd "resize 15"
         end
       end)
@@ -187,8 +187,8 @@ function job.init(self, cmd, opts)
     end
   end
 
-  job.mkpipes(self)
-  job.opts(self, opts)
+  Job.mkpipes(self)
+  Job.opts(self, opts)
 
   cmd = isstring(cmd) and shlex.parse(cmd) or cmd
   if istable(cmd) then
@@ -207,7 +207,7 @@ function job.init(self, cmd, opts)
       check:stop()
 
       self.exit_code = code
-      job.close(self)
+      Job.close(self)
 
       if on_exit then
         on_exit(self)
@@ -222,8 +222,8 @@ function job.init(self, cmd, opts)
   end
 
   check:start(function()
-    if job.is_closing(self, true) then
-      job.close(self)
+    if Job.is_closing(self, true) then
+      Job.close(self)
     end
   end)
 
@@ -270,7 +270,7 @@ function job.init(self, cmd, opts)
 end
 
 ---@diagnostic disable-next-line: duplicate-set-field
-function job.wait(self, timeout, tries, inc)
+function Job.wait(self, timeout, tries, inc)
   if self.exit_code then
     return true
   elseif
@@ -290,8 +290,8 @@ function job.wait(self, timeout, tries, inc)
     elseif uv.is_closing(self.handle) then
       break
     elseif
-      job.is_closing(self, "stdout")
-      or job.is_closing(self, "stderr")
+      Job.is_closing(self, "stdout")
+      or Job.is_closing(self, "stderr")
     then
       break
     end
@@ -306,15 +306,15 @@ function job.wait(self, timeout, tries, inc)
   return self.exit_code ~= nil
 end
 
-function job.wait_for_output(self, timeout, tries, inc)
-  if job.wait(self, timeout, tries, inc) then
+function Job.wait_for_output(self, timeout, tries, inc)
+  if Job.wait(self, timeout, tries, inc) then
     return { stdout = self.lines, stderr = self.errors }
   end
 
   return false
 end
 
-function job.close(self)
+function Job.close(self)
   if self.handle:is_closing() then
     return
   end
@@ -326,7 +326,7 @@ function job.close(self)
   return self
 end
 
-function job.is_active(self)
+function Job.is_active(self)
   if not self.handle then
     return false
   elseif not uv.is_active(self.handle) then
@@ -336,7 +336,7 @@ function job.is_active(self)
   return true
 end
 
-function job.is_closing(self, pipes)
+function Job.is_closing(self, pipes)
   if not self.handle then
     return false
   elseif pipes == true then
@@ -359,7 +359,7 @@ function job.is_closing(self, pipes)
   end
 end
 
-function job.close_stderr_pipe(self)
+function Job.close_stderr_pipe(self)
   if
     self.pipes.stderr
     and not uv.is_closing(self.pipes.stderr)
@@ -371,7 +371,7 @@ function job.close_stderr_pipe(self)
   return false
 end
 
-function job.close_stdin_pipe(self)
+function Job.close_stdin_pipe(self)
   if
     self.pipes.stdin and not uv.is_closing(self.pipes.stdin)
   then
@@ -382,7 +382,7 @@ function job.close_stdin_pipe(self)
   return false
 end
 
-function job.close_stdout_pipe(self)
+function Job.close_stdout_pipe(self)
   if
     self.pipes.stdout
     and not uv.is_closing(self.pipes.stdout)
@@ -394,17 +394,17 @@ function job.close_stdout_pipe(self)
   return false
 end
 
-function job.close_pipes(self)
-  return job.close_stdout_pipe(self),
-    job.close_stderr_pipe(self),
-    job.close_stdin_pipe(self)
+function Job.close_pipes(self)
+  return Job.close_stdout_pipe(self),
+    Job.close_stderr_pipe(self),
+    Job.close_stdin_pipe(self)
 end
 
 ---@diagnostic disable-next-line: duplicate-set-field
-function job.send(self, s)
+function Job.send(self, s)
   if not self.handle or not uv.is_active(self.handle) then
     return false
-  elseif job.is_closing(self, "stdin") then
+  elseif Job.is_closing(self, "stdin") then
     return false
   end
 

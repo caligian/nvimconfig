@@ -67,6 +67,7 @@ end
 Buffer.current = Buffer.get
 Buffer.exists = Buffer.to_bufnr
 Buffer.bufnr = Buffer.get
+Buffer.name = Buffer.to_name
 
 function Buffer.create(name)
   return (Buffer.exists(name) and Buffer.get(name))
@@ -146,6 +147,10 @@ end
 
 --------------------------------------------------
 local _Buffer = {}
+
+function _Buffer.filetype(bufnr)
+  return nvim.buf.get_option(bufnr, "filetype")
+end
 
 local function range_text(buf, ...)
   local args = { ... }
@@ -547,7 +552,7 @@ end
 function _Buffer.autocmd(bufnr, event, callback, opts)
   opts = opts or {}
 
-  return au.map(
+  return Autocmd.map(
     event,
     dict.merge(opts, {
       pattern = sprintf("<buffer=%d>", bufnr),
@@ -774,8 +779,43 @@ function _Buffer.get_node_at_pos(bufnr, row, col)
   )
 end
 
+function _Buffer.set(bufnr, pos, lines)
+  assertisa(pos, function(x)
+    return islist(x) and (#x == 2 or #x == 4) and list.isa(
+      x,
+      "number"
+    ),
+      "expected a list of numbers of length 2 or 4, got "
+        .. dump(x)
+  end)
+
+  assertisa(lines, union('string', 'table'))
+  lines = isstring(lines) and split(lines, "\n") or lines
+
+  if #pos == 2 then
+    return _Buffer.set_lines(
+      bufnr,
+      pos[1],
+      pos[2],
+      false,
+      lines
+    )
+  end
+
+  return _Buffer.set_text(
+    bufnr,
+    pos[1],
+    pos[2],
+    pos[3],
+    pos[4],
+    lines
+  )
+end
+
 dict.merge(_Buffer, nvim.buf)
-dict.merge(_Buffer, loadfile "./float.lua"())
+
+dict.merge(_Buffer, require "core.utils.buffer.float")
+
 dict.each(_Buffer, function(key, value)
   local function f(bufnr, ...)
     bufnr = Buffer.to_bufnr(bufnr)

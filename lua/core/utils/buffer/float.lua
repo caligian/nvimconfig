@@ -148,7 +148,7 @@ end
 
 function float.center(bufnr, size, opts)
   if not size then
-    size = { 0.8, 0.8}
+    size = { 0.8, 0.8 }
   elseif isnumber(size) then
     local n = size
     size = { n, n }
@@ -208,4 +208,3 @@ function float.get_float_config(bufnr)
 end
 
 return float
-

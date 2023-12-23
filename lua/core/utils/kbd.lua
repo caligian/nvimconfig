@@ -47,7 +47,7 @@ function Kbd.init(self, mode, ks, callback, rest)
   local localleader = rest.localleader
   local leader = rest.leader
   local name = rest.name
-  local group = rest.group or "Keybinding"
+  local group = rest.group or "kbd"
   local desc = rest.desc
 
   if prefix and (localleader or leader) then
@@ -100,7 +100,7 @@ function Kbd.init(self, mode, ks, callback, rest)
 end
 
 function Kbd.enable(self)
-  if self.au and au.exists(self.au) then
+  if self.au and Autocmd.exists(self.au) then
     return self
   end
 
@@ -116,7 +116,7 @@ function Kbd.enable(self)
   end
 
   if self.event and self.pattern then
-    self.au = au(self.event, {
+    self.au = Autocmd(self.event, {
       pattern = self.pattern,
       group = self.group,
       once = self.once,
@@ -151,7 +151,7 @@ function Kbd.disable(self)
   end
 
   if self.au then
-    au.disable(self.au)
+    Autocmd.disable(self.au)
   end
 
   return self
@@ -175,7 +175,7 @@ function Kbd.fromdict(specs)
     value[4] = not value[4] and { desc = key }
       or isstring(value[4]) and { desc = value[4] }
       or istable(value[4]) and value[4]
-      or {desc = key}
+      or { desc = key }
 
     value[4] = copy(value[4])
     value[4].name = key

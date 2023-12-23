@@ -58,6 +58,6 @@ end
 
 setopts()
 
-vim.api.nvim_create_user_command('ReloadOptions', function ()
+vim.api.nvim_create_user_command("ReloadOptions", function()
   setopts()
 end, {})

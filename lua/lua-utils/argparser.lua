@@ -387,9 +387,9 @@ function Argparser:_withmetavars()
 
   local function getvars(x)
     if x.required then
-      return sprintf('%s {%s}', x.name, x.type)
+      return sprintf("%s {%s}", x.name, x.type)
     else
-      return sprintf('%s [%s]', x.name, x.type)
+      return sprintf("%s [%s]", x.name, x.type)
     end
   end
 
@@ -406,26 +406,41 @@ function Argparser:tostring()
     scriptname = str:match "^.*/(.*).lua$" or str
   end
 
-  local usage = {scriptname .. ': ' .. summary or '', header or '', ""}
+  local usage = {
+    scriptname .. ": " .. summary or "",
+    header or "",
+    "",
+  }
   if #self.positional > 0 then
-    list.append(usage, 'Positional arguments:')
+    list.append(usage, "Positional arguments:")
 
-    local names = list.map(self.positional, function (opt) return {opt.name, opt.type, opt.required or false, opt.help or ''} end)
-    names = list.sort(names, function (a, b) return #a[1] < #b[1] end)
+    local names = list.map(self.positional, function(opt)
+      return {
+        opt.name,
+        opt.type,
+        opt.required or false,
+        opt.help or "",
+      }
+    end)
+    names = list.sort(names, function(a, b)
+      return #a[1] < #b[1]
+    end)
     local longest = names[#names]
     local longestlen = #longest
 
-    list.each(names, function (name)
+    list.each(names, function(name)
       local _name, _type, _required, _help = unpack(name)
-      local fmt = '%-' .. longestlen .. 's'
+      local fmt = "%-" .. longestlen .. "s"
 
       if _required then
-        fmt = fmt .. sprintf(' %-10s', sprintf(' {%s}:', _type))
+        fmt = fmt
+          .. sprintf(" %-10s", sprintf(" {%s}:", _type))
       else
-        fmt = fmt .. sprintf(' %-10s', sprintf(' [%s]:', _type))
+        fmt = fmt
+          .. sprintf(" %-10s", sprintf(" [%s]:", _type))
       end
 
-      fmt = fmt .. ' ' .. _help
+      fmt = fmt .. " " .. _help
       fmt = sprintf(fmt, _name)
 
       list.append(usage, fmt)
@@ -458,8 +473,8 @@ parser:on {
   pos = true,
   name = "X",
   post = tonumber,
-  help = 'this is X',
-  type = 'number',
+  help = "this is X",
+  type = "number",
   required = true,
 }
 
@@ -467,8 +482,8 @@ parser:on {
   pos = true,
   name = "Y",
   post = tonumber,
-  help = 'this is Y',
-  type = 'number',
+  help = "this is Y",
+  type = "number",
   required = true,
 }
 

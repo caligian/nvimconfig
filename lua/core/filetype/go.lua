@@ -45,4 +45,3 @@ go.mappings = {
 go.formatter = { buffer = "gofmt -s -e", stdin = true }
 
 return go
-

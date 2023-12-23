@@ -1,39 +1,50 @@
 require "core.utils.terminal"
 
-if not repl then
-  repl = class "repl"
-  repl.repls = {}
-
-  dict.merge(repl, terminal)
+if not REPL then
+  REPL = class "REPL"
+  user.repls = {}
+  dict.merge(REPL, Terminal)
 end
 
-function repl.exists(self, tp)
-  assertisa(self, union("repl", "string", "number"))
+function REPL.exists(self, tp)
+  assertisa(self, union("REPL", "string", "number"))
 
   if isstring(self) then
-    return repl.repls[self.name]
+    return user.repls[self.name]
   elseif isnumber(self) then
     if tp == "dir" then
-      return repl.repls[path.dirname(buffer.name(self))]
+      return user.repls[path.dirname(buffer.name(self))]
     elseif tp == "workspace" then
-      return repl.repls[filetype.workspace(self)]
+      return user.repls[Filetype.workspace(self)]
     else
-      return repl.repls[buffer.name(self)]
+      return user.repls[buffer.name(self)]
     end
-  elseif repl.isa(self) then
+  elseif REPL.isa(self) then
     return self
   end
 end
 
-function repl:init(bufnr, opts)
-  if isstring(bufnr) and repl.repls[bufnr] then
-    return repl.repls[bufnr]
+function REPL:init_shell(opts)
+  if user.repls.shell then
+    return user.repls.shell
+  end
+
+  user.repls.shell = Terminal.init(self, "/bin/bash", opts)
+  self.name = "bash"
+  self.type = "shell"
+
+  return user.repls.shell
+end
+
+function REPL:init(bufnr, opts)
+  if isstring(bufnr) and user.repls[bufnr] then
+    return user.repls[bufnr]
   end
 
   opts = opts or {}
 
-  if opts.shell and repl.repls.shell then
-    return repl.repls.shell
+  if opts.shell then
+    return self:init_shell(opts)
   end
 
   bufnr = bufnr or buffer.current()
@@ -41,7 +52,7 @@ function repl:init(bufnr, opts)
     return
   end
 
-  local exists = repl.exists(
+  local exists = REPL.exists(
     bufnr,
     opts.workspace and "workspace"
       or opts.buffer and "buffer"
@@ -53,12 +64,12 @@ function repl:init(bufnr, opts)
   end
 
   local ft = buffer.filetype(bufnr)
-  if #ft == 0 then
+  if #ft == 0 and not opts.shell then
     return
   end
 
   self._bufnr = bufnr
-  local ftobj = filetype(ft):loadfile()
+  local ftobj = Filetype(ft):loadfile()
   if not ftobj then
     return
   end
@@ -67,7 +78,6 @@ function repl:init(bufnr, opts)
   local isws = opts.workspace
   local isdir = opts.dir
   local isbuf = opts.buffer
-  local isshell = opts.shell
 
   if _opts then
     dict.merge(opts, _opts)
@@ -77,12 +87,9 @@ function repl:init(bufnr, opts)
   self.type = isdir and "dir"
     or isbuf and "buffer"
     or isws and "workspace"
-    or isshell and "shell"
-  local cmd
 
-  if isshell then
-    cmd = user.shell or "/bin/bash"
-  elseif isws then
+  local cmd
+  if isws then
     if not replcmd.workspace then
       return
     end
@@ -94,12 +101,14 @@ function repl:init(bufnr, opts)
     end
 
     cmd = replcmd.dir
-  else
+  elseif replcmd then
     if not replcmd.buffer then
       return
     end
 
     cmd = replcmd.buffer
+  else
+    return false, "no command found"
   end
 
   if istable(cmd) then
@@ -108,30 +117,25 @@ function repl:init(bufnr, opts)
   end
 
   self.name = self.src
+  user.repls[self.name] = self
 
-  if not isshell then
-    repl.repls[self.name] = self
-  else
-    repl.repls.shell = self
-  end
-
-  return terminal.init(self, cmd, opts)
+  return Terminal.init(self, cmd, opts)
 end
 
-function repl:reset()
-  return repl(self._bufnr, self.opts)
+function REPL:reset()
+  return REPL(self._bufnr, self.opts)
 end
 
-function repl:stop()
-  terminal.stop(self)
+function REPL:stop()
+  Terminal.stop(self)
   return self:reset()
 end
 
-function repl.main()
-  repl.set_mappings()
+function REPL.main()
+  REPL.set_mappings()
 end
 
-function repl.set_mappings()
+function REPL.set_mappings()
   local function start(tp)
     local key, desc
     if tp == "buffer" then
@@ -148,9 +152,9 @@ function repl.set_mappings()
       desc = "start dir"
     end
 
-    kbd.map("n", key, function()
+    Kbd.map("n", key, function()
       local buf = buffer.bufnr()
-      local self = repl(buf, { [tp] = true })
+      local self = REPL(buf, { [tp] = true })
 
       if not self then
         return
@@ -210,9 +214,9 @@ function repl.set_mappings()
   local function map(name, tp, key, callback)
     local mode, key, desc = mkkeys(name, tp, key)
 
-    kbd.map(mode, key, function()
+    Kbd.map(mode, key, function()
       local buf = buffer.current()
-      local self = repl(buf, { [tp] = true })
+      local self = REPL(buf, { [tp] = true })
       if self then
         callback(self)
       end

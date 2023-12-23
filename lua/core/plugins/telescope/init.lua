@@ -1,8 +1,9 @@
 local M = {}
 
 local function getivy()
-  return
-    dict.merge(require("telescope.themes").get_dropdown(), {
+  return dict.merge(
+    require("telescope.themes").get_dropdown(),
+    {
       disable_devicons = true,
       previewer = false,
       extensions = {},
@@ -10,7 +11,8 @@ local function getivy()
         height = 0.8,
         width = 0.9,
       },
-    })
+    }
+  )
 end
 
 local function picker(p, conf)
