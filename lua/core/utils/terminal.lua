@@ -1,7 +1,7 @@
 require "core.utils.buffer"
 
 Terminal = Terminal or class "Terminal"
-Terminal.terminals = Terminal.terminals or {}
+user.terminals = user.terminals or {}
 
 Terminal.exceptions = {
   invalid_command = "expected valid command",
@@ -111,7 +111,7 @@ function Terminal:start(callback)
   end)
 
   self.termbuf = term
-  Terminal.terminals[id] = self
+  user.terminals[id] = self
 
   return id, pid
 end
@@ -361,7 +361,7 @@ function Terminal.stop_deprecated(self)
   Terminal.hide(self)
   vim.fn.chanclose(self.id)
   self.termbuf = nil
-  Terminal.terminals[self.id] = false
+  user.terminals[self.id] = false
 
   return self
 end
@@ -374,7 +374,7 @@ function Terminal.visible(self)
 end
 
 function Terminal.stopall()
-  list.each(values(Terminal.terminals), Terminal.stop)
+  list.each(values(user.terminals), Terminal.stop)
 end
 
 function Terminal:tabnew(opts)
