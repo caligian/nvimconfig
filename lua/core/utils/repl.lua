@@ -51,7 +51,7 @@ function REPL:init(bufnr, opts)
 
   bufnr = bufnr or Buffer.current()
   if not Buffer.exists(bufnr) then
-    return
+    return false, 'invalid buffer: ' .. bufnr
   end
 
   local exists = REPL.exists(
@@ -73,7 +73,7 @@ function REPL:init(bufnr, opts)
   self._bufnr = bufnr
   local ftobj = Filetype(ft):loadfile()
   if not ftobj then
-    return
+    return false, 'no command found for filetype: '.. ftobj
   end
 
   local replcmd, _opts = ftobj:command(bufnr, "repl")
@@ -93,18 +93,21 @@ function REPL:init(bufnr, opts)
   local cmd
   if isws then
     if not replcmd.workspace then
+      tostderr('repl: no command found for workspace')
       return
     end
 
     cmd = replcmd.workspace
   elseif isdir then
     if not replcmd.dir then
+      tostderr('repl: no command found for current dir')
       return
     end
 
     cmd = replcmd.dir
   elseif replcmd then
     if not replcmd.buffer then
+      tostderr('repl: no command found for buffer')
       return
     end
 

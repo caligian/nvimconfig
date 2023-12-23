@@ -3,7 +3,6 @@ require "lua-utils.string"
 
 local function varsx(x)
   local out = {}
-  local new_x = x
 
   for var in string.gmatch(x, ".?[{][0-9a-zA-Z_.-]+[}].?") do
     local open = var:find "[{]"
@@ -16,69 +15,10 @@ local function varsx(x)
       out[var] = { open, close }
       list.append(out, var)
     else
-      new_x = new_x:gsub("[{][{]([^}]+)[}][}]", "{%1}")
     end
   end
 
-  return new_x, out
-end
-
-local function subx(x, repl, opts)
-  opts = opts or {}
-  local vars
-  x, vars = varsx(x)
-  local msg = {}
-  local ignore = opts.ignore
-  local _assert = opts.assert
-
-  for key, value in pairs(repl) do
-    local name = tostring(key)
-    local var = vars[name]
-    local open, close
-
-    if not vars[name] then
-      if _assert then
-        error(
-          "expected placeholder for " .. name .. ", got nil"
-        )
-      end
-
-      msg[#msg + 1] = name
-    else
-      open, close = unpack(var)
-
-      -- check start and end and replace accordingly
-      x = sub(x, name, value)
-    end
-  end
-
-  if #msg > 0 and not ignore then
-    return nil, msg
-  end
-
-  return x, msg
-end
-
-local function get_vars(x)
-  local out = {}
-  local new_x = x
-
-  for var in string.gmatch(x, ".?[{][0-9a-zA-Z_.-]+[}].?") do
-    local open = var:find "[{]"
-    local open1 = var:find("[{]", open + 1)
-    local close = var:find "[}]"
-    local close1 = var:find("[}]", close + 1)
-
-    if not close1 or not open1 then
-      var = var:sub(open + 1, close - 1)
-      out[var] = true
-      list.append(out, var)
-    else
-      new_x = new_x:gsub("[{][{]([^}]+)[}][}]", "{%1}")
-    end
-  end
-
-  return new_x, out
+  return out
 end
 
 local function sub(x, var, repl)
@@ -90,48 +30,51 @@ local function sub(x, var, repl)
   return x
 end
 
-local function sub_vars(x, repl)
-  local vars
-  x, vars = get_vars(x)
+local function subx(x, repl, opts)
+  opts = opts or {}
+  local vars = varsx(x)
   local msg = {}
-  local ignore = repl.ignore
-  local _assert = repl.assert
+  local ignore = opts.ignore
+  local _assert = opts.assert
 
   for key, value in pairs(repl) do
-    if key ~= "assert" and key ~= "ignore" then
-      local name = tostring(key)
+    local name = tostring(key)
+    local var = vars[name]
+    local open, close
 
-      if not vars[name] then
-        if _assert then
-          error(
-            "expected placeholder for "
-              .. name
-              .. ", got nil"
-          )
-        end
-        msg[#msg + 1] = name
-      else
-        x = sub(x, name, value)
+    if not var then
+      if _assert then
+        error(
+          "expected placeholder for " .. name .. ", got nil"
+        )
       end
+
+      msg[key] = true
+    else
+      open, close = unpack(var)
+
+      -- check start and end and replace accordingly
+      x = sub(x, name, value)
     end
   end
 
-  if #msg > 0 and not ignore then
+  x = x:gsub('%{%{([^}]*)%}%}', '{%1}')
+
+  if size(msg) > 0 and not ignore then
     return nil, msg
   end
 
-  return x, msg
+  return x
 end
 
 --- Return a template function.
 --- @param x string
 --- @return (fun(vars:dict|list[]): string?, string[]?) result failure without `ignore = true` in vars will `return nil, string[]`
 function template(x)
-  local function do_replace(_vars)
-    return sub_vars(x, _vars)
+  return function (vars, opts)
+    pp(vars)
+    return subx(x, vars, opts)
   end
-
-  return do_replace
 end
 
 function istemplate(var)

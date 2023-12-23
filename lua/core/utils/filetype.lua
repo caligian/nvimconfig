@@ -4,7 +4,12 @@ require "core.utils.buffer.win"
 require "core.utils.win"
 require "core.utils.kbd"
 require "core.utils.job"
-require "core.utils.terminal"
+
+if not Filetype then
+  Filetype = class "Filetype"
+  user.filetypes = {}
+  Filetype.lsp = module()
+end
 
 --- @alias Filetype.commandspec string|table|fun(path:string): string
 --- @alias Filetype.mapping table<string,list>
@@ -46,18 +51,6 @@ require "core.utils.terminal"
 
 --- @class Filetype.server
 --- @field config table lsp server config
-
-if not Filetype then
-  Filetype = class "Filetype"
-  user.filetypes = {}
-  Filetype.jobs = {}
-  Filetype.lsp = module()
-end
-
-Filetype = class "Filetype"
-user.filetypes = {}
-Filetype.jobs = {}
-Filetype.lsp = module()
 
 --- @class lsp
 --- @field diagnostic table<string,any> diagnostic config for vim.lsp
@@ -387,6 +380,7 @@ function Filetype:init(name)
   self.workspace = nil
   self.job = nil
   self.list = nil
+  self.jobs = {}
   self.name = name
   user.filetypes[name] = self
 
@@ -615,7 +609,7 @@ function Filetype:command(bufnr, action)
   local function withpath(cmd, p)
     if istemplate(cmd) then
       local templ = template(cmd)
-      cmd = templ { assert = true, path = p }
+      cmd = templ({ path = p }, { ignore = true })
     end
 
     return { cmd, p }
@@ -713,12 +707,11 @@ function Filetype:format(bufnr, opts)
   )
 
   local winnr = Buffer.winnr(bufnr)
-  local view = winnr and win.save_view(winnr)
+  local view = winnr and Win.saveview(winnr)
   opts.args = {}
 
   local proc = Job(cmd, {
     output = true,
-    name = name,
     cwd = (opts.workspace or opts.dir) and target
       or path.dirname(bufname),
     before = function()
@@ -760,10 +753,12 @@ function Filetype:format(bufnr, opts)
       end
 
       if view then
-        win.restore_view(winnr, view)
+        Win.restview(view)
       end
     end,
   })
+
+  self.jobs[name] = proc
 
   return proc
 end
@@ -778,36 +773,6 @@ function Filetype:format_workspace(bufnr, opts)
   opts = opts or {}
   opts.workspace = true
   return self:format(bufnr, opts)
-end
-
-function Filetype.job(cmd, opts)
-  local name = opts.name
-
-  if name then
-    local j = Filetype.jobs[name]
-    if j and j:is_running() then
-      j:stop()
-    end
-  end
-
-  --- @diagnostic disable-next-line: param-type-mismatch
-  local ok, msg = pcall(Terminal, cmd, opts)
-
-  if not ok then
-    tostderr(msg)
-    return
-  else
-    j = msg
-  end
-
-  if name then
-    Filetype.jobs[name] = j
-  end
-
-  j:start()
-  j:split()
-
-  return j
 end
 
 function Filetype:require()
@@ -899,10 +864,27 @@ function Filetype:action(bufnr, action, opts)
   end
 
   name = name .. target
-  return Filetype.job(cmd, {
-    name = name,
-    cwd = isdir or ws and target,
+  cmd = istable(cmd) and join(cmd, " ") or cmd
+
+  local term = Job(cmd, {
+    output = true,
+    on_exit = function(job)
+      local lines = job.lines or {}
+      local errs = job.errors or {}
+
+      list.extend(lines, errs)
+
+      if #lines ~= 0 then
+        local outbuf = Buffer.scratch()
+        Buffer.set(outbuf, { 0, -1 }, lines)
+        Buffer.split(outbuf, "qf")
+      end
+    end,
   })
+
+  self.jobs[name] = term
+
+  return term
 end
 
 function Filetype:setup_triggers()

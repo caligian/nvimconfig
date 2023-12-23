@@ -1,6 +1,6 @@
 require "core.utils.buffer.buffer"
 
-Terminal = Terminal or class "Terminal"
+Terminal = class 'Terminal'
 user.terminals = user.terminals or {}
 
 Terminal.exceptions = {
@@ -48,26 +48,15 @@ function Terminal:init(cmd, opts)
   self.on_input = opts.on_input
   opts.load_from_path = nil
   opts.on_input = nil
-  self.id = false
-  self.pid = false
   self.stopall = nil
-  local on_exit = opts.on_exit
-
-  local function on_exit(id, exit_code, _)
-    self.exit_code = exit_code
-    self.id = id
-
-    if on_exit then
-      on_exit(self)
-    end
-  end
+  self.on_exit = on_exit
 
   return self
 end
 
 function Terminal:start(callback)
-  if getpid(self.pid) then
-    return self.id, self.pid
+  if getpid(self.job_pid) then
+    return self.job_id, self.job_pid
   end
 
   local scratch = Buffer.scratch()
@@ -86,24 +75,10 @@ function Terminal:start(callback)
       id = vim.fn.termopen(cmd, opts)
     end
 
-    -- local has_started = Buffer.lines(scratch, 0, -1)
-    -- has_started = list.filter(has_started, function(x)
-    --   return #x ~= 0
-    -- end)
-
-    -- while #has_started == 0 do
-    --   vim.wait(10)
-
-    --   has_started = Buffer.lines(scratch, 0, -1)
-    --   has_started = list.filter(has_started, function(x)
-    --     return #x ~= 0
-    --   end)
-    -- end
-
     term = Buffer(Buffer.bufnr(), true, true)
-    self.id = id
+    self.job_id = id
     pid = term:get_var "terminal_job_pid"
-    self.pid = pid
+    self.job_pid = pid
 
     Buffer.hide(scratch)
 
@@ -131,13 +106,13 @@ function Terminal:start(callback)
 end
 
 function Terminal:getpid()
-  return getpid(self.pid)
+  return getpid(self.job_pid)
 end
 
 function Terminal:is_running(success, failure)
-  if getpid(self.pid) then
+  if getpid(self.job_pid) then
     if not Buffer.exists(self.termbuf) then
-      killpid(self.pid)
+      killpid(self.job_pid)
       self.termbuf = false
       return false
     end
@@ -278,7 +253,7 @@ function Terminal:send(s)
     return
   end
 
-  local id = self.id
+  local id = self.job_id
 
   local function send_string(s)
     s = tolist(s)
@@ -322,7 +297,7 @@ function Terminal:send(s)
 end
 
 function Terminal:split(direction, opts)
-  if not getpid(self.pid) then
+  if not getpid(self.job_pid) then
     return
   end
 
@@ -350,15 +325,15 @@ end
 function Terminal:stop()
   self:hide()
 
-  if not self.pid then
+  if not self.job_pid then
     return false
   elseif not self:is_running() then
     return false
   else
-    killpid(self.pid, 9)
+    killpid(self.job_pid, 9)
 
-    self.pid = false
-    self.id = false
+    self.job_pid = false
+    self.job_id = false
   end
 
   return true
