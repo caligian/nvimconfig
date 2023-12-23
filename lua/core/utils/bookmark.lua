@@ -1,6 +1,7 @@
 require "core.utils.kbd"
-require 'core.utils.buffer.buffer'
-require 'core.utils.au'
+require "core.utils.buffer.buffer"
+require "core.utils.buffer.win"
+require "core.utils.au"
 
 --- @class Bookmark
 
@@ -75,11 +76,11 @@ function Bookmark.main()
       function()
         Bookmark.add_and_save(
           Buffer.name(Buffer.bufnr()),
-          win.pos(win.winnr()).row
+          Win.pos(Buffer.winnr(Buffer.current())).row
         )
       end,
       {
-        desc = "add and save Bookmark",
+        desc = "add bookmark",
       },
     },
 
@@ -90,7 +91,7 @@ function Bookmark.main()
         Bookmark.run_line_picker(Buffer.current())
       end,
       {
-        desc = "run Bookmark line picker",
+        desc = "buffer bookmarks ",
       },
     },
 
@@ -101,7 +102,7 @@ function Bookmark.main()
         Bookmark.run_dwim_picker()
       end,
       {
-        desc = "run Bookmark picker",
+        desc = "all bookmarks",
       },
     },
   }
@@ -122,8 +123,7 @@ function Bookmark.save()
 end
 
 function Bookmark.add(file_path, lines, desc)
-  local obj = user.bookmarks[file_path]
-    or { context = {} }
+  local obj = user.bookmarks[file_path] or { context = {} }
   local now = os.time()
   local isfile = path.isfile(file_path)
   local isdir = path.isdir(file_path)
@@ -397,21 +397,25 @@ function Bookmark.reset()
 end
 
 function Bookmark.create_dwim_picker()
-  local bufname = Buffer.name(Buffer.bufnr())
-  local obj = user.bookmarks[bufname]
-
-  if not obj or (obj.context and isempty(obj.context)) then
+  local len = size(user.bookmarks)
+  if len == 0 then
+    return
+  elseif len > 1 then
     return Bookmark.create_picker()
   else
-    return Bookmark.create_line_picker(obj.path)
+    return Bookmark.create_line_picker(
+      Buffer.name(Buffer.bufnr())
+    )
   end
 end
 
 function Bookmark.run_dwim_picker()
   local picker = Bookmark.create_dwim_picker()
+
   if picker then
     picker:find()
   end
 
   return true
 end
+
