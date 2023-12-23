@@ -35,6 +35,7 @@ Kbd.map(
   ":ReloadColorscheme<CR>",
   "reload colorscheme"
 )
+
 Kbd.map(
   "n",
   "<leader>h=",
@@ -47,3 +48,4 @@ if vim.fn.has "gui" then
 end
 
 require "core.defaults.commands"
+

@@ -319,9 +319,10 @@ function lsp.on_attach(client, bufnr)
     end
 
     local mappings = deepcopy(lsp.mappings)
-    for _, value in pairs(mappings) do
+    for name, value in pairs(mappings) do
       value[4] = value[4] or {}
       value[4].buffer = bufnr
+      value[4].name = self.name .. ".lsp." .. name
     end
 
     Kbd.fromdict(mappings)
@@ -847,6 +848,8 @@ function Filetype:map(mode, ks, callback, opts)
   opts = opts or {}
   opts.event = "FileType"
   opts.pattern = self.name
+  opts.name =
+    defined(opts.name and self.name .. "." .. opts.name)
 
   return Kbd.map(mode, ks, callback, opts)
 end
@@ -855,6 +858,8 @@ function Filetype:autocmd(callback, opts)
   opts = opts or {}
   opts.pattern = self.name
   opts.callback = callback
+  opts.name =
+    defined(opts.name and self.name .. "." .. opts.name)
 
   return Autocmd.map("FileType", opts)
 end

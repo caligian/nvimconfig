@@ -174,8 +174,8 @@ function BufferGroup:init(name, event, pattern, opts)
   self.name = name
   self.buffers = {}
   self.au = Autocmd.map(event, {
-    name = "BufferGroup." .. self.name,
-    group = "MyBufferGroups",
+    name = self.name,
+    group = "BufferGroup",
     pattern = self.pattern,
     callback = function(o)
       local buf = o.buf

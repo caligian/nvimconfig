@@ -1,13 +1,17 @@
 require "core.utils.kbd"
+require 'core.utils.buffer.buffer'
+require 'core.utils.au'
+
+--- @class Bookmark
 
 if not Bookmark then
   Bookmark = module "Bookmark"
   Bookmark.path =
     path.join(os.getenv "HOME", ".bookmarks.json")
-  Bookmark.bookmarks = {}
+  user.bookmarks = {}
 end
 
-local bookmarks = Bookmark.bookmarks
+local bookmarks = user.bookmarks
 
 function string_keys(x)
   local out = {}
@@ -54,23 +58,23 @@ local function from_string_keys(parsed_json)
 end
 
 function Bookmark.init()
-  Bookmark.bookmarks = Bookmark.main()
-  return Bookmark.bookmarks
+  user.bookmarks = Bookmark.main()
+  return user.bookmarks
 end
 
 function Bookmark.main()
   s = file.read(Bookmark.path) or "{}"
   s = from_string_keys(json.decode(s))
 
-  Bookmark.bookmarks = s
+  user.bookmarks = s
 
   Kbd.fromdict {
-    add_Bookmark = {
+    add_bookmark = {
       "n",
       "gba",
       function()
         Bookmark.add_and_save(
-          buffer.name(),
+          Buffer.name(Buffer.bufnr()),
           win.pos(win.winnr()).row
         )
       end,
@@ -79,18 +83,18 @@ function Bookmark.main()
       },
     },
 
-    Bookmark_line_picker = {
+    bookmark_line_picker = {
       "n",
       "g.",
       function()
-        Bookmark.run_line_picker(buffer.current())
+        Bookmark.run_line_picker(Buffer.current())
       end,
       {
         desc = "run Bookmark line picker",
       },
     },
 
-    Bookmark_picker = {
+    bookmark_picker = {
       "n",
       "g<space>",
       function()
@@ -106,7 +110,7 @@ function Bookmark.main()
 end
 
 function Bookmark.save()
-  local bookmarks = Bookmark.bookmarks
+  local bookmarks = user.bookmarks
   file.write(
     Bookmark.path,
     json.encode(string_keys(bookmarks))
@@ -114,11 +118,11 @@ function Bookmark.save()
 
   Bookmark.main()
 
-  return Bookmark.bookmarks
+  return user.bookmarks
 end
 
 function Bookmark.add(file_path, lines, desc)
-  local obj = Bookmark.bookmarks[file_path]
+  local obj = user.bookmarks[file_path]
     or { context = {} }
   local now = os.time()
   local isfile = path.isfile(file_path)
@@ -148,23 +152,23 @@ function Bookmark.add(file_path, lines, desc)
     obj.context[key] = Bookmark.get_context(file_path, key)
   end
 
-  Bookmark.bookmarks[file_path] = obj
+  user.bookmarks[file_path] = obj
   return obj
 end
 
 function Bookmark.del(file_path, lines)
-  if not Bookmark.bookmarks[file_path] then
+  if not user.bookmarks[file_path] then
     return
   end
 
-  local obj = Bookmark.bookmarks[file_path]
+  local obj = user.bookmarks[file_path]
   if lines then
     local context = obj.context
     for _, line in ipairs(tolist(lines)) do
       context[line] = nil
     end
   else
-    Bookmark.bookmarks[file_path] = nil
+    user.bookmarks[file_path] = nil
   end
 
   return obj
@@ -217,14 +221,14 @@ function Bookmark.open(file_path, line)
   if path.isdir(file_path) then
     vim.cmd(":e! " .. file_path)
   elseif path.isfile(file_path) then
-    local bufnr = buffer.bufadd(file_path)
-    buffer.open(bufnr)
+    local bufnr = Buffer.create(file_path)
+    Buffer.open(bufnr)
 
     if line then
-      if buffer.current() == file_path then
+      if Buffer.current() == file_path then
         vim.cmd(":normal! " .. line .. "Gzz")
       else
-        buffer.call(bufnr, function()
+        Buffer.call(bufnr, function()
           vim.cmd(":normal! " .. line .. "Gzz")
         end)
       end
@@ -233,7 +237,7 @@ function Bookmark.open(file_path, line)
 end
 
 function Bookmark.picker_results(file_path)
-  local bookmarks = Bookmark.bookmarks
+  local bookmarks = user.bookmarks
 
   if isempty(bookmarks) then
     return
@@ -257,7 +261,7 @@ function Bookmark.picker_results(file_path)
     }
   end
 
-  local obj = Bookmark.bookmarks[file_path]
+  local obj = user.bookmarks[file_path]
 
   if not obj then
     return
@@ -284,10 +288,10 @@ end
 
 function Bookmark.create_line_picker(file_path)
   file_path = isnumber(file_path)
-      and buffer.exists(file_path)
-      and buffer.name(file_path)
+      and Buffer.exists(file_path)
+      and Buffer.name(file_path)
     or file_path
-  local obj = Bookmark.bookmarks[file_path]
+  local obj = user.bookmarks[file_path]
   local fail = not obj
     or obj.dir
     or not obj.context
@@ -393,8 +397,8 @@ function Bookmark.reset()
 end
 
 function Bookmark.create_dwim_picker()
-  local bufname = buffer.name()
-  local obj = Bookmark.bookmarks[bufname]
+  local bufname = Buffer.name(Buffer.bufnr())
+  local obj = user.bookmarks[bufname]
 
   if not obj or (obj.context and isempty(obj.context)) then
     return Bookmark.create_picker()

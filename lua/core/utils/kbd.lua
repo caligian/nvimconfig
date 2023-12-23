@@ -47,7 +47,7 @@ function Kbd.init(self, mode, ks, callback, rest)
   local localleader = rest.localleader
   local leader = rest.leader
   local name = rest.name
-  local group = rest.group or "kbd"
+  local group = rest.group or "Kbd"
   local desc = rest.desc
 
   if prefix and (localleader or leader) then
@@ -60,12 +60,6 @@ function Kbd.init(self, mode, ks, callback, rest)
     ks = "<localleader>" .. ks
   elseif leader then
     ks = "<leader>" .. ks
-  end
-
-  if name then
-    if group then
-      name = group .. "." .. name
-    end
   end
 
   self.mode = mode
@@ -83,7 +77,7 @@ function Kbd.init(self, mode, ks, callback, rest)
   self.name = name
   self.desc = desc
   self.enabled = false
-  self.au = false
+  self.autocmd = false
   self.callback = callback
   self.map = nil
   self.noremap = nil
@@ -100,7 +94,7 @@ function Kbd.init(self, mode, ks, callback, rest)
 end
 
 function Kbd.enable(self)
-  if self.au and Autocmd.exists(self.au) then
+  if self.autocmd and Autocmd.exists(self.autocmd) then
     return self
   end
 
@@ -116,7 +110,7 @@ function Kbd.enable(self)
   end
 
   if self.event and self.pattern then
-    self.au = Autocmd(self.event, {
+    self.autocmd = Autocmd(self.event, {
       pattern = self.pattern,
       group = self.group,
       once = self.once,
@@ -150,8 +144,8 @@ function Kbd.disable(self)
     del(self.mode, self.keys, {})
   end
 
-  if self.au then
-    Autocmd.disable(self.au)
+  if self.autocmd then
+    Autocmd.disable(self.autocmd)
   end
 
   return self
