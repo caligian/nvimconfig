@@ -1,13 +1,9 @@
 require "core.utils.kbd"
 
 --- @class Buffer
---- @field id number
---- @field name string
---- @field is_scratch boolean
---- @field is_floating boolean
---- @field mappings? kbd
-
---- @class Buffer.float : Buffer
+--- @field buffer_index number
+--- @field buffer_name string
+--- @field mappings table<string,kbd>
 
 -- if not Buffer then
 Buffer = class "Buffer"
@@ -18,10 +14,9 @@ Buffer = class "Buffer"
 --- @return boolean
 function Buffer.isa(self)
   return istable(self) and typeof(self) == "Buffer"
-    or typeof(self) == "Buffer.float"
 end
 
---- @param self Buffer|Buffer.float|string|number
+--- @param self Buffer|string|number
 --- @return string?
 function Buffer.to_name(self)
   assertisa(self, union(Buffer.isa, "string", "number"))
@@ -39,7 +34,7 @@ function Buffer.to_name(self)
   return defined(ok)
 end
 
---- @param self Buffer|Buffer.float|string|number
+--- @param self Buffer|string|number
 --- @return number?
 function Buffer.to_bufnr(self)
   assertisa(self, union(Buffer.isa, "string", "number"))
@@ -60,43 +55,23 @@ function Buffer.to_bufnr(self)
   return defined(ok)
 end
 
-function Buffer.get(bufnr)
+function Buffer.bufnr(bufnr)
   return bufnr and Buffer.to_bufnr(bufnr) or vim.fn.bufnr()
 end
 
-Buffer.current = Buffer.get
+Buffer.current = Buffer.bufnr
 Buffer.exists = Buffer.to_bufnr
-Buffer.bufnr = Buffer.get
 Buffer.name = Buffer.to_name
 
 function Buffer.create(name)
-  return (Buffer.exists(name) and Buffer.get(name))
+  return (Buffer.exists(name) and Buffer.bufnr(name))
     or vim.fn.bufadd(name)
 end
 
 function Buffer:init(bufnr_or_name, scratch, listed)
   params {
     bufid = {
-      function(x)
-        assertisa(
-          x,
-          union(
-            "string",
-            "number",
-            "Buffer",
-            "Buffer.float"
-          )
-        )
-
-        if isnumber(x) then
-          if not nvim.buf.is_valid(x) then
-            return false,
-              "expected valid buffer, got " .. dump(x)
-          end
-        end
-
-        return true
-      end,
+      union("string", "number", "Buffer"),
       bufnr_or_name,
     },
     ["scratch?"] = { "boolean", scratch },
@@ -105,9 +80,9 @@ function Buffer:init(bufnr_or_name, scratch, listed)
 
   if
     Buffer.isa(bufnr_or_name)
-    and nvim.buf.is_valid(bufnr_or_name)
+    and nvim.buf.is_valid(bufnr_or_name.buffer_index)
   then
-    return bufnr_or_name
+    return bufnr_or_name.buffer_index
   end
 
   if isstring(bufnr_or_name) then
@@ -118,8 +93,6 @@ function Buffer:init(bufnr_or_name, scratch, listed)
 
   self.buffer_index = bufnr
   self.buffer_name = vim.fn.bufname(bufnr)
-  self.is_scratch = scratch
-  self.is_listed = listed
   self.history = nil
   self.recent = nil
   self.mappings = {}
@@ -172,7 +145,7 @@ function _Buffer.range_text(bufnr)
   local csrow, cerow = unpack(range.row)
   ---@diagnostic disable-next-line: undefined-field
   local cscol, cecol = unpack(range.col)
-  local buf = Buffer.get(winnr)
+  local buf = Buffer.bufnr(winnr)
 
   return range_text(buf, csrow, cscol, cerow, cecol)
 end
@@ -227,7 +200,7 @@ function _Buffer.unload(bufnr)
   return true
 end
 
-function _Buffer.get_keymap(bufnr, mode)
+function _Buffer.bufnr_keymap(bufnr, mode)
   if not Buffer.exists(bufnr) then
     return
   end
@@ -567,7 +540,7 @@ function Buffer.windows(bufnr)
     return
   end
 
-  local out = vim.fn.win_findbuf(Buffer.get())
+  local out = vim.fn.win_findbuf(Buffer.bufnr())
   if #out == 0 then
     return
   else
@@ -575,7 +548,7 @@ function Buffer.windows(bufnr)
   end
 end
 
-function _Buffer.get_options(bufnr, opts)
+function _Buffer.bufnr_options(bufnr, opts)
   assertisa(opts, "list")
 
   local out = {}
@@ -599,7 +572,7 @@ function _Buffer.string(bufnr)
 end
 
 function _Buffer.currentline(bufnr)
-  return _Buffer.getpos(bufnr).row
+  return _Buffer.bufnrpos(bufnr).row
 end
 
 function _Buffer.till_cursor(bufnr)
@@ -695,7 +668,7 @@ function Buffer.scratch(name, filetype)
   return bufnr
 end
 
-function _Buffer.getpos(bufnr, expr)
+function _Buffer.bufnrpos(bufnr, expr)
   return _Buffer.call(bufnr, function()
     local _, lnum, col, off =
       unpack(vim.fn.getpos(expr or "."))
@@ -712,17 +685,17 @@ function _Buffer.getpos(bufnr, expr)
 end
 
 function _Buffer.row(bufnr)
-  local res = _Buffer.getpos(bufnr)
+  local res = _Buffer.bufnrpos(bufnr)
   return res.row
 end
 
 function _Buffer.col(bufnr)
-  local res = _Buffer.getpos(bufnr)
+  local res = _Buffer.bufnrpos(bufnr)
   return res.col
 end
 
 function _Buffer.curpos(bufnr)
-  local res = _Buffer.getpos(bufnr)
+  local res = _Buffer.bufnrpos(bufnr)
   return { res.row, res.col }
 end
 
@@ -763,7 +736,7 @@ function _Buffer.size(bufnr)
   end)
 end
 
-function _Buffer.get_node_at_pos(bufnr, row, col)
+function _Buffer.bufnr_node_at_pos(bufnr, row, col)
   local node = vim.treesitter.get_node {
     bufnr = bufnr,
     pos = { row, col },
@@ -789,7 +762,7 @@ function _Buffer.set(bufnr, pos, lines)
         .. dump(x)
   end)
 
-  assertisa(lines, union('string', 'table'))
+  assertisa(lines, union("string", "table"))
   lines = isstring(lines) and split(lines, "\n") or lines
 
   if #pos == 2 then
@@ -822,7 +795,10 @@ dict.each(_Buffer, function(key, value)
     if bufnr then
       return value(bufnr, ...)
     end
+
+    return false, "expected valid bufnr, got" .. dump(bufnr)
   end
 
   Buffer[key] = f
 end)
+
