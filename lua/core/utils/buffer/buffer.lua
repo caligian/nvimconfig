@@ -136,7 +136,7 @@ local function range_text(buf, ...)
 end
 
 function _Buffer.range_text(bufnr)
-  local range = _Buffer.range(winnr)
+  local range = _Buffer.range(bufnr)
   if not range then
     return
   end
@@ -169,7 +169,7 @@ end
 
 function _Buffer.focus(bufnr)
   if _Buffer.is_visible(bufnr) then
-    return _Buffer.focus(Buffer.winnr(bufnr))
+    return vim.fn.win_gotoid(_Buffer.winid(bufnr))
   end
 end
 
@@ -641,6 +641,7 @@ end
 
 function Buffer.scratch(name, filetype)
   local bufnr
+
   if not name then
     bufnr = nvim.create.buf(listed, true)
   end
@@ -736,7 +737,7 @@ function _Buffer.size(bufnr)
   end)
 end
 
-function _Buffer.bufnr_node_at_pos(bufnr, row, col)
+function _Buffer.get_node(bufnr, row, col)
   local node = vim.treesitter.get_node {
     bufnr = bufnr,
     pos = { row, col },

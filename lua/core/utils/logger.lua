@@ -15,6 +15,21 @@ logger = logging.file {
 
 logger.log_path = log_path
 
+vim.keymap.set("n", "<space>hL", function()
+  vim.cmd(":vsplit | e " .. log_path)
+
+  vim.bo.modifiable = false
+  vim.bo.filetype = "nvimlog"
+
+  vim.api.nvim_buf_set_keymap(
+    vim.fn.bufnr(),
+    "n",
+    "q",
+    ":hide<CR>",
+    { desc = "hide buffer" }
+  )
+end, { desc = "show logs" })
+
 vim.keymap.set("n", "<space>hl", function()
   vim.cmd(":split | e " .. log_path)
 

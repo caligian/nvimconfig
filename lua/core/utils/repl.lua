@@ -13,11 +13,11 @@ function REPL.exists(self, tp)
     return user.repls[self.name]
   elseif isnumber(self) then
     if tp == "dir" then
-      return user.repls[path.dirname(buffer.name(self))]
+      return user.repls[path.dirname(Buffer.name(self))]
     elseif tp == "workspace" then
       return user.repls[Filetype.workspace(self)]
     else
-      return user.repls[buffer.name(self)]
+      return user.repls[Buffer.name(self)]
     end
   elseif REPL.isa(self) then
     return self
@@ -32,6 +32,8 @@ function REPL:init_shell(opts)
   user.repls.shell = Terminal.init(self, "/bin/bash", opts)
   self.name = "bash"
   self.type = "shell"
+  self.set_mappings = nil
+  self.main = nil
 
   return user.repls.shell
 end
@@ -47,8 +49,8 @@ function REPL:init(bufnr, opts)
     return self:init_shell(opts)
   end
 
-  bufnr = bufnr or buffer.current()
-  if not buffer.exists(bufnr) then
+  bufnr = bufnr or Buffer.current()
+  if not Buffer.exists(bufnr) then
     return
   end
 
@@ -63,7 +65,7 @@ function REPL:init(bufnr, opts)
     return exists
   end
 
-  local ft = buffer.filetype(bufnr)
+  local ft = Buffer.filetype(bufnr)
   if #ft == 0 and not opts.shell then
     return
   end
@@ -118,6 +120,8 @@ function REPL:init(bufnr, opts)
 
   self.name = self.src
   user.repls[self.name] = self
+  self.set_mappings = nil
+  self.main = nil
 
   return Terminal.init(self, cmd, opts)
 end
@@ -153,19 +157,19 @@ function REPL.set_mappings()
     end
 
     Kbd.map("n", key, function()
-      local buf = buffer.bufnr()
+      local buf = Buffer.bufnr()
       local self = REPL(buf, { [tp] = true })
 
       if not self then
         return
       end
 
-      if not self:running() then
+      if not self:is_running() then
         self = self:reset()
       end
 
       self:start()
-      if self:running() then
+      if self:is_running() then
         print(
           "started REPL for "
             .. tp
@@ -215,7 +219,7 @@ function REPL.set_mappings()
     local mode, key, desc = mkkeys(name, tp, key)
 
     Kbd.map(mode, key, function()
-      local buf = buffer.current()
+      local buf = Buffer.current()
       local self = REPL(buf, { [tp] = true })
       if self then
         callback(self)
@@ -293,3 +297,4 @@ function REPL.set_mappings()
     end
   )
 end
+

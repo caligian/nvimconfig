@@ -146,7 +146,7 @@ function float.panel(bufnr, size, opts)
   return float.float(bufnr, o)
 end
 
-function float.center(bufnr, size, opts)
+function float.center_float(bufnr, size, opts)
   if not size then
     size = { 0.8, 0.8 }
   elseif isnumber(size) then
