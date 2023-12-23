@@ -126,13 +126,8 @@ function REPL:init(bufnr, opts)
   return Terminal.init(self, cmd, opts)
 end
 
-function REPL:reset()
-  return REPL(self._bufnr, self.opts)
-end
-
 function REPL:stop()
   Terminal.stop(self)
-  return self:reset()
 end
 
 function REPL.main()
@@ -164,11 +159,8 @@ function REPL.set_mappings()
         return
       end
 
-      if not self:is_running() then
-        self = self:reset()
-      end
-
       self:start()
+
       if self:is_running() then
         print(
           "started REPL for "
@@ -297,4 +289,3 @@ function REPL.set_mappings()
     end
   )
 end
-

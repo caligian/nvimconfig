@@ -135,6 +135,10 @@ function template(x)
 end
 
 function istemplate(var)
+  if not isstring(var) then
+    return false
+  end
+
   local open = var:find "[{]"
   if not open then
     return false

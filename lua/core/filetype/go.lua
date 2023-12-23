@@ -1,7 +1,7 @@
 local go = {}
 
 go.server = "gopls"
-go.compile = "go run"
+go.compile = {buffer = "go run {path}", workspace = "go run ./"}
 go.test = "go test"
 
 local function run_and_split(cmd, append_bufname)

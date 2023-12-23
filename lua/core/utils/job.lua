@@ -1,4 +1,4 @@
-require "core.utils.shlex"
+    require "core.utils.shlex"
 local uv = vim.loop
 
 --- @class Job.pipes

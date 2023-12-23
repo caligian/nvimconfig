@@ -18,23 +18,49 @@ function Terminal.isa(x)
   return mtget(x) == "Terminal"
 end
 
-function Terminal:init(cmd, opts)
-  if Terminal.isa(cmd) then
-    return cmd
-  end
+function Terminal.opts(opts)
+  return {
+    clear_env = opts.clear_env,
+    cwd = opts.cwd,
+    detach = opts.detach,
+    env = opts.env,
+    height = opts.height,
+    on_exit = opts.on_exit,
+    on_stdout = opts.on_stdout,
+    on_stderr = opts.on_stderr,
+    overlapped = opts.overlapped,
+    pty = opts.pty,
+    rpc = opts.rpc,
+    stderr_buffered = opts.stderr_buffered,
+    stdout_buffer = opts.stdout_buffered,
+    stdin = opts.stdin,
+    width = opts.width,
+  }
+end
 
+function Terminal:init(cmd, opts)
   opts = opts or {}
-  opts = copy(opts)
+
+  dict.merge(self, opts)
 
   self.cmd = cmd
   self.load_from_path = opts.load_from_path
   self.on_input = opts.on_input
   opts.load_from_path = nil
   opts.on_input = nil
-  self.opts = opts
   self.id = false
   self.pid = false
   self.stopall = nil
+  local on_exit = opts.on_exit
+
+  local function on_exit(id, exit_code, _)
+    self.exit_code = exit_code
+    self.id = id
+
+    if on_exit then
+      on_exit(self)
+    end
+  end
 
   return self
 end
@@ -48,8 +74,11 @@ function Terminal:start(callback)
   local cmd = self.cmd
   local id, term, pid
 
-  Buffer.call(scratch, function()
-    opts = opts or self.opts or {}
+  Buffer.center_float(scratch)
+  local winid = Buffer.winid(scratch)
+
+  Winid.call(winid, function()
+    local opts = Terminal.opts(self)
 
     if isempty(opts) then
       id = vim.fn.termopen(cmd)
@@ -57,23 +86,26 @@ function Terminal:start(callback)
       id = vim.fn.termopen(cmd, opts)
     end
 
-    local has_started = Buffer.lines(scratch, 0, -1)
-    has_started = list.filter(has_started, function(x)
-      return #x ~= 0
-    end)
+    -- local has_started = Buffer.lines(scratch, 0, -1)
+    -- has_started = list.filter(has_started, function(x)
+    --   return #x ~= 0
+    -- end)
 
-    while #has_started == 0 do
-      vim.wait(10)
-      has_started = Buffer.lines(scratch, 0, -1)
-      has_started = list.filter(has_started, function(x)
-        return #x ~= 0
-      end)
-    end
+    -- while #has_started == 0 do
+    --   vim.wait(10)
+
+    --   has_started = Buffer.lines(scratch, 0, -1)
+    --   has_started = list.filter(has_started, function(x)
+    --     return #x ~= 0
+    --   end)
+    -- end
 
     term = Buffer(Buffer.bufnr(), true, true)
     self.id = id
     pid = term:get_var "terminal_job_pid"
     self.pid = pid
+
+    Buffer.hide(scratch)
 
     local ok = getpid(pid)
     if not ok then
@@ -83,6 +115,7 @@ function Terminal:start(callback)
     term:autocmd({ "BufWipeout" }, function()
       self:stop()
       self:hide()
+
       user.terminals[id] = nil
     end)
 
@@ -353,4 +386,3 @@ end
 function Terminal:reset()
   return Terminal(self.cmd, self.opts)
 end
-

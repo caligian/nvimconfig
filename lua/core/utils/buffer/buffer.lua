@@ -38,7 +38,6 @@ end
 --- @return number?
 function Buffer.to_bufnr(self)
   assertisa(self, union(Buffer.isa, "string", "number"))
-
   local bufnr
 
   if istable(self) then
@@ -64,8 +63,15 @@ Buffer.exists = Buffer.to_bufnr
 Buffer.name = Buffer.to_name
 
 function Buffer.create(name)
-  return (Buffer.exists(name) and Buffer.bufnr(name))
-    or vim.fn.bufadd(name)
+  if not isstring(name) and not isnumber(name) then
+    return
+  end
+
+  if isstring(name) then
+    return vim.fn.bufadd(name)
+  elseif isnumber(name) then
+    return Buffer.exists(name) and name
+  end
 end
 
 function Buffer:init(bufnr_or_name, scratch, listed)

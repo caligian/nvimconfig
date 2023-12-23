@@ -418,4 +418,3 @@ function Bookmark.run_dwim_picker()
 
   return true
 end
-

@@ -4,6 +4,7 @@ require "core.utils.buffer.win"
 require "core.utils.win"
 require "core.utils.kbd"
 require "core.utils.job"
+require "core.utils.terminal"
 
 --- @alias Filetype.commandspec string|table|fun(path:string): string
 --- @alias Filetype.mapping table<string,list>
@@ -46,9 +47,16 @@ require "core.utils.job"
 --- @class Filetype.server
 --- @field config table lsp server config
 
-Filetype = Filetype or class "Filetype"
-user.filetypes = user.filetypes or {}
-Filetype.jobs = Filetype.jobs or {}
+if not Filetype then
+  Filetype = class "Filetype"
+  user.filetypes = {}
+  Filetype.jobs = {}
+  Filetype.lsp = module()
+end
+
+Filetype = class "Filetype"
+user.filetypes = {}
+Filetype.jobs = {}
 Filetype.lsp = module()
 
 --- @class lsp
@@ -322,7 +330,7 @@ function lsp.on_attach(client, bufnr)
     for name, value in pairs(mappings) do
       value[4] = value[4] or {}
       value[4].buffer = bufnr
-      value[4].name = self.name .. ".lsp." .. name
+      value[4].name = "lsp." .. name
     end
 
     Kbd.fromdict(mappings)
@@ -553,15 +561,17 @@ function Filetype:command(bufnr, action)
     assert(isa[spec](compile))
   end
 
+  if not istable(compile) then
+    compile = { buffer = compile }
+  end
+
+  compile = dict.merge(compile, opts)
+
   local opts = dict.filter(compile, function(key, _)
     return key ~= "buffer"
       and key ~= "workspace"
       and key ~= "dir"
   end)
-
-  if not istable(compile) then
-    compile = dict.merge({ buffer = spec }, opts)
-  end
 
   params {
     compile = {
@@ -664,7 +674,6 @@ function Filetype:format(bufnr, opts)
 
   if not cmd then
     local msg = self.name .. ".formatter: no command exists"
-    tostderr(msg)
     return nil, msg
   end
 
@@ -679,12 +688,12 @@ function Filetype:format(bufnr, opts)
   elseif opts.workspace then
     name = "filetype.formatter.workspace."
   else
-    name = "filetype.formatter.Buffer."
+    name = "filetype.formatter.buffer."
   end
 
   if opts.workspace then
     cmd, target = unpack(cmd.workspace)
-  elseif opts.buffer then
+  elseif opts.buffer or not opts.dir then
     cmd, target = unpack(cmd.buffer)
     if opts.stdin then
       cmd = sprintf('sh -c "cat %s | %s"', target, cmd)
@@ -703,29 +712,12 @@ function Filetype:format(bufnr, opts)
       .. ": no command exists"
   )
 
-  local function createcmd(tp)
-    if tp == "buffer" then
-      if append_filename == nil and stdin == nil then
-        stdin = true
-      end
-    end
-
-    return cmd, target
-  end
-
-  if opts.workspace then
-    cmd = createcmd "workspace"
-  elseif opts.dir then
-    cmd = createcmd "dir"
-  else
-    cmd = createcmd "buffer"
-  end
-
   local winnr = Buffer.winnr(bufnr)
   local view = winnr and win.save_view(winnr)
   opts.args = {}
 
-  local proc = Filetype.job(cmd, {
+  local proc = Job(cmd, {
+    output = true,
     name = name,
     cwd = (opts.workspace or opts.dir) and target
       or path.dirname(bufname),
@@ -793,18 +785,13 @@ function Filetype.job(cmd, opts)
 
   if name then
     local j = Filetype.jobs[name]
-    if j and Job.is_active(j) then
-      Job.close(j)
+    if j and j:is_running() then
+      j:stop()
     end
   end
 
-  opts.stdout = true
-  opts.args = opts.args or {}
-  opts.stderr = true
-  opts.output = true
-
   --- @diagnostic disable-next-line: param-type-mismatch
-  local ok, msg = pcall(Job, cmd, opts)
+  local ok, msg = pcall(Terminal, cmd, opts)
 
   if not ok then
     tostderr(msg)
@@ -816,6 +803,9 @@ function Filetype.job(cmd, opts)
   if name then
     Filetype.jobs[name] = j
   end
+
+  j:start()
+  j:split()
 
   return j
 end
@@ -882,7 +872,12 @@ function Filetype:action(bufnr, action, opts)
     return
   end
 
-  local name = "Filetype." .. action .. "." .. tp .. "."
+  local name = self.name
+    .. "."
+    .. action
+    .. "."
+    .. tp
+    .. "."
   local cmd = self:command(bufnr, action)
 
   if not cmd then
@@ -907,33 +902,6 @@ function Filetype:action(bufnr, action, opts)
   return Filetype.job(cmd, {
     name = name,
     cwd = isdir or ws and target,
-    on_exit = function(x)
-      local err = x.errors or {}
-      local lines = x.lines or {}
-
-      if x.exit_code ~= 0 then
-        list.extend(err, lines)
-        tostderr(concat(err, "\n"))
-
-        return
-      else
-        list.extend(lines, err)
-      end
-
-      if #lines == 0 then
-        return
-      end
-
-      local outbuf = Buffer.create()
-      Buffer.au(outbuf, "WinClosed", function()
-        Buffer.wipeout(outbuf)
-      end)
-      Buffer.map(outbuf, "n", "q", function()
-        Buffer.wipeout(outbuf)
-      end, { desc = "wipeout buffer" })
-      Buffer.set_lines(outbuf, 0, -1, false, lines)
-      Buffer.botright(outbuf)
-    end,
   })
 end
 
@@ -1169,4 +1137,3 @@ function Filetype.main(use_loadfile)
     Filetype(buf):format_dir(buf)
   end, "format dir")
 end
-
