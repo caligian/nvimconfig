@@ -33,17 +33,17 @@ return {
 
   signs = {
     "lewis6991/gitsigns.nvim",
-    event = "BufEnter",
+    event = "InsertEnter",
   },
 
   indentblankline = {
     "lukas-reineke/indent-blankline.nvim",
-    event = "BufAdd",
+    event = "InsertEnter",
   },
 
   align = {
     "junegunn/vim-easy-align",
-    event = "BufAdd",
+    event = "InsertEnter",
   },
 
   suda = {

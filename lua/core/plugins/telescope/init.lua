@@ -258,12 +258,12 @@ M.config.pickers = {
 function M:setup()
   local ivy = getivy()
 
-  --------------------------------------------------------------------------------
-  -- Some default overrides
-  local ts = require "telescope"
-  ts.setup(M.config)
-  ts.load_extension "file_browser"
-  ts.load_extension "project"
+  vim.defer_fn(function ()
+    local ts = require "telescope"
+    ts.setup(M.config)
+    ts.load_extension "file_browser"
+    ts.load_extension "project"
+  end, 300)
 end
 
 return M
