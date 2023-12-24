@@ -1038,9 +1038,12 @@ function class(name, opts)
   end
 
   function mod:__call(...)
-    local M = dict.filter(mod, function(key, _)
-      return not static[key]
-    end)
+    local M = {}
+    for i, x in pairs(mod) do
+      if not static[i] then
+        M[i] = x
+      end
+    end
 
     local obj = mtset(M, classmt)
     local _init = M.init
@@ -1081,7 +1084,9 @@ function class(name, opts)
   end
 
   function mod:include(m)
-    return dict.merge(mod, m)
+    for i, x in pairs(m) do
+      mod[i] = x
+    end
   end
 
   function mod:super(...)
