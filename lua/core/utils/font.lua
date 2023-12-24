@@ -2,9 +2,9 @@ require "core.utils.kbd"
 
 local nvimexec = vim.api.nvim_exec2
 local sys = vim.fn.systemlist
-local font = class "font"
+local Font = class "Font"
 
-function font.list(pat)
+function Font.list(pat)
   local out = sys "fc-list : family"
   local all = {}
 
@@ -21,36 +21,36 @@ function font.list(pat)
   end)
 end
 
-function font:init(f, h)
+function Font:init(f, h)
   self.family = f or "Liberation Mono"
   self.height = h or "13"
 
   return self
 end
 
-function font:__tostring()
+function Font:__tostring()
   return self.family .. ":h" .. self.height
 end
 
-function font:set()
-  vim.o.guifont = tostring(self)
+function Font:set()
+  vim.o.guiFont = tostring(self)
   return self
 end
 
-function font:isvalid()
-  local fonts = font.listall()
+function Font:isvalid()
+  local Fonts = Font.listall()
 
-  for i = 1, #fonts do
-    if fonts[i]:match(self.family) then
-      return fonts[i]
+  for i = 1, #Fonts do
+    if Fonts[i]:match(self.family) then
+      return Fonts[i]
     end
   end
 
   return false
 end
 
-function font.current()
-  local res = nvimexec("set guifont?", { output = true })
+function Font.current()
+  local res = nvimexec("set guiFont?", { output = true })
   res = res.output
   res = split(res, "=")[2]:match " *([^$]+)"
 
@@ -59,25 +59,25 @@ function font.current()
   end
 
   local f, h = res:match "([^:]+):h([0-9]+)"
-  return font(f, h)
+  return Font(f, h)
 end
 
-function font:incheight(by)
+function Font:incheight(by)
   by = by or 1
   self.height = by + self.height
   self:set()
 end
 
-function font:decheight(by)
+function Font:decheight(by)
   return self:incheight(-(by or 1))
 end
 
-font.telescope = {}
-local tfont = font.telescope
+Font.telescope = {}
+local tFont = Font.telescope
 
-function tfont.list()
+function tFont.list()
   return {
-    results = font.list(),
+    results = Font.list(),
     entry_maker = function(x)
       return {
         display = x,
@@ -88,52 +88,54 @@ function tfont.list()
   }
 end
 
-function tfont.create_picker()
+function tFont.create_picker()
   local _ = require "core.utils.telescope"()
-  return _:create_picker(tfont.list(), function(sel)
+  return _:create_picker(tFont.list(), function(sel)
     sel = sel[1]
-    local selfont = sel.value
+    local selFont = sel.value
     local height_picker = _:create_picker({
       results = list.range(10, 20),
       entry_maker = function(h)
         return {
           display = "height = " .. h,
           ordinal = h,
-          value = { selfont, h },
+          value = { selFont, h },
         }
       end,
     }, function(hsel)
       hsel = hsel[1]
-      font(unpack(hsel.value)):set()
+      Font(unpack(hsel.value)):set()
     end, {
-      prompt_title = "pick height for " .. selfont,
+      prompt_title = "pick height for " .. selFont,
       prompt = "13",
     }):find()
   end, {
-    prompt_title = "pick font",
+    prompt_title = "pick Font",
   })
 end
 
-function tfont.run_picker()
-  tfont.create_picker():find()
+function tFont.run_picker()
+  tFont.create_picker():find()
 end
 
-function font.main()
-  local cur = user.font or { "Liberation Mono", "12.5" }
-  cur = font(unpack(cur)):set()
+function Font.main()
+  local cur = user.Font or { "Liberation Mono", "12.5" }
+  cur = Font(unpack(cur)):set()
 
   Kbd.map(
     "n",
     "<leader>hf",
-    tfont.run_picker,
-    "fonts picker"
+    tFont.run_picker,
+    "Fonts picker"
   )
+
   Kbd.map("n", "<localleader>+", function()
-    font.current():incheight()
-  end, "inc font size")
+    Font.current():incheight()
+  end, "inc Font size")
+
   Kbd.map("n", "<localleader>-", function()
-    font.current():decheight()
-  end, "dec font size")
+    Font.current():decheight()
+  end, "dec Font size")
 end
 
-return font
+return Font

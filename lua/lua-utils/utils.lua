@@ -395,20 +395,17 @@ function iscallable(x)
   if tp == "function" then
     return true
   elseif tp ~= "table" then
-    local msg = "expected callable, got " .. dump(x)
-    return false, msg
+    return false
   end
 
   local mt = getmetatable(x)
   if not mt then
-    local msg = "expected callable, got " .. dump(x)
-    return false, msg
+    return false
   end
 
   local ok = mt.__call ~= nil
   if not ok then
-    local msg = "expected callable, got " .. dump(x)
-    return false, msg
+    return false
   end
 
   return true
@@ -428,20 +425,17 @@ function islist(x)
   local tp = type(x)
 
   if tp ~= "table" then
-    local msg = "expected list, got " .. dump(x)
-    return false, msg
+    return false
   end
 
   local ks = #keys(x)
   if ks == 0 then
-    local msg = "expected list, got " .. dump(x)
-    return false, msg
+    return false
   end
 
   local ok = ks == #x and not mtget(x, "type")
   if not ok then
-    local msg = "expected list, got " .. dump(x)
-    return false, msg
+    return false
   end
 
   return true
@@ -454,20 +448,17 @@ function isdict(x)
   local tp = type(x)
 
   if tp ~= "table" then
-    local msg = "expected dict, got " .. dump(x)
-    return false, msg
+    return false
   end
 
   local ks = #keys(x)
   if ks == 0 then
-    local msg = "expected dict, got " .. dump(x)
-    return false, msg
+    return false
   end
 
   local ok = not islist(x) and not mtget(x, "type")
   if not ok then
-    local msg = "expected dict, got " .. dump(x)
-    return false, msg
+    return false
   end
 
   return true
@@ -534,9 +525,8 @@ typeof = gettype
 --- @return boolean,string?
 function ismodule(x)
   local ok = gettype(x) == "module"
-  local msg = "expected module, got " .. dump(x)
   if not ok then
-    return false, msg
+    return false
   end
   return true
 end
@@ -564,81 +554,6 @@ function isinstance(x, name)
   return true
 end
 
-function isclassmod(x, name)
-  local mt = mtget(x)
-
-  if not mt then
-    return false,
-      "expected table with metatable, got " .. dump(x)
-  end
-
-  if mt.type ~= "classmodule" then
-    return false, "expected classmod, got " .. dump(x)
-  elseif name then
-    if x:modulename() ~= name then
-      return false,
-        "expected classmodule of type "
-          .. name
-          .. ", got "
-          .. dump(x)
-    end
-  end
-
-  return true
-end
-
-function childof(child, parent)
-  if not isinstance(child) and not isclassmod(child) then
-    return false
-  elseif
-    not isinstance(parent) and not isclassmod(parent)
-  then
-    return false
-  elseif isinstance(parent) then
-    parent = parent:classmod()
-  end
-
-  if isinstance(child) then
-    child = child:classmod()
-  end
-
-  local given_parent = mtget(child, "parent")
-  if not given_parent then
-    return false
-  elseif given_parent == parent then
-    return true
-  end
-
-  return childof(child:parentmod(), parent)
-end
-
-function parentof(parent, child)
-  if not isinstance(child) and not isclassmod(child) then
-    return false
-  elseif
-    not isinstance(parent) and not isclassmod(parent)
-  then
-    return false
-  elseif isinstance(parent) then
-    parent = parent:classmod()
-  end
-
-  if isinstance(child) then
-    child = child:classmod()
-  end
-
-  local given_parent = mtget(child, "parent")
-  if not given_parent then
-    return false
-  elseif given_parent == parent then
-    return true
-  else
-    return parentof(parent, given_parent)
-  end
-end
-
-instanceof = childof
-
 local function _istype(x, tp)
   local gotten = gettype(x)
 
@@ -650,10 +565,15 @@ local function _istype(x, tp)
         or sprintf(
           "function %s failed for %s",
           tostring(tp),
-          dump(x)
+          type(x)
         )
       )
     return ok, msg
+  elseif tp == "classmod" then
+    return isclassmod(x),
+      "expected classmod, got " .. gotten
+  elseif tp == "module" then
+    return ismodule(x), "expected module, got " .. gotten
   elseif type(x) == "table" and tp == "table" then
     return true
   elseif tp == "*" or tp == "any" then
@@ -793,10 +713,42 @@ function asserttype(x, tp)
   return isa(x, tp, true)
 end
 
-function assertisa(x, tp)
-  assert(isa(x, tp))
-  return true
-end
+assertisa = mtset({}, {
+  __index = function(self, key)
+    local use
+
+    if isstring(key) then
+      local g = _G["is" .. key] or _G["is_" .. key]
+      if g then
+        use = function(obj)
+          if not g(obj) then
+            error(
+              "expected " .. key .. ", got " .. type(obj)
+            )
+          end
+
+          return obj
+        end
+      end
+    end
+
+    use = function(obj)
+      assert(isa(obj, key))
+      return obj
+    end
+
+    if isstring(key) then
+      rawset(self, key, use)
+    end
+
+    return use
+  end,
+  __call = function(self, obj, tp)
+    self[tp](obj)
+
+    return obj
+  end,
+})
 
 --- Deep copy table
 --- @param x table
@@ -938,181 +890,6 @@ function setter(key, value)
   end
 end
 
---- Is `x` of type `tp`?
---- @param x table
---- @param tp string
---- @return boolean
-function isobject(x, tp)
-  local mt = mtget(x)
-  if not mt or not mt.type then
-    return false
-  end
-
-  if tp == nil then
-    return true
-  end
-
-  return mtget(x, "type") == tp
-end
-
---- Create a class module that creates instances
---- > vector = class 'vector'
---- > function vector:init(x, y) self.x = x; self.y = y; return self end
---- > a = vector(1, 2); b = vector(3, 4)
---- @param name string
---- @see module
---- @return table
-function class(name, opts)
-  assertisa(name, "string")
-
-  local classmt = {}
-  classmt.type = name
-  classmt.class = true
-  opts = opts or {}
-  local include = opts.include or {}
-  local parent = opts.parent
-  local static = opts.static or {}
-  local global = opts.global or opts.G
-  static = dict.fromkeys(static)
-  static.moduleof = true
-  classmt.static = static
-
-  if parent then
-    assertisa(parent, union(isclassmod, isinstance))
-    classmt.parent = isinstance(parent)
-        and parent:classmod()
-      or parent
-  end
-
-  local modmt = { type = "classmodule", parent = parent }
-
-  function modmt:__index(key)
-    if mtkeys[key] then
-      return modmt[key]
-    elseif parent then
-      return parent[key]
-    end
-  end
-
-  function modmt:__newindex(key, value)
-    if mtkeys[key] then
-      modmt[key] = value
-    elseif key:match "^static_" then
-      assertisa(value, "callable")
-
-      key = key:gsub("^static_", "")
-      classmt.static = classmt.static or {}
-      classmt.static[key] = true
-      rawset(self, key, value)
-    else
-      rawset(self, key, value)
-    end
-  end
-
-  classmt.__index = modmt.__index
-
-  local mod = setmetatable({}, modmt)
-
-  function mod:modulename()
-    return name
-  end
-
-  function mod:moduleof(obj)
-    if not isinstance(obj) and not isclassmod(obj) then
-      return false
-    end
-
-    return obj:modulename() == name
-  end
-
-  function mod:parentmod()
-    return parent
-  end
-
-  function mod:classmod()
-    if isinstance(self) then
-      return mod
-    end
-
-    return self
-  end
-
-  function mod:__call(...)
-    local M = {}
-    for i, x in pairs(mod) do
-      if not static[i] then
-        M[i] = x
-      end
-    end
-
-    local obj = mtset(M, classmt)
-    local _init = M.init
-
-    local function init(self, ...)
-      if not _init and not parent then
-        error(name .. ": no .init() defined for class")
-      elseif not _init and parent.init then
-        return parent.init(self, ...)
-      else
-        return _init(self, ...)
-      end
-    end
-
-    obj.init = init
-
-    return init(obj, ...)
-  end
-
-  function mod:staticmethod(method)
-    return static and static[method]
-  end
-
-  function mod:isa(tp)
-    local ok = mtget(self, "type") == name
-
-    if not ok then
-      return false
-    elseif isstring(tp) then
-      return name == tp
-    elseif istable(tp) then
-      return childof(self, tp)
-    elseif not tp then
-      return true
-    end
-
-    return false
-  end
-
-  function mod:include(m)
-    for i, x in pairs(m) do
-      mod[i] = x
-    end
-  end
-
-  function mod:super(...)
-    if parent and parent.init then
-      return parent.init(self, ...)
-    end
-  end
-
-  function mod:getsuper()
-    if parent and parent.init then
-      return parent.init
-    end
-  end
-
-  mod.parentof = parentof
-  mod.childof = childof
-  mod.isinstance = isinstance
-  mod.isclassmod = isclassmod
-
-  if global then
-    _G[name] = mod
-  end
-
-  return mod
-end
-
 --- X == nil?
 --- @param x any
 --- @param orelse? any
@@ -1123,4 +900,103 @@ function defined(x, orelse)
   else
     return orelse
   end
+end
+
+function isclass(self)
+  local mt = mtget(self)
+  if mt.type and mt.class then
+    return true
+  end
+
+  return false
+end
+
+function isclassmod(self)
+  return istable(self)
+      and mtget(self, "type") == "classmod"
+      and self
+    or false
+end
+
+function isinstance(self, other)
+  if not istable(self) or not istable(other) then
+    return false
+  elseif isclassmod(other) or isclass(other) then
+    return false
+  elseif isclassmod(self) or isclass(self) then
+    return false
+  else
+    return self.modname() == other.modname()
+  end
+end
+
+function class(name, static)
+  if not isstring(name) then
+    error("expected string, got " .. type(name))
+  end
+
+  local mod = {}
+  local modmt = { type = "classmod", __tostring = dump }
+  local classmt = { type = name, __tostring = dump }
+
+  setmetatable(mod, modmt)
+
+  function modmt:__call(...)
+    local obj = mtset({}, classmt)
+    static = static or {}
+
+    for key, value in pairs(self) do
+      if not static[key] then
+        obj[key] = value
+      end
+    end
+
+    local init = rawget(mod, "init")
+    if init then
+      return init(obj, ...)
+    end
+
+    return obj
+  end
+
+  modmt.__index = modmt
+  classmt.__index = classmt
+
+  function mod.isa(self)
+    if not istable(self) then
+      return false
+    end
+
+    return mtget(self, "type") == name and self or false
+  end
+
+  function mod.assertisa(self)
+    if not mod.isa(self) then
+      error("expected " .. name .. ", got " .. type(self))
+    end
+
+    return self
+  end
+
+  function mod:include(other)
+    if not istable(other) then
+      return
+    end
+
+    for key, value in pairs(other) do
+      self[key] = value
+    end
+
+    return self
+  end
+
+  function mod.classmod()
+    return mod
+  end
+
+  function mod.modname()
+    return name
+  end
+
+  return mod
 end

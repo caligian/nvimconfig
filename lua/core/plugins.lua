@@ -15,18 +15,7 @@ return {
   telescope = {
     "nvim-telescope/telescope.nvim",
     dependencies = {
-      {
-        "nvim-telescope/telescope-project.nvim",
-        config = function()
-          require("telescope").load_extension "project"
-
-          Kbd.map("n", "<leader>p", function()
-            require("telescope").extensions.project.project(
-              require "core.utils.telescope"().theme
-            )
-          end, "Projects")
-        end,
-      },
+      { "nvim-telescope/telescope-project.nvim" },
       "nvim-telescope/telescope-fzy-native.nvim",
       "nvim-telescope/telescope-file-browser.nvim",
     },
@@ -278,7 +267,7 @@ return {
       "lukas-reineke/lsp-format.nvim",
       { "folke/neodev.nvim", opts = {} },
     },
-    event = "BufAdd",
+    event = "InsertEnter",
   },
 
   undotree = {

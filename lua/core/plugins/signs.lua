@@ -1,7 +1,4 @@
-local gs = require "gitsigns"
-local signs = {}
-
-signs.methods = {
+signs = {
   next_hunk = function()
     if vim.wo.diff then
       return "]c"
@@ -30,13 +27,13 @@ signs.mappings = {
   next_hunk = {
     "n",
     "]c",
-    signs.methods.next_hunk,
+    signs.next_hunk,
     { expr = true, desc = "Next hunk" },
   },
   previous_hunk = {
     "n",
     "[c",
-    signs.methods.previous_hunk,
+    signs.previous_hunk,
     { expr = true, desc = "Previous hunk" },
   },
   stage_hunk = {
@@ -54,25 +51,26 @@ signs.mappings = {
   stage_buffer = {
     "n",
     "<leader>gs",
-    gs.stage_buffer,
+    ':Gitsigns stage_buffer<CR>',
     "Stage buffer",
   },
   reset_buffer = {
     "n",
     "<leader>g!",
-    gs.reset_buffer,
+    ':Gitsigns reset_buffer<CR>',
     "Reset buffer",
   },
   undo_staged_hunk = {
     "n",
     "<leader>ghu",
-    gs.undo_stage_hunk,
+    ':Gitsigns undo_stage_hunk<CR>',
     "Undo staged hunk",
   },
   blame_line = {
     "n",
     "<leader>ghb",
     function()
+      local gs = require('gitsigns')
       gs.blame_line { full = true }
     end,
     "Blame line",
@@ -80,19 +78,20 @@ signs.mappings = {
   toggle_current_line_blame = {
     "n",
     "<leader>gtb",
-    gs.toggle_current_line_blame,
+    ':Gitsigns toggle_current_line_blame<CR>',
     "Blame current line",
   },
   diffthis = {
     "n",
     "<leader>ghd",
-    gs.diffthis,
+    ':Gitsigns diffthis<CR>',
     "Diff this",
   },
   diffthis1 = {
     "n",
     "<leader>ghD",
     function()
+      local gs = require('gitsigns')
       gs.diffthis "~"
     end,
     "Diff this (~)",
@@ -100,12 +99,13 @@ signs.mappings = {
   toggled_deleted = {
     "n",
     "<leader>gtd",
-    gs.toggle_deleted,
+    ':Gitsigns toggle_deleted<CR>',
     {},
   },
 }
 
 function signs:setup()
+  local gs = require('gitsigns')
   gs.setup(self.config)
 end
 

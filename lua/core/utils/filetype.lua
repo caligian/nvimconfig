@@ -6,7 +6,14 @@ require "core.utils.kbd"
 require "core.utils.job"
 
 if not Filetype then
-  Filetype = class "Filetype"
+  Filetype = class("Filetype", {
+    main = true,
+    lsp = true,
+    workspace = true,
+    setup_lsp_all = true,
+    list = true,
+  })
+
   user.filetypes = {}
   Filetype.lsp = module()
 end
@@ -326,7 +333,9 @@ function lsp.on_attach(client, bufnr)
       value[4].name = "lsp." .. name
     end
 
-    Kbd.fromdict(mappings)
+    vim.defer_fn(function()
+      Kbd.fromdict(mappings)
+    end, 100)
   end
 end
 
@@ -349,10 +358,6 @@ function lsp.setup_server(server, opts)
   end
 
   require("lspconfig")[server].setup(default_conf)
-end
-
-function Filetype:isa()
-  return typeof(self) == "filetype"
 end
 
 function Filetype:init(name)
@@ -786,8 +791,10 @@ function Filetype:loadfile()
   local config = req2path("core.filetype." .. self.name)
   if config then
     local ok, msg = pcall(loadfile, config)
+
     if ok then
       msg = msg()
+
       if istable(msg) then
         return dict.merge(self, msg)
       else
@@ -902,46 +909,49 @@ function Filetype:setup(should_loadfile)
   end
 
   self:setup_triggers()
-  self:set_mappings()
   self:set_autocmds()
   self:setbo()
   self:setwo()
 
-  self:map("n", "<leader>ct", function()
-    self:action(
-      Buffer.bufnr(),
-      "test",
-      { workspace = true }
-    )
-  end, { desc = "test buffer" })
+  vim.defer_fn(function()
+    self:set_mappings()
 
-  self:map("n", "<leader>ct", function()
-    self:action(Buffer.bufnr(), "test")
-  end, { desc = "test workspace" })
+    self:map("n", "<leader>ct", function()
+      self:action(
+        Buffer.bufnr(),
+        "test",
+        { workspace = true }
+      )
+    end, { desc = "test buffer" })
 
-  self:map("n", "<leader>cb", function()
-    self:action(
-      Buffer.bufnr(),
-      "build",
-      { workspace = true }
-    )
-  end, { desc = "build buffer" })
+    self:map("n", "<leader>ct", function()
+      self:action(Buffer.bufnr(), "test")
+    end, { desc = "test workspace" })
 
-  self:map("n", "<leader>cB", function()
-    self:action(Buffer.bufnr(), "build")
-  end, { desc = "build workspace" })
+    self:map("n", "<leader>cb", function()
+      self:action(
+        Buffer.bufnr(),
+        "build",
+        { workspace = true }
+      )
+    end, { desc = "build buffer" })
 
-  self:map("n", "<leader>cC", function()
-    self:action(
-      Buffer.bufnr(),
-      "compile",
-      { workspace = true }
-    )
-  end, { desc = "compile workspace" })
+    self:map("n", "<leader>cB", function()
+      self:action(Buffer.bufnr(), "build")
+    end, { desc = "build workspace" })
 
-  self:map("n", "<leader>cc", function()
-    self:action(Buffer.bufnr(), "compile")
-  end, { desc = "compile buffer" })
+    self:map("n", "<leader>cC", function()
+      self:action(
+        Buffer.bufnr(),
+        "compile",
+        { workspace = true }
+      )
+    end, { desc = "compile workspace" })
+
+    self:map("n", "<leader>cc", function()
+      self:action(Buffer.bufnr(), "compile")
+    end, { desc = "compile buffer" })
+  end, 100)
 
   return self
 end
@@ -1040,82 +1050,89 @@ end
 function Filetype.main(use_loadfile)
   local configured = Filetype.list()
 
-  list.each(configured, function(x)
-    local obj = Filetype(x)
-    obj:setup(use_loadfile)
-  end)
+  vim.defer_fn(function()
+    list.each(configured, function(x)
+      local obj = Filetype(x)
+      obj:setup(use_loadfile)
+    end)
 
-  Kbd.map("n", "<leader>mb", function()
-    local buf = Buffer.current()
-    Filetype(buf):action(buf, "build", { workspace = true })
-  end, "build workspace")
+    Kbd.map("n", "<leader>mb", function()
+      local buf = Buffer.current()
+      Filetype(buf):action(
+        buf,
+        "build",
+        { workspace = true }
+      )
+    end, "build workspace")
 
-  Kbd.map("n", "<leader>cb", function()
-    local buf = Buffer.current()
-    Filetype(buf):action(buf, "build", { buffer = true })
-  end, "build buffer")
+    Kbd.map("n", "<leader>cb", function()
+      local buf = Buffer.current()
+      Filetype(buf):action(buf, "build", { buffer = true })
+    end, "build buffer")
 
-  Kbd.map("n", "<leader>cB", function()
-    local buf = Buffer.current()
-    Filetype(buf)
-      :require()
-      :action(buf, "build", { dir = true })
-  end, "build dir")
+    Kbd.map("n", "<leader>cB", function()
+      local buf = Buffer.current()
+      Filetype(buf)
+        :require()
+        :action(buf, "build", { dir = true })
+    end, "build dir")
 
-  Kbd.map("n", "<leader>mt", function()
-    local buf = Buffer.current()
-    Filetype(buf)
-      :require()
-      :action(buf, "test", { workspace = true })
-  end, "test workspace")
+    Kbd.map("n", "<leader>mt", function()
+      local buf = Buffer.current()
+      Filetype(buf)
+        :require()
+        :action(buf, "test", { workspace = true })
+    end, "test workspace")
 
-  Kbd.map("n", "<leader>ct", function()
-    local buf = Buffer.current()
-    Filetype(buf)
-      :require()
-      :action(buf, "test", { buffer = true })
-  end, "test buffer")
+    Kbd.map("n", "<leader>ct", function()
+      local buf = Buffer.current()
+      Filetype(buf)
+        :require()
+        :action(buf, "test", { buffer = true })
+    end, "test buffer")
 
-  Kbd.map("n", "<leader>cT", function()
-    local buf = Buffer.current()
-    Filetype(buf)
-      :require()
-      :action(buf, "test", { dir = true })
-  end, "test dir")
+    Kbd.map("n", "<leader>cT", function()
+      local buf = Buffer.current()
+      Filetype(buf)
+        :require()
+        :action(buf, "test", { dir = true })
+    end, "test dir")
 
-  Kbd.map("n", "<leader>mc", function()
-    local buf = Buffer.current()
-    Filetype(buf)
-      :require()
-      :action(buf, "compile", { workspace = true })
-  end, "compile workspace")
+    Kbd.map("n", "<leader>mc", function()
+      local buf = Buffer.current()
+      Filetype(buf)
+        :require()
+        :action(buf, "compile", { workspace = true })
+    end, "compile workspace")
 
-  Kbd.map("n", "<leader>cc", function()
-    local buf = Buffer.current()
-    Filetype(buf)
-      :require()
-      :action(buf, "compile", { buffer = true })
-  end, "compile buffer")
+    Kbd.map("n", "<leader>cc", function()
+      local buf = Buffer.current()
+      Filetype(buf)
+        :require()
+        :action(buf, "compile", { buffer = true })
+    end, "compile buffer")
 
-  Kbd.map("n", "<leader>cC", function()
-    local buf = Buffer.current()
-    Filetype(buf)
-      :require()
-      :action(buf, "compile", { dir = true })
-  end, "compile dir")
+    Kbd.map("n", "<leader>cC", function()
+      local buf = Buffer.current()
+      Filetype(buf)
+        :require()
+        :action(buf, "compile", { dir = true })
+    end, "compile dir")
 
-  Kbd.map("n", "<leader>mf", function()
-    local buf = Buffer.current()
-    Filetype(buf):format_workspace(buf)
-  end, "format workspace")
+    Kbd.map("n", "<leader>mf", function()
+      local buf = Buffer.current()
+      Filetype(buf):format_workspace(buf)
+    end, "format workspace")
 
-  Kbd.map("n", "<leader>bf", function()
-    local buf = Buffer.current()
-    Filetype(buf):format(buf, { buffer = true })
-  end, "format buffer")
+    Kbd.map("n", "<leader>bf", function()
+      local buf = Buffer.current()
+      Filetype(buf):format(buf, { buffer = true })
+    end, "format buffer")
 
-  Kbd.map("n", "<leader>bF", function()
-    local buf = Buffer.current()
-    Filetype(buf):format_dir(buf)
-  end, "format dir")
+    Kbd.map("n", "<leader>bF", function()
+      local buf = Buffer.current()
+      Filetype(buf):format_dir(buf)
+    end, "format dir")
+  end, 50)
 end
+

@@ -175,6 +175,17 @@ M.mappings = {
     O { desc = "Git status" },
   },
 
+  projects = {
+    "n",
+    "<leader>p",
+    function()
+      require("telescope").extensions.project.project(
+        require "core.utils.telescope"().theme
+      )
+    end,
+    { desc = "Projects" },
+  },
+
   command_history = {
     "n",
     "h;",
@@ -237,7 +248,6 @@ M.config.pickers = {
   find_files = {
     mappings = {
       n = {
-        n = find_files_actions.touch_and_open,
         ["%"] = find_files_actions.touch,
         x = find_files_actions.delete,
       },
@@ -253,6 +263,7 @@ function M:setup()
   local ts = require "telescope"
   ts.setup(M.config)
   ts.load_extension "file_browser"
+  ts.load_extension "project"
 end
 
 return M

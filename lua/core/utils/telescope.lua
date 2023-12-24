@@ -1,15 +1,16 @@
-local T = module()
+local T = {}
 
 function T:__call()
-  return dict.merge(self, {
-    exists = require "telescope",
-    pickers = require "telescope.pickers",
-    actions = require "telescope.actions",
-    action_state = require "telescope.actions.state",
-    sorters = require "telescope.sorters",
-    finders = require "telescope.finders",
-    conf = require("telescope.config").values,
-    theme = dict.merge(
+  if not self.exists then
+    dict.merge(self, {
+      exists = require "telescope",
+      pickers = require "telescope.pickers",
+      actions = require "telescope.actions",
+      action_state = require "telescope.actions.state",
+      sorters = require "telescope.sorters",
+      finders = require "telescope.finders",
+      conf = require("telescope.config").values,
+      theme = dict.merge(
       require("telescope.themes").get_dropdown(),
       {
         disable_devicons = true,
@@ -20,8 +21,11 @@ function T:__call()
           width = 0.9,
         },
       }
-    ),
-  })
+      ),
+    })
+  end
+
+  return self
 end
 
 function T:create_picker(items, mappings, opts)

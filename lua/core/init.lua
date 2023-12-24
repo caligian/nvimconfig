@@ -6,12 +6,13 @@ Filetype.main()
 Bookmark.main()
 REPL.main()
 BufferGroup.main()
-Kbd.main()
+
+vim.defer_fn(function ()
+  Kbd.main()
+end, 200)
+
 Autocmd.main()
 Plugin.main()
-
-user.plugins.colorscheme:setup()
-user.plugins.statusline:setup()
 
 vim.api.nvim_create_user_command(
   "ReloadStatusline",
@@ -29,23 +30,24 @@ vim.api.nvim_create_user_command(
   {}
 )
 
-Kbd.map(
+vim.defer_fn(function ()
+  Kbd.map(
   "n",
   "<leader>hC",
   ":ReloadColorscheme<CR>",
   "reload colorscheme"
-)
+  )
 
-Kbd.map(
+  Kbd.map(
   "n",
   "<leader>h=",
   ":ReloadStatusline<CR>",
   "reload statusline"
-)
+  )
+
+  require "core.defaults.commands"
+end, 100)
 
 if vim.fn.has "gui" then
   require("core.utils.font").main()
 end
-
-require "core.defaults.commands"
-
