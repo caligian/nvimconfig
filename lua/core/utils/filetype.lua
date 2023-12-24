@@ -753,7 +753,7 @@ function Filetype:format(bufnr, opts)
       end
 
       if view then
-        Win.restview(view)
+        Win.restview(winid, view)
       end
     end,
   })

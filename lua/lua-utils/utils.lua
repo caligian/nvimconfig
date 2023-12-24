@@ -541,6 +541,104 @@ function ismodule(x)
   return true
 end
 
+function isinstance(x, name)
+  local mt = mtget(x)
+
+  if not mt then
+    return false,
+      "expected table with metatable, got " .. dump(x)
+  end
+
+  if not mt.type and not mt.class then
+    return false, "expected class instance, got " .. dump(x)
+  elseif name then
+    if mt.type ~= name then
+      return false,
+        "expected class instance of type "
+          .. name
+          .. ", got "
+          .. dump(x)
+    end
+  end
+
+  return true
+end
+
+function isclassmod(x, name)
+  local mt = mtget(x)
+
+  if not mt then
+    return false,
+      "expected table with metatable, got " .. dump(x)
+  end
+
+  if mt.type ~= "classmodule" then
+    return false, "expected classmod, got " .. dump(x)
+  elseif name then
+    if x:modulename() ~= name then
+      return false,
+        "expected classmodule of type "
+          .. name
+          .. ", got "
+          .. dump(x)
+    end
+  end
+
+  return true
+end
+
+function childof(child, parent)
+  if not isinstance(child) and not isclassmod(child) then
+    return false
+  elseif
+    not isinstance(parent) and not isclassmod(parent)
+  then
+    return false
+  elseif isinstance(parent) then
+    parent = parent:classmod()
+  end
+
+  if isinstance(child) then
+    child = child:classmod()
+  end
+
+  local given_parent = mtget(child, "parent")
+  if not given_parent then
+    return false
+  elseif given_parent == parent then
+    return true
+  end
+
+  return childof(child:parentmod(), parent)
+end
+
+function parentof(parent, child)
+  if not isinstance(child) and not isclassmod(child) then
+    return false
+  elseif
+    not isinstance(parent) and not isclassmod(parent)
+  then
+    return false
+  elseif isinstance(parent) then
+    parent = parent:classmod()
+  end
+
+  if isinstance(child) then
+    child = child:classmod()
+  end
+
+  local given_parent = mtget(child, "parent")
+  if not given_parent then
+    return false
+  elseif given_parent == parent then
+    return true
+  else
+    return parentof(parent, given_parent)
+  end
+end
+
+instanceof = childof
+
 local function _istype(x, tp)
   local gotten = gettype(x)
 
@@ -864,24 +962,147 @@ end
 --- @param name string
 --- @see module
 --- @return table
-function class(name)
-  local mod = module()
-  local class_mt = mtget(mod)
-  class_mt.type = name
-  class_mt.class = true
+function class(name, opts)
+  assertisa(name, "string")
 
-  function mod:__call(...)
-    local obj = mtset(copy(mod), class_mt)
-    assert(
-      mod.init,
-      name .. ": no .init() defined for class"
-    )
+  local classmt = {}
+  classmt.type = name
+  classmt.class = true
+  opts = opts or {}
+  local include = opts.include or {}
+  local parent = opts.parent
+  local static = opts.static or {}
+  local global = opts.global or opts.G
+  static = dict.fromkeys(static)
+  static.moduleof = true
+  classmt.static = static
 
-    return mod.init(obj, ...)
+  if parent then
+    assertisa(parent, union(isclassmod, isinstance))
+    classmt.parent = isinstance(parent)
+        and parent:classmod()
+      or parent
   end
 
-  function mod:isa()
-    return class_mt.type == mtget(self, "type")
+  local modmt = { type = "classmodule", parent = parent }
+
+  function modmt:__index(key)
+    if mtkeys[key] then
+      return modmt[key]
+    elseif parent then
+      return parent[key]
+    end
+  end
+
+  function modmt:__newindex(key, value)
+    if mtkeys[key] then
+      modmt[key] = value
+    elseif key:match "^static_" then
+      assertisa(value, "callable")
+
+      key = key:gsub("^static_", "")
+      classmt.static = classmt.static or {}
+      classmt.static[key] = true
+      rawset(self, key, value)
+    else
+      rawset(self, key, value)
+    end
+  end
+
+  classmt.__index = modmt.__index
+
+  local mod = setmetatable({}, modmt)
+
+  function mod:modulename()
+    return name
+  end
+
+  function mod:moduleof(obj)
+    if not isinstance(obj) and not isclassmod(obj) then
+      return false
+    end
+
+    return obj:modulename() == name
+  end
+
+  function mod:parentmod()
+    return parent
+  end
+
+  function mod:classmod()
+    if isinstance(self) then
+      return mod
+    end
+
+    return self
+  end
+
+  function mod:__call(...)
+    local M = dict.filter(mod, function(key, _)
+      return not static[key]
+    end)
+
+    local obj = mtset(M, classmt)
+    local _init = M.init
+
+    local function init(self, ...)
+      if not _init and not parent then
+        error(name .. ": no .init() defined for class")
+      elseif not _init and parent.init then
+        return parent.init(self, ...)
+      else
+        return _init(self, ...)
+      end
+    end
+
+    obj.init = init
+
+    return init(obj, ...)
+  end
+
+  function mod:staticmethod(method)
+    return static and static[method]
+  end
+
+  function mod:isa(tp)
+    local ok = mtget(self, "type") == name
+
+    if not ok then
+      return false
+    elseif isstring(tp) then
+      return name == tp
+    elseif istable(tp) then
+      return childof(self, tp)
+    elseif not tp then
+      return true
+    end
+
+    return false
+  end
+
+  function mod:include(m)
+    return dict.merge(mod, m)
+  end
+
+  function mod:super(...)
+    if parent and parent.init then
+      return parent.init(self, ...)
+    end
+  end
+
+  function mod:getsuper()
+    if parent and parent.init then
+      return parent.init
+    end
+  end
+
+  mod.parentof = parentof
+  mod.childof = childof
+  mod.isinstance = isinstance
+  mod.isclassmod = isclassmod
+
+  if global then
+    _G[name] = mod
   end
 
   return mod

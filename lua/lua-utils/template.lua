@@ -58,21 +58,15 @@ local function subx(x, repl, opts)
     end
   end
 
-  x = x:gsub('%{%{([^}]*)%}%}', '{%1}')
-
-  if size(msg) > 0 and not ignore then
-    return nil, msg
-  end
-
-  return x
+  x = x:gsub("%{%{([^}]*)%}%}", "{%1}")
+  return x, msg
 end
 
 --- Return a template function.
 --- @param x string
---- @return (fun(vars:dict|list[]): string?, string[]?) result failure without `ignore = true` in vars will `return nil, string[]`
+--- @return (fun(vars:dict|list[], opts?: dict): string?, string[]?) result failure without `ignore = true` in vars will `return nil, string[]`
 function template(x)
-  return function (vars, opts)
-    pp(vars)
+  return function(vars, opts)
     return subx(x, vars, opts)
   end
 end
@@ -93,3 +87,4 @@ function istemplate(var)
 
   return (not close1 or not open1)
 end
+
