@@ -27,7 +27,7 @@ return {
   },
 
   compile = {
-    buffer = "luajit {path}",
+    buffer = "lua {path}",
     workspace = function(ws)
       local kids =
         split(vim.fn.glob(ws .. "/*.rockspec"), "\n")
@@ -38,9 +38,9 @@ return {
   },
 
   repl = {
-    buffer = "luajit",
-    workspace = "luajit",
-    dir = "luajit",
+    buffer = "lua",
+    workspace = "lua",
+    dir = "lua",
   },
 
   server = {
