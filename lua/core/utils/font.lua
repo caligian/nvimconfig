@@ -2,7 +2,17 @@ require "core.utils.kbd"
 
 local nvimexec = vim.api.nvim_exec2
 local sys = vim.fn.systemlist
-local Font = class "Font"
+local Font = class(
+  "Font",
+  {
+    list = true,
+    main = true,
+    telescope_list = true,
+    create_picker = true,
+    run_picker = true,
+    current = true,
+  }
+)
 
 function Font.list(pat)
   local out = sys "fc-list : family"
@@ -33,11 +43,10 @@ function Font:__tostring()
 end
 
 function Font:set()
-  vim.o.guiFont = tostring(self)
-  return self
+  vim.o.guifont = tostring(self)
 end
 
-function Font:isvalid()
+function Font:is_valid()
   local Fonts = Font.listall()
 
   for i = 1, #Fonts do
@@ -50,7 +59,7 @@ function Font:isvalid()
 end
 
 function Font.current()
-  local res = nvimexec("set guiFont?", { output = true })
+  local res = nvimexec("set guifont?", { output = true })
   res = res.output
   res = split(res, "=")[2]:match " *([^$]+)"
 
@@ -72,10 +81,7 @@ function Font:decheight(by)
   return self:incheight(-(by or 1))
 end
 
-Font.telescope = {}
-local tFont = Font.telescope
-
-function tFont.list()
+function Font.telescope_list()
   return {
     results = Font.list(),
     entry_maker = function(x)
@@ -88,9 +94,10 @@ function tFont.list()
   }
 end
 
-function tFont.create_picker()
+function Font.create_picker()
   local _ = require "core.utils.telescope"()
-  return _:create_picker(tFont.list(), function(sel)
+
+  return _:create_picker(Font.telescope_list(), function(sel)
     sel = sel[1]
     local selFont = sel.value
     local height_picker = _:create_picker({
@@ -114,28 +121,34 @@ function tFont.create_picker()
   })
 end
 
-function tFont.run_picker()
-  tFont.create_picker():find()
+function Font.run_picker()
+  Font.create_picker():find()
 end
 
 function Font.main()
-  local cur = user.Font or { "Liberation Mono", "12.5" }
-  cur = Font(unpack(cur)):set()
+  local cur = user.font or { "Liberation Mono", "12.5" }
+  cur = Font(unpack(cur))
+  user.currentfont = cur
 
-  Kbd.map(
-    "n",
-    "<leader>hf",
-    tFont.run_picker,
-    "Fonts picker"
-  )
+  cur:set()
 
-  Kbd.map("n", "<localleader>+", function()
-    Font.current():incheight()
-  end, "inc Font size")
+  vim.defer_fn(function()
+    Kbd.map(
+      "n",
+      "<leader>hf",
+      Font.run_picker,
+      "pick fonts"
+    )
 
-  Kbd.map("n", "<localleader>-", function()
-    Font.current():decheight()
-  end, "dec Font size")
+    Kbd.map("n", "<localleader>+", function()
+      Font.current():incheight()
+    end, "inc font size")
+
+    Kbd.map("n", "<localleader>-", function()
+      Font.current():decheight()
+    end, "dec font size")
+  end, 100)
 end
 
 return Font
+

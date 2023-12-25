@@ -1,4 +1,4 @@
-local T = {}
+local T = module()
 
 function T:__call()
   if not self.exists then

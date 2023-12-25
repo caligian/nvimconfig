@@ -959,6 +959,15 @@ function class(name, static)
     return obj
   end
 
+  function modmt:__newindex(key, value)
+    if mtkeys[key] then
+      modmt[key] = value
+      classmt[key] = value
+    else
+      rawset(self, key, value)
+    end
+  end
+
   modmt.__index = modmt
   classmt.__index = classmt
 
