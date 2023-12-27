@@ -7,7 +7,7 @@ local formatter_cmd = formatter_path
     "--call-parentheses None",
     "--collapse-simple-statement Never",
     "--line-endings Unix",
-    "--column-width 60",
+    "--column-width 120",
     "--quote-style AutoPreferDouble",
     "--indent-type Spaces",
     "--indent-width 2",
