@@ -1,4 +1,4 @@
-require 'lua-utils.utils'
+require "lua-utils.utils"
 
 local lpeg = require "lpeg"
 local P = lpeg.P
@@ -50,18 +50,22 @@ local function gmatch(s, repl, crash)
   repl = sub_table(repl or {}, crash)
   local open = P "{" - P "{{"
   local close = P "}" - P "}}"
+
   local placeholder = (
     open
     * Cs((lpeg.alnum + S "_-/") ^ 1)
     * close
   ) / repl
-  local before = C(1 - placeholder) ^ 0
+
+  local before = C((1 - placeholder) ^ 0)
+  local extra = C(1 - (before * placeholder))
   local pat = Ct(
     before
       * placeholder
-      * (before * placeholder) ^ 0
+      * (before * placeholder + extra) ^ 0
       * P "\n" ^ 0
   )
+
   local var = pat:match(s)
 
   if var then
@@ -71,7 +75,7 @@ local function gmatch(s, repl, crash)
         (current == "{" and next == "{")
         or (current == "}" and next == "}")
       then
-        var[i + 1] = ""
+        var[i] = ""
       end
     end
 
@@ -93,3 +97,8 @@ function F(x, vars)
 
   return use(vars)
 end
+
+pp(
+  F "1 2 3 {path} {path} {{path}} {{path}}" { path = "PATH" }
+)
+
