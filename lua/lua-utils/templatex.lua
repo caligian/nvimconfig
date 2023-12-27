@@ -71,7 +71,6 @@ local function gmatch(s, repl, crash)
         (current == "{" and next == "{")
         or (current == "}" and next == "}")
       then
-        var[i] = ""
         var[i + 1] = ""
       end
     end
