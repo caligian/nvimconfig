@@ -1,4 +1,4 @@
-user.colorscheme = "github_light"
+user.colorscheme = "material"
 
 user.font = { "Ubuntu Mono", "11" }
 

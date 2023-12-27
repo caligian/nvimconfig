@@ -1,7 +1,8 @@
-require 'lua-utils'
+require 'lua-utils.utils'
 
 local lpeg = require "lpeg"
 local P = lpeg.P
+local Cg = lpeg.Cg
 local S = lpeg.S
 local R = lpeg.R
 local C = lpeg.C
@@ -24,7 +25,8 @@ echo {{1}} -- will print echo {1}
 
 --]]
 
-local a = [[echo {helloworldmotherfucker} {2};{2};{3} {4} {5} {{5}} {6} {7}
+local a =
+  [[{helloworldmotherfucker} {2};{2};{3} {4} {5} {{5}} {6} {7}
 {8}
 {9} {10} {11} {23}
 {{24}} {99}
@@ -32,17 +34,63 @@ local a = [[echo {helloworldmotherfucker} {2};{2};{3} {4} {5} {{5}} {6} {7}
 {2} ajsdlf;skdjf {adjadkf}
 ]]
 
-local function gmatch(s, init, repl)
-  repl = repl or {}
-  local open = P"{" - P "{{"
-  local close = P"}" - P "}}"
-  local placeholder = open * C(lpeg.alnum ^ 1) * close
-  local before = P(1 - placeholder) ^ 0
-  local pat = before * placeholder
-  local pat = Ct(before * placeholder * (before * placeholder) ^ 0 * P"\n" ^ 0)
-  local var = pat:match(s)
+local function sub_table(repl, crash)
+  return setmetatable(repl, {
+    __index = function(_, key)
+      if crash then
+        error("undefined placeholder: " .. key)
+      end
 
-  return var
+      return key
+    end,
+  })
 end
 
-pp(gmatch(a, 1))
+local function gmatch(s, repl, crash)
+  repl = sub_table(repl or {}, crash)
+  local open = P "{" - P "{{"
+  local close = P "}" - P "}}"
+  local placeholder = (
+    open
+    * Cs((lpeg.alnum + S "_-/") ^ 1)
+    * close
+  ) / repl
+  local before = C(1 - placeholder) ^ 0
+  local pat = Ct(
+    before
+      * placeholder
+      * (before * placeholder) ^ 0
+      * P "\n" ^ 0
+  )
+  local var = pat:match(s)
+
+  if var then
+    for i = 1, #var - 1 do
+      local current, next = var[i], var[i + 1]
+      if
+        (current == "{" and next == "{")
+        or (current == "}" and next == "}")
+      then
+        var[i] = ""
+        var[i + 1] = ""
+      end
+    end
+
+    return join(var, "")
+  else
+    return s
+  end
+end
+
+function F(x, vars)
+  local function use(_vars)
+    local crash = _vars.__assert
+    return gmatch(x, _vars, crash)
+  end
+
+  if not vars then
+    return use
+  end
+
+  return use(vars)
+end

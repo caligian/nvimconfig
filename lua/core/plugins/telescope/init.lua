@@ -258,7 +258,7 @@ M.config.pickers = {
 function M:setup()
   local ivy = getivy()
 
-  vim.defer_fn(function ()
+  vim.defer_fn(function()
     local ts = require "telescope"
     ts.setup(M.config)
     ts.load_extension "file_browser"
@@ -267,3 +267,4 @@ function M:setup()
 end
 
 return M
+
