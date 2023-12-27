@@ -150,7 +150,7 @@ function parse.parse(match, repl)
   end
 end
 
-local function gmatch(s, repl, crash)
+local function gmatch(s, repl)
   repl = repl or {}
   local open = P "{" - P "{{"
   local close = P "}" - P "}}"
@@ -178,11 +178,9 @@ local function gmatch(s, repl, crash)
   end
 end
 
-function F(x, opts, vars)
+function F(x, vars)
   local function use(_vars)
-    opts = opts or {}
-    local _assert = defined(opts.assert, true)
-    return gmatch(x, _vars, _assert)
+    return gmatch(x, _vars)
   end
 
   if not vars then
