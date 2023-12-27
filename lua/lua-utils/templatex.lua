@@ -192,6 +192,6 @@ function F(x, opts, vars)
   return use(vars)
 end
 
-local s = F "{a?b} {2} {3} {4/9}"
-pp(s { za = 1, b = 2, bcd = 10000, ['2'] = 'hello', ['3'] = 'world', ['4'] = '/'  })
+-- local s = F "{a?b} {2} {3} {4/9}"
+-- pp(s { za = 1, b = 2, bcd = 10000, ['2'] = 'hello', ['3'] = 'world', ['4'] = '/'  })
 
