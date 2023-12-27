@@ -71,7 +71,7 @@ end
 
 function F(x, vars)
   local function use(_vars)
-    local crash = _vars.__assert
+    local crash = defined( _vars.__assert, true)
     return gmatch(x, _vars, crash)
   end
 
