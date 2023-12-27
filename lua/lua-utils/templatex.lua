@@ -25,8 +25,7 @@ echo {{1}} -- will print echo {1}
 
 --]]
 
-local a =
-  [[{helloworldmotherfucker} {2};{2};{3} {4} {5} {{5}} {6} {7}
+local a = [[{helloworldmotherfucker} {2};{2};{3} {4} {5} {{5}} {6} {7}
 {8}
 {9} {10} {11} {23}
 {{24}} {99}
@@ -50,31 +49,16 @@ local function gmatch(s, repl, crash)
   repl = sub_table(repl or {}, crash)
   local open = P "{" - P "{{"
   local close = P "}" - P "}}"
-
-  local placeholder = (
-    open
-    * Cs((lpeg.alnum + S "_-/") ^ 1)
-    * close
-  ) / repl
-
-  local before = C((1 - placeholder) ^ 0)
+  local placeholder = (open * Cs((lpeg.alnum + S "_-/") ^ 1) * close) / repl
+  local before = C(1 - placeholder)
   local extra = C(1 - (before * placeholder))
-  local pat = Ct(
-    before
-      * placeholder
-      * (before * placeholder + extra) ^ 0
-      * P "\n" ^ 0
-  )
-
+  local pat = Ct((before * placeholder + extra) ^ 0 * P "\n" ^ 0)
   local var = pat:match(s)
 
   if var then
     for i = 1, #var - 1 do
       local current, next = var[i], var[i + 1]
-      if
-        (current == "{" and next == "{")
-        or (current == "}" and next == "}")
-      then
+      if (current == "{" and next == "{") or (current == "}" and next == "}") then
         var[i] = ""
       end
     end
@@ -97,8 +81,3 @@ function F(x, vars)
 
   return use(vars)
 end
-
-pp(
-  F "1 2 3 {path} {path} {{path}} {{path}}" { path = "PATH" }
-)
-
