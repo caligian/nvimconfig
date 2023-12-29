@@ -13,7 +13,7 @@ function REPL.exists(self, tp)
     return user.repls[self.name]
   elseif isnumber(self) then
     if tp == "dir" then
-      return user.repls[path.dirname(Buffer.name(self))]
+      return user.repls[Path.dirname(Buffer.name(self))]
     elseif tp == "workspace" then
       return user.repls[Filetype.workspace(self)]
     else

@@ -60,8 +60,8 @@ function loadfilex(s)
 
   local function _loadfile(p)
     local loaded
-    if path.isdir(p) then
-      loaded = loadfile(path.join(p, "init.lua"))
+    if Path.isdir(p) then
+      loaded = loadfile(Path.join(p, "init.lua"))
     else
       p = p .. ".lua"
       loaded = loadfile(p)
@@ -72,11 +72,11 @@ function loadfilex(s)
 
   if s[1] == "user" then
     return _loadfile(
-      path.join(os.getenv "HOME", ".nvim", unpack(s))
+      Path.join(os.getenv "HOME", ".nvim", unpack(s))
     )
   elseif s[1] then
     return _loadfile(
-      path.join(vim.fn.stdpath "config", "lua", unpack(s))
+      Path.join(vim.fn.stdpath "config", "lua", unpack(s))
     )
   end
 end
@@ -175,13 +175,13 @@ function req2path(s, isfile)
   local test
 
   if p[1]:match "user" then
-    test = path.join(user.paths.user, "lua", unpack(p))
+    test = Path.join(user.paths.user, "lua", unpack(p))
   else
-    test = path.join(user.paths.config, "lua", unpack(p))
+    test = Path.join(user.paths.config, "lua", unpack(p))
   end
 
-  local isdir = path.exists(test)
-  isfile = path.exists(test .. ".lua")
+  local isdir = Path.exists(test)
+  isfile = Path.exists(test .. ".lua")
 
   if isfile and isfile then
     return test .. ".lua", "file"
@@ -213,7 +213,7 @@ function requirem(s)
     return
   elseif
     builtin_tp == "dir"
-    and path.exists(builtin .. "/init.lua")
+    and Path.exists(builtin .. "/init.lua")
   then
     builtin = requirex(s)
   elseif builtin_tp then
@@ -222,7 +222,7 @@ function requirem(s)
 
   if
     user_tp == "dir"
-    and path.exists(path.join(_user, "init.lua"))
+    and Path.exists(Path.join(_user, "init.lua"))
   then
     _user = requirex(s)
   else

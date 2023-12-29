@@ -2,8 +2,8 @@ local elixir = {}
 
 local function isproject(current_dir)
   local prev_dir = vim.fn.fnamemodify(current_dir, ":h")
-  local ls = dir.getallfiles(prev_dir)
-  local check = path.join(prev_dir, "mix.exs")
+  local ls = Path.ls(prev_dir)
+  local check = Path.join(prev_dir, "mix.exs")
 
   for i = 1, #ls do
     if string.match(ls[i], check) then
@@ -37,7 +37,7 @@ elixir.server = {
   "elixirls",
   config = {
     cmd = {
-      path.join(
+      Path.join(
         user.paths.data,
         "lsp-servers",
         "elixir-ls",

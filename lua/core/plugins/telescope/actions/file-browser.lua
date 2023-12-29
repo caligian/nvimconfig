@@ -29,7 +29,7 @@ function mod.touch(bufnr)
     return
   end
   local isdir = fname:match "/$"
-  fname = path.join(cwd, fname)
+  fname = Path.join(cwd, fname)
 
   if isdir then
     print("Creating directory", fname)

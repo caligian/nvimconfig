@@ -2,7 +2,7 @@ local mysql = {}
 mysql.repl = "mysql"
 mysql.server = "sqlls"
 mysql.formatter = {
-  buffer = path.join(
+  buffer = Path.join(
     os.getenv "HOME",
     "node_modules",
     ".bin",

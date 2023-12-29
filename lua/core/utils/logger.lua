@@ -1,6 +1,6 @@
 require "logging.file"
 
-local log_path = path.join(
+local log_path = Path.join(
   os.getenv "HOME",
   ".local",
   "share",

@@ -63,7 +63,7 @@ end
 
 function Job.init(self, cmd, opts)
   opts = deepcopy(opts or {})
-  local cwd = opts.cwd or path.dirname(buffer.name())
+  local cwd = opts.cwd or Path.dirname(buffer.name())
   opts.cwd = nil
   self.cmd = cmd
   self.cwd = cwd

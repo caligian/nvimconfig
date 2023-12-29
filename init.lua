@@ -51,8 +51,8 @@ vim.api.nvim_create_autocmd("BufEnter", {
 -- Bootstrap with requisite rocks and lazy.nvim
 require "bootstrap"
 
-if path.exists(user.paths.logs) then
-  file.delete(user.paths.logs)
+if Path.exists(user.paths.logs) then
+  Path.delete(user.paths.logs)
 end
 
 local winapi = {}

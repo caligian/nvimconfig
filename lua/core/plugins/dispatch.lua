@@ -46,7 +46,7 @@ dispatch.methods = {}
 --         return
 --     end
 
---     local base = path.dirname(buffer.name(bufnr))
+--     local base = Path.dirname(buffer.name(bufnr))
 --     local currentdir = path.currentdir()
 
 --     vim.cmd(":chdir " .. base)

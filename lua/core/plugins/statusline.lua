@@ -187,7 +187,7 @@ function statusline:setup_evil()
 
   ins_left {
     function()
-      return "{x: %l/%L, y: %c}"
+      return "x: %l/%L, y: %c"
     end,
   }
 

@@ -70,11 +70,10 @@ lsp.diagnostic = {
   update_in_insert = false,
 }
 
-vim.lsp.handlers["textDocument/hover"] =
-  vim.lsp.with(vim.lsp.handlers.hover, {
-    border = "single",
-    title = "hover",
-  })
+vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
+  border = "single",
+  title = "hover",
+})
 
 vim.diagnostic.config(lsp.diagnostic)
 
@@ -83,10 +82,7 @@ lsp.mappings = lsp.mappings
     float_diagnostic = {
       "n",
       "<leader>li",
-      partial(
-        vim.diagnostic.open_float,
-        { scope = "l", focus = false }
-      ),
+      partial(vim.diagnostic.open_float, { scope = "l", focus = false }),
       {
         desc = "LSP diagnostic float",
         noremap = true,
@@ -176,9 +172,7 @@ lsp.mappings = lsp.mappings
       "n",
       "<leader>lwl",
       function()
-        print(
-          vim.inspect(vim.lsp.buf.list_workspace_folders())
-        )
+        print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
       end,
       {
         desc = "List workspace folders",
@@ -314,11 +308,7 @@ function lsp.on_attach(client, bufnr)
   if client.name == "omnisharp" then
     lsp.fix_omnisharp(client)
   else
-    Buffer.set_option(
-      bufnr,
-      "omnifunc",
-      "v:lua.vim.lsp.omnifunc"
-    )
+    Buffer.set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 
     local ft = vim.bo.filetype
     local has_formatter = Filetype(ft)
@@ -341,8 +331,7 @@ end
 
 function lsp.setup_server(server, opts)
   opts = opts or {}
-  local capabilities = opts.capabilities
-    or require("cmp_nvim_lsp").default_capabilities()
+  local capabilities = opts.capabilities or require("cmp_nvim_lsp").default_capabilities()
   local on_attach = opts.on_attach or lsp.on_attach
   local flags = opts.flags
   local default_conf = {
@@ -427,9 +416,7 @@ end
 function Filetype:vimcommand(name, callback, opts)
   opts = opts or {}
   local createcmd = vim.api.nvim_buf_create_user_command
-  name = "Filetype"
-    .. capitalize(self.name)
-    .. capitalize(name)
+  name = "Filetype" .. capitalize(self.name) .. capitalize(name)
 
   return self:autocmd(function(bufopts)
     createcmd(bufopts.buf, name, callback, opts)
@@ -451,12 +438,7 @@ function Filetype:setup_lsp(specs)
   return self
 end
 
-local function find_workspace(
-  start_dir,
-  pats,
-  maxdepth,
-  _depth
-)
+local function find_workspace(start_dir, pats, maxdepth, _depth)
   maxdepth = maxdepth or 5
   _depth = _depth or 0
   pats = tolist(pats or "%.git$")
@@ -465,12 +447,12 @@ local function find_workspace(
     return false
   end
 
-  if not path.isdir(start_dir) then
+  if not Path.isdir(start_dir) then
     return false
   end
 
-  local parent = path.dirname(start_dir)
-  local children = dir.getfiles(start_dir)
+  local parent = Path.dirname(start_dir)
+  local children = Path.getfiles(start_dir)
 
   for i = 1, #pats do
     local pat = pats[i]
@@ -505,16 +487,14 @@ function Filetype.workspace(bufnr, pats, maxdepth, _depth)
 
   local lspconfig = require "lspconfig"
   ---@diagnostic disable-next-line: param-type-mismatch
-  local server =
-    Filetype.query(Buffer.filetype(bufnr), "server")
+  local server = Filetype.query(Buffer.filetype(bufnr), "server")
 
   local bufname = Buffer.name(bufnr)
 
   if server then
     server = tolist(server)
 
-    local config = isstring(server) and lspconfig[server]
-      or lspconfig[server[1]]
+    local config = isstring(server) and lspconfig[server] or lspconfig[server[1]]
 
     local root_dir_checker = server.get_root_dir
       or config.document_config.default_config.root_dir
@@ -532,8 +512,7 @@ end
 
 function Filetype:command(bufnr, action)
   action = action or "compile"
-  local validactions =
-    { "compile", "build", "test", "repl", "formatter" }
+  local validactions = { "compile", "build", "test", "repl", "formatter" }
 
   params {
     buffer = { "number", bufnr },
@@ -545,10 +524,7 @@ function Filetype:command(bufnr, action)
     },
   }
 
-  assert(
-    Buffer.exists(bufnr),
-    "invalid buffer: " .. dump(bufnr)
-  )
+  assert(Buffer.exists(bufnr), "invalid buffer: " .. dump(bufnr))
 
   local bufname = Buffer.name(bufnr)
   local compile = self[action]
@@ -567,9 +543,7 @@ function Filetype:command(bufnr, action)
   compile = dict.merge(compile, opts)
 
   local opts = dict.filter(compile, function(key, _)
-    return key ~= "buffer"
-      and key ~= "workspace"
-      and key ~= "dir"
+    return key ~= "buffer" and key ~= "workspace" and key ~= "dir"
   end)
 
   params {
@@ -612,17 +586,15 @@ function Filetype:command(bufnr, action)
 
   local out = {}
   local function withpath(cmd, p)
-    if istemplate(cmd) then
-      local templ = template(cmd)
-      cmd = templ({ path = p }, { ignore = true })
+    if isF(cmd) then
+      cmd = F(cmd, { path = p })
     end
 
     return { cmd, p }
   end
 
   if compile[1] or compile.buffer then
-    local cmd, _opts =
-      dwim(compile[1] or compile.buffer, bufname)
+    local cmd, _opts = dwim(compile[1] or compile.buffer, bufname)
     _opts = _opts or {}
 
     dict.lmerge(_opts, opts)
@@ -633,7 +605,7 @@ function Filetype:command(bufnr, action)
   end
 
   if compile.dir then
-    local d = path.dirname(bufname)
+    local d = Path.dirname(bufname)
     local cmd, _opts = dwim(compile.dir, d)
     _opts = _opts or {}
 
@@ -659,9 +631,7 @@ function Filetype:command(bufnr, action)
   end
 
   if size(out) == 0 then
-    error(
-      self.name .. "." .. action .. ": no commands exist"
-    )
+    error(self.name .. "." .. action .. ": no commands exist")
   end
 
   return out, opts
@@ -703,13 +673,7 @@ function Filetype:format(bufnr, opts)
 
   target = target or bufname
   name = name .. target
-  assert(
-    cmd,
-    "filetype."
-      .. self.name
-      .. ".formatter"
-      .. ": no command exists"
-  )
+  assert(cmd, "filetype." .. self.name .. ".formatter" .. ": no command exists")
 
   local winnr = Buffer.winnr(bufnr)
   local view = winnr and Win.saveview(winnr)
@@ -717,8 +681,7 @@ function Filetype:format(bufnr, opts)
 
   local proc = Job(cmd, {
     output = true,
-    cwd = (opts.workspace or opts.dir) and target
-      or path.dirname(bufname),
+    cwd = (opts.workspace or opts.dir) and target or Path.dirname(bufname),
     before = function()
       vim.cmd(":w! " .. bufname)
       Buffer.set_option(bufnr, "modifiable", false)
@@ -727,16 +690,13 @@ function Filetype:format(bufnr, opts)
       if x.exit_code ~= 0 then
         Buffer.set_option(bufnr, "modifiable", true)
 
-        local err = #x.errors > 1 and x.errors
-          or #x.lines > 1 and x.lines
+        local err = #x.errors > 1 and x.errors or #x.lines > 1 and x.lines
         if err then
           ---@diagnostic disable-next-line: cast-local-type
           err = join(err, "\n")
           tostderr(err)
         else
-          print(
-            "check source syntax for buffer " .. bufname
-          )
+          print("check source syntax for buffer " .. bufname)
         end
 
         return
@@ -810,8 +770,7 @@ function Filetype:map(mode, ks, callback, opts)
   opts = opts or {}
   opts.event = "FileType"
   opts.pattern = self.name
-  opts.name =
-    defined(opts.name and self.name .. "." .. opts.name)
+  opts.name = defined(opts.name and self.name .. "." .. opts.name)
 
   return Kbd.map(mode, ks, callback, opts)
 end
@@ -820,8 +779,7 @@ function Filetype:autocmd(callback, opts)
   opts = opts or {}
   opts.pattern = self.name
   opts.callback = callback
-  opts.name =
-    defined(opts.name and self.name .. "." .. opts.name)
+  opts.name = defined(opts.name and self.name .. "." .. opts.name)
 
   return Autocmd.map("FileType", opts)
 end
@@ -836,20 +794,13 @@ function Filetype:action(bufnr, action, opts)
   opts = opts or {}
   local ws = opts.workspace
   local isdir = opts.dir
-  local tp = opts.workspace and "workspace"
-    or opts.dir and "dir"
-    or "buffer"
+  local tp = opts.workspace and "workspace" or opts.dir and "dir" or "buffer"
 
   if not config then
     return
   end
 
-  local name = self.name
-    .. "."
-    .. action
-    .. "."
-    .. tp
-    .. "."
+  local name = self.name .. "." .. action .. "." .. tp .. "."
   local cmd = self:command(bufnr, action)
 
   if not cmd then
@@ -858,9 +809,7 @@ function Filetype:action(bufnr, action, opts)
 
   local target
 
-  if
-    (ws and not cmd.workspace) or (isdir and not cmd.dir)
-  then
+  if (ws and not cmd.workspace) or (isdir and not cmd.dir) then
     return
   elseif ws then
     cmd, target = unpack(cmd.workspace)
@@ -917,11 +866,7 @@ function Filetype:setup(should_loadfile)
     self:set_mappings()
 
     self:map("n", "<leader>ct", function()
-      self:action(
-        Buffer.bufnr(),
-        "test",
-        { workspace = true }
-      )
+      self:action(Buffer.bufnr(), "test", { workspace = true })
     end, { desc = "test buffer" })
 
     self:map("n", "<leader>ct", function()
@@ -929,11 +874,7 @@ function Filetype:setup(should_loadfile)
     end, { desc = "test workspace" })
 
     self:map("n", "<leader>cb", function()
-      self:action(
-        Buffer.bufnr(),
-        "build",
-        { workspace = true }
-      )
+      self:action(Buffer.bufnr(), "build", { workspace = true })
     end, { desc = "build buffer" })
 
     self:map("n", "<leader>cB", function()
@@ -941,11 +882,7 @@ function Filetype:setup(should_loadfile)
     end, { desc = "build workspace" })
 
     self:map("n", "<leader>cC", function()
-      self:action(
-        Buffer.bufnr(),
-        "compile",
-        { workspace = true }
-      )
+      self:action(Buffer.bufnr(), "compile", { workspace = true })
     end, { desc = "compile workspace" })
 
     self:map("n", "<leader>cc", function()
@@ -957,23 +894,10 @@ function Filetype:setup(should_loadfile)
 end
 
 function Filetype.list()
-  local builtin_path = path.join(
-    vim.fn.stdpath "config",
-    "lua",
-    "core",
-    "filetype"
-  )
-  local user_path = path.join(
-    os.getenv "HOME",
-    ".nvim",
-    "lua",
-    "user",
-    "filetype"
-  )
-  local builtin = dir.getallfiles(builtin_path)
-  local userconfig = path.isdir(user_path)
-      and dir.getallfiles(user_path)
-    or {}
+  local builtin_path = Path.join(vim.fn.stdpath "config", "lua", "core", "filetype")
+  local user_path = Path.join(os.getenv "HOME", ".nvim", "lua", "user", "filetype")
+  local builtin = Path.ls(builtin_path)
+  local userconfig = Path.isdir(user_path) and Path.ls(user_path) or {}
   builtin = list.filter(builtin, function(x)
     return x:match "%.lua$"
   end)
@@ -981,12 +905,9 @@ function Filetype.list()
     return x:match "%.lua$"
   end)
 
-  return list.map(
-    list.union(builtin, userconfig),
-    function(x)
-      return (path.basename(x):gsub("%.lua$", ""))
-    end
-  )
+  return list.map(list.union(builtin, userconfig), function(x)
+    return (Path.basename(x):gsub("%.lua$", ""))
+  end)
 end
 
 function Filetype.setup_lsp_all()
@@ -1037,8 +958,7 @@ function Filetype:set_mappings()
     end
 
     spec[4] = spec[4] or {}
-    spec[4] = isstring(spec[4]) and { desc = spec[4] }
-      or spec[4]
+    spec[4] = isstring(spec[4]) and { desc = spec[4] } or spec[4]
     spec[4].name = name
 
     dict.merge(spec[4], opts)
@@ -1058,11 +978,7 @@ function Filetype.main(use_loadfile)
 
     Kbd.map("n", "<leader>mb", function()
       local buf = Buffer.current()
-      Filetype(buf):action(
-        buf,
-        "build",
-        { workspace = true }
-      )
+      Filetype(buf):action(buf, "build", { workspace = true })
     end, "build workspace")
 
     Kbd.map("n", "<leader>cb", function()
@@ -1072,51 +988,37 @@ function Filetype.main(use_loadfile)
 
     Kbd.map("n", "<leader>cB", function()
       local buf = Buffer.current()
-      Filetype(buf)
-        :require()
-        :action(buf, "build", { dir = true })
+      Filetype(buf):require():action(buf, "build", { dir = true })
     end, "build dir")
 
     Kbd.map("n", "<leader>mt", function()
       local buf = Buffer.current()
-      Filetype(buf)
-        :require()
-        :action(buf, "test", { workspace = true })
+      Filetype(buf):require():action(buf, "test", { workspace = true })
     end, "test workspace")
 
     Kbd.map("n", "<leader>ct", function()
       local buf = Buffer.current()
-      Filetype(buf)
-        :require()
-        :action(buf, "test", { buffer = true })
+      Filetype(buf):require():action(buf, "test", { buffer = true })
     end, "test buffer")
 
     Kbd.map("n", "<leader>cT", function()
       local buf = Buffer.current()
-      Filetype(buf)
-        :require()
-        :action(buf, "test", { dir = true })
+      Filetype(buf):require():action(buf, "test", { dir = true })
     end, "test dir")
 
     Kbd.map("n", "<leader>mc", function()
       local buf = Buffer.current()
-      Filetype(buf)
-        :require()
-        :action(buf, "compile", { workspace = true })
+      Filetype(buf):require():action(buf, "compile", { workspace = true })
     end, "compile workspace")
 
     Kbd.map("n", "<leader>cc", function()
       local buf = Buffer.current()
-      Filetype(buf)
-        :require()
-        :action(buf, "compile", { buffer = true })
+      Filetype(buf):require():action(buf, "compile", { buffer = true })
     end, "compile buffer")
 
     Kbd.map("n", "<leader>cC", function()
       local buf = Buffer.current()
-      Filetype(buf)
-        :require()
-        :action(buf, "compile", { dir = true })
+      Filetype(buf):require():action(buf, "compile", { dir = true })
     end, "compile dir")
 
     Kbd.map("n", "<leader>mf", function()

@@ -1,6 +1,6 @@
 local package_path = vim.split(package.path, ";")
 local formatter_path =
-  path.join(os.getenv "HOME", ".cargo", "bin", "stylua")
+  Path.join(os.getenv "HOME", ".cargo", "bin", "stylua")
 local formatter_cmd = formatter_path
   .. " "
   .. join({
@@ -47,7 +47,7 @@ return {
     "lua_ls",
     config = {
       cmd = {
-        path.join(
+        Path.join(
           vim.fn.stdpath "data",
           "lsp-servers",
           "lua-language-server",

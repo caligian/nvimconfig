@@ -40,7 +40,7 @@ function Plugin.init(self, name, opts)
 end
 
 function Plugin.list()
-  local p = path.join(
+  local p = Path.join(
     vim.fn.stdpath "config",
     "lua",
     "core",
@@ -49,16 +49,16 @@ function Plugin.list()
 
   local fs = glob(p, "*")
   fs = list.filter(fs, function(x)
-    if path.isdir(x) then
-      local xp = path.join(p, "init.lua")
-      if path.isfile(xp) then
+    if Path.isdir(x) then
+      local xp = Path.join(p, "init.lua")
+      if Path.isfile(xp) then
         return true
       end
-    elseif path.isfile(x) and x:match "%.lua$" then
+    elseif Path.isfile(x) and x:match "%.lua$" then
       return true
     end
   end, function(x)
-    return (path.basename(x):gsub("%.lua", ""))
+    return (Path.basename(x):gsub("%.lua", ""))
   end)
 
   return fs

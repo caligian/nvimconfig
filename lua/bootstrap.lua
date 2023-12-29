@@ -69,9 +69,9 @@ json = {
   decode = vim.fn.json_decode,
 }
 
-dir = require "pl.dir"
-path = require "pl.path"
-file = require "pl.file"
-regex = require "rex_pcre2"
+-- dir = require "pl.dir"
+-- path = require "pl.path"
+-- file = require "pl.file"
+-- regex = require "rex_pcre2"
 
 require "lua-utils"

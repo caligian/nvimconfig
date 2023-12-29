@@ -1,6 +1,6 @@
 user.colorscheme = "material"
 
-user.font = { "Ubuntu Mono", "11" }
+user.font = { "Ubuntu Mono", "13" }
 
 user.temp_buffer_patterns = {
   qflist = { ft = "qf" },

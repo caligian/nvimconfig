@@ -586,7 +586,7 @@ function buffer.read_file(bufnr, fname)
     return
   end
 
-  local s = file.read(fname)
+  local s = Path.read(fname)
   return buffer.set_lines(bufnr, -1, s)
 end
 
@@ -596,7 +596,7 @@ function buffer.insert_file(bufnr, fname)
     return
   end
 
-  local s = file.read(fname)
+  local s = Path.read(fname)
   return buffer.append(bufnr, s)
 end
 

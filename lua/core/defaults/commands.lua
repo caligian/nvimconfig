@@ -15,7 +15,7 @@ end
 -- Open logs
 command("ShowLogs", function()
   local log_path = vim.fn.stdpath "config" .. "/nvim.log"
-  if path.exists(log_path) then
+  if Path.exists(log_path) then
     vim.cmd("tabnew " .. log_path)
     vim.cmd "setlocal readonly"
     vim.cmd "noremap <buffer> q :bwipeout <bar> b#<CR>"

@@ -283,7 +283,7 @@ function Terminal:send(s)
       self.load_from_path(
         "/tmp/nvim_repl_last_input",
         function(fname)
-          file.write(fname, join(s, "\n"))
+          Path.write(fname, join(s, "\n"))
         end
       )
     )

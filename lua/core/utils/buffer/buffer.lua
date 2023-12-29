@@ -632,12 +632,12 @@ function _Buffer.shell(bufnr, command)
 end
 
 function _Buffer.readfile(bufnr, fname)
-  local s = file.read(fname)
+  local s = Path.read(fname)
   return _Buffer.set_lines(bufnr, -1, s)
 end
 
 function _Buffer.insertfile(bufnr, fname)
-  local s = file.read(fname)
+  local s = Path.read(fname)
   return _Buffer.append(bufnr, s)
 end
 

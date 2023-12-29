@@ -15,7 +15,7 @@ cs.server = {
   "omnisharp",
   config = {
     cmd = {
-      path.join(
+      Path.join(
         os.getenv "HOME",
         "Downloads",
         "omnisharp",

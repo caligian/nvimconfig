@@ -8,7 +8,7 @@ require "core.utils.au"
 if not Bookmark then
   Bookmark = module "Bookmark"
   Bookmark.path =
-    path.join(os.getenv "HOME", ".bookmarks.json")
+    Path.join(os.getenv "HOME", ".bookmarks.json")
   user.bookmarks = {}
 end
 
@@ -64,7 +64,7 @@ function Bookmark.init()
 end
 
 function Bookmark.main()
-  s = file.read(Bookmark.path) or "{}"
+  s = Path.read(Bookmark.path) or "{}"
   s = from_string_keys(json.decode(s))
 
   user.bookmarks = s
@@ -112,7 +112,7 @@ end
 
 function Bookmark.save()
   local bookmarks = user.bookmarks
-  file.write(
+  Path.write(
     Bookmark.path,
     json.encode(string_keys(bookmarks))
   )
@@ -125,8 +125,8 @@ end
 function Bookmark.add(file_path, lines, desc)
   local obj = user.bookmarks[file_path] or { context = {} }
   local now = os.time()
-  local isfile = path.isfile(file_path)
-  local isdir = path.isdir(file_path)
+  local isfile = Path.isfile(file_path)
+  local isdir = Path.isdir(file_path)
 
   if not isfile and not isdir then
     error(
@@ -197,7 +197,7 @@ function Bookmark.del_and_save(file_path, lines)
 end
 
 function Bookmark.get_context(file_path, line)
-  data = split(file.read(file_path), "\n")
+  data = split(Path.read(file_path), "\n")
   line = tonumber(line) or line
 
   if line > #data or #data < 1 then
@@ -218,9 +218,9 @@ function Bookmark.open(file_path, line)
     split = line
   end
 
-  if path.isdir(file_path) then
+  if Path.isdir(file_path) then
     vim.cmd(":e! " .. file_path)
-  elseif path.isfile(file_path) then
+  elseif Path.isfile(file_path) then
     local bufnr = Buffer.create(file_path)
     Buffer.open(bufnr)
 
@@ -390,8 +390,8 @@ function Bookmark.run_picker()
 end
 
 function Bookmark.reset()
-  if path.exists(Bookmark.path) then
-    file.delete(Bookmark.path)
+  if Path.exists(Bookmark.path) then
+    Path.delete(Bookmark.path)
     return true
   end
 end
