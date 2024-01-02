@@ -1,6 +1,7 @@
 require "lua-utils.table"
 require "lua-utils.compare"
 require "lua-utils.string"
+require 'lua-utils.Path'
 
 --- @class Argparser.Positional
 --- @field name string|number
@@ -63,6 +64,7 @@ function Positional:init(specs)
         ["type?"] = "string",
         ["required?"] = "boolean",
         ["pos?"] = "boolean",
+        ["metavar?"] = "string",
       },
       specs,
     },
@@ -70,6 +72,7 @@ function Positional:init(specs)
 
   specs.type = specs.type or "string"
   specs.help = specs.help or ""
+  specs.metavar = specs.metavar or specs.type:upper()
 
   return dict.merge(self, specs)
 end
@@ -78,6 +81,7 @@ function Option:init(specs)
   params {
     specs = {
       {
+        ['metavar?'] = 'string',
         ["nargs?"] = union("string", "number"),
         ["name?"] = "string",
         ["short?"] = "string",
@@ -99,6 +103,8 @@ function Option:init(specs)
   specs.name = specs.name or specs.long
   specs.type = specs.type or "string"
   specs.help = specs.help or ""
+  specs.metavar = specs.metavar or specs.type:upper()
+  specs.nargs = specs.nargs or 0
 
   return dict.merge(self, specs)
 end
@@ -380,21 +386,65 @@ function Argparser:parse(args)
   return pos, parsed
 end
 
-function Argparser:_withmetavars()
-  local res = {}
-  local pos = self.positional
-  local options = self.options
+--[[
 
-  local function getvars(x)
-    if x.required then
-      return sprintf("%s {%s}", x.name, x.type)
+-a                   Print your bloody arse over and here and then eat shit.
+--another-flag    
+
+-x STR[+]            this is the description for this option. It will wrap
+--long-name STR[+]   wrap when the description is beyond 60 characters
+
+--]]
+
+function Argparser.Option:tostring()
+  local metavar, long, short, required, nargs, help, name
+  help = self.help or ''
+  metavar = self.metavar or 'STR'
+  long = self.long
+  short = self.short
+  required = self.required
+  nargs = tostring(self.nargs)
+  short = short and '-' .. short
+  long = long and '--' .. long
+  name = (long and short) and short .. ', ' .. long or short or long
+
+  if nargs ~= "0" and nargs ~= '?' then
+    if required then
+      metavar = "{" .. metavar .. "}"
     else
-      return sprintf("%s [%s]", x.name, x.type)
+      metavar = "[" .. metavar .. ']'
     end
+    name = name .. ' ' .. metavar .. '<' .. nargs .. '>'
+  elseif nargs == '?' then
+    metavar = "[" .. metavar .. ']<1>'
+    name = name .. ' ' .. metavar
   end
 
-  local posnames = list.map(pos, getvars)
-  local optnames = list.map(values(options), getvars)
+  local maxlen = 30
+  local optlen = #name
+  local totalhelp = {name}
+
+  if optlen > maxlen then
+    totalhelp[#totalhelp+1] = '\n'
+    totalhelp[#totalhelp+1] = string.rep(' ', maxlen)
+  else
+    totalhelp[#totalhelp+1] = string.rep(' ', maxlen - optlen)
+  end
+
+  local ctr = 0
+  for value in string.gmatch(help, "[^%s]+") do
+    if ctr > maxlen then
+      ctr = 0 
+      totalhelp[#totalhelp+1] = '\n' .. string.rep(' ', maxlen+1)
+    else
+      ctr = ctr + #value
+      totalhelp[#totalhelp+1] = ' '
+    end
+
+    totalhelp[#totalhelp+1] = value
+  end
+
+  return join(totalhelp, '')
 end
 
 function Argparser:tostring()
@@ -459,6 +509,7 @@ parser.args = strsplit(s, " ")
 parser:on {
   short = "a",
   long = "name",
+  help = 'please print something here or else i will die of not getting attention'
 }
 
 parser:on {
@@ -486,5 +537,3 @@ parser:on {
   type = "number",
   required = true,
 }
-
-pp(parser:tostring())
