@@ -1,4 +1,4 @@
-user.colorscheme = "material"
+user.colorscheme = "duckbones"
 
 user.font = { "Ubuntu Mono", "13" }
 

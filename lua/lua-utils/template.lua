@@ -112,9 +112,9 @@ function parse.match(match, repl)
     error("no regex defined for placeholder: " .. match)
   end
 
-  local ok = repl[var]:match(regex) 
+  local ok = repl[var]:match(regex)
   if not ok then
-    error("match failure for " .. match .. ' using ' .. regex)
+    error("match failure for " .. match .. " using " .. regex)
   end
 
   return ok
@@ -152,7 +152,7 @@ local function gmatch(s, repl)
     end
 
   local before = C(1 - placeholder) ^ 0
-  local extra = C(1 - (before * placeholder))
+  local extra = C(1)
   local pat = Ct((before * placeholder + extra) ^ 0) * P "\n" ^ 0
   local var = pat:match(s)
 
@@ -197,7 +197,6 @@ function isF(var)
     return false
   end
 
-
   local open1 = var:find("[{]", open + 1)
   local close1 = var:find("[}]", close + 1)
   if open1 and close1 then
@@ -206,3 +205,6 @@ function isF(var)
 
   return true
 end
+
+template = F
+istemplate = isF

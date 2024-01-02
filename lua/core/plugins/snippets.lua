@@ -7,6 +7,7 @@ snippets.config = {
 
 function snippets:setup()
   vim.cmd [[ 
+
   imap <silent> <C-_> <Plug>luasnip-expand-snippet
 
   imap <silent> <C-/> <Plug>luasnip-expand-snippet
@@ -46,7 +47,5 @@ function snippets:setup()
     },
   }
 end
-
--- snippets:setup()
 
 return snippets
