@@ -37,15 +37,8 @@ function notify.methods.show_history()
     return
   end
 
-  local notifications =
-    string.split(dump(nf.history()), "\n")
-  buffer.map(
-    bufnr,
-    "n",
-    "q",
-    ":hide<CR>",
-    { desc = "hide buffer", silent = true }
-  )
+  local notifications = string.split(dump(nf.history()), "\n")
+  buffer.map(bufnr, "n", "q", ":hide<CR>", { desc = "hide buffer", silent = true })
   buffer.set_lines(bufnr, 0, -1, notifications)
   buffer.float(bufnr, { center = { 80, 30 } })
   buffer.Autocmd(bufnr, "WinLeave", function()

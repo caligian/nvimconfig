@@ -1,12 +1,6 @@
 require "logging.file"
 
-local log_path = Path.join(
-  os.getenv "HOME",
-  ".local",
-  "share",
-  "nvim",
-  "messages"
-)
+local log_path = Path.join(os.getenv "HOME", ".local", "share", "nvim", "messages")
 
 logger = logging.file {
   filename = log_path,
@@ -21,13 +15,7 @@ vim.keymap.set("n", "<space>hL", function()
   vim.bo.modifiable = false
   vim.bo.filetype = "nvimlog"
 
-  vim.api.nvim_buf_set_keymap(
-    vim.fn.bufnr(),
-    "n",
-    "q",
-    ":hide<CR>",
-    { desc = "hide buffer" }
-  )
+  vim.api.nvim_buf_set_keymap(vim.fn.bufnr(), "n", "q", ":hide<CR>", { desc = "hide buffer" })
 end, { desc = "show logs" })
 
 vim.keymap.set("n", "<space>hl", function()
@@ -36,13 +24,7 @@ vim.keymap.set("n", "<space>hl", function()
   vim.bo.modifiable = false
   vim.bo.filetype = "nvimlog"
 
-  vim.api.nvim_buf_set_keymap(
-    vim.fn.bufnr(),
-    "n",
-    "q",
-    ":hide<CR>",
-    { desc = "hide buffer" }
-  )
+  vim.api.nvim_buf_set_keymap(vim.fn.bufnr(), "n", "q", ":hide<CR>", { desc = "hide buffer" })
 end, { desc = "show logs" })
 
 local function make_logger(name)
@@ -64,11 +46,7 @@ local function make_pcall_wrapper(name)
     end)
     if not ok then
       msg = msg or "[WARN]"
-      msg = sprintf(
-        "-- START --\nArguments: %s\n%s\n-- END --",
-        dump { ... },
-        msg
-      )
+      msg = sprintf("-- START --\nArguments: %s\n%s\n-- END --", dump { ... }, msg)
       logger[name](logger, msg)
     end
 

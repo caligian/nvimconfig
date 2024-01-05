@@ -1,6 +1,6 @@
 local elixir = {}
 
-local function isproject(current_dir)
+local function is_project(current_dir)
   local prev_dir = vim.fn.fnamemodify(current_dir, ":h")
   local ls = Path.ls(prev_dir)
   local check = Path.join(prev_dir, "mix.exs")
@@ -14,36 +14,34 @@ local function isproject(current_dir)
   return false
 end
 
+local mix = whereis("mix")[1]
+
 elixir.repl = {
   buffer = "iex",
   workspace = "iex",
 }
 
-elixir.formatter = {
-  buffer = "mix format - ",
-  stdin = true,
-}
+if mix then
+  elixir.formatter = {
+    buffer = mix .. " format - ",
+    stdin = true,
+  }
 
-elixir.compile = {
-  buffer = "elixir {path}",
-  workspace = "mix run",
-}
+  elixir.compile = {
+    buffer = "elixir {path}",
+    workspace = mix .. " run",
+  }
 
-elixir.test = {
-  workspace = "mix test",
-}
+  elixir.test = {
+    workspace = mix .. " test",
+  }
+end
 
 elixir.server = {
   "elixirls",
   config = {
     cmd = {
-      Path.join(
-        user.paths.data,
-        "lsp-servers",
-        "elixir-ls",
-        "scripts",
-        "language_server.sh"
-      ),
+      Path.join(user.paths.data, "lsp-servers", "elixir-ls", "scripts", "language_server.sh"),
     },
   },
 }
@@ -54,7 +52,7 @@ elixir.mappings = {
     "<leader>rc",
     function()
       local bufnr = buffer.bufnr()
-      local x = repl(buffer.bufnr(), { workspace = true })
+      local x = REPL(buffer.bufnr(), { workspace = true })
       if x then
         x:send(sprintf('c("%s")', buffer.name()))
       end
@@ -67,7 +65,7 @@ elixir.mappings = {
     "<localleader>rc",
     function()
       local bufnr = buffer.bufnr()
-      local x = repl(buffer.bufnr(), { buffer = true })
+      local x = REPL(buffer.bufnr(), { buffer = true })
       if x then
         x:send(sprintf('c("%s")', buffer.name()))
       end

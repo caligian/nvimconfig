@@ -23,7 +23,7 @@ function statusline:update_colors()
   local bg = colors.bg
   local fg = colors.fg
 
-  if islight(bg) then
+  if is_light(bg) then
     local contrast = contrast(bg, fg)
     for key, value in pairs(colors) do
       if contrast < 4 then

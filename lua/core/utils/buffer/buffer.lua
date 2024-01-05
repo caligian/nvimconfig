@@ -12,8 +12,8 @@ Buffer = class "Buffer"
 --- Is object a Buffer
 --- @param self any
 --- @return boolean
-function Buffer.isa(self)
-  return istable(self) and typeof(self) == "Buffer"
+function Buffer.is_a(self)
+  return is_table(self) and typeof(self) == "Buffer"
 end
 
 --- @param self Buffer|string|number
@@ -22,14 +22,13 @@ function Buffer.to_name(self)
   assertisa(self, union(Buffer.isa, "string", "number"))
 
   local bufnr
-  if istable(self) then
+  if is_table(self) then
     bufnr = self.buffer_index --[[@as Buffer]]
   else
     bufnr = vim.fn.bufnr(self --[[@as number]])
   end
 
-  local ok = vim.fn.bufnr(bufnr --[[@as number]]) ~= -1
-    and nvim.buf.get_name(bufnr)
+  local ok = vim.fn.bufnr(bufnr --[[@as number]]) ~= -1 and nvim.buf.get_name(bufnr)
 
   return defined(ok)
 end
@@ -40,16 +39,15 @@ function Buffer.to_bufnr(self)
   assertisa(self, union(Buffer.isa, "string", "number"))
   local bufnr
 
-  if istable(self) then
+  if is_table(self) then
     bufnr = self.buffer_index
-  elseif isstring(self) then
+  elseif is_string(self) then
     bufnr = vim.fn.bufnr(self --[[@as number]])
   else
     bufnr = self
   end
 
-  local ok = vim.fn.bufnr(bufnr --[[@as number]]) ~= -1
-    and bufnr
+  local ok = vim.fn.bufnr(bufnr --[[@as number]]) ~= -1 and bufnr
 
   return defined(ok)
 end
@@ -63,13 +61,13 @@ Buffer.exists = Buffer.to_bufnr
 Buffer.name = Buffer.to_name
 
 function Buffer.create(name)
-  if not isstring(name) and not isnumber(name) then
+  if not is_string(name) and not is_number(name) then
     return
   end
 
-  if isstring(name) then
+  if is_string(name) then
     return vim.fn.bufadd(name)
-  elseif isnumber(name) then
+  elseif is_number(name) then
     return Buffer.exists(name) and name
   end
 end
@@ -84,14 +82,11 @@ function Buffer:init(bufnr_or_name, scratch, listed)
     ["listed?"] = { "boolean", listed },
   }
 
-  if
-    Buffer.isa(bufnr_or_name)
-    and nvim.buf.is_valid(bufnr_or_name.buffer_index)
-  then
+  if Buffer.is_a(bufnr_or_name) and nvim.buf.is_valid(bufnr_or_name.buffer_index) then
     return bufnr_or_name.buffer_index
   end
 
-  if isstring(bufnr_or_name) then
+  if is_string(bufnr_or_name) then
     bufnr = vim.fn.bufadd(bufnr_or_name)
   else
     bufnr = Buffer.to_bufnr(bufnr_or_name)
@@ -104,22 +99,12 @@ function Buffer:init(bufnr_or_name, scratch, listed)
   self.mappings = {}
 
   if self.scratch then
-    nvim.buf.set_keymap(
-      bufnr,
-      "n",
-      "q",
-      ":hide<CR>",
-      { desc = "hide buffer", noremap = true }
-    )
+    nvim.buf.set_keymap(bufnr, "n", "q", ":hide<CR>", { desc = "hide buffer", noremap = true })
 
     nvim.buf.set_option(bufnr, "bufhidden", "wipe")
   end
 
-  nvim.buf.set_option(
-    bufnr,
-    "buflisted",
-    listed and true or false
-  )
+  nvim.buf.set_option(bufnr, "buflisted", listed and true or false)
 
   return self
 end
@@ -384,15 +369,9 @@ function _Buffer.split(bufnr, direction)
     cmd(direction)
   elseif strmatch(direction, "aboveleft", "leftabove") then
     cmd(direction)
-  elseif
-    strmatch(direction, "belowright", "rightbelow")
-  then
+  elseif strmatch(direction, "belowright", "rightbelow") then
     cmd(direction)
-  elseif
-    direction == "tabnew"
-    or direction == "t"
-    or direction == "tab"
-  then
+  elseif direction == "tabnew" or direction == "t" or direction == "tab" then
     cmd ":tabnew"
   elseif string.match(direction, "qf") then
     local lines = _Buffer.lines(bufnr, 0, -1)
@@ -404,30 +383,11 @@ function _Buffer.lines(bufnr, startrow, tillrow)
   startrow = startrow or 0
   tillrow = tillrow or -1
 
-  return vim.api.nvim_buf_get_lines(
-    bufnr,
-    startrow,
-    tillrow,
-    false
-  )
+  return vim.api.nvim_buf_get_lines(bufnr, startrow, tillrow, false)
 end
 
-function _Buffer.text(
-  bufnr,
-  start_row,
-  start_col,
-  end_row,
-  end_col,
-  opts
-)
-  return vim.api.nvim_buf_get_text(
-    bufnr,
-    start_row,
-    start_col,
-    end_row,
-    end_col,
-    opts or {}
-  )
+function _Buffer.text(bufnr, start_row, start_col, end_row, end_col, opts)
+  return vim.api.nvim_buf_get_text(bufnr, start_row, start_col, end_row, end_col, opts or {})
 end
 
 --- Switch to this buffer
@@ -475,7 +435,7 @@ function _Buffer.botright(bufnr)
   return _Buffer.split(bufnr, "botright split")
 end
 
-function _Buffer.topleft(bufnr)
+function _Buffer.is_pleft(bufnr)
   return _Buffer.split(bufnr, "topleft split")
 end
 
@@ -533,10 +493,10 @@ function _Buffer.autocmd(bufnr, event, callback, opts)
 
   return Autocmd.map(
     event,
-    dict.merge(opts, {
+    dict.merge(opts, {{
       pattern = sprintf("<buffer=%d>", bufnr),
       callback = callback,
-    })
+    }})
   )
 end
 
@@ -591,11 +551,11 @@ function _Buffer.till_cursor(bufnr)
 end
 
 function _Buffer.append(bufnr, lines)
-  return _Buffer.set_lines(bufnr, -1, -1, lines)
+  return _Buffer.set_lines(bufnr, -1, -1, false, lines)
 end
 
 function _Buffer.prepend(bufnr, lines)
-  return _Buffer.set_lines(bufnr, 0, 0, lines)
+  return _Buffer.set_lines(bufnr, 0, 0, false, lines)
 end
 
 function _Buffer.maplines(bufnr, f)
@@ -607,12 +567,9 @@ function _Buffer.filter(bufnr, f)
 end
 
 function _Buffer.match(bufnr, pat)
-  return list.filter(
-    _Buffer.lines(bufnr, 0, -1),
-    function(s)
-      return s:match(pat)
-    end
-  )
+  return list.filter(_Buffer.lines(bufnr, 0, -1), function(s)
+    return s:match(pat)
+  end)
 end
 
 function _Buffer.save(bufnr)
@@ -664,21 +621,14 @@ function Buffer.scratch(name, filetype)
     bufhidden = "wipe",
   })
 
-  _Buffer.set_keymap(
-    bufnr,
-    "n",
-    "q",
-    ":hide<CR>",
-    { noremap = true, desc = "hide buffer" }
-  )
+  _Buffer.set_keymap(bufnr, "n", "q", ":hide<CR>", { noremap = true, desc = "hide buffer" })
 
   return bufnr
 end
 
 function _Buffer.bufnrpos(bufnr, expr)
   return _Buffer.call(bufnr, function()
-    local _, lnum, col, off =
-      unpack(vim.fn.getpos(expr or "."))
+    local _, lnum, col, off = unpack(vim.fn.getpos(expr or "."))
 
     local out = {
       row = lnum,
@@ -753,48 +703,35 @@ function _Buffer.get_node(bufnr, row, col)
     return
   end
 
-  return table.concat(
-    _Buffer.text(bufnr, node:range()),
-    "\n"
-  )
+  return table.concat(_Buffer.text(bufnr, node:range()), "\n")
+end
+
+function _Buffer.open(bufnr)
+  vim.cmd('b ' .. bufnr)
+  return true
 end
 
 function _Buffer.set(bufnr, pos, lines)
   assertisa(pos, function(x)
-    return islist(x) and (#x == 2 or #x == 4) and list.isa(
-      x,
-      "number"
-    ),
-      "expected a list of numbers of length 2 or 4, got "
-        .. dump(x)
+    return is_list(x) and (#x == 2 or #x == 4) and list.is_a(x, "number"),
+      "expected a list of numbers of length 2 or 4, got " .. dump(x)
   end)
 
   assertisa(lines, union("string", "table"))
-  lines = isstring(lines) and split(lines, "\n") or lines
+  lines = is_string(lines) and split(lines, "\n") or lines
 
   if #pos == 2 then
-    return _Buffer.set_lines(
-      bufnr,
-      pos[1],
-      pos[2],
-      false,
-      lines
-    )
+    return _Buffer.set_lines(bufnr, pos[1], pos[2], false, lines)
   end
 
-  return _Buffer.set_text(
-    bufnr,
-    pos[1],
-    pos[2],
-    pos[3],
-    pos[4],
-    lines
-  )
+  return _Buffer.set_text(bufnr, pos[1], pos[2], pos[3], pos[4], lines)
 end
 
-dict.merge(_Buffer, nvim.buf)
+Buffer.option = nvim.buf.get_option
+Buffer.var = nvim.buf.get_var
 
-dict.merge(_Buffer, require "core.utils.buffer.float")
+dict.merge(_Buffer, {nvim.buf})
+dict.merge(_Buffer, {require "core.utils.buffer.float"})
 
 dict.each(_Buffer, function(key, value)
   local function f(bufnr, ...)
@@ -808,3 +745,5 @@ dict.each(_Buffer, function(key, value)
 
   Buffer[key] = f
 end)
+
+pp(Buffer.option)

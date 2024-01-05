@@ -1,33 +1,24 @@
 local M = {}
 
 local function getivy()
-  return dict.merge(
-    require("telescope.themes").get_dropdown(),
-    {
-      disable_devicons = true,
-      previewer = false,
-      extensions = {},
-      layout_config = {
-        height = 0.8,
-        width = 0.9,
-      },
-    }
-  )
+  return dict.merge(require("telescope.themes").get_ivy(), {{
+    disable_devicons = true,
+    previewer = false,
+    extensions = {},
+    layout_config = {
+      height = 0.25,
+    },
+  }})
 end
 
 local function picker(p, conf)
   return function()
-    require("telescope.builtin")[p](
-      dict.merge(conf or {}, getivy())
-    )
+    require("telescope.builtin")[p](dict.merge(conf or {}, {getivy()}))
   end
 end
 
 local function O(overrides)
-  return dict.lmerge(
-    overrides,
-    { noremap = true, leader = true }
-  )
+  return dict.lmerge(overrides, {{ noremap = true, leader = true }})
 end
 
 M.mappings = {
@@ -35,10 +26,7 @@ M.mappings = {
     "n",
     "/",
     function()
-      picker(
-        "live_grep",
-        { search_dirs = { vim.fn.expand "%:p" } }
-      )()
+      picker("live_grep", { search_dirs = { vim.fn.expand "%:p" } })()
     end,
     O { desc = "Grep string in workspace" },
   },
@@ -179,9 +167,7 @@ M.mappings = {
     "n",
     "<leader>p",
     function()
-      require("telescope").extensions.project.project(
-        require "core.utils.telescope"().theme
-      )
+      require("telescope").extensions.project.project(require "core.utils.telescope"().theme)
     end,
     { desc = "Projects" },
   },
@@ -204,20 +190,17 @@ M.mappings = {
     "n",
     "\\",
     function()
-      require("telescope").extensions.file_browser.file_browser()
+      require("telescope").extensions.file_browser.file_browser(getivy())
     end,
     O { desc = "Open file browser" },
   },
 }
 
-local buffer_actions =
-  require "core.plugins.telescope.actions.buffer"
+local buffer_actions = require "core.plugins.telescope.actions.buffer"
 
-local find_files_actions =
-  require "core.plugins.telescope.actions.find-files"
+local find_files_actions = require "core.plugins.telescope.actions.find-files"
 
-local file_browser_actions =
-  require "core.plugins.telescope.actions.file-browser"
+local file_browser_actions = require "core.plugins.telescope.actions.file-browser"
 
 M.config = {}
 M.config.extensions = {
@@ -256,15 +239,10 @@ M.config.pickers = {
 }
 
 function M:setup()
-  local ivy = getivy()
-
-  vim.defer_fn(function()
-    local ts = require "telescope"
-    ts.setup(M.config)
-    ts.load_extension "file_browser"
-    ts.load_extension "project"
-  end, 300)
+  local ts = require "telescope"
+  ts.setup(M.config)
+  ts.load_extension "file_browser"
+  ts.load_extension "project"
 end
 
 return M
-

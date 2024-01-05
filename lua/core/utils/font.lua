@@ -2,17 +2,14 @@ require "core.utils.kbd"
 
 local nvimexec = vim.api.nvim_exec2
 local sys = vim.fn.systemlist
-local Font = class(
-  "Font",
-  {
-    list = true,
-    main = true,
-    telescope_list = true,
-    create_picker = true,
-    run_picker = true,
-    current = true,
-  }
-)
+local Font = class("Font", {
+  list = true,
+  main = true,
+  telescope_list = true,
+  create_picker = true,
+  run_picker = true,
+  current = true,
+})
 
 function Font.list(pat)
   local out = sys "fc-list : family"
@@ -133,12 +130,7 @@ function Font.main()
   cur:set()
 
   vim.defer_fn(function()
-    Kbd.map(
-      "n",
-      "<leader>hf",
-      Font.run_picker,
-      "pick fonts"
-    )
+    Kbd.map("n", "<leader>hf", Font.run_picker, "pick fonts")
 
     Kbd.map("n", "<localleader>+", function()
       Font.current():incheight()
@@ -151,4 +143,3 @@ function Font.main()
 end
 
 return Font
-

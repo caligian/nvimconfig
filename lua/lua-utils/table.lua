@@ -110,10 +110,7 @@ function dict.map(x, f, inplace)
 
   for i, v in pairs(x) do
     v = f(i, v)
-    assert(
-      v ~= nil,
-      "mapper cannot return non-nil: " .. tostring(x[i])
-    )
+    assert(v ~= nil, "mapper cannot return non-nil: " .. tostring(x[i]))
 
     res[i] = v
   end
@@ -136,10 +133,7 @@ function list.mapi(x, f, inplace)
 
   for i = 1, #x do
     local v = f(i, x[i])
-    assert(
-      v ~= nil,
-      "mapper cannot return non-nil: " .. tostring(x[i])
-    )
+    assert(v ~= nil, "mapper cannot return non-nil: " .. tostring(x[i]))
 
     res[i] = v
   end
@@ -162,10 +156,7 @@ function list.map(x, f, inplace)
 
   for i = 1, #x do
     local v = f(x[i])
-    assert(
-      v ~= nil,
-      "mapper cannot return non-nil: " .. tostring(x[i])
-    )
+    assert(v ~= nil, "mapper cannot return non-nil: " .. tostring(x[i]))
 
     res[i] = v
   end
@@ -196,7 +187,13 @@ end
 --- @return any found returns nil on failure
 --- @return { level:table, index:number, key:any }|nil info returns only if `level` is true
 function dict.get(x, ks, opts)
-  ks = tolist(ks)
+  assertisa.table(x)
+  assertisa.table(ks)
+  
+  if opts then
+    assertisa.table(opts)
+  end
+
   opts = opts or {}
   local level = opts.level
   local create = opts.create
@@ -225,7 +222,7 @@ function dict.get(x, ks, opts)
     res.key = k
     res.index = i
 
-    if istable(v) then
+    if is_table(v) then
       x = v
     elseif force then
       x[k] = {}
@@ -323,20 +320,16 @@ end
 
 --- Extend list with other lists
 --- @param x list
---- @param ... list
+--- @param args list
 --- @return list
-function list.extend(x, ...)
-  local args = { ... }
+function list.extend(x, args)
   for i = 1, #args do
-    if istable(args[i]) then
+    if is_table(args[i]) then
       for j = 1, #args[i] do
         x[#x + 1] = args[i][j]
       end
     else
-      error(
-        "cannot extend table with a non-table: "
-          .. inspect(args[i])
-      )
+      error("cannot extend table with a non-table: " .. inspect(args[i]))
     end
   end
 
@@ -345,12 +338,11 @@ end
 
 --- Append elements to a list
 --- @param x list
---- @param ... any
+--- @param args any
 --- @return list
-function list.append(x, ...)
-  local args = { ... }
+function list.append(x, args)
   for i = 1, #args do
-    x[#x + 1] = args[i]
+			x[#x + 1] = args[i]
   end
 
   return x
@@ -359,10 +351,9 @@ end
 --- Insert element at position
 --- @param x list
 --- @param pos number
---- @param ... any items to insert
+--- @param args any items to insert
 --- @return list
-function list.insert(x, pos, ...)
-  local args = { ... }
+function list.insert(x, pos, args)
   for i = #args, 1, -1 do
     table.insert(x, pos, args[i])
   end
@@ -372,19 +363,17 @@ end
 
 --- Append items at the beginning
 --- @param x list
---- @param ... any
+--- @param args any
 --- @return list
-function list.lappend(x, ...)
-  return list.insert(x, 1, ...)
+function list.lappend(x, args)
+  return list.insert(x, 1, args)
 end
 
 --- Extend list at the beginning with other lists
 --- @param x list
---- @param ... list
+--- @param args list
 --- @return list
-function list.lextend(x, ...)
-  local args = { ... }
-
+function list.lextend(x, args)
   for i = #args, 1, -1 do
     local X = args[i]
     assertisa(X, "table")
@@ -493,7 +482,7 @@ end
 --- @param x list|string
 --- @return list|string
 function list.reverse(x)
-  if isstring(x) then
+  if is_string(x) then
     return string.reverse(x --[[@as string]])
   end
 
@@ -552,15 +541,13 @@ end
 --- @param X list|string returns `x` when no other args are given
 --- @param at? number if `n` is not given, return everything from `at` till the end
 --- @param n? number if given then pop N elements at index `at`
---- @param ... any If given then insert these strings/elements at index `at`
+--- @param args any If given then insert these strings/elements at index `at`
 --- @return (list|string)? popped Popped elements if any
 --- @return (list|string)? new Resulting list|string
-function list.splice(X, at, n, ...)
-  local is_s = isstring(X)
+function list.splice(X, at, n, args)
+  local is_s = is_string(X)
   local len = #X
-  local x = isstring(X)
-      and string.charlist(X --[[@as string]])
-    or X
+  local x = is_string(X) and string.charlist(X --[[@as string]]) or X
   --- @cast x list
 
   if at < 0 then
@@ -585,7 +572,6 @@ function list.splice(X, at, n, ...)
   end
 
   local popped = list.popn(x, n, at)
-  local args = { ... }
 
   if #args == 0 then
     if is_s then
@@ -718,7 +704,7 @@ end
 --- @param t string|list
 --- @return any
 function list.last(t)
-  if isstring(t) then
+  if is_string(t) then
     local n = #t
     return string.sub(t --[[@as string]], n, n)
   end
@@ -743,8 +729,8 @@ function list.rest(t, n)
   return out
 end
 
-function list.contains(x, ...)
-  local elems = { ... }
+function list.contains(x, args)
+  local elems = { args }
   local found = 0
   local ks = {}
   local n = #elems
@@ -765,8 +751,8 @@ function list.contains(x, ...)
   return ks
 end
 
-function dict.contains(x, ...)
-  local elems = { ... }
+function dict.contains(x, args)
+  local elems = { args }
   local found = 0
   local ks = {}
   local n = #elems
@@ -798,9 +784,8 @@ end
 
 list.nth = list.has
 
-function dict.haskeys(x, ...)
+function dict.haskeys(x, ks)
   local vals = {}
-  local ks = { ... }
 
   for i = 1, #ks do
     local k = ks[i]
@@ -814,11 +799,7 @@ function dict.haskeys(x, ...)
   return vals
 end
 
---- Return a number range
--- @tparam number from start index
--- @tparam number till end index
--- @tparam number step default: 1
--- @treturn list
+--- return a range of numbers
 function list.range(from, till, step)
   step = step or 1
   local out = {}
@@ -833,23 +814,12 @@ function list.range(from, till, step)
 end
 
 --- Zip two lists element-wise in the form {x, y}
--- @tparam list a
--- @tparam list b
--- @treturn list[list[a[i],b[i]]]
 function list.zip2(a, b)
-  assert(
-    type(a) == "table",
-    "expected table, got " .. tostring(a)
-  )
-  assert(
-    type(b) == "table",
-    "expected table, got " .. tostring(a)
-  )
+  assert(type(a) == "table", "expected table, got " .. is_string(a))
+  assert(type(b) == "table", "expected table, got " .. is_string(a))
 
   local len_a, len_b = #a, #b
-  local n = len_a > len_b and len_b
-    or len_a < len_b and len_a
-    or len_a
+  local n = len_a > len_b and len_b or len_a < len_b and len_a or len_a
   local out = {}
   for i = 1, n do
     out[i] = { a[i], b[i] }
@@ -983,12 +953,12 @@ end
 
 --- Zip lists and fill using `fillvalue` if necessary
 --- @param fillvalue any
---- @param ... list
+--- @param args list
 --- @return list
-function list.ziplongest(fillvalue, ...)
+function list.ziplongest(fillvalue, args)
   local out = {}
   local lens = {}
-  local arrs = { ... }
+  local arrs = { args }
   local len = #arrs
 
   for i = 1, #arrs do
@@ -1001,7 +971,7 @@ function list.ziplongest(fillvalue, ...)
   for i = 1, max do
     out[i] = {}
     for j = 1, len do
-      list.append(out[i], arrs[j][i] or fillvalue)
+      list.append(out[i], {arrs[j][i] or fillvalue})
     end
   end
 
@@ -1009,12 +979,12 @@ function list.ziplongest(fillvalue, ...)
 end
 
 --- Zip lists up till the shortest list
---- @param ... list
+--- @param args list
 --- @return list
-function list.zip(...)
+function list.zip(args)
   local out = {}
   local lens = {}
-  local arrs = { ... }
+  local arrs = { args }
   local len = #arrs
 
   for i = 1, #arrs do
@@ -1027,7 +997,7 @@ function list.zip(...)
   for i = 1, min do
     out[i] = {}
     for j = 1, len do
-      list.append(out[i], arrs[j][i])
+      list.append(out[i], {arrs[j][i]})
     end
   end
 
@@ -1036,8 +1006,7 @@ end
 
 list.cdr = list.rest
 
-function string.contains(x, ...)
-  local args = { ... }
+function string.contains(x, args)
   for i = 1, #args do
     if not x:match(args[i]) then
       return false
@@ -1047,13 +1016,7 @@ function string.contains(x, ...)
   return true
 end
 
-local function _flatten(
-  x,
-  depth,
-  _len,
-  _current_depth,
-  _result
-)
+local function _flatten(x, depth, _len, _current_depth, _result)
   depth = depth or 1
   _len = _len or #x
   _current_depth = _current_depth or 1
@@ -1065,16 +1028,10 @@ local function _flatten(
 
   for i = 1, _len do
     local elem = x[i]
-    if istable(elem) then
-      _flatten(
-        x[i],
-        depth,
-        _len,
-        _current_depth + 1,
-        _result
-      )
+    if is_table(elem) then
+      _flatten(x[i], depth, _len, _current_depth + 1, _result)
     else
-      list.append(_result, elem)
+      list.append(_result, {elem})
     end
   end
 
@@ -1131,8 +1088,8 @@ function dict.dropwhile(x, fn)
   return out
 end
 
-function dict.onlyhas(x, ...)
-  local ks = { ... }
+function dict.onlyhas(x, args)
+  local ks = { args }
   local hasks = keys(x)
 
   if #ks ~= hasks then
@@ -1148,11 +1105,11 @@ function dict.onlyhas(x, ...)
   return true
 end
 
-function issize(x, n)
+function is_size(x, n)
   return size(x) == n
 end
 
-function islength(x, n)
+function is_length(x, n)
   return length(x) == n
 end
 
@@ -1166,21 +1123,21 @@ end
 function list.partition(x, fun_or_num)
   assertisa(fun_or_num, union("number", "callable"))
 
-  if iscallable(fun_or_num) then
+  if is_callable(fun_or_num) then
     local result = { {}, {} }
 
     for i = 1, #x do
       if fun_or_num(x[i]) then
-        list.append(result[1], x[i])
+        list.append(result[1], {x[i]})
       else
-        list.append(result[2], x[i])
+        list.append(result[2], {x[i]})
       end
     end
 
     return result
   end
 
-  local is_t = istable(x)
+  local is_t = is_table(x)
   local len = #x
   local chunk_size = math.ceil(len / fun_or_num)
   local result = {}
@@ -1194,11 +1151,7 @@ function list.partition(x, fun_or_num)
         result[k][j] = x[i + j - 1]
       end
     else
-      result[k] = string.sub(
-        x, --[[@as string]]
-        i,
-        i + chunk_size - 1
-      )
+      result[k] = string.sub(x, --[[@as string]] i, i + chunk_size - 1)
     end
 
     k = k + 1
@@ -1234,9 +1187,9 @@ function dict.items(t)
 end
 
 --- Replace key in preceding table only if it does not exist
---- @param ... table
+--- @param args table
 --- @return table
-function dict.lmerge(...)
+function dict.lmerge(x, args)
   local cache = {}
 
   local function _merge(t1, t2)
@@ -1250,34 +1203,29 @@ function dict.lmerge(...)
 
       if a == nil then
         t1[k] = v
-      elseif
-        gettype(a) == "table" and gettype(b) == "table"
-      then
+      elseif gettype(a) == "table" and gettype(b) == "table" then
         cache[a] = true
-        list.append(later, { a, b })
+        list.append(later, {{ a, b }})
       end
     end)
 
-    list.each(later, function(next)
-      _merge(unpack(next))
+    list.each(later, function(nested)
+      _merge(x, unpack(nested))
     end)
   end
 
-  local args = { ... }
   local l = #args
-  local start = args[1]
-
-  for i = 2, l do
-    _merge(start, args[i])
+  for i =1, l do
+    _merge(x, args[i])
   end
 
-  return start
+  return x
 end
 
 ---- Add/update keys in preceding table
---- @param ... table
+--- @param args table
 --- @return table
-function dict.merge(...)
+function dict.merge(x, args)
   local cache = {}
 
   local function _merge(t1, t2)
@@ -1291,30 +1239,25 @@ function dict.merge(...)
 
       if a == nil then
         t1[k] = v
-      elseif
-        gettype(a) == "table" and gettype(b) == "table"
-      then
+      elseif gettype(a) == "table" and gettype(b) == "table" then
         cache[a] = true
-        list.append(later, { a, b })
+        list.append(later, {{ a, b }})
       else
         t1[k] = v
       end
     end)
 
     list.each(later, function(vs)
-      _merge(unpack(vs))
+      _merge(x, unpack(vs))
     end)
   end
 
-  local args = { ... }
   local l = #args
-  local start = args[1]
-
-  for i = 2, l do
-    _merge(start, args[i])
+  for i = 1, l do
+    _merge(x, args[i])
   end
 
-  return start
+  return x
 end
 
 --- Extract the non-list part of the table
@@ -1370,15 +1313,9 @@ function dict.groupby(x, spec)
       error("no pattern provided for group " .. name)
     end
 
-    list.each(tolist(pattern), function(pat)
+    list.each(to_list(pattern), function(pat)
       if patterns[pat] then
-        error(
-          sprintf(
-            "pattern %s already exists for %s",
-            pat,
-            name
-          )
-        )
+        error(sprintf("pattern %s already exists for %s", pat, name))
       end
 
       patterns[pat] = name
@@ -1417,12 +1354,12 @@ function list.withindex(x)
 end
 
 function ref(x)
-  if not istable(x) then
-    if isstring(x) or isnumber(x) then
+  if not is_table(x) then
+    if is_string(x) or is_number(x) then
       return x
     end
 
-    return tostring(x)
+    return is_string(x)
   end
 
   local MT = mtget(x)
@@ -1477,18 +1414,13 @@ end
 --- @param key_type any
 --- @see istype
 --- @return boolean
-function dict.isa(x, value_type, key_type)
+function dict.is_a(x, value_type, key_type)
   for key, value in pairs(x) do
-    if
-      key_type
-      and value_type
-      and not isa(value, value_type)
-      and not isa(key, key_type)
-    then
+    if key_type and value_type and not is_a(value, value_type) and not is_a(key, key_type) then
       return false
-    elseif value_type and not isa(value, value_type) then
+    elseif value_type and not is_a(value, value_type) then
       return false
-    elseif key_type and not isa(key, key_type) then
+    elseif key_type and not is_a(key, key_type) then
       return false
     end
   end
@@ -1500,29 +1432,170 @@ end
 --- @param tp string|function|table
 --- @see istype
 --- @return boolean
-function list.isa(x, tp)
+function list.is_a(x, tp)
   return list.all(x, function(elem)
-    return isa(elem, tp)
+    return is_a(elem, tp)
   end)
 end
 
 --- Fetch a list of keys
 --- @param x table
---- @param ... any
+--- @param args any
 --- @return list|table
-function dict.fetch(x, ...)
+function dict.fetch(x, ks)
   local out = {}
-  local args = { ... }
 
-  for i = 1, #args do
-    local ok = dict.get(x, tolist(args[i]))
-    if ok ~= nil then
-      out[i] = ok
-    end
+  for i = 1, #ks do
+    assertisa.table(ks[i])
+    out[i] = dict.get(x, ks[i])
   end
 
   return out
 end
 
-list.fetch = dict.fetch
-list.get = dict.get
+local function dicteq(a, b, absolute, state, ok)
+  assertisa.table(a)
+  assertisa.table(b)
+
+  ok = ok or false
+
+  for key, b_value in pairs(b) do
+    local a_value = a[key]
+
+    if is_nil(a_value) then
+      if absolute then
+        return false
+      end
+
+      state[key] = false
+    elseif is_table(a_value) and is_table(b_value) then
+      state[key] = {}
+      state = state[key]
+
+      return dicteq(a_value, b_value, absolute, state, ok)
+    elseif a_value ~= b_value then
+      if absolute then
+        return false
+      else
+        state[key] = false
+      end
+    elseif not absolute then
+      state[key] = true
+    else
+      ok = true
+    end
+  end
+
+  return ok
+end
+
+--- compare A and B or is A == B
+--- @param a dict
+--- @param b dict
+--- @param absolute? boolean If passed then do not return a boolean dict of compared times from keys of B
+--- @return dict|boolean
+function dict.eq(a, b, absolute)
+  if absolute then
+    return dicteq(a, b, true)
+  end
+
+  local result = {}
+  dicteq(a, b, false, result)
+
+  return result
+end
+
+--- compare A and B or is A ~= B
+--- @param a dict
+--- @param b dict
+--- @param absolute? boolean If passed then do not return a boolean dict of compared times from keys of B
+--- @return dict|boolean
+function dict.ne(a, b, absolute)
+  return not dict.eq(a, b, absolute)
+end
+
+--- @param x table
+--- @param fill? fun(): any
+--- @return list?
+function list.fix(x, fill)
+  if not is_table(x) then
+    return
+  end
+
+  local ks = keys(x)
+
+  list.sort(ks, function (x, y)
+    if is_number(x) and is_number(y) then
+      return x > y
+    end
+
+    return false
+  end)
+
+  local max = ks[1]
+  if not ks[1] then
+    return
+  end
+
+  for i=1, max do
+    if x[i] == nil then
+      if fill then
+        x[i] = fill()
+        assert(x[i] ~= nil, 'fill() cannot return nil at index ' .. i)
+      else
+        x[i] = false
+      end
+    end
+  end
+
+  return x
+end
+
+--- Remove all noninteger elements and convert dict to list 
+--- @param x table
+--- @param fill? fun(): any 
+--- @return table?
+function dict.to_list(x, fill)
+  if not is_table(x) then
+    return
+  end
+
+  for key, _ in pairs(x) do
+    if not is_number(key) then
+      x[key] = nil
+    end
+  end
+
+  return list.fix(x, fill)
+end
+
+
+function list.get(x, ks)
+  local max = #ks
+  local tmp = x
+
+  for i=1, #ks-1 do
+    local k = ks[i]
+    local v = tmp[k]
+
+    if not is_table(v) then
+      return
+    else
+      tmp = v
+    end
+  end
+
+  return tmp[ks[max]]
+end
+
+function list.fetch(x, ks)
+  assertisa.table(x)
+
+  local res = {}
+  for i=1, #ks do
+    assertisa.table(ks[i])
+    res[ks[i]] = list.get(x, ks[i])
+  end
+
+  return res
+end

@@ -1,17 +1,16 @@
 require "core.utils.terminal"
 
-if not REPL then
-  REPL = class "REPL"
-  user.repls = {}
-  dict.merge(REPL, Terminal)
-end
+REPL = class "REPL"
+user.repls = {}
+
+dict.merge(REPL, {Terminal})
 
 function REPL.exists(self, tp)
   assertisa(self, union("REPL", "string", "number"))
 
-  if isstring(self) then
+  if is_string(self) then
     return user.repls[self.name]
-  elseif isnumber(self) then
+  elseif is_number(self) then
     if tp == "dir" then
       return user.repls[Path.dirname(Buffer.name(self))]
     elseif tp == "workspace" then
@@ -19,7 +18,7 @@ function REPL.exists(self, tp)
     else
       return user.repls[Buffer.name(self)]
     end
-  elseif REPL.isa(self) then
+  elseif REPL.is_a(self) then
     return self
   end
 end
@@ -39,7 +38,7 @@ function REPL:init_shell(opts)
 end
 
 function REPL:init(bufnr, opts)
-  if isstring(bufnr) and user.repls[bufnr] then
+  if is_string(bufnr) and user.repls[bufnr] then
     return user.repls[bufnr]
   end
 
@@ -51,15 +50,10 @@ function REPL:init(bufnr, opts)
 
   bufnr = bufnr or Buffer.current()
   if not Buffer.exists(bufnr) then
-    return false, 'invalid buffer: ' .. bufnr
+    return false, "invalid buffer: " .. bufnr
   end
 
-  local exists = REPL.exists(
-    bufnr,
-    opts.workspace and "workspace"
-      or opts.buffer and "buffer"
-      or "dir"
-  )
+  local exists = REPL.exists(bufnr, opts.workspace and "workspace" or opts.buffer and "buffer" or "dir")
 
   if exists then
     return exists
@@ -73,7 +67,7 @@ function REPL:init(bufnr, opts)
   self._bufnr = bufnr
   local ftobj = Filetype(ft):loadfile()
   if not ftobj then
-    return false, 'no command found for filetype: '.. ftobj
+    return false, "no command found for filetype: " .. ftobj
   end
 
   local replcmd, _opts = ftobj:command(bufnr, "repl")
@@ -82,32 +76,30 @@ function REPL:init(bufnr, opts)
   local isbuf = opts.buffer
 
   if _opts then
-    dict.merge(opts, _opts)
+    dict.merge(opts, {_opts})
   end
 
   self.filetype = ft
-  self.type = isdir and "dir"
-    or isbuf and "buffer"
-    or isws and "workspace"
+  self.type = isdir and "dir" or isbuf and "buffer" or isws and "workspace"
 
   local cmd
   if isws then
     if not replcmd.workspace then
-      tostderr('repl: no command found for workspace')
+      tostderr "repl: no command found for workspace"
       return
     end
 
     cmd = replcmd.workspace
   elseif isdir then
     if not replcmd.dir then
-      tostderr('repl: no command found for current dir')
+      tostderr "repl: no command found for current dir"
       return
     end
 
     cmd = replcmd.dir
   elseif replcmd then
     if not replcmd.buffer then
-      tostderr('repl: no command found for buffer')
+      tostderr "repl: no command found for buffer"
       return
     end
 
@@ -116,7 +108,7 @@ function REPL:init(bufnr, opts)
     return false, "no command found"
   end
 
-  if istable(cmd) then
+  if is_table(cmd) then
     self.src = cmd[2]
     cmd = cmd[1]
   end
@@ -165,19 +157,9 @@ function REPL.set_mappings()
       self:start()
 
       if self:is_running() then
-        print(
-          "started REPL for "
-            .. tp
-            .. " with cmd: "
-            .. self.cmd
-        )
+        print("started REPL for " .. tp .. " with cmd: " .. self.cmd)
       else
-        tostderr(
-          "could not start REPL for "
-            .. tp
-            .. " with cmd: "
-            .. self.cmd
-        )
+        is_stderr("could not start REPL for " .. tp .. " with cmd: " .. self.cmd)
       end
     end, desc)
   end
@@ -199,7 +181,7 @@ function REPL.set_mappings()
     end
 
     local mode = "n"
-    if istable(ks) then
+    if is_table(ks) then
       mode, ks = unpack(ks)
     end
 
@@ -276,19 +258,16 @@ function REPL.set_mappings()
     end)
   end
 
-  list.each(
-    { "buffer", "workspace", "dir", "shell" },
-    function(x)
-      start(x)
-      stop(x)
-      _split(x)
-      vsplit(x)
-      send_till_cursor(x)
-      send_visual_range(x)
-      send_buffer(x)
-      send_current_line(x)
-      float(x)
-      dock(x)
-    end
-  )
+  list.each({ "buffer", "workspace", "dir", "shell" }, function(x)
+    start(x)
+    stop(x)
+    _split(x)
+    vsplit(x)
+    send_till_cursor(x)
+    send_visual_range(x)
+    send_buffer(x)
+    send_current_line(x)
+    float(x)
+    dock(x)
+  end)
 end

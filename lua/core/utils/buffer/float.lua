@@ -75,10 +75,8 @@ function float.float(bufnr, opts)
     end
 
     local width, height = unpack(center)
-    width =
-      math.floor(from_percent(current_width, width, 10))
-    height =
-      math.floor(from_percent(current_height, height, 5))
+    width = math.floor(from_percent(current_width, width, 10))
+    height = math.floor(from_percent(current_height, height, 5))
     local col = (current_width - width) / 2
     local row = (current_height - height) / 2
     opts.width = width
@@ -93,11 +91,7 @@ function float.float(bufnr, opts)
 
     opts.row = 0
     opts.col = 1
-    opts.width = from_percent(
-      current_width,
-      panel == true and 0.3 or panel,
-      5
-    )
+    opts.width = from_percent(current_width, panel == true and 0.3 or panel, 5)
     opts.height = current_height
 
     if reverse then
@@ -114,8 +108,7 @@ function float.float(bufnr, opts)
     opts.col = 0
     opts.row = opts.height - dock
     opts.height = from_percent(current_height, dock, 5)
-    opts.width = current_width > 5 and current_width - 2
-      or current_width
+    opts.width = current_width > 5 and current_width - 2 or current_width
 
     if reverse then
       opts.row = opts.height
@@ -124,11 +117,7 @@ function float.float(bufnr, opts)
     opts.row = math.floor(opts.row)
   end
 
-  local winid = vim.api.nvim_open_win(
-    bufnr,
-    focus,
-    float.float_opts(opts)
-  )
+  local winid = vim.api.nvim_open_win(bufnr, focus, float.float_opts(opts))
 
   if winid == 0 then
     return false
@@ -142,14 +131,14 @@ function float.panel(bufnr, size, opts)
     size = 0.3
   end
 
-  local o = dict.merge({ panel = size }, opts or {})
+  local o = dict.merge({ panel = size }, {opts or {}})
   return float.float(bufnr, o)
 end
 
 function float.center_float(bufnr, size, opts)
   if not size then
     size = { 0.8, 0.8 }
-  elseif isnumber(size) then
+  elseif is_number(size) then
     local n = size
     size = { n, n }
   elseif #size == 1 then
@@ -157,30 +146,20 @@ function float.center_float(bufnr, size, opts)
     size = { n, n }
   end
 
-  return float.float(
-    bufnr,
-    dict.merge({ center = size }, opts)
-  )
+  return float.float(bufnr, dict.merge({ center = size }, {opts}))
 end
 
 function float.dock(bufnr, size, opts)
   size = size or 10
 
-  return float.float(
-    bufnr,
-    dict.merge({ dock = size }, opts or {})
-  )
+  return float.float(bufnr, dict.merge({ dock = size }, {opts or {}}))
 end
 
 function float.set_float_config(bufnr, config)
   config = config or {}
   local winnr = vim.fn.bufwinnr(bufnr)
 
-  local ok, msg = pcall(
-    vim.api.nvim_win_set_config,
-    vim.fn.win_getid(winnr),
-    config
-  )
+  local ok, msg = pcall(vim.api.nvim_win_set_config, vim.fn.win_getid(winnr), config)
 
   if not ok then
     return
@@ -195,10 +174,7 @@ function float.get_float_config(bufnr)
     return
   end
 
-  local ok, msg = pcall(
-    vim.api.nvim_win_get_config,
-    vim.fn.win_getid(winnr)
-  )
+  local ok, msg = pcall(vim.api.nvim_win_get_config, vim.fn.win_getid(winnr))
 
   if not ok then
     return false, msg

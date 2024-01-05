@@ -15,10 +15,7 @@ function mod.nomodified(bufnr)
   local sels = _:selected(bufnr, true)
 
   list.each(sels, function(sel)
-    print(
-      "Setting buffer status to nomodified: "
-        .. vim.fn.bufname(sel.bufnr)
-    )
+    print("Setting buffer status to nomodified: " .. vim.fn.bufname(sel.bufnr))
     vim.api.nvim_buf_call(sel.bufnr, function()
       vim.cmd "set nomodified"
     end)
@@ -40,10 +37,7 @@ function mod.readonly(bufnr)
   local _ = require "core.utils.telescope"()
   local sels = _:selected(bufnr, true)
   list.each(sels, function(sel)
-    print(
-      "Setting buffer to readonly: "
-        .. vim.fn.bufname(sel.bufnr)
-    )
+    print("Setting buffer to readonly: " .. vim.fn.bufname(sel.bufnr))
     vim.api.nvim_buf_call(sel.bufnr, function()
       vim.cmd "set nomodifiable"
     end)

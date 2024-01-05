@@ -8,9 +8,9 @@ if not Plugin then
 end
 
 function Plugin.init(self, name, opts)
-  if isstring(name) and user.plugins[name] then
+  if is_string(name) and user.plugins[name] then
     return user.plugins[name]
-  elseif istable(name) then
+  elseif is_table(name) then
     assertisa(name.name, "string")
     return Plugin(name.name, name)
   end
@@ -33,28 +33,25 @@ function Plugin.init(self, name, opts)
   self.requireall = nil
   opts = copy(opts)
   opts.name = name
-  dict.merge(self, opts)
+  dict.merge(self, {opts})
+
   user.plugins[self.name] = self
+
 
   return self
 end
 
 function Plugin.list()
-  local p = Path.join(
-    vim.fn.stdpath "config",
-    "lua",
-    "core",
-    "plugins"
-  )
+  local p = Path.join(vim.fn.stdpath "config", "lua", "core", "plugins")
 
   local fs = glob(p, "*")
   fs = list.filter(fs, function(x)
-    if Path.isdir(x) then
+    if Path.is_dir(x) then
       local xp = Path.join(p, "init.lua")
-      if Path.isfile(xp) then
+      if Path.is_file(xp) then
         return true
       end
-    elseif Path.isfile(x) and x:match "%.lua$" then
+    elseif Path.is_file(x) and x:match "%.lua$" then
       return true
     end
   end, function(x)
@@ -65,13 +62,13 @@ function Plugin.list()
 end
 
 local function conv(name)
-  if isstring(name) then
+  if is_string(name) then
     if user.plugins[name] then
       return user.plugins[name]
     else
       return Plugin(name)
     end
-  elseif istable(name) then
+  elseif is_table(name) then
     if not name.name then
       return
     else
@@ -101,22 +98,22 @@ function Plugin.loadfile(self)
   local plug = Plugin(name)
   local _, okuserconfig
 
-  if isfunction(userconfig) then
+  if is_function(userconfig) then
     _, userconfig = pcall(userconfig)
   end
 
-  if isfunction(builtin) then
+  if is_function(builtin) then
     _, builtin = pcall(builtin)
   end
 
-  if istable(builtin) and istable(userconfig) then
-    dict.merge(plug, builtin, userconfig)
+  if is_table(builtin) and is_table(userconfig) then
+    dict.merge(plug, {builtin, userconfig})
   elseif not builtin and not userconfig then
     return plug
-  elseif istable(builtin) then
-    dict.merge(plug, builtin)
-  elseif istable(userconfig) then
-    dict.merge(plug, userconfig)
+  elseif is_table(builtin) then
+    dict.merge(plug, {builtin})
+  elseif is_table(userconfig) then
+    dict.merge(plug, {userconfig})
   end
 
   return plug
@@ -134,18 +131,17 @@ function Plugin.require(self)
   local builtin, userconfig
 
   builtin = luapath and requirex("core.plugins." .. name)
-  userconfig = userluapath
-    and requirex("user.plugins." .. name)
+  userconfig = userluapath and requirex("user.plugins." .. name)
   local plug = Plugin(name)
 
-  if istable(builtin) and istable(userconfig) then
-    dict.merge(plug, builtin, userconfig)
+  if is_table(builtin) and is_table(userconfig) then
+    dict.merge(plug, {builtin, userconfig})
   elseif not builtin and not userconfig then
     return plug
-  elseif istable(builtin) then
-    dict.merge(plug, builtin)
-  elseif istable(userconfig) then
-    dict.merge(plug, userconfig)
+  elseif is_table(builtin) then
+    dict.merge(plug, {builtin})
+  elseif is_table(userconfig) then
+    dict.merge(plug, {userconfig})
   end
 
   return plug
@@ -173,7 +169,7 @@ function Plugin.loadfileall()
 
   list.each(Plugin.list(), function(x)
     local m = requirem("core.plugins." .. x)
-    if istable(m) then
+    if is_table(m) then
       out[x] = Plugin(x, m)
       out[x]:loadfile()
     end
@@ -188,7 +184,7 @@ function Plugin.requireall()
   list.each(Plugin.list(), function(x)
     local m = requirem("core.plugins." .. x)
 
-    if istable(m) then
+    if is_table(m) then
       out[x] = Plugin(x, m)
       out[x]:require()
     end
@@ -225,22 +221,19 @@ local function _set_mappings(self, mappings)
   local mode = opts.mode or "n"
 
   dict.each(mappings, function(key, spec)
-    assert(
-      #spec == 4,
-      "expected at least 4 arguments, got " .. dump(spec)
-    )
+    assert(#spec == 4, "expected at least 4 arguments, got " .. dump(spec))
 
     local name = "plugin." .. self.name .. "." .. key
 
     spec[4] = not spec[4] and { desc = key }
-      or isstring(spec[4]) and { desc = spec[4] }
-      or istable(spec[4]) and spec[4]
+      or is_string(spec[4]) and { desc = spec[4] }
+      or is_table(spec[4]) and spec[4]
       or { desc = key }
 
     spec[4] = copy(spec[4])
     spec[4].desc = spec[4].desc or key
 
-    dict.merge(spec[4], opts)
+    dict.merge(spec[4], {opts})
 
     spec[4].name = name
 
@@ -276,7 +269,7 @@ function Plugin.lazy_spec()
 
   if userconfig then
     assertisa(userconfig, "table")
-    dict.merge(core, userconfig)
+    dict.merge(core, {userconfig})
   end
 
   local specs = {}
@@ -290,7 +283,7 @@ function Plugin.lazy_spec()
         plug:require()
         plug:configure()
 
-        if conf and isfunction(conf) then
+        if conf and is_function(conf) then
           conf()
         end
       end)

@@ -1,4 +1,4 @@
-local Vimjob = class("VimJob", { 'buffer', 'format_buffer' })
+local Vimjob = class("VimJob", { "buffer", "format_buffer" })
 local job = {
   start = vim.fn.jobstart,
   stop = vim.fn.jobstop,
@@ -10,7 +10,7 @@ local job = {
 
 function Vimjob:init(cmd, opts)
   params {
-    cmd = { union('table', "string"), cmd },
+    cmd = { union("table", "string"), cmd },
     ["opts?"] = {
       {
         __extra = true,
@@ -74,21 +74,21 @@ function Vimjob:init(cmd, opts)
       if stdout_buffer then
         Buffer.set_lines(stdout_buffer, -1, -1, false, data)
       else
-        list.extend(self.stdout, data)
+        list.extend(self.stdout, {data})
       end
 
       if on_stdout then
-        on_stdout(_, data, event)
+        on_stdout(self)
       end
     else
       if stderr_buffer then
         Buffer.set_lines(stderr_buffer, -1, -1, false, data)
       else
-        list.extend(self.stderr, data)
+        list.extend(self.stderr, {data})
       end
 
       if on_stderr then
-        on_stderr(_, data, event)
+        on_stderr(self)
       end
     end
   end
@@ -97,7 +97,7 @@ function Vimjob:init(cmd, opts)
     self.exit_status = exit_status
 
     local function haslines(lines)
-      lines = isnumber(lines) and Buffer.lines(lines) or lines
+      lines = is_number(lines) and Buffer.lines(lines) or lines
       return list.some(lines, function(x)
         return #x > 0
       end)
@@ -109,11 +109,11 @@ function Vimjob:init(cmd, opts)
       if haslines(stdout_buffer or self.stdout) then
         all_output[1] = "-- STDOUT --"
 
-        if isnumber(stdout_buffer) then
-          list.extend(all_output, Buffer.lines(stdout_buffer))
+        if is_number(stdout_buffer) then
+          list.extend(all_output, {Buffer.lines(stdout_buffer}))
           Buffer.wipeout(stdout_buffer)
         else
-          list.extend(all_output, self.stdout)
+          list.extend(all_output, {self.stdout})
         end
 
         all_output[#all_output] = "-- END OF STDOUT --"
@@ -122,14 +122,14 @@ function Vimjob:init(cmd, opts)
       if haslines(stderr_buffer or self.stderr) then
         all_output[#all_output + 1] = "-- STDERR --"
 
-        if isnumber(stderr_buffer) then
-          list.extend(all_output, Buffer.lines(stderr_buffer))
+        if is_number(stderr_buffer) then
+          list.extend(all_output, {Buffer.lines(stderr_buffer}))
           Buffer.wipeout(stderr_buffer)
         else
-          list.extend(all_output, self.stderr)
+          list.extend(all_output, {self.stderr})
         end
 
-        list.append(all_output, "-- END OF STDERR --")
+        list.append(all_output, {"-- END OF STDERR --"})
       end
 
       self.stdout_buffer = nil
@@ -150,16 +150,16 @@ function Vimjob:init(cmd, opts)
         show = show == true and "split" or show
         Buffer.set(output_buffer, { 0, -1 }, all_output)
 
-        if istable(show) then
+        if is_table(show) then
           Buffer.float(output_buffer, show)
-        elseif isstring(show) then
+        elseif is_string(show) then
           Buffer.split(output_buffer, show)
         end
       end
     end
 
     if _on_exit then
-      _on_exit(_, exit_status, event)
+      _on_exit(self)
     end
   end
 
@@ -204,3 +204,15 @@ function Vimjob:stop()
     return true
   end
 end
+
+function Vimjob:send(s)
+  if not self:is_running() then
+    return
+  end
+
+  vim.fn.chansend(self.id, s)
+
+  return self
+end
+
+return Vimjob

@@ -1,12 +1,12 @@
 local command = vim.api.nvim_create_user_command
 local function compile_and_run(lines)
-  if isa(lines, "table") then
+  if is_a(lines, "table") then
     lines = table.concat(lines, "\n")
   end
 
   local compiled, err = loadstring(lines)
   if err then
-    tostderr(err)
+    is_stderr(err)
   elseif compiled then
     compiled()
   end
@@ -44,8 +44,7 @@ end, {})
 
 command("NvimEvalTillCursor", function()
   local line = vim.fn.line "."
-  local lines =
-    vim.api.nvim_buf_get_lines(0, 0, line - 1, false)
+  local lines = vim.api.nvim_buf_get_lines(0, 0, line - 1, false)
   compile_and_run(lines)
 end, {})
 
@@ -62,15 +61,15 @@ command("Darken", function(args)
   local what, by = unpack(args)
   local hi = highlight "Normal"
 
-  if isempty(hi) then
+  if is_empty(hi) then
     return
   end
 
   local set = {}
   if what == "fg" then
-    set["guifg"] = darken(hi["guifg"], tonumber(by))
+    set["guifg"] = darken(hi["guifg"], is_number(by))
   else
-    set["guibg"] = darken(hi["guibg"], tonumber(by))
+    set["guibg"] = darken(hi["guibg"], is_number(by))
   end
 
   highlightset("Normal", set)

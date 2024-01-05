@@ -2,16 +2,14 @@
 local function _toggle_option(option)
   local bufnr = vim.fn.bufnr()
   local winid = vim.fn.bufwinid(bufnr)
-  local ok, out =
-    pcall(vim.api.nvim_buf_get_option, bufnr, option)
+  local ok, out = pcall(vim.api.nvim_buf_get_option, bufnr, option)
 
   if ok then
     vim.api.nvim_buf_set_option(bufnr, option, not out)
   end
 
   if not ok then
-    ok, out =
-      pcall(vim.api.nvim_win_get_option, winid, option)
+    ok, out = pcall(vim.api.nvim_win_get_option, winid, option)
     if ok then
       vim.api.nvim_win_set_option(winid, option, not out)
     end
@@ -36,12 +34,26 @@ end
 
 local opts = { noremap = true, leader = true }
 local withopts = function(overrides)
-  overrides = isstring(overrides) and { desc = overrides }
-    or overrides
-  return dict.lmerge(overrides, opts)
+  overrides = is_string(overrides) and { desc = overrides } or overrides
+  return dict.lmerge(overrides, {opts})
 end
 
 return {
+  paste_above_cursor = {
+    'n',
+    'gp',
+    ':put<CR>',
+    {desc = 'paste above cursor'},
+  },
+
+  paste_below_cursor = {
+    'n',
+    'gP',
+    ':put!<CR>',
+    {desc = 'paste below cursor'},
+  },
+
+  -- TODO: replace history
   print_buffer_history = {
     "n",
     "<leader>bH",
@@ -191,7 +203,7 @@ return {
 
   source = {
     "n",
-    "fv",
+    "<leader>fv",
     ":w! % <bar> :source %<CR>",
     {
       event = "BufEnter",
@@ -492,8 +504,7 @@ return {
     "#",
     function()
       local tw = vim.bo.textwidth
-      local comment =
-        split(vim.bo.commentstring or "#", " ")[1]
+      local comment = split(vim.bo.commentstring or "#", " ")[1]
       if not comment then
         return
       end

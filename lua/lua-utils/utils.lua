@@ -5,7 +5,7 @@ inspect = require "inspect"
 --- @param x any
 --- @param force? bool forcefully wrap the elem in a table?
 --- @return table
-function tolist(x, force)
+function to_list(x, force)
   if force then
     return { x }
   elseif type(x) == "table" then
@@ -86,8 +86,7 @@ end
 function sprintf(fmt, ...)
   local args = { ... }
   for i = 1, #args do
-    args[i] = type(args[i]) ~= "string" and inspect(args[i])
-      or args[i]
+    args[i] = type(args[i]) ~= "string" and inspect(args[i]) or args[i]
   end
 
   return string.format(fmt, unpack(args))
@@ -291,7 +290,7 @@ end
 --- Is x a string?
 --- @param x any
 --- @return boolean,string?
-function isstring(x)
+function is_string(x)
   local ok = type(x) == "string"
   local msg = "expected string, got " .. type(x)
 
@@ -305,7 +304,7 @@ end
 --- Is x a table?
 --- @param x any
 --- @return boolean,string?
-function istable(x)
+function is_table(x)
   local ok = type(x) == "table"
 
   if not ok then
@@ -319,7 +318,7 @@ end
 --- Is x a function?
 --- @param x any
 --- @return boolean,string?
-function isfunction(x)
+function is_function(x)
   local ok = type(x) == "function"
   local msg = "expected function, got " .. type(x)
 
@@ -333,7 +332,7 @@ end
 --- Is x a userdata?
 --- @param x any
 --- @return boolean,string?
-function isuserdata(x)
+function is_userdata(x)
   local ok = type(x) == "userdata"
 
   if not ok then
@@ -347,7 +346,7 @@ end
 --- Is x a thread?
 --- @param x any
 --- @return boolean,string?
-function isthread(x)
+function is_thread(x)
   local ok = type(x) == "thread"
   local msg = "expected thread, got " .. type(x)
 
@@ -361,7 +360,7 @@ end
 --- Is x a boolean?
 --- @param x any
 --- @return boolean,string?
-function isboolean(x)
+function is_boolean(x)
   local ok = type(x) == "boolean"
 
   if not ok then
@@ -375,7 +374,7 @@ end
 --- Is x a number?
 --- @param x any
 --- @return boolean,string?
-function isnumber(x)
+function is_number(x)
   local ok = type(x) == "number"
 
   if not ok then
@@ -389,7 +388,7 @@ end
 --- Is x a function (__call is nonnil or x is a function)?
 --- @param x any
 --- @return boolean,string?
-function iscallable(x)
+function is_callable(x)
   local tp = type(x)
 
   if tp == "function" then
@@ -414,14 +413,14 @@ end
 --- Is x nil
 --- @param x any
 --- @return boolean
-function isnil(x)
+function is_nil(x)
   return x == nil
 end
 
 --- Is list? Table cannot have a metatable
 --- @param x any
 --- @return boolean, string?
-function islist(x)
+function is_list(x)
   local tp = type(x)
 
   if tp ~= "table" then
@@ -444,7 +443,7 @@ end
 --- Is dict? Cannot have a metatable key 'type'
 --- @param x any
 --- @return boolean, string?
-function isdict(x)
+function is_dict(x)
   local tp = type(x)
 
   if tp ~= "table" then
@@ -456,8 +455,10 @@ function isdict(x)
     return false
   end
 
-  local ok = not islist(x) and not mtget(x, "type")
+  local ok = not is_list(x)
   if not ok then
+    return false
+  elseif mtget(x, 'type') then
     return false
   end
 
@@ -468,7 +469,7 @@ end
 --- @param x table
 --- @return table|boolean
 function listlike(x)
-  if not istable(x) then
+  if not is_table(x) then
     return false
   end
   return #keys(x) == #x and x or false
@@ -478,14 +479,14 @@ end
 --- @param x table
 --- @return table|bool
 function dictlike(x)
-  return istable(x) and not listlike(x) and x or false
+  return is_table(x) and not listlike(x) and x or false
 end
 
 --- Is empty?
 --- @param x string|list
 --- @return boolean
-function isempty(x)
-  if isstring(x) then
+function is_empty(x)
+  if is_string(x) then
     --- @cast x string
     return #x == 0
   end
@@ -498,16 +499,16 @@ end
 --- @param x any
 --- @return string
 function gettype(x)
-  if istable(x) then
-    if islist(x) then
+  if is_table(x) then
+    if is_list(x) then
       return "list"
-    elseif isdict(x) then
+    elseif is_dict(x) then
       return "dict"
     else
       local tp = mtget(x, "type")
       if tp then
         return tp
-      elseif iscallable(x) then
+      elseif is_callable(x) then
         return "callable"
       else
         return "table"
@@ -523,7 +524,7 @@ typeof = gettype
 --- Is module?
 --- @param x any
 --- @return boolean,string?
-function ismodule(x)
+function is_module(x)
   local ok = gettype(x) == "module"
   if not ok then
     return false
@@ -531,23 +532,18 @@ function ismodule(x)
   return true
 end
 
-function isinstance(x, name)
+function is_instance(x, name)
   local mt = mtget(x)
 
   if not mt then
-    return false,
-      "expected table with metatable, got " .. dump(x)
+    return false, "expected table with metatable, got " .. dump(x)
   end
 
   if not mt.type and not mt.class then
     return false, "expected class instance, got " .. dump(x)
   elseif name then
     if mt.type ~= name then
-      return false,
-        "expected class instance of type "
-          .. name
-          .. ", got "
-          .. dump(x)
+      return false, "expected class instance of type " .. name .. ", got " .. dump(x)
     end
   end
 
@@ -557,35 +553,25 @@ end
 local function _istype(x, tp)
   local gotten = gettype(x)
 
-  if isfunction(tp) then
+  if is_function(tp) then
     local ok, msg = tp(x)
-    msg = not ok
-      and (
-        msg
-        or sprintf(
-          "function %s failed for %s",
-          tostring(tp),
-          type(x)
-        )
-      )
+    msg = not ok and (msg or sprintf("function %s failed for %s", tostring(tp), type(x)))
     return ok, msg
   elseif tp == "classmod" then
-    return isclassmod(x),
-      "expected classmod, got " .. gotten
+    return is_classmod(x), "expected classmod, got " .. gotten
   elseif tp == "module" then
-    return ismodule(x), "expected module, got " .. gotten
+    return is_module(x), "expected module, got " .. gotten
   elseif type(x) == "table" and tp == "table" then
     return true
   elseif tp == "*" or tp == "any" then
     return true
   elseif tp == "list" then
-    return islist(x), "expected list, got " .. gotten
+    return is_list(x), "expected list, got " .. gotten
   elseif tp == "dict" then
-    return isdict(x), "expected dict, got " .. gotten
+    return is_dict(x), "expected dict, got " .. gotten
   elseif tp == "callable" then
-    return iscallable(x),
-      "expected callable, got " .. gotten
-  elseif isstring(tp) then
+    return is_callable(x), "expected callable, got " .. gotten
+  elseif is_string(tp) then
     if tp:match "%?$" then
       tp = tp:gsub("%?$", "")
       if x == nil then
@@ -610,8 +596,8 @@ end
 --- @param x any
 --- @param tp? string|function|table
 --- @return (boolean|function), string?
-function istype(x, tp)
-  if isnil(tp) then
+function is_type(x, tp)
+  if is_nil(tp) then
     return function(_x)
       return (_istype(_x, x))
     end
@@ -626,13 +612,11 @@ local function _istypes(x, ...)
   local err = {}
 
   for i = 1, #args do
-    res = istype(x, args[i])
+    res = is_type(x, args[i])
 
     if not res then
       failed_ctr = failed_ctr + 1
-      err[#err + 1] = not isstring(args[i])
-          and typeof(args[i])
-        or args[i]
+      err[#err + 1] = not is_string(args[i]) and typeof(args[i]) or args[i]
     end
   end
 
@@ -641,8 +625,7 @@ local function _istypes(x, ...)
   end
 
   local err_s = "[" .. concat(err, ", ") .. "]"
-  err_s =
-    sprintf("expected any of %s, got %s", err_s, dump(x))
+  err_s = sprintf("expected any of %s, got %s", err_s, dump(x))
 
   return false, err_s
 end
@@ -652,7 +635,7 @@ end
 --- @param ... string|function|table
 --- @see istype
 --- @return boolean, string?
-function istypes(x, ...)
+function is_types(x, ...)
   return (_istypes(x, ...))
 end
 
@@ -675,8 +658,8 @@ end
 
 --- Check if X if of type Y
 --- > isa.number(1)
---- > isa(1, 'number')
---- > isa('a', function(x) return x == 'a' end)
+--- > is_a(1, 'number')
+--- > is_a('a', function(x) return x == 'a' end)
 --- @overload fun(x:any, tp:string|function|table, assert?:boolean): boolean,string
 isa = setmetatable({}, {
   __index = function(self, key)
@@ -705,26 +688,26 @@ isa = setmetatable({}, {
   end,
 })
 
+is_a = isa
+
 --- Assert X is of type Y else raise error
 --- @param x any
 --- @param tp any
 --- @return bool,str
 function asserttype(x, tp)
-  return isa(x, tp, true)
+  return is_a(x, tp, true)
 end
 
 assertisa = mtset({}, {
   __index = function(self, key)
     local use
 
-    if isstring(key) then
+    if is_string(key) then
       local g = _G["is" .. key] or _G["is_" .. key]
       if g then
         use = function(obj)
           if not g(obj) then
-            error(
-              "expected " .. key .. ", got " .. type(obj)
-            )
+            error("expected " .. key .. ", got " .. type(obj))
           end
 
           return obj
@@ -733,11 +716,11 @@ assertisa = mtset({}, {
     end
 
     use = function(obj)
-      assert(isa(obj, key))
+      assert(is_a(obj, key))
       return obj
     end
 
-    if isstring(key) then
+    if is_string(key) then
       rawset(self, key, use)
     end
 
@@ -832,7 +815,7 @@ end
 --- @param x string|table
 --- @return integer
 function size(x)
-  if isstring(x) then
+  if is_string(x) then
     return #x
   end
 
@@ -853,7 +836,7 @@ end
 --- @param value? any
 --- @return any
 function overload(x, key, value)
-  if istable(key) then
+  if is_table(key) then
     for k, v in pairs(key) do
       mtset(x, k, v)
     end
@@ -902,7 +885,7 @@ function defined(x, orelse)
   end
 end
 
-function isclass(self)
+function is_class(self)
   local mt = mtget(self)
   if mt.type and mt.class then
     return true
@@ -911,19 +894,16 @@ function isclass(self)
   return false
 end
 
-function isclassmod(self)
-  return istable(self)
-      and mtget(self, "type") == "classmod"
-      and self
-    or false
+function is_classmod(self)
+  return is_table(self) and mtget(self, "type") == "classmod" and self or false
 end
 
-function isinstance(self, other)
-  if not istable(self) or not istable(other) then
+function is_instance(self, other)
+  if not is_table(self) or not is_table(other) then
     return false
-  elseif isclassmod(other) or isclass(other) then
+  elseif is_classmod(other) or is_class(other) then
     return false
-  elseif isclassmod(self) or isclass(self) then
+  elseif is_classmod(self) or is_class(self) then
     return false
   else
     return self.modname() == other.modname()
@@ -931,7 +911,16 @@ function isinstance(self, other)
 end
 
 function class(name, static)
-  if not isstring(name) then
+	static = static or {}
+
+  if not static[1] then
+    for i=1,#static do
+      static[static[i]] = true
+      static[i] = nil
+    end
+  end
+
+  if not is_string(name) then
     error("expected string, got " .. type(name))
   end
 
@@ -971,8 +960,8 @@ function class(name, static)
   modmt.__index = modmt
   classmt.__index = classmt
 
-  function mod.isa(self)
-    if not istable(self) then
+  function mod.is_a(self)
+    if not is_table(self) then
       return false
     end
 
@@ -980,7 +969,7 @@ function class(name, static)
   end
 
   function mod.assertisa(self)
-    if not mod.isa(self) then
+    if not mod.is_a(self) then
       error("expected " .. name .. ", got " .. type(self))
     end
 
@@ -988,7 +977,7 @@ function class(name, static)
   end
 
   function mod:include(other)
-    if not istable(other) then
+    if not is_table(other) then
       return
     end
 
@@ -1008,4 +997,38 @@ function class(name, static)
   end
 
   return mod
+end
+
+function is_literal(x)
+  return is_string(x) or is_number(x) or is_boolean(x)
+end
+
+function ref(x)
+  if is_nil(x) then
+    return x
+  end
+
+  if not is_table(x) then
+    if is_literal(x) then
+      return x
+    else
+      return is_string(x)
+    end
+  end
+
+  local mt = mtget(x)
+  if not mt then
+    return is_string(x)
+  end
+
+  local tostring = rawget(mt, "__tostring")
+  rawset(mt, "__tostring", nil)
+  local id = tostring(x)
+  rawset(mt, "__tostring", tostring)
+
+  return id
+end
+
+function sameref(x, y)
+  return ref(x) == ref(y)
 end

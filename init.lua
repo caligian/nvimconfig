@@ -2,12 +2,9 @@ if not user then
   local data_dir = vim.fn.stdpath "data"
   user = {}
   local dir = vim.fn.stdpath "config"
-  local user_dir =
-    table.concat({ os.getenv "HOME", ".nvim" }, "/")
-  local plugins_dir =
-    table.concat({ data_dir, "lazy" }, "/")
-  local log_path =
-    table.concat({ data_dir, "messages" }, "/")
+  local user_dir = table.concat({ os.getenv "HOME", ".nvim" }, "/")
+  local plugins_dir = table.concat({ data_dir, "lazy" }, "/")
+  local log_path = table.concat({ data_dir, "messages" }, "/")
 
   user.paths = {
     config = dir,
@@ -15,10 +12,7 @@ if not user then
     data = data_dir,
     plugins = plugins_dir,
     logs = log_path,
-    servers = table.concat(
-      { data_dir, "lsp-servers" },
-      "/"
-    ),
+    servers = table.concat({ data_dir, "lsp-servers" }, "/"),
   }
 end
 
@@ -26,19 +20,9 @@ vim.o.autochdir = true
 vim.o.showcmd = false
 vim.opt.shortmess:append "I"
 
-vim.keymap.set(
-  "n",
-  "<space>fv",
-  ":w <bar> :luafile %<CR>",
-  { noremap = true, desc = "source file" }
-)
+vim.keymap.set("n", "<space>fv", ":w <bar> :luafile %<CR>", { noremap = true, desc = "source file" })
 
-vim.keymap.set(
-  "n",
-  "<space>fs",
-  ":w<CR>",
-  { noremap = true, desc = "save file" }
-)
+vim.keymap.set("n", "<space>fs", ":w<CR>", { noremap = true, desc = "save file" })
 
 vim.api.nvim_create_autocmd("BufEnter", {
   pattern = "*.lua",

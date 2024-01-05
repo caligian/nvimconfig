@@ -14,18 +14,16 @@ function vimsize()
   return { width, height }
 end
 
-function tostderr(...)
+function is_stderr(...)
   for _, s in ipairs { ... } do
     vim.api.nvim_err_writeln(s)
   end
 end
 
 function nvimexec(s, as_string)
-  local ok, res =
-    pcall(vim.api.nvim_exec2, s, { output = true })
+  local ok, res = pcall(vim.api.nvim_exec2, s, { output = true })
   if ok and res and res.output then
-    return not as_string and split(res.output, "\n")
-      or res.output
+    return not as_string and split(res.output, "\n") or res.output
   end
 end
 
@@ -49,8 +47,7 @@ end
 
 function glob(d, expr, nosuf, alllinks)
   nosuf = nosuf == nil and true or false
-  return vim.fn.globpath(d, expr, nosuf, true, alllinks)
-    or {}
+  return vim.fn.globpath(d, expr, nosuf, true, alllinks) or {}
 end
 
 --- Only works for user and doom dirs
@@ -60,7 +57,7 @@ function loadfilex(s)
 
   local function _loadfile(p)
     local loaded
-    if Path.isdir(p) then
+    if Path.is_dir(p) then
       loaded = loadfile(Path.join(p, "init.lua"))
     else
       p = p .. ".lua"
@@ -71,13 +68,9 @@ function loadfilex(s)
   end
 
   if s[1] == "user" then
-    return _loadfile(
-      Path.join(os.getenv "HOME", ".nvim", unpack(s))
-    )
+    return _loadfile(Path.join(os.getenv "HOME", ".nvim", unpack(s)))
   elseif s[1] then
-    return _loadfile(
-      Path.join(vim.fn.stdpath "config", "lua", unpack(s))
-    )
+    return _loadfile(Path.join(vim.fn.stdpath "config", "lua", unpack(s)))
   end
 end
 
@@ -103,10 +96,8 @@ local function process_input(key, value)
 
   if #userint == 0 then
     userint = false
-  elseif userint:isnumber() then
-    userint = tonumber(userint)
   else
-    userint = userint
+    userint = tonumber(userint) or userint
   end
 
   if post then
@@ -114,10 +105,7 @@ local function process_input(key, value)
   end
 
   if required then
-    assert(
-      userint,
-      "no input passed for non-optional key " .. key
-    )
+    assert(userint, "no input passed for non-optional key " .. key)
   end
 
   out[key] = value
@@ -131,7 +119,7 @@ function input(spec)
 
     for key, value in pairs(spec) do
       local out = process_input(key, value)
-      dict.merge(res, out)
+      dict.merge(res, {out})
     end
 
     return res
@@ -140,34 +128,17 @@ function input(spec)
   end
 end
 
-function whereis(bin, regex)
-  local out = vim.fn.system(
-    "whereis "
-      .. bin
-      .. [[ | cut -d : -f 2- | sed -r "s/(^ *| *$)//mg"]]
-  )
+function whereis(bin)
+  local out = vim.fn.system("whereis " .. bin .. [[ | cut -d : -f 2- | sed -r "s/(^ *| *$)//mg"]])
 
   out = trim(out)
   out = split(out, " ")
 
-  if isempty(out) then
+  if is_empty(out) then
     return false
   end
 
-  if regex then
-    for _, value in ipairs(out) do
-      if value:match(regex) then
-        return value
-      end
-    end
-  end
-
-  return out[1]
-end
-
-function basename(s)
-  s = vim.split(s, "/")
-  return s[#s]
+  return out
 end
 
 function req2path(s, isfile)
@@ -211,26 +182,20 @@ function requirem(s)
 
   if not builtin and not _user then
     return
-  elseif
-    builtin_tp == "dir"
-    and Path.exists(builtin .. "/init.lua")
-  then
+  elseif builtin_tp == "dir" and Path.exists(builtin .. "/init.lua") then
     builtin = requirex(s)
   elseif builtin_tp then
     builtin = requirex(s)
   end
 
-  if
-    user_tp == "dir"
-    and Path.exists(Path.join(_user, "init.lua"))
-  then
+  if user_tp == "dir" and Path.exists(Path.join(_user, "init.lua")) then
     _user = requirex(s)
   else
     _user = requirex(s)
   end
 
-  if istable(builtin) and istable(_user) then
-    return dict.merge(copy(builtin), _user)
+  if is_table(builtin) and is_table(_user) then
+    return dict.merge(copy(builtin), {_user})
   end
 
   return builtin
@@ -245,7 +210,7 @@ function reqloadfile(req_path)
 end
 
 function getpid(pid)
-  if not isnumber(pid) then
+  if not is_number(pid) then
     return false
   end
 
@@ -267,7 +232,7 @@ function getpid(pid)
 end
 
 function killpid(pid, signal)
-  if not isnumber(pid) then
+  if not is_number(pid) then
     return false
   end
 
@@ -288,8 +253,7 @@ function mkcommand(name, callback, opts)
   local buf
 
   if opts.buffer then
-    buf = opts.buffer == true and buffer.current()
-      or opts.buffer
+    buf = opts.buffer == true and buffer.current() or opts.buffer
     use = vim.api.nvim_buf_create_user_command
   end
 

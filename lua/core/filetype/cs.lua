@@ -15,12 +15,7 @@ cs.server = {
   "omnisharp",
   config = {
     cmd = {
-      Path.join(
-        os.getenv "HOME",
-        "Downloads",
-        "omnisharp",
-        "run"
-      ),
+      Path.join(os.getenv "HOME", "Downloads", "omnisharp", "run"),
     },
     settings = {
       FormattingOptions = {

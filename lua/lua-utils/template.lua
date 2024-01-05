@@ -182,8 +182,8 @@ function F(x, vars)
   return use(vars)
 end
 
-function isF(var)
-  if not isstring(var) then
+function is_F(var)
+  if not is_string(var) then
     return false
   end
 

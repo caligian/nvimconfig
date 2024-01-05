@@ -20,7 +20,7 @@ function mod.force_delete(bufnr)
   end)
 end
 
-function mod.touch(bufnr)
+function mod.is_uch(bufnr)
   local _ = require "core.utils.telescope"()
   local sel = _:selected(bufnr, true)
   local cwd = sel.Path._cwd

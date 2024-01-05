@@ -36,9 +36,7 @@ end
 
 function hex2rgb(hex)
   hex = hex:gsub("#", "")
-  return tonumber("0x" .. hex:sub(1, 2)),
-    tonumber("0x" .. hex:sub(3, 4)),
-    tonumber("0x" .. hex:sub(5, 6))
+  return tonumber("0x" .. hex:sub(1, 2)), tonumber("0x" .. hex:sub(3, 4)), tonumber("0x" .. hex:sub(5, 6))
 end
 
 -- Taken from https://github.com/iskolbin/lhsx/blob/master/hsx.lua
@@ -98,8 +96,7 @@ function darken(hex, darker_n)
       bg_numeric_value = 255
     end
 
-    result = result
-      .. string.format("%2.2x", bg_numeric_value)
+    result = result .. string.format("%2.2x", bg_numeric_value)
   end
 
   return result
@@ -117,7 +114,7 @@ function highlightset(hi, set, defaults)
     return
   end
 
-  if isempty(hi) then
+  if is_empty(hi) then
     if defaults then
       hi = defaults
     else
@@ -132,14 +129,10 @@ function highlightset(hi, set, defaults)
 
     if isa.callable(transformer) then
       hi[attrib] = transformer(hi[attrib])
-      vim.cmd(
-        sprintf("hi %s %s=%s", group, attrib, hi[attrib])
-      )
+      vim.cmd(sprintf("hi %s %s=%s", group, attrib, hi[attrib]))
     else
       hi[attrib] = transformer
-      vim.cmd(
-        sprintf("hi %s %s=%s", group, attrib, transformer)
-      )
+      vim.cmd(sprintf("hi %s %s=%s", group, attrib, transformer))
     end
   end)
 
@@ -147,14 +140,12 @@ function highlightset(hi, set, defaults)
 end
 
 --- ttps://stackoverflow.com/questions/22603510/is-this-possible-to-detect-a-colour-is-a-light-or-dark-colour
-function islight(hex_or_r, g, b)
+function is_light(hex_or_r, g, b)
   local r
 
   if g then
     r = hex_or_r
-    local hsp = 0.299 * (r * r)
-      + 0.587 * (g * g)
-      + 0.114 * (b * b)
+    local hsp = 0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b)
 
     if hsp > 127.5 then
       return false
@@ -163,11 +154,11 @@ function islight(hex_or_r, g, b)
     return true
   end
 
-  return isdark(hex2rgb(hex_or_r))
+  return is_dark(hex2rgb(hex_or_r))
 end
 
-function isdark(...)
-  return not islight(...)
+function is_dark(...)
+  return not is_light(...)
 end
 
 function luminance(red_or_hex, green, blue)

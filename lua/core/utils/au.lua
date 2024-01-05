@@ -27,7 +27,7 @@ function Autocmd.init(self, event, opts)
   if not command then
     function callback(opts)
       cb(opts)
-      list.append(buffers, buffer.bufnr())
+      list.append(buffers, {Buffer.bufnr()})
     end
   end
 
@@ -134,33 +134,14 @@ end
 
 function Autocmd.fromdict(specs)
   assertisa(specs, function(x)
-    return dict.isa(x, function(arg)
-      return islist(arg)
-        and #arg == 2
-        and isdict(arg[2])
-        and arg[2].callback
-        and arg[2].pattern
+    return dict.is_a(x, function(arg)
+      return is_list(arg) and #arg == 2 and is_dict(arg[2]) and arg[2].callback and arg[2].pattern
     end)
   end)
 
   local out = {}
   for key, value in pairs(specs) do
-    params {
-      {
-        {
-          union("string", "table"),
-          {
-            __extra = true,
-            callback = union("string", "callable"),
-            pattern = union("string", "table"),
-          },
-        },
-        value,
-      },
-    }
-
-    value[2] = isstring(value[2]) and { desc = value[2] }
-      or value[2]
+    value[2] = is_string(value[2]) and { desc = value[2] } or value[2]
     value[2].name = key
 
     out[key] = Autocmd.map(unpack(value))
@@ -176,20 +157,20 @@ function Autocmd.loadfile()
 
   if src then
     local config = loadfile(src)
-    if isfunction(config) then
+    if is_function(config) then
       config = config()
-      if istable(config) then
-        dict.merge(specs, config)
+      if is_table(config) then
+        dict.merge(specs, {config})
       end
     end
   end
 
   if usersrc then
     local config = loadfile(usersrc)
-    if isfunction(config) then
+    if is_function(config) then
       config = config()
-      if istable(config) then
-        dict.merge(specs, config)
+      if is_table(config) then
+        dict.merge(specs, {config})
       end
     end
   end
@@ -204,15 +185,15 @@ function Autocmd.require()
 
   if usersrc then
     local config = requirex "core.defaults.autocmds"
-    if istable(config) then
-      dict.merge(specs, config)
+    if is_table(config) then
+      dict.merge(specs, {config})
     end
   end
 
   if src then
     local config = requirex "core.defaults.autocmds"
-    if istable(config) then
-      dict.merge(specs, config)
+    if is_table(config) then
+      dict.merge(specs, {config})
     end
   end
 

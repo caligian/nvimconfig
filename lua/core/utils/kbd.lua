@@ -33,10 +33,10 @@ function Kbd.init(self, mode, ks, callback, rest)
   rest = rest or {}
   mode = mode or "n"
   local _rest = rest
-  rest = isstring(_rest) and { desc = _rest } or _rest
-  mode = isstring(mode) and split(mode, "") or mode
-  local command = isstring(callback) and callback
-  callback = iscallable(callback) and callback
+  rest = is_string(_rest) and { desc = _rest } or _rest
+  mode = is_string(mode) and split(mode, "") or mode
+  local command = is_string(callback) and callback
+  callback = is_callable(callback) and callback
   local prefix = rest.prefix
   local noremap = rest.noremap
   local event = rest.event
@@ -156,7 +156,7 @@ function Kbd.map(mode, ks, callback, opts)
 end
 
 function Kbd.noremap(mode, ks, callback, opts)
-  opts = isstring(opts) and { desc = opts } or opts
+  opts = is_string(opts) and { desc = opts } or opts
   opts = opts or {}
   opts.noremap = true
 
@@ -167,8 +167,8 @@ function Kbd.fromdict(specs)
   local out = {}
   for key, value in pairs(specs) do
     value[4] = not value[4] and { desc = key }
-      or isstring(value[4]) and { desc = value[4] }
-      or istable(value[4]) and value[4]
+      or is_string(value[4]) and { desc = value[4] }
+      or is_table(value[4]) and value[4]
       or { desc = key }
 
     value[4] = copy(value[4])
@@ -188,20 +188,20 @@ function Kbd.loadfile()
 
   if src then
     local config = loadfile(src)
-    if isfunction(config) then
+    if is_function(config) then
       config = config--[[@as function]]()
-      if istable(config) then
-        dict.merge(specs, config)
+      if is_table(config) then
+        dict.merge(specs, {config})
       end
     end
   end
 
   if usersrc then
     local config = loadfile(usersrc)
-    if isfunction(config) then
+    if is_function(config) then
       config = config--[[@as function]]()
-      if istable(config) then
-        dict.merge(specs, config)
+      if is_table(config) then
+        dict.merge(specs, {config})
       end
     end
   end
@@ -216,15 +216,15 @@ function Kbd.require()
 
   if usersrc then
     local config = requirex "core.defaults.kbd"
-    if istable(config) then
-      dict.merge(specs, config)
+    if is_table(config) then
+      dict.merge(specs, {config})
     end
   end
 
   if src then
     local config = requirex "core.defaults.kbd"
-    if istable(config) then
-      dict.merge(specs, config)
+    if is_table(config) then
+      dict.merge(specs, {config})
     end
   end
 

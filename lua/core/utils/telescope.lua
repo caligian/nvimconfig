@@ -2,7 +2,7 @@ local T = module()
 
 function T:__call()
   if not self.exists then
-    dict.merge(self, {
+    dict.merge(self, {{
       exists = require "telescope",
       pickers = require "telescope.pickers",
       actions = require "telescope.actions",
@@ -10,19 +10,12 @@ function T:__call()
       sorters = require "telescope.sorters",
       finders = require "telescope.finders",
       conf = require("telescope.config").values,
-      theme = dict.merge(
-      require("telescope.themes").get_dropdown(),
-      {
-        disable_devicons = true,
+      theme = dict.merge(require("telescope.themes").get_ivy(), {{ 
+        disable_devicons = false,
         previewer = false,
-        extensions = {},
-        layout_config = {
-          height = 0.8,
-          width = 0.9,
-        },
-      }
-      ),
-    })
+        layout_config = {height = 0.25}
+      }}),
+    }})
   end
 
   return self
@@ -37,22 +30,19 @@ function T:create_picker(items, mappings, opts)
     opts.finder = overrides.finders.new_table(items)
   end
 
-  opts.sorter = opts.sorter
-    or overrides.sorters.get_fzy_sorter()
+  opts.sorter = opts.sorter or overrides.sorters.get_fzy_sorter()
 
   if mappings then
-    mappings = tolist(mappings)
+    mappings = to_list(mappings)
 
     opts.attach_mappings = function(prompt_bufnr, map)
       if mappings then
         local default = mappings[1]
 
         if default then
-          overrides.actions.select_default:replace(
-            function()
-              default(self:selected(prompt_bufnr))
-            end
-          )
+          overrides.actions.select_default:replace(function()
+            default(self:selected(prompt_bufnr))
+          end)
         end
 
         list.each(list.rest(mappings), function(x)
@@ -73,8 +63,7 @@ end
 
 function T:selected(bufnr)
   local overrides = self
-  local picker =
-    overrides.action_state.get_current_picker(bufnr)
+  local picker = overrides.action_state.get_current_picker(bufnr)
   if picker then
     overrides.actions.close(bufnr)
 

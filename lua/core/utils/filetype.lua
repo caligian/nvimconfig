@@ -51,7 +51,7 @@ end
 
 --- @class Filetype.repl : Filetype.command
 --- @field on_input fun(lines:string[]): string[]
---- @field loadfile fun(path:string, mkfile:fun(p: string))
+--- @field load_from_path fun(path:string, mkfile:fun(p: string))
 
 --- @class Filetype.linters
 --- @field config table linter config
@@ -340,26 +340,26 @@ function lsp.setup_server(server, opts)
     flags = flags,
   }
 
-  default_conf = dict.merge(default_conf, opts)
+  default_conf = dict.merge(default_conf, {opts})
 
   if default_conf.cmd then
-    default_conf.cmd = tolist(default_conf.cmd)
+    default_conf.cmd = to_list(default_conf.cmd)
   end
 
   require("lspconfig")[server].setup(default_conf)
 end
 
 function Filetype:init(name)
-  if Filetype.isa(name) then
+  if Filetype.is_a(name) then
     return name
-  elseif istable(name) then
+  elseif is_table(name) then
     assert(name.name, "name is missing in " .. dump(name))
     local l = Filetype(name.name)
-    dict.merge(l, name)
+    dict.merge(l, {name})
 
     user.filetypes[name.name] = l
     return l
-  elseif isnumber(name) then
+  elseif is_number(name) then
     assert(Buffer.exists(name), "invalid buffer " .. name)
     return Filetype(Buffer.filetype(name))
   else
@@ -426,7 +426,7 @@ end
 --- @param specs? string|{ [1]: string, config: table }
 function Filetype:setup_lsp(specs)
   specs = specs or self.server
-  specs = isstring(specs) and { specs } --[[@as table]]
+  specs = is_string(specs) and { specs } --[[@as table]]
     or specs
 
   if not specs then
@@ -441,13 +441,13 @@ end
 local function find_workspace(start_dir, pats, maxdepth, _depth)
   maxdepth = maxdepth or 5
   _depth = _depth or 0
-  pats = tolist(pats or "%.git$")
+  pats = to_list(pats or "%.git$")
 
   if maxdepth == _depth then
     return false
   end
 
-  if not Path.isdir(start_dir) then
+  if not Path.is_dir(start_dir) then
     return false
   end
 
@@ -477,7 +477,7 @@ end
 
 function Filetype.workspace(bufnr, pats, maxdepth, _depth)
   bufnr = bufnr or Buffer.bufnr()
-  if isstring(bufnr) then
+  if is_string(bufnr) then
     bufnr = Buffer.bufnr(bufnr)
   end
 
@@ -492,9 +492,9 @@ function Filetype.workspace(bufnr, pats, maxdepth, _depth)
   local bufname = Buffer.name(bufnr)
 
   if server then
-    server = tolist(server)
+    server = to_list(server)
 
-    local config = isstring(server) and lspconfig[server] or lspconfig[server[1]]
+    local config = is_string(server) and lspconfig[server] or lspconfig[server[1]]
 
     local root_dir_checker = server.get_root_dir
       or config.document_config.default_config.root_dir
@@ -536,11 +536,11 @@ function Filetype:command(bufnr, action)
     assert(isa[spec](compile))
   end
 
-  if not istable(compile) then
+  if not is_table(compile) then
     compile = { buffer = compile }
   end
 
-  compile = dict.merge(compile, opts)
+  compile = dict.merge(compile, {opts})
 
   local opts = dict.filter(compile, function(key, _)
     return key ~= "buffer" and key ~= "workspace" and key ~= "dir"
@@ -568,11 +568,11 @@ function Filetype:command(bufnr, action)
   end
 
   local function dwim(X, what)
-    if isfunction(X) then
+    if is_function(X) then
       return X(what)
-    elseif isstring(X) then
+    elseif is_string(X) then
       return X
-    elseif isstring(X[1]) then
+    elseif is_string(X[1]) then
       X = copy(X)
       local cmd = X[1]
       X[1] = nil
@@ -586,7 +586,7 @@ function Filetype:command(bufnr, action)
 
   local out = {}
   local function withpath(cmd, p)
-    if isF(cmd) then
+    if is_F(cmd) then
       cmd = F(cmd, { path = p })
     end
 
@@ -597,7 +597,7 @@ function Filetype:command(bufnr, action)
     local cmd, _opts = dwim(compile[1] or compile.buffer, bufname)
     _opts = _opts or {}
 
-    dict.lmerge(_opts, opts)
+    dict.lmerge(_opts, {opts})
 
     if cmd then
       out.buffer = withpath(cmd, bufname)
@@ -609,7 +609,7 @@ function Filetype:command(bufnr, action)
     local cmd, _opts = dwim(compile.dir, d)
     _opts = _opts or {}
 
-    dict.lmerge(_opts, opts)
+    dict.lmerge(_opts, {opts})
 
     if cmd then
       out.dir = withpath(cmd, d)
@@ -622,7 +622,7 @@ function Filetype:command(bufnr, action)
       local cmd, _opts = dwim(compile.workspace, ws)
       _opts = _opts or {}
 
-      dict.lmerge(_opts, opts)
+      dict.lmerge(_opts, {opts})
 
       if cmd then
         out.workspace = withpath(cmd, ws)
@@ -647,7 +647,7 @@ function Filetype:format(bufnr, opts)
   end
 
   local target
-  opts = dict.lmerge(copy(opts), _opts)
+  opts = dict.lmerge(copy(opts), {_opts})
   local stdin = opts.stdin
   local bufname = Buffer.name(bufnr)
   local name
@@ -665,67 +665,32 @@ function Filetype:format(bufnr, opts)
   elseif opts.buffer or not opts.dir then
     cmd, target = unpack(cmd.buffer)
     if opts.stdin then
-      cmd = sprintf('sh -c "cat %s | %s"', target, cmd)
+      cmd = sprintf("cat %s | %s", target, cmd)
     end
   elseif opts.dir then
     cmd, target = unpack(cmd.dir)
   end
 
-  target = target or bufname
-  name = name .. target
+  if target then
+    name = name .. target
+  else
+    name = name .. bufname
+  end
+
   assert(cmd, "filetype." .. self.name .. ".formatter" .. ": no command exists")
 
   local winnr = Buffer.winnr(bufnr)
   local view = winnr and Win.saveview(winnr)
   opts.args = {}
 
-  local proc = Job(cmd, {
-    output = true,
-    cwd = (opts.workspace or opts.dir) and target or Path.dirname(bufname),
-    before = function()
-      vim.cmd(":w! " .. bufname)
-      Buffer.set_option(bufnr, "modifiable", false)
-    end,
-    on_exit = function(x)
-      if x.exit_code ~= 0 then
-        Buffer.set_option(bufnr, "modifiable", true)
-
-        local err = #x.errors > 1 and x.errors or #x.lines > 1 and x.lines
-        if err then
-          ---@diagnostic disable-next-line: cast-local-type
-          err = join(err, "\n")
-          tostderr(err)
-        else
-          print("check source syntax for buffer " .. bufname)
-        end
-
-        return
-      end
-
-      Buffer.set_option(bufnr, "modifiable", true)
-
-      local err = x.errors
-      if #err > 0 then
-        tostderr(join(err, "\n"))
-        return
-      end
-
-      local out = x.lines
-      if not out or #out == 0 then
-        return
-      else
-        Buffer.set_lines(bufnr, 0, -1, false, out)
-      end
-
-      if view then
-        Win.restview(winid, view)
-      end
-    end,
+  local proc = Job.format_buffer(bufnr, cmd, {
+    cwd = defined(Path.is_dir(target) and target or nil),
   })
 
-  self.jobs[name] = proc
-
-  return proc
+  if proc then
+    self.jobs[name] = proc
+    return proc
+  end
 end
 
 function Filetype:format_dir(bufnr, opts)
@@ -743,7 +708,7 @@ end
 function Filetype:require()
   local config = requirem("core.filetype." .. self.name)
   if config then
-    return dict.merge(self, config)
+    return dict.merge(self, {config})
   end
 end
 
@@ -755,8 +720,8 @@ function Filetype:loadfile()
     if ok then
       msg = msg()
 
-      if istable(msg) then
-        return dict.merge(self, msg)
+      if is_table(msg) then
+        return dict.merge(self, {msg})
       else
         return false
       end
@@ -820,7 +785,7 @@ function Filetype:action(bufnr, action, opts)
   end
 
   name = name .. target
-  cmd = istable(cmd) and join(cmd, " ") or cmd
+  cmd = is_table(cmd) and join(cmd, " ") or cmd
 
   local term = Job(cmd, {
     output = true,
@@ -828,7 +793,7 @@ function Filetype:action(bufnr, action, opts)
       local lines = job.lines or {}
       local errs = job.errors or {}
 
-      list.extend(lines, errs)
+      list.extend(lines, {errs})
 
       if #lines ~= 0 then
         local outbuf = Buffer.scratch()
@@ -897,7 +862,7 @@ function Filetype.list()
   local builtin_path = Path.join(vim.fn.stdpath "config", "lua", "core", "filetype")
   local user_path = Path.join(os.getenv "HOME", ".nvim", "lua", "user", "filetype")
   local builtin = Path.ls(builtin_path)
-  local userconfig = Path.isdir(user_path) and Path.ls(user_path) or {}
+  local userconfig = Path.is_dir(user_path) and Path.ls(user_path) or {}
   builtin = list.filter(builtin, function(x)
     return x:match "%.lua$"
   end)
@@ -927,7 +892,7 @@ function Filetype:set_autocmds()
 
     local cb, options
     options = {}
-    if istable(opts) then
+    if is_table(opts) then
       cb, options = unpack(opts)
     else
       cb = opts
@@ -958,10 +923,10 @@ function Filetype:set_mappings()
     end
 
     spec[4] = spec[4] or {}
-    spec[4] = isstring(spec[4]) and { desc = spec[4] } or spec[4]
+    spec[4] = is_string(spec[4]) and { desc = spec[4] } or spec[4]
     spec[4].name = name
 
-    dict.merge(spec[4], opts)
+    dict.merge(spec[4], {opts})
 
     self:map(unpack(spec))
   end)
@@ -1037,4 +1002,3 @@ function Filetype.main(use_loadfile)
     end, "format dir")
   end, 50)
 end
-

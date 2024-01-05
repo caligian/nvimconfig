@@ -14,7 +14,7 @@ function BufferGroup:exclude_buffer(bufnr)
 end
 
 function BufferGroup.telescope_list_groups(bufnr)
-  if not buffer.exists(bufnr) then
+  if not Buffer.exists(bufnr) then
     return
   end
 
@@ -25,9 +25,7 @@ function BufferGroup.telescope_list_groups(bufnr)
 
   ls = keys(groups)
   if #ls == 0 then
-    tostderr(
-      "no buffergroups exist for " .. buffer.name(bufnr)
-    )
+    is_stderr("no buffergroups exist for " .. Buffer.name(bufnr))
     return
   end
 
@@ -39,14 +37,8 @@ function BufferGroup.telescope_list_groups(bufnr)
   return {
     results = ls,
     entry_maker = function(x)
-      local event = sprintf(
-        "{%s}",
-        join(tolist(usegroups[x].event), " ")
-      )
-      local pattern = sprintf(
-        "{%s}",
-        join(tolist(usegroups[x].pattern), " ")
-      )
+      local event = sprintf("{%s}", join(to_list(usegroups[x].event), " "))
+      local pattern = sprintf("{%s}", join(to_list(usegroups[x].pattern), " "))
       return {
         display = x .. " " .. event .. " " .. pattern,
         value = x,
@@ -66,17 +58,11 @@ function BufferGroup:telescope_list_buffers()
     results = ls,
     entry_maker = function(x)
       local bufnr = x
-      x = buffer.name(x)
-      local event =
-        sprintf("{%s}", join(tolist(self.event), " "))
-      local pattern =
-        sprintf("{%s}", join(tolist(self.pattern), " "))
+      x = Buffer.name(x)
+      local event = sprintf("{%s}", join(to_list(self.event), " "))
+      local pattern = sprintf("{%s}", join(to_list(self.pattern), " "))
       return {
-        display = x:gsub(os.getenv "HOME", "~")
-          .. " "
-          .. event
-          .. " "
-          .. pattern,
+        display = x:gsub(os.getenv "HOME", "~") .. " " .. event .. " " .. pattern,
         value = bufnr,
         ordinal = x,
       }
@@ -87,14 +73,12 @@ end
 function BufferGroup.create_picker(self)
   local ls
 
-  if isnumber(self) then
+  if is_number(self) then
     ls = BufferGroup.telescope_list_groups(self)
     if not ls then
       return
     elseif #ls.results == 1 then
-      return BufferGroup.create_picker(
-        BufferGroup.buffergroups[ls.results[1]]
-      )
+      return BufferGroup.create_picker(BufferGroup.buffergroups[ls.results[1]])
     end
 
     local T = require "core.utils.telescope"()
@@ -104,12 +88,9 @@ function BufferGroup.create_picker(self)
       end
 
       group = group[1]
-      BufferGroup.run_picker(
-        BufferGroup.buffergroups[group.value]
-      )
+      BufferGroup.run_picker(BufferGroup.buffergroups[group.value])
     end, {
-      prompt_title = "BufferGroups for buffer "
-        .. buffer.name(self):gsub(os.getenv "HOME", "~"),
+      prompt_title = "BufferGroups for buffer " .. Buffer.name(self):gsub(os.getenv "HOME", "~"),
     })
   end
 
@@ -125,16 +106,14 @@ function BufferGroup.create_picker(self)
         return
       end
 
-      buffer.open(bufs[1].value)
+      Buffer.open(bufs[1].value)
     end,
     {
       "n",
       "x",
       function(bufs)
         list.each(bufs, function(buf)
-          print(
-            "excluding buffer " .. buffer.name(buf.value)
-          )
+          print("excluding buffer " .. Buffer.name(buf.value))
           self:exclude_buffer(buf.value)
         end)
       end,
@@ -153,7 +132,7 @@ function BufferGroup.fromdict(specs)
   local out = {}
   for key, value in pairs(specs) do
     assertisa(value, function(x)
-      return islist(x) and #x == 2
+      return is_list(x) and #x == 2
     end)
     out[key] = BufferGroup(key, unpack(value))
   end
@@ -209,8 +188,8 @@ function BufferGroup.loadfile()
     local config = loadfile(src)
     config = config and config()
 
-    if config and istable(config) then
-      dict.merge(specs, config)
+    if config and is_table(config) then
+      dict.merge(specs, {config})
     end
   end
 
@@ -218,8 +197,8 @@ function BufferGroup.loadfile()
     local config = loadfile(usersrc)
     config = config and config()
 
-    if config and istable(config) then
-      dict.merge(specs, config)
+    if config and is_table(config) then
+      dict.merge(specs, {config})
     end
   end
 
@@ -233,15 +212,15 @@ function BufferGroup.require()
 
   if req2path "core.defaults.buffergroup" then
     local config = requirex "core.defaults.buffergroup"
-    if config and istable(config) then
-      dict.merge(specs, config)
+    if config and is_table(config) then
+      dict.merge(specs, {config})
     end
   end
 
   if req2path "user.buffergroup" then
     local config = requirex "user.buffergroup"
-    if config and istable(config) then
-      dict.merge(specs, config)
+    if config and is_table(config) then
+      dict.merge(specs, {config})
     end
   end
 
@@ -253,6 +232,6 @@ end
 function BufferGroup.main()
   BufferGroup.require()
   Kbd.map("n", "<leader>.", function()
-    BufferGroup.run_picker(buffer.current())
+    BufferGroup.run_picker(Buffer.current())
   end, "show buffergroups")
 end

@@ -1,8 +1,8 @@
 Win = module()
 Winid = module()
-Tabpage = dict.merge(module(), nvim.tabpage)
+Tabpage = dict.merge(module(), {nvim.tabpage})
 
-dict.merge(Winid, nvim.win)
+dict.merge(Winid, {nvim.win})
 
 local call = nvim.win.call
 wrap = identity
@@ -21,12 +21,12 @@ local function valid_winnr(winnr, f)
   local exists = vim.fn.winbufnr(winnr)
 
   if exists == -1 then
-    return false,
-      "expected valid winnr, got " .. dump(winnr)
+    return false, "expected valid winnr, got " .. dump(winnr)
   else
     return f(winnr)
   end
 end
+
 
 function Winid.call(winid, f)
   return valid_winid(winid, function()
@@ -125,8 +125,7 @@ end
 
 function Win.size(winnr)
   return valid_winnr(winnr, function()
-    local width, height =
-      Win.width(winnr), Win.height(winnr)
+    local width, height = Win.width(winnr), Win.height(winnr)
 
     if not width or not height then
       return
@@ -153,8 +152,7 @@ function Winid.get_options(winid, options)
     local out = {}
 
     for i = 1, #options do
-      out[options[i]] =
-        nvim.win.get_option(winid, options[i])
+      out[options[i]] = nvim.win.get_option(winid, options[i])
     end
 
     return out
@@ -278,11 +276,7 @@ function Win.move(from_winnr, towinnr, opts)
     return
   end
 
-  vim.fn.win_splitmove(
-    from_winnr,
-    towinnr,
-    opts or { right = true }
-  )
+  vim.fn.win_splitmove(from_winnr, towinnr, opts or { right = true })
 
   return true
 end
@@ -399,6 +393,8 @@ function Winid.is_visible(winid)
 end
 
 Winid.getpos = Winid.pos
+Winid.option = Winid.get_option
+Winid.var = Winid.get_var
 
 local exclude = {
   id2nr = true,

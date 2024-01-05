@@ -118,14 +118,9 @@ return {
         pattern = "startuptime",
       })
 
-      Kbd.noremap(
-        "n",
-        "<leader>hs",
-        "<cmd>StartupTime<CR>",
-        {
-          name = "startuptime",
-        }
-      )
+      Kbd.noremap("n", "<leader>hs", "<cmd>StartupTime<CR>", {
+        name = "startuptime",
+      })
     end,
   },
 
@@ -236,12 +231,7 @@ return {
   tagbar = {
     "preservim/tagbar",
     config = function()
-      Kbd.map(
-        "n",
-        "<localleader>t",
-        ":TagbarToggle<CR>",
-        { desc = "Tagbar", name = "tagbar" }
-      )
+      Kbd.map("n", "<localleader>t", ":TagbarToggle<CR>", { desc = "Tagbar", name = "tagbar" })
     end,
     event = "InsertEnter",
   },

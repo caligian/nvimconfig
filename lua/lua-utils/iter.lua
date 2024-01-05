@@ -21,14 +21,14 @@ iter = class "iterable"
 
 --- @param self Iterable
 --- @return boolean
-function iter:isiter()
+function iter:is_iter()
   return typeof(self) == "iterable"
 end
 
 --- @param state Iterable
 --- @return iterable
 function iter:init(state)
-  if iter.isiter(state) then
+  if iter.is_iter(state) then
     return state --[[@as iterable]]
   end
 
@@ -42,12 +42,10 @@ function iter:init(state)
   self.f = yieldfn
   self.state = state
   self.islist = listlike(state --[[@as table]])
-  self.isdict = not self.islist and istable(state)
-  self.isstring = isstring(state)
-  self.isfunction = isfunction(state)
-  self.keys = self.isdict
-      and keys(self.state --[[@as table]])
-    or false
+  self.isdict = not self.islist and is_table(state)
+  self.isstring = is_string(state)
+  self.isfunction = is_function(state)
+  self.keys = self.isdict and keys(self.state --[[@as table]]) or false
   self.at = 1
 
   if self.isstring then
@@ -185,7 +183,7 @@ function iter:filter(f, n)
 end
 
 --- @return (table|list)?
-function iter:totable()
+function iter:is_table()
   if self.isdict or self.islist or self.isstring then
     return self.state --[[@as table]]
   else

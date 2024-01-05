@@ -13,19 +13,28 @@ metatables = metatables or {}
 
 --- @param x any
 --- @return boolean
-function case.isvar(x)
-  return mtget(x --[[@as table]], "type")
-    == "case.variable"
+function case.is_var(x)
+  return mtget(x --[[@as table]], "type") == "case.variable"
 end
 
 --- @param name any
---- @param test boolean|function
+--- @param test? boolean|function
 --- @return case.variable
 function case.var(name, test)
-  return setmetatable(
-    { name = name, test = test },
-    { type = "case.variable" }
-  )
+  if is_callable(name) then
+    test = name
+    name = nil
+  end
+
+  if test then
+    assertisa.callable(test)
+  else
+    test = function()
+      return true
+    end
+  end
+
+  return setmetatable({ name = name, test = test }, { type = "case.variable" })
 end
 
 --- Is b greater than x
@@ -52,7 +61,7 @@ end
 function case.type(...)
   local tps = { ... }
   return function(x)
-    return (isa(x, unpack(tps)))
+    return (is_a(x, unpack(tps)))
   end
 end
 
@@ -73,12 +82,11 @@ function case.contains(...)
   local args = { ... }
 
   return function(x)
-    if not isstring(x) and not istable(x) then
+    if not is_string(x) and not is_table(x) then
       return false
     end
 
-    local use = isstring(x) and string.contains
-      or dict.contains
+    local use = is_string(x) and string.contains or dict.contains
     return use(x, unpack(args))
   end
 end
@@ -87,9 +95,9 @@ function case.has(...)
   local args = { ... }
 
   return function(x)
-    if not isstring(x) and not istable(x) then
+    if not is_string(x) and not is_table(x) then
       return false
-    elseif isstring(x) then
+    elseif is_string(x) then
       return string.contains(x, unpack(args))
     end
 
@@ -175,7 +183,7 @@ function case.re(...)
   local args = { ... }
 
   return function(x)
-    if not isstring(x) then
+    if not is_string(x) then
       return
     end
 
@@ -211,69 +219,74 @@ function case.ge(b)
   end
 end
 
-function dict.compare(a, b, opts)
-  opts = opts and copy(opts) or {}
-  opts.state = opts.state or {}
-  opts._state = opts._state or opts.state
+function case.match(a, b, opts)
+  opts = opts or {}
   local pre_b = opts.pre_b
   local pre_a = opts.pre_a
+  local default = opts.default
   local eq = opts.eq
   local absolute = opts.absolute
   local same_size = opts.same_size
-  local state = opts.state
+  local use_rawget = opts.rawget
   local match = opts.match
   local vars = {}
+  local state = {}
+  local result = state
+  local cond = opts.cond
+
+  if pre_b or pre_a then
+    if pre_a then
+      assertisa.callable(pre_a)
+    end
+
+    if pre_b then
+      assertisa.callable(pre_b)
+    end
+  end
+
+  if default then
+    assertisa.callable(default)
+  end
+
+  if eq then
+    assertisa.callable(eq)
+  end
 
   if match then
     absolute = true
+    cond = true
   end
 
-  if cond and eq then
-    error "cannot use .cond and .eq together"
-  end
-
-  if (pre_a or pre_a) and not cond then
-    error "cannot use .pre_a or .pre_b without .cond"
-  end
-
-  local function _cmp(key, a_value, value, ok)
-    local a_value_is_nil = isnil(a_value)
-    local is_var = case.isvar(value)
+  local function cmp(a_value, b_value)
+    local ok = false
+    local is_var = case.is_var(b_value)
 
     if is_var then
       assert(match, "cannot case.var without .match")
     end
 
-    value = pre_b and pre_b(value) or value
-    a_value = (
-      pre_a
-      and not a_value_is_nil
-      and pre_a(a_value)
-    ) or a_value
+    if pre_b then
+      b_value = pre_b(b_value)
+    end
 
-    if not a_value_is_nil then
-      if is_var then
-        if isfunction(value.test) then
-          ok = value.test(a_value)
-        elseif value.test or value.test == nil then
-          ok = true
-        end
+    if pre_a then
+      a_value = pre_a(a_value)
+    end
 
-        if ok then
-          vars[value.name] = a_value
-        end
+    local ok = false
+    if is_var then
+      if b_value.test then
+        return b_value.test(a_value)
+      end
+
+      return true
+    else
+      if is_function(b_value) and cond then
+        ok = b_value(a_value)
+      elseif eq then
+        ok = eq(a_value, b_value)
       else
-        if isfunction(value) then
-          ok = value(a_value)
-        elseif eq then
-          ok = eq(a_value, value)
-        else
-          ok = a_value == value
-        end
-
-        if not match then
-          state[key] = ok
-        end
+        ok = a_value == b_value
       end
     end
 
@@ -281,39 +294,109 @@ function dict.compare(a, b, opts)
   end
 
   local function resolve(x)
-    x = tostring(x):gsub("%?$", "")
-    return tonumber(x) or x
+    local optional
+    x = tostring(x)
+    x, optional = x:gsub("(^opt_|%?$)", "")
+    x = is_number(x) or x
+
+    if optional > 0 then
+      return x, true
+    end
+
+    return x, false
   end
 
-  local function _recurse(A, B)
-    local ks = keys(B)
-    local optional = filter(ks, resolve)
-    ks = map(ks, resolve)
+  local function filter_resolve(ks)
+    local required = {}
+    local optional = {}
+    local all = {}
+
+    for i = 1, #ks do
+      local k, opt = resolve(ks[i])
+      if opt then
+        optional[k] = true
+      else
+        required[k] = true
+      end
+
+      all[#all + 1] = ks[i]
+    end
+
+    return all, required, optional
+  end
+
+  local function get(x, k)
+    local elem
+
+    if use_rawget then
+      elem = rawget(x, k)
+    else
+      elem = x[k]
+    end
+
+    if default then
+      elem = default()
+    end
+
+    return elem
+  end
+
+  local function have_same_size(p, q)
+    if same_size then
+      return size(p) == size(q)
+    end
+
+    return true
+  end
+
+  local function recurse(A, B, ok)
+    local ks, required, optional = filter_resolve(keys(B))
+    ok = defined(ok, false)
 
     for i = 1, #ks do
       local k = ks[i]
-      local m, n = (A and A[k]), (B[k] or B[k .. "?"])
+      local m, n = get(A, k), get(B, k)
 
-      if m == nil and optional[k] then
-        ok = true
-      elseif
-        istable(m)
-        and istable(n)
-        and not case.isvar(n)
-      then
-        if same_size and size(m) ~= size(n) then
+      if is_nil(m) then
+        if required[k] and not absolute then
+          ok = false
+        elseif absolute then
           return false
+        else
+          state[k] = false
+        end
+      elseif case.is_var(n) then
+        if not n.name then
+          n.name = k
         end
 
-        state[k] = {}
-        state = state[k]
-        opts.state = state
-        init = false
-        return _recurse(m, n)
-      else
-        local ok = _cmp(k, m, n)
-        if not ok and absolute then
+        if not cmp(m, n) then
           return false
+        else
+          vars[n.name] = m
+        end
+      elseif is_table(n) then
+        if not is_table(m) then
+          if absolute then
+            return false
+          else
+            state[k] = false
+          end
+        else
+          state[k] = {}
+          state = state[k]
+
+          return recurse(m, n)
+        end
+      else
+        if not cmp(m, n) then
+          if absolute then
+            return false
+          else
+            state[k] = false
+          end
+        else
+          state[k] = true
         end
       end
     end
@@ -321,383 +404,52 @@ function dict.compare(a, b, opts)
     return true
   end
 
-  if same_size and size(a) ~= size(b) then
+  if not have_same_size(a, b) then
     return false
   end
 
-  local ok = _recurse(a, b)
-  if absolute and not ok then
-    return false
-  elseif not match then
-    return opts._state
-  elseif ok then
+  if not recurse(a, b) then
+    if absolute then
+      return false
+    end
+  elseif absolute and not match then
+    return true
+  elseif match then
     return vars
-  end
-
-  return false
-end
-
-function dict.eq(a, b, opts)
-  local a_is_table = istable(a)
-  local b_is_table = istable(b)
-
-  if a_is_table and b_is_table then
-    opts = opts or {}
-    opts.absolute = true
-    return dict.compare(a, b, opts)
-  elseif a_is_table or b_is_table then
-    return false
   else
-    return a == b
+    return result
   end
 end
 
-function dict.ne(a, b, opts)
-  return not dict.eq(a, b, opts)
+local function switchcase(specs)
+  local default = specs.default
+
+  for spec, f in pairs(specs) do
+    local ok
+
+    if is_table(x) and is_table(spec) then
+      ok = case.match(x, spec, { cond = true, absolute = true })
+    elseif is_function(spec) then
+      ok = spec(x)
+    else
+      ok = x == y
+    end
+
+    if ok then
+      if is_boolean(ok) then
+        return f(x)
+      end
+      return f(ok)
+    end
+  end
+
+  return default(x)
 end
 
 function case:__call(x, specs)
-  local function _case(SPECS)
-    specs = SPECS
-    local default = specs.default
-
-    for spec, f in pairs(specs) do
-      local ok
-
-      if istable(x) and istable(spec) then
-        ok = dict.compare(
-          x,
-          spec,
-          { cond = true, absolute = true }
-        )
-      elseif isfunction(spec) then
-        ok = spec(x)
-      else
-        ok = x == y
-      end
-
-      if ok then
-        if isboolean(ok) then
-          return f(x)
-        end
-        return f(ok)
-      end
-    end
-
-    return default(x)
-  end
-
   if specs then
-    return _case(specs)
+    return switchcase(specs)
   else
-    return _case
+    return switchcase
   end
 end
-
-function defmulti(specs)
-  return function(...)
-    local args = { ... }
-
-    for key, value in pairs(specs) do
-      if isstring(key) then
-        key = union(key)
-      end
-
-      if isfunction(key) then
-        if key(args) then
-          return value(unpack(args))
-        end
-      elseif case.isvar(key) then
-        error "cannot use case.var object for matching"
-      else
-        local ok = compare(args, key, {
-          cond = true,
-          absolute = true,
-          pre_b = function(x)
-            if isstring(x) then
-              return union(x)
-            end
-
-            return x
-          end,
-        })
-
-        if ok then
-          return value(unpack(args))
-        end
-      end
-    end
-
-    error("no signature matching args " .. dump { ... })
-  end
-end
-
-function isliteral(x)
-  return isstring(x) or isnumber(x) or isboolean(x)
-end
-
-function ref(x)
-  if isnil(x) then
-    return x
-  end
-
-  if not istable(x) then
-    if isliteral(x) then
-      return x
-    else
-      return tostring(x)
-    end
-  end
-
-  local mt = mtget(x)
-  if not mt then
-    return tostring(x)
-  end
-
-  local tostring = rawget(mt, "__tostring")
-  rawset(mt, "__tostring", nil)
-  local id = tostring(x)
-  rawset(mt, "__tostring", tostring)
-
-  return id
-end
-
-function sameref(x, y)
-  return ref(x) == ref(y)
-end
-
-function addmetatable(x, mt)
-  if x == nil then
-    mt = {}
-    metatables[mt] = mt
-
-    return mt
-  end
-
-  local save = mt
-
-  if mt then
-    local x_mt = mtget(x)
-    if not x_mt or x_mt ~= mt then
-      mtset(x, mt)
-    end
-  else
-    save = mtget(x)
-    if not save then
-      save = {}
-      mtset(x, save)
-    end
-  end
-
-  metatables[save] = save
-  return save
-end
-
-local function _literalcompare(
-  x,
-  y,
-  get_state,
-  _state,
-  _fullstate
-)
-  local state
-  if get_state then
-    state = _state or {}
-    fullstate = _fullstate or state
-  end
-
-  for key, value in pairs(y) do
-    local x_value = rawget(x, key)
-    local y_value = value
-
-    if istable(y_value) and istable(x_value) then
-      if state then
-        state[key] = {}
-        state = state[key]
-      end
-
-      return _literalcompare(
-        x_value,
-        y_value,
-        true,
-        state,
-        fullstate
-      )
-    elseif x_value == nil or y_value ~= x_value then
-      if get_state then
-        return false, fullstate
-      else
-        return false
-      end
-    elseif get_state then
-      state[key] = true
-    end
-  end
-
-  if get_state then
-    return true, fullstate
-  end
-
-  return true
-end
-
-function literalcompare(x, y, get_state)
-  return _literalcompare(x, y, get_state)
-end
-
-local function _claim(x, y, levelname)
-  if x == nil and levelname:match "%?$" then
-    return true
-  end
-
-  levelname = levelname or "<base>"
-  if isfunction(y) or isstring(y) then
-    local ok, msg
-    y = isstring(y) and union(y) or y
-    ok, msg = y(x)
-
-    if not ok then
-      msg = msg or ""
-      msg = levelname
-        .. (
-          #msg > 0 and (": " .. msg)
-          or ": callable failed for " .. dump(x)
-        )
-      error(msg)
-    else
-      return
-    end
-  end
-
-  if not istable(y) then
-    error(
-      levelname
-        .. ": expected table|string|function for spec, got "
-        .. y
-    )
-  end
-
-  local ykeys = keys(y)
-  levelname = y.__name or levelname
-  local extra = y.__extra
-  y.__name = nil
-  y.__extra = nil
-
-  local function resolve(X)
-    X = isstring(X) and X:match "%?$" and X:sub(1, #X - 1)
-      or X
-    return tonumber(X) or X
-  end
-
-  local optional = list.filter(ykeys, function(X)
-    return (tostring(X):match "%?$")
-      or (X == "__extra" or X == "__name")
-  end, resolve)
-
-  optional = Set(optional)
-  ykeys = Set(list.map(ykeys, resolve))
-  local xkeys = Set(keys(x))
-  local required = ykeys - optional
-  local extraks = xkeys - ykeys
-  local missing = (required - xkeys)
-    / function(key)
-      if
-        x[key] == nil and optional[key] or key == "__name"
-      then
-        return false
-      end
-
-      return true
-    end
-
-  if not extra then
-    if size(extraks) > 0 then
-      error(
-        levelname
-          .. ": found extra keys: "
-          .. join(keys(extraks), ",")
-      )
-    end
-  end
-
-  if size(missing) > 0 then
-    error(
-      levelname
-        .. ": missing keys: "
-        .. join(keys(missing), ",")
-    )
-  end
-
-  for key, value in pairs(y) do
-    local k = resolve(key)
-    local a, b = x[k], value
-
-    if a == nil and optional[k] then
-    elseif istable(a) and istable(b) then
-      b.__name = levelname .. "." .. key
-      _claim(a, b)
-    elseif istable(b) then
-      error(
-        levelname
-          .. "."
-          .. key
-          .. ": expected table, got "
-          .. dump(a)
-      )
-    else
-      asserttype(b, union("string", "function"))
-
-      b = isstring(b) and union(b) or b
-      local ok, msg = b(a)
-
-      if not ok then
-        msg = msg or ""
-        msg = levelname
-          .. "."
-          .. key
-          .. (
-            #msg > 0 and (": " .. msg)
-            or ": callable failed"
-          )
-        error(msg)
-      end
-    end
-  end
-end
-
-function params(specs)
-  for key, value in pairs(specs) do
-    assertisa(value, function(x)
-      return islist(x) and #x <= 2,
-        "expected at least 1 item long list, got " .. dump(
-          x
-        )
-    end)
-
-    local spec = value[1]
-    local x = value[2]
-    local name = key
-
-    _claim(x, spec, name)
-  end
-end
-
----- Pattern matching
---- > local print_name = defmulti {
---- >   [] = function(name, id)
---- >     return { name = name, id = id }
---- >   end,
---- >   [{ { a = { is_string, case.var("age", case.contains "2") } } }] = function(x)
---- >     return x
---- >   end,
---- > }
---- >
---- > pp(
---- >   compare(
---- >     { a = { 1, 2 } },
---- >     { a = { is_number, case.var("2", is_number) } },
---- >     { cond = true, absolute = true, match = true }
---- >   )
---- > )
---- >
---- > pp(print_name { a = { "user", "23" } })

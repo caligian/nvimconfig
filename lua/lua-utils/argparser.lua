@@ -1,7 +1,7 @@
 require "lua-utils.table"
 require "lua-utils.compare"
 require "lua-utils.string"
-require 'lua-utils.Path'
+require "lua-utils.Path"
 
 --- @class Argparser.Positional
 --- @field name string|number
@@ -74,14 +74,14 @@ function Positional:init(specs)
   specs.help = specs.help or ""
   specs.metavar = specs.metavar or specs.type:upper()
 
-  return dict.merge(self, specs)
+  return dict.merge(self, {specs})
 end
 
 function Option:init(specs)
   params {
     specs = {
       {
-        ['metavar?'] = 'string',
+        ["metavar?"] = "string",
         ["nargs?"] = union("string", "number"),
         ["name?"] = "string",
         ["short?"] = "string",
@@ -106,7 +106,7 @@ function Option:init(specs)
   specs.metavar = specs.metavar or specs.type:upper()
   specs.nargs = specs.nargs or 0
 
-  return dict.merge(self, specs)
+  return dict.merge(self, {specs})
 end
 
 function Argparser:init(desc, short_desc)
@@ -180,12 +180,11 @@ function Argparser:_findindex(args)
     local short = short_option and "-" .. short_option
     local long_index = findall(args, long)
     local short_index = findall(args, short)
-    local all =
-      list.extend(long_index or {}, short_index or {})
+    local all = list.extend({long_index or {}, short_index or {}})
     opt.index = all
 
     list.each(all, function(x)
-      list.append(withindex, { x, name })
+      list.append(withindex, {{ x, name }})
     end)
   end)
 
@@ -202,34 +201,17 @@ local function validateargs(switch)
   local post = switch.post
   local passed = #args
 
-  if isnumber(nargs) then
+  if is_number(nargs) then
     if nargs ~= passed then
-      error(
-        name
-          .. ": "
-          .. "expected "
-          .. nargs
-          .. ", got "
-          .. passed
-      )
+      error(name .. ": " .. "expected " .. nargs .. ", got " .. passed)
     end
   elseif nargs == "?" then
     if passed ~= 0 or passed ~= 1 then
-      error(
-        name
-          .. ": "
-          .. "expected 1 or 0 args, got "
-          .. passed
-      )
+      error(name .. ": " .. "expected 1 or 0 args, got " .. passed)
     end
   elseif nargs == "+" then
     if passed == 0 then
-      error(
-        name
-          .. ": "
-          .. "expected more than 0 args, got "
-          .. passed
-      )
+      error(name .. ": " .. "expected more than 0 args, got " .. passed)
     end
   end
 
@@ -273,7 +255,7 @@ function Argparser:parse(args)
     if passed then
       local use = self.options[from[2]]
       use.args = use.args or {}
-      use.args = list.extend(use.args, passed)
+      use.args = list.extend({use.args, {passed}})
     end
   end
 
@@ -286,9 +268,7 @@ function Argparser:parse(args)
 
   if nargs == "?" then
     if passed ~= 0 and passed ~= 1 then
-      error(
-        name .. ": expected 1 or 0 args, got " .. passed
-      )
+      error(name .. ": expected 1 or 0 args, got " .. passed)
     elseif passed > nargs then
       tail = list.sub(givenargs --[[@as list]], 2, -1)
       last.args = {
@@ -297,20 +277,14 @@ function Argparser:parse(args)
     end
   elseif nargs == "+" then
     if passed == 0 then
-      error(
-        name .. ": expected at least 1 arg, got " .. passed
-      )
+      error(name .. ": expected at least 1 arg, got " .. passed)
     end
-  elseif isnumber(nargs) then
+  elseif is_number(nargs) then
     if nargs > passed then
-      error(
-        name .. ": expected " .. nargs .. ", got " .. passed
-      )
+      error(name .. ": expected " .. nargs .. ", got " .. passed)
     else
-      tail =
-        list.sub(givenargs --[[@as list]], nargs + 1, -1)
-      last.args =
-        list.sub(givenargs --[[@as list]], 1, nargs)
+      tail = list.sub(givenargs --[[@as list]], nargs + 1, -1)
+      last.args = list.sub(givenargs --[[@as list]], 1, nargs)
     end
   end
 
@@ -320,13 +294,12 @@ function Argparser:parse(args)
   if first ~= last then
     if first.index[1] ~= 1 then
       ---@diagnostic disable-next-line: cast-local-type
-      head =
-        list.sub(args --[[@as list]], 1, first.index[1] - 1)
+      head = list.sub(args --[[@as list]], 1, first.index[1] - 1)
     end
   end
 
   ---@diagnostic disable-next-line: param-type-mismatch
-  local positional = list.extend(head, tail)
+  local positional = list.extend(head, {{tail}})
   for i = 1, #positional do
     if not self.positional[i] then
       self.positional[i] = Argparser.Positional { name = i }
@@ -376,7 +349,7 @@ function Argparser:parse(args)
 
   list.each(self.positional, function(switch)
     name = switch.name
-    if tonumber(name) then
+    if is_number(name) then
       pos[name] = switch.arg
     else
       pos[name:gsub("-", "_")] = switch.arg
@@ -398,53 +371,53 @@ end
 
 function Argparser.Option:tostring()
   local metavar, long, short, required, nargs, help, name
-  help = self.help or ''
-  metavar = self.metavar or 'STR'
+  help = self.help or ""
+  metavar = self.metavar or "STR"
   long = self.long
   short = self.short
   required = self.required
   nargs = tostring(self.nargs)
-  short = short and '-' .. short
-  long = long and '--' .. long
-  name = (long and short) and short .. ', ' .. long or short or long
+  short = short and "-" .. short
+  long = long and "--" .. long
+  name = (long and short) and short .. ", " .. long or short or long
 
-  if nargs ~= "0" and nargs ~= '?' then
+  if nargs ~= "0" and nargs ~= "?" then
     if required then
       metavar = "{" .. metavar .. "}"
     else
-      metavar = "[" .. metavar .. ']'
+      metavar = "[" .. metavar .. "]"
     end
-    name = name .. ' ' .. metavar .. '<' .. nargs .. '>'
-  elseif nargs == '?' then
-    metavar = "[" .. metavar .. ']<1>'
-    name = name .. ' ' .. metavar
+    name = name .. " " .. metavar .. "<" .. nargs .. ">"
+  elseif nargs == "?" then
+    metavar = "[" .. metavar .. "]<1>"
+    name = name .. " " .. metavar
   end
 
   local maxlen = 30
   local optlen = #name
-  local totalhelp = {name}
+  local totalhelp = { name }
 
   if optlen > maxlen then
-    totalhelp[#totalhelp+1] = '\n'
-    totalhelp[#totalhelp+1] = string.rep(' ', maxlen)
+    totalhelp[#totalhelp + 1] = "\n"
+    totalhelp[#totalhelp + 1] = string.rep(" ", maxlen)
   else
-    totalhelp[#totalhelp+1] = string.rep(' ', maxlen - optlen)
+    totalhelp[#totalhelp + 1] = string.rep(" ", maxlen - optlen)
   end
 
   local ctr = 0
   for value in string.gmatch(help, "[^%s]+") do
     if ctr > maxlen then
-      ctr = 0 
-      totalhelp[#totalhelp+1] = '\n' .. string.rep(' ', maxlen+1)
+      ctr = 0
+      totalhelp[#totalhelp + 1] = "\n" .. string.rep(" ", maxlen + 1)
     else
       ctr = ctr + #value
-      totalhelp[#totalhelp+1] = ' '
+      totalhelp[#totalhelp + 1] = " "
     end
 
-    totalhelp[#totalhelp+1] = value
+    totalhelp[#totalhelp + 1] = value
   end
 
-  return join(totalhelp, '')
+  return join(totalhelp, "")
 end
 
 function Argparser:tostring()
@@ -462,7 +435,7 @@ function Argparser:tostring()
     "",
   }
   if #self.positional > 0 then
-    list.append(usage, "Positional arguments:")
+    list.append(usage, {"Positional arguments:"})
 
     local names = list.map(self.positional, function(opt)
       return {
@@ -483,25 +456,22 @@ function Argparser:tostring()
       local fmt = "%-" .. longestlen .. "s"
 
       if _required then
-        fmt = fmt
-          .. sprintf(" %-10s", sprintf(" {%s}:", _type))
+        fmt = fmt .. sprintf(" %-10s", sprintf(" {%s}:", _type))
       else
-        fmt = fmt
-          .. sprintf(" %-10s", sprintf(" [%s]:", _type))
+        fmt = fmt .. sprintf(" %-10s", sprintf(" [%s]:", _type))
       end
 
       fmt = fmt .. " " .. _help
       fmt = sprintf(fmt, _name)
 
-      list.append(usage, fmt)
+      list.append(usage, {fmt})
     end)
 
     print(concat(usage, "\n"))
   end
 end
 
-local s =
-  "1 2 3 4 --name 1 -a 2 --name 2 3 4 10 --b-name 1 2 3 4 5 -b -1"
+local s = "1 2 3 4 --name 1 -a 2 --name 2 3 4 10 --b-name 1 2 3 4 5 -b -1"
 
 local parser = Argparser("Hello world", "!")
 parser.args = strsplit(s, " ")
@@ -509,7 +479,7 @@ parser.args = strsplit(s, " ")
 parser:on {
   short = "a",
   long = "name",
-  help = 'please print something here or else i will die of not getting attention'
+  help = "please print something here or else i will die of not getting attention",
 }
 
 parser:on {

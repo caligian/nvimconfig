@@ -8,8 +8,7 @@ rust.repl = {
   end,
 }
 
-rust.compile =
-  { buffer = "cargo run", workspace = "cargo run" }
+rust.compile = { buffer = "cargo run", workspace = "cargo run" }
 rustserver = "rust_analyzer"
 
 return rust

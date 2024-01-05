@@ -1,6 +1,5 @@
 local package_path = vim.split(package.path, ";")
-local formatter_path =
-  Path.join(os.getenv "HOME", ".cargo", "bin", "stylua")
+local formatter_path = Path.join(os.getenv "HOME", ".cargo", "bin", "stylua")
 local formatter_cmd = formatter_path
   .. " "
   .. join({
@@ -29,10 +28,8 @@ return {
   compile = {
     buffer = "lua {path}",
     workspace = function(ws)
-      local kids =
-        split(vim.fn.glob(ws .. "/*.rockspec"), "\n")
-      local cmd = "luarocks --local build "
-        .. (kids[1] or "")
+      local kids = split(vim.fn.glob(ws .. "/*.rockspec"), "\n")
+      local cmd = "luarocks --local build " .. (kids[1] or "")
       return cmd
     end,
   },
@@ -47,13 +44,7 @@ return {
     "lua_ls",
     config = {
       cmd = {
-        Path.join(
-          vim.fn.stdpath "data",
-          "lsp-servers",
-          "lua-language-server",
-          "bin",
-          "lua-language-server"
-        ),
+        Path.join(vim.fn.stdpath "data", "lsp-servers", "lua-language-server", "bin", "lua-language-server"),
       },
       settings = {
         Lua = {

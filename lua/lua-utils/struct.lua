@@ -9,15 +9,15 @@ require "lua-utils.table"
 --- @overload fun(name:string, attribs:list): table
 struct = module "struct"
 
-function isstruct(x)
+function is_struct(x)
   return mtget(x, "struct")
 end
 
-function struct.isa(x, tp)
-  return mtget(x, "type") == tp and isstruct(x)
+function struct.is_a(x, tp)
+  return mtget(x, "type") == tp and is_struct(x)
 end
 
-function isclass(x)
+function is_class(x)
   return mtget(x, "class")
 end
 
@@ -82,10 +82,7 @@ function struct:__call(name, attribs)
   function structmt:__call(...)
     local obj = mtset({}, structmt)
 
-    assert(
-      mod.init,
-      name .. " :no .init() defined for struct"
-    )
+    assert(mod.init, name .. " :no .init() defined for struct")
     return mod.init(obj, ...)
   end
 

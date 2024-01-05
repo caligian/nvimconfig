@@ -3,7 +3,7 @@ require "lua-utils.table"
 
 local lpeg = require "lpeg"
 local lfs = require "lfs"
-Path = dict.merge(module(), lfs)
+Path = dict.merge(module(), {lfs})
 Path.ln = Path.link
 Path.stat = Path.attributes
 Path.lnstat = Path.symlinkattributes
@@ -14,7 +14,7 @@ Path.lock_dir = nil
 
 function Path.join(p, ...)
   local iswin = package.path:match "\\"
-  if istable(p) then
+  if is_table(p) then
     if iswin then
       return join(p, "\\")
     else
@@ -49,31 +49,31 @@ function Path.exists(p)
   return Path.stat(p) ~= nil
 end
 
-function Path.isnamedpipe(p)
+function Path.is_namedpipe(p)
   return Path.is(p, "named pipe")
 end
 
-function Path.isdir(p)
+function Path.is_dir(p)
   return Path.is(p, "directory")
 end
 
-function Path.ispipe(p)
+function Path.is_pipe(p)
   return Path.is(p, "pipe")
 end
 
-function Path.ischar(p)
+function Path.is_char(p)
   return Path.is(p, "char device")
 end
 
-function Path.isblock(p)
+function Path.is_block(p)
   return Path.is(p, "block device")
 end
 
-function Path.isfile(p)
+function Path.is_file(p)
   return Path.is(p, "file")
 end
 
-function Path.issocket(p)
+function Path.is_socket(p)
   return Path.is(p, "socket")
 end
 
@@ -141,7 +141,7 @@ function Path.blocks(p)
 end
 
 function Path.ls(p)
-  if not Path.isdir(p) then
+  if not Path.is_dir(p) then
     return
   end
 
@@ -167,7 +167,7 @@ function Path.getdirs(p)
 
   return list.filter(fs, function(x)
     x = p .. Path.sep() .. x
-    if Path.isdir(x) then
+    if Path.is_dir(x) then
       return true
     end
   end, function(x)
@@ -185,7 +185,7 @@ function Path.getfiles(p)
 
   return list.filter(fs, function(x)
     x = p .. Path.sep() .. p
-    if not Path.isdir(x) then
+    if not Path.is_dir(x) then
       return true
     end
   end, function(x)
@@ -194,7 +194,7 @@ function Path.getfiles(p)
 end
 
 function Path.read(p)
-  if not Path.isfile(p) then
+  if not Path.is_file(p) then
     return
   end
 
@@ -210,17 +210,13 @@ function Path.read(p)
 end
 
 function Path.write(p, lines)
-  if not Path.isfile(p) then
-    return
-  end
-
   local fh = io.open(p, "w")
   if not fh then
     return
   end
 
   assertisa(lines, union("string", "table"))
-  lines = istable(lines) and join(lines, "\n") or lines
+  lines = is_table(lines) and join(lines, "\n") or lines
 
   fh:write(lines)
   fh:close()
@@ -336,7 +332,7 @@ function Path.abspath(p, exists)
   return Path.join(cwd, p)
 end
 
-function Path.isabs(p, exists)
+function Path.is_abs(p, exists)
   if not Path.exists(p) and exists then
     return
   elseif p:match "^/" or p:match "^[A-Za-z0-9_]+:\\" then
@@ -363,4 +359,3 @@ end
 
 Path.delete = os.remove
 Path.rm = Path.delete
-

@@ -110,7 +110,7 @@ treesitter.mappings = {
     "n",
     "gm",
     ':<C-U>lua require("tsht").nodes()<CR>',
-    { mode = "o" },
+    { noremap = true },
   },
   show_in_visual = {
     "x",

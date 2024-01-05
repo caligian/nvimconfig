@@ -7,8 +7,7 @@ require "core.utils.au"
 
 if not Bookmark then
   Bookmark = module "Bookmark"
-  Bookmark.path =
-    Path.join(os.getenv "HOME", ".bookmarks.json")
+  Bookmark.path = Path.join(os.getenv "HOME", ".bookmarks.json")
   user.bookmarks = {}
 end
 
@@ -24,7 +23,7 @@ function string_keys(x)
       local new = {}
 
       for key, value in pairs(context) do
-        new[tostring(key)] = value
+        new[to_string(key)] = value
       end
 
       value.context = new
@@ -74,10 +73,7 @@ function Bookmark.main()
       "n",
       "gba",
       function()
-        Bookmark.add_and_save(
-          Buffer.name(Buffer.bufnr()),
-          Win.pos(Buffer.winnr(Buffer.current())).row
-        )
+        Bookmark.add_and_save(Buffer.name(Buffer.bufnr()), Win.pos(Buffer.winnr(Buffer.current())).row)
       end,
       {
         desc = "add bookmark",
@@ -112,10 +108,7 @@ end
 
 function Bookmark.save()
   local bookmarks = user.bookmarks
-  Path.write(
-    Bookmark.path,
-    json.encode(string_keys(bookmarks))
-  )
+  Path.write(Bookmark.path, json.encode(string_keys(bookmarks)))
 
   Bookmark.main()
 
@@ -125,24 +118,19 @@ end
 function Bookmark.add(file_path, lines, desc)
   local obj = user.bookmarks[file_path] or { context = {} }
   local now = os.time()
-  local isfile = Path.isfile(file_path)
-  local isdir = Path.isdir(file_path)
+  local isfile = Path.is_file(file_path)
+  local isdir = Path.is_dir(file_path)
 
   if not isfile and not isdir then
-    error(
-      file_path
-        .. " is neither a binary file or a directory"
-    )
+    error(file_path .. " is neither a binary file or a directory")
   elseif lines and isdir then
-    error(
-      file_path .. " cannot use linesnum with a directory"
-    )
+    error(file_path .. " cannot use linesnum with a directory")
   elseif lines then
     context = Bookmark.get_context(file_path, lines)
   end
 
   obj.creation_time = now
-  dict.merge(obj.context, dict.fromkeys(tolist(lines)))
+  dict.merge(obj.context, {dict.fromkeys(to_list(lines))})
   obj.file = isfile
   obj.dir = isdir
   obj.desc = desc
@@ -164,7 +152,7 @@ function Bookmark.del(file_path, lines)
   local obj = user.bookmarks[file_path]
   if lines then
     local context = obj.context
-    for _, line in ipairs(tolist(lines)) do
+    for _, line in ipairs(to_list(lines)) do
       context[line] = nil
     end
   else
@@ -201,26 +189,20 @@ function Bookmark.get_context(file_path, line)
   line = tonumber(line) or line
 
   if line > #data or #data < 1 then
-    error(
-      sprintf(
-        "invalid line %d provided for %s",
-        line,
-        file_path
-      )
-    )
+    error(sprintf("invalid line %d provided for %s", line, file_path))
   end
 
   return data[line]
 end
 
 function Bookmark.open(file_path, line)
-  if isstring(line) then
+  if is_string(line) then
     split = line
   end
 
-  if Path.isdir(file_path) then
+  if Path.is_dir(file_path) then
     vim.cmd(":e! " .. file_path)
-  elseif Path.isfile(file_path) then
+  elseif Path.is_file(file_path) then
     local bufnr = Buffer.create(file_path)
     Buffer.open(bufnr)
 
@@ -239,7 +221,7 @@ end
 function Bookmark.picker_results(file_path)
   local bookmarks = user.bookmarks
 
-  if isempty(bookmarks) then
+  if is_empty(bookmarks) then
     return
   end
 
@@ -265,7 +247,7 @@ function Bookmark.picker_results(file_path)
 
   if not obj then
     return
-  elseif obj.context and isempty(obj.context) then
+  elseif obj.context and is_empty(obj.context) then
     return
   end
 
@@ -273,11 +255,7 @@ function Bookmark.picker_results(file_path)
     results = keys(obj.context),
     entry_maker = function(linenum)
       return {
-        display = sprintf(
-          "%d | %s",
-          linenum,
-          obj.context[linenum]
-        ),
+        display = sprintf("%d | %s", linenum, obj.context[linenum]),
         value = linenum,
         path = obj.path,
         ordinal = linenum,
@@ -287,15 +265,9 @@ function Bookmark.picker_results(file_path)
 end
 
 function Bookmark.create_line_picker(file_path)
-  file_path = isnumber(file_path)
-      and Buffer.exists(file_path)
-      and Buffer.name(file_path)
-    or file_path
+  file_path = is_number(file_path) and Buffer.exists(file_path) and Buffer.name(file_path) or file_path
   local obj = user.bookmarks[file_path]
-  local fail = not obj
-    or obj.dir
-    or not obj.context
-    or isempty(obj.context)
+  local fail = not obj or obj.dir or not obj.context or is_empty(obj.context)
   if fail then
     return
   end
@@ -355,8 +327,7 @@ function Bookmark.create_picker()
     local obj = sel[1]
 
     if obj.file then
-      local line_picker =
-        Bookmark.create_line_picker(obj.path)
+      local line_picker = Bookmark.create_line_picker(obj.path)
       if line_picker then
         line_picker:find()
       end
@@ -372,11 +343,7 @@ function Bookmark.create_picker()
     end)
   end
 
-  return t:create_picker(
-    results,
-    { mod.default_action, { "n", "x", mod.del } },
-    { prompt_title = "bookmarks" }
-  )
+  return t:create_picker(results, { mod.default_action, { "n", "x", mod.del } }, { prompt_title = "bookmarks" })
 end
 
 function Bookmark.run_picker()
@@ -403,9 +370,7 @@ function Bookmark.create_dwim_picker()
   elseif len > 1 then
     return Bookmark.create_picker()
   else
-    return Bookmark.create_line_picker(
-      Buffer.name(Buffer.bufnr())
-    )
+    return Bookmark.create_line_picker(Buffer.name(Buffer.bufnr()))
   end
 end
 

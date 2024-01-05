@@ -26,14 +26,14 @@ end
 
 --- @param x Set
 --- @return boolean
-function Set.isset(x)
+function Set.is_set(x)
   return mtget(x, "type") == "Set"
 end
 
 function Set:__call(x)
   asserttype(x, "table")
 
-  if Set.isset(x) then
+  if Set.is_set(x) then
     return x
   end
 
@@ -44,7 +44,7 @@ function Set:__call(x)
 end
 
 function Setmt:__add(y)
-  if not istable(y) then
+  if not is_table(y) then
     self = Set(copy(self))
     self[y] = nil
 
@@ -83,7 +83,7 @@ function Setmt:__div(f)
 end
 
 function Setmt:__sub(y)
-  if not istable(y) then
+  if not is_table(y) then
     self = copy(Set(self))
     self[y] = nil
     return self
@@ -279,4 +279,3 @@ end
 function list.setne(x, y)
   return not list.eqset(x, y)
 end
-

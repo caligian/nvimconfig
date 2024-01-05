@@ -22,7 +22,7 @@ colorscheme.config = {
     },
     setup = function(self, opts)
       opts = opts or {}
-      opts = dict.merge(copy(self.config), opts)
+      opts = dict.merge(copy(self.config), {opts})
       list.each(opts, function(key, value)
         vim.g[key] = value
       end)
@@ -70,7 +70,7 @@ colorscheme.config = {
     },
     setup = function(self, opts)
       opts = opts or {}
-      opts = dict.merge(copy(self.config), opts)
+      opts = dict.merge(copy(self.config), {opts})
       require("rose-pine").setup(opts)
     end,
   },
@@ -123,7 +123,7 @@ colorscheme.config = {
     },
     setup = function(self, opts)
       opts = opts or {}
-      opts = dict.merge(copy(self.config), opts)
+      opts = dict.merge(copy(self.config), {opts})
       require("tokyonight").setup(opts)
       vim.cmd ":color tokyonight"
     end,
@@ -133,9 +133,9 @@ colorscheme.config = {
 function colorscheme:setup(name, config)
   local name = name or user.colorscheme
 
-  if iscallable(name) then
+  if is_callable(name) then
     name(config)
-  elseif isstring(name) then
+  elseif is_string(name) then
     if self.config[name] then
       self.config[name]:setup(config)
     else
@@ -144,7 +144,7 @@ function colorscheme:setup(name, config)
         vim.cmd "color carbonfox"
       end
     end
-  elseif istable(name) then
+  elseif is_table(name) then
     local color, config = name[1], name.config
     if not self.config[color] then
       return
@@ -175,7 +175,7 @@ colorscheme.autocmds = {
       callback = function()
         local colorcol = highlight "ColorColumn"
         local normal = highlight "normal"
-        local dark = isdark(normal.guibg)
+        local dark = is_dark(normal.guibg)
 
         if dark then
           colorcol.guibg = lighten(normal.guibg, 15)
@@ -196,7 +196,7 @@ colorscheme.autocmds = {
       callback = function()
         local cursorline = highlight "cursorline"
         local normal = highlight "normal"
-        local dark = isdark(normal.guibg)
+        local dark = is_dark(normal.guibg)
 
         if dark then
           cursorline.guibg = lighten(normal.guibg, 22)

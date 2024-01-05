@@ -6,7 +6,7 @@ function indentblankline.set_highlight()
     return
   end
 
-  if isdark(normal.guibg) then
+  if is_dark(normal.guibg) then
     normal.guifg = darken(normal.guibg, 20)
   else
     normal.guifg = lighten(normal.guibg, 20)

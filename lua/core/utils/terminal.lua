@@ -1,6 +1,6 @@
 require "core.utils.buffer.buffer"
 
-Terminal = class 'Terminal'
+Terminal = class "Terminal"
 user.terminals = user.terminals or {}
 
 Terminal.exceptions = {
@@ -14,7 +14,7 @@ Terminal.exceptions = {
 
 Terminal.timeout = 200
 
-function Terminal.isa(x)
+function Terminal.is_a(x)
   return mtget(x) == "Terminal"
 end
 
@@ -41,7 +41,7 @@ end
 function Terminal:init(cmd, opts)
   opts = opts or {}
 
-  dict.merge(self, opts)
+  dict.merge(self, {opts})
 
   self.cmd = cmd
   self.load_from_path = opts.load_from_path
@@ -69,7 +69,7 @@ function Terminal:start(callback)
   Winid.call(winid, function()
     local opts = Terminal.opts(self)
 
-    if isempty(opts) then
+    if is_empty(opts) then
       id = vim.fn.termopen(cmd)
     else
       id = vim.fn.termopen(cmd, opts)
@@ -138,17 +138,11 @@ function Terminal:if_running(callback)
 end
 
 function Terminal:center_float(opts)
-  return Terminal.float(
-    self,
-    dict.merge({ center = { 0.8, 0.8 } }, opts or {})
-  )
+  return Terminal.float(self, dict.merge({ center = { 0.8, {0.8 } }}, {opts or {}}))
 end
 
 function Terminal:dock(opts)
-  return Terminal.float(
-    self,
-    dict.merge({ dock = 0.3 }, opts or {})
-  )
+  return Terminal.float(self, dict.merge({ dock = 0.3 }, {opts or {}}))
 end
 
 function Terminal:send_node_at_cursor(src_bufnr)
@@ -179,10 +173,7 @@ function Terminal:send_buffer(src_bufnr)
   end
 
   src_bufnr = src_bufnr or vim.fn.bufnr()
-  return Terminal.send(
-    self,
-    vim.api.nvim_buf_get_lines(src_bufnr, 0, -1, false)
-  )
+  return Terminal.send(self, vim.api.nvim_buf_get_lines(src_bufnr, 0, -1, false))
 end
 
 function Terminal:send_till_cursor(src_bufnr)
@@ -193,17 +184,11 @@ function Terminal:send_till_cursor(src_bufnr)
   src_bufnr = src_bufnr or vim.fn.bufnr()
   return Buffer.call(src_bufnr, function()
     local line = vim.fn.line "."
-    return Terminal.send(
-      self,
-      vim.api.nvim_buf_get_lines(src_bufnr, 0, line, false)
-    )
+    return Terminal.send(self, vim.api.nvim_buf_get_lines(src_bufnr, 0, line, false))
   end)
 end
 
-function Terminal.send_textsubject_at_cursor(
-  self,
-  src_bufnr
-)
+function Terminal.send_textsubject_at_cursor(self, src_bufnr)
   if not self:is_running() then
     return
   end
@@ -237,15 +222,7 @@ function Terminal:terminate_input()
   if not self:is_running() then
     return
   end
-  return Terminal.send(
-    self,
-    vim.api.nvim_replace_termcodes(
-      "<C-c>",
-      true,
-      false,
-      true
-    )
-  )
+  return Terminal.send(self, vim.api.nvim_replace_termcodes("<C-c>", true, false, true))
 end
 
 function Terminal:send(s)
@@ -256,7 +233,7 @@ function Terminal:send(s)
   local id = self.job_id
 
   local function send_string(s)
-    s = tolist(s)
+    s = to_list(s)
     s[#s + 1] = ""
 
     vim.api.nvim_chan_send(id, table.concat(s, "\n"))
@@ -279,14 +256,9 @@ function Terminal:send(s)
       s = self.on_input(s)
     end
 
-    send_string(
-      self.load_from_path(
-        "/tmp/nvim_repl_last_input",
-        function(fname)
-          Path.write(fname, join(s, "\n"))
-        end
-      )
-    )
+    send_string(self.load_from_path("/tmp/nvim_repl_last_input", function(fname)
+      Path.write(fname, join(s, "\n"))
+    end))
   elseif self.on_input then
     send_string(self.on_input(s))
   else
