@@ -36,7 +36,7 @@ end
 --- @param self Buffer|string|number
 --- @return number?
 function Buffer.to_bufnr(self)
-  assertisa(self, union(Buffer.isa, "string", "number"))
+  assertisa(self, union(Buffer.isa, "string", "number", 'Buffer'))
   local bufnr
 
   if is_table(self) then

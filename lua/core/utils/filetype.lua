@@ -954,52 +954,68 @@ function Filetype.main(use_loadfile)
 
     Kbd.map("n", "<leader>cB", function()
       local buf = Buffer.current()
-      Filetype(buf):require():action(buf, "build", { dir = true })
+      local ft = Filetype(buf):require()
+			if ft then ft:action(buf, "build", { dir = true }) end
     end, "build dir")
 
     Kbd.map("n", "<leader>mt", function()
       local buf = Buffer.current()
-      Filetype(buf):require():action(buf, "test", { workspace = true })
+      local ft = Filetype(buf):require()
+			if ft then ft:action(buf, "test", { workspace = true }) end
     end, "test workspace")
 
     Kbd.map("n", "<leader>ct", function()
       local buf = Buffer.current()
-      Filetype(buf):require():action(buf, "test", { buffer = true })
+      local ft = Filetype(buf):require()
+			if ft then ft:action(buf, "test", { buffer = true }) end
     end, "test buffer")
 
     Kbd.map("n", "<leader>cT", function()
       local buf = Buffer.current()
-      Filetype(buf):require():action(buf, "test", { dir = true })
+      local ft = Filetype(buf):require()
+			if ft then ft:action(buf, "test", { dir = true }) end
     end, "test dir")
 
     Kbd.map("n", "<leader>mc", function()
       local buf = Buffer.current()
-      Filetype(buf):require():action(buf, "compile", { workspace = true })
+      local ft = Filetype(buf):require()
+			if ft then ft:action(buf, "compile", { workspace = true }) end
     end, "compile workspace")
 
     Kbd.map("n", "<leader>cc", function()
       local buf = Buffer.current()
-      Filetype(buf):require():action(buf, "compile", { buffer = true })
+      local ft = Filetype(buf):require()
+			if ft then ft:action(buf, "compile", { buffer = true }) end
     end, "compile buffer")
 
     Kbd.map("n", "<leader>cC", function()
       local buf = Buffer.current()
-      Filetype(buf):require():action(buf, "compile", { dir = true })
+      local ft = Filetype(buf):require()
+			if ft then ft:action(buf, "compile", { dir = true }) end
     end, "compile dir")
 
     Kbd.map("n", "<leader>mf", function()
       local buf = Buffer.current()
-      Filetype(buf):format_workspace(buf)
+      local ft = Filetype(buf)
+      if ft then
+        ft:format_workspace(buf)
+      end
     end, "format workspace")
 
     Kbd.map("n", "<leader>bf", function()
       local buf = Buffer.current()
-      Filetype(buf):format(buf, { buffer = true })
+      local ft = Filetype(buf)
+      if ft then
+        ft:format({buffer = true})
+      end
     end, "format buffer")
 
     Kbd.map("n", "<leader>bF", function()
       local buf = Buffer.current()
-      Filetype(buf):format_dir(buf)
+      local ft = Filetype(buf)
+      if ft then
+        ft:format_dir(buf)
+      end
     end, "format dir")
   end, 50)
 end
