@@ -33,6 +33,7 @@ local function close_other_windows()
 end
 
 local opts = { noremap = true, leader = true }
+
 local withopts = function(overrides)
   overrides = is_string(overrides) and { desc = overrides } or overrides
   return dict.lmerge(overrides, {opts})
@@ -51,31 +52,6 @@ return {
     'gP',
     ':put!<CR>',
     {desc = 'paste below cursor'},
-  },
-
-  -- TODO: replace history
-  print_buffer_history = {
-    "n",
-    "<leader>bH",
-    function()
-      buffer.history.print()
-    end,
-    { desc = "(pop N and) open recent" },
-  },
-
-  pop_n_open_recent = {
-    "n",
-    "<leader>bh",
-    function()
-      local n = vim.v.count
-
-      if n == 0 then
-        buffer.history.open()
-      else
-        buffer.history.pop_open(n)
-      end
-    end,
-    { desc = "(pop N and) open recent" },
   },
 
   netrw = {

@@ -935,12 +935,13 @@ end
 function Filetype.main(use_loadfile)
   local configured = Filetype.list()
 
-  vim.defer_fn(function()
     list.each(configured, function(x)
       local obj = Filetype(x)
       obj:setup(use_loadfile)
     end)
 
+  
+  vim.defer_fn(function()
     Kbd.map("n", "<leader>mb", function()
       local buf = Buffer.current()
       Filetype(buf):action(buf, "build", { workspace = true })

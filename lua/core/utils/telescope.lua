@@ -13,10 +13,9 @@ function T:__call()
       theme = dict.merge(require("telescope.themes").get_ivy(), {{ 
         disable_devicons = false,
         previewer = false,
-        layout_config = {height = 0.25}
+        layout_config = {height = 0.3}
       }}),
-    }})
-  end
+    }}) end
 
   return self
 end

@@ -6,7 +6,7 @@ local function getivy()
     previewer = false,
     extensions = {},
     layout_config = {
-      height = 0.25,
+      height = 0.32,
     },
   }})
 end

@@ -953,12 +953,11 @@ end
 
 --- Zip lists and fill using `fillvalue` if necessary
 --- @param fillvalue any
---- @param args list
+--- @param arrs list
 --- @return list
-function list.ziplongest(fillvalue, args)
+function list.ziplongest(fillvalue, arrs)
   local out = {}
   local lens = {}
-  local arrs = { args }
   local len = #arrs
 
   for i = 1, #arrs do
@@ -979,12 +978,11 @@ function list.ziplongest(fillvalue, args)
 end
 
 --- Zip lists up till the shortest list
---- @param args list
+--- @param arrs list
 --- @return list
-function list.zip(args)
+function list.zip(arrs)
   local out = {}
   local lens = {}
-  local arrs = { args }
   local len = #arrs
 
   for i = 1, #arrs do
@@ -1186,79 +1184,96 @@ function dict.items(t)
   return out
 end
 
---- Replace key in preceding table only if it does not exist
---- @param args table
---- @return table
 function dict.lmerge(x, args)
   local cache = {}
 
-  local function _merge(t1, t2)
-    local later = {}
+  for i = 1, #args do
+    local X = x
+    local Y = args[i]
+    local queue = {}
 
-    dict.each(t2, function(k, v)
-      local a, b = t1[k], t2[k]
-      if cache[a] then
-        return
+    if not is_table(Y) then
+      error(i .. ': expected table, got ' .. type(Y))
+    end
+
+    while X and Y do
+      for key, value in pairs(Y) do
+        local x_value = X[key]
+
+        if is_table(value) then
+          if is_table(x_value) then
+            if not cache[value] and not cache[x_value] then
+              queue[#queue+1] = {x_value, value}
+            else
+              cache[value] = true
+              cache[x_value] = true
+            end
+          elseif is_nil(x_value) then
+            X[key] = value
+          end
+        elseif is_nil(x_value) then
+          X[key] = value
+        end
       end
 
-      if a == nil then
-        t1[k] = v
-      elseif gettype(a) == "table" and gettype(b) == "table" then
-        cache[a] = true
-        list.append(later, {{ a, b }})
+      local len = #queue
+      if len ~= 0 then
+        X, Y = unpack(queue[len])
+        queue[len] = nil
+      else
+        break
       end
-    end)
-
-    list.each(later, function(nested)
-      _merge(x, unpack(nested))
-    end)
-  end
-
-  local l = #args
-  for i =1, l do
-    _merge(x, args[i])
+    end
   end
 
   return x
 end
 
----- Add/update keys in preceding table
---- @param args table
---- @return table
 function dict.merge(x, args)
   local cache = {}
 
-  local function _merge(t1, t2)
-    local later = {}
+  for i = 1, #args do
+    local X = x
+    local Y = args[i]
+    local queue = {}
 
-    dict.each(t2, function(k, v)
-      local a, b = t1[k], t2[k]
-      if cache[a] then
-        return
+    if not is_table(Y) then
+      error(i .. ': expected table, got ' .. type(Y))
+    end
+
+    while X and Y do
+      for key, value in pairs(Y) do
+        local x_value = X[key]
+
+        if is_table(value) then
+          if is_table(x_value) then
+            if not cache[value] and not cache[x_value] then
+              queue[#queue+1] = {x_value, value}
+            else
+              cache[value] = true
+              cache[x_value] = true
+            end
+          else
+            X[key] = value
+          end
+        else
+          X[key] = value
+        end
       end
 
-      if a == nil then
-        t1[k] = v
-      elseif gettype(a) == "table" and gettype(b) == "table" then
-        cache[a] = true
-        list.append(later, {{ a, b }})
+      local len = #queue
+      if len ~= 0 then
+        X, Y = unpack(queue[len])
+        queue[len] = nil
       else
-        t1[k] = v
+        break
       end
-    end)
-
-    list.each(later, function(vs)
-      _merge(x, unpack(vs))
-    end)
-  end
-
-  local l = #args
-  for i = 1, l do
-    _merge(x, args[i])
+    end
   end
 
   return x
 end
+
 
 --- Extract the non-list part of the table
 --- @param x table
@@ -1301,11 +1316,19 @@ function dict.fromkeys(X, default)
   return res
 end
 
+--- @class dict.groupby.rule
+--- @field [1] string
+--- @field [2] string|string[]
+
+--- Group keys by lua patterns
+--- @param x table
+--- @param spec dict.groupby.rule[]
+--- @return table<string,any>
 function dict.groupby(x, spec)
   local matched = { rest = {} }
   local patterns = {}
 
-  list.each(spec, function(pattern)
+  list.each(spec --[[@as list]], function(pattern)
     local name
     name, pattern = unpack(pattern)
 

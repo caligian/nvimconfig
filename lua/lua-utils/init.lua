@@ -1,4 +1,5 @@
 require "lua-utils.utils"
+require 'lua-utils.class'
 require "lua-utils.table"
 require "lua-utils.Set"
 require "lua-utils.compare"

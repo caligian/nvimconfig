@@ -64,6 +64,7 @@ return {
       callback = function(opts)
         local bufnr = opts.buf
         local bufname = Buffer.name(bufnr)
+
         local function map_quit()
           Buffer.map(bufnr, "ni", "q", "<cmd>hide<CR>")
         end

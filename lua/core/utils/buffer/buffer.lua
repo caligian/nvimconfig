@@ -745,5 +745,3 @@ dict.each(_Buffer, function(key, value)
 
   Buffer[key] = f
 end)
-
-pp(Buffer.option)

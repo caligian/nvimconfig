@@ -257,7 +257,8 @@ function case.match(a, b, opts)
     cond = true
   end
 
-  local function cmp(a_value, b_value)
+  local function cmp(a_value, b_value, matched_vars)
+    matched_vars = match and (matched_vars or {})
     local ok = false
     local is_var = case.is_var(b_value)
 
@@ -352,6 +353,8 @@ function case.match(a, b, opts)
   local function recurse(A, B, ok)
     local ks, required, optional = filter_resolve(keys(B))
     ok = defined(ok, false)
+    local matched = match and {}
+    local later = {}
 
     for i = 1, #ks do
       local k = ks[i]
@@ -370,6 +373,10 @@ function case.match(a, b, opts)
           n.name = k
         end
 
+        --- TODO
+        if is_table(n.test) then
+        end
+
         if not cmp(m, n) then
           return false
         else
@@ -385,8 +392,7 @@ function case.match(a, b, opts)
         else
           state[k] = {}
           state = state[k]
-
-          return recurse(m, n)
+          later[#later+1] = {m, n}
         end
       else
         if not cmp(m, n) then
@@ -399,6 +405,10 @@ function case.match(a, b, opts)
           state[k] = true
         end
       end
+    end
+
+    for i=1, #later do
+      ok = recurse(unpack(later[i]))
     end
 
     return true
@@ -421,7 +431,7 @@ function case.match(a, b, opts)
   end
 end
 
-local function switchcase(specs)
+local function switchcase(x, specs)
   local default = specs.default
 
   for spec, f in pairs(specs) do
@@ -448,7 +458,7 @@ end
 
 function case:__call(x, specs)
   if specs then
-    return switchcase(specs)
+    return switchcase(x, specs)
   else
     return switchcase
   end

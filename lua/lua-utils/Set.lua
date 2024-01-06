@@ -1,4 +1,4 @@
--- require 'lua-utils.table'
+require 'lua-utils.table'
 
 --- dictionary based set
 --- Other support operators:
