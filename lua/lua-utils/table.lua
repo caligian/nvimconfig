@@ -173,6 +173,7 @@ end
 --- @field put any put this value directly
 --- @field rawget boolean use rawget for fetching
 --- @field rawset boolean use rawset for setting
+--- @field unset boolean remove value at key[s]
 
 --- Fetch keys from a table
 --- > local ks = {'a', 'b'}
@@ -1475,6 +1476,114 @@ function dict.fetch(x, ks)
   return out
 end
 
+local function listne(a, b, absolute, state, ok)
+  assertisa.table(a)
+  assertisa.table(b)
+
+  for i=1, #b do
+    local key = i
+    local a_value = a[key]
+    local b_value = b[key]
+
+    if is_nil(a_value) then
+      if absolute then
+        return true
+      end
+
+      state[key] = true
+    elseif is_table(a_value) and is_table(b_value) then
+      state[key] = {}
+      state = state[key]
+
+      return listne(a_value, b_value, absolute, state, ok)
+    elseif a_value == b_value then
+      if absolute then
+        return false
+      else
+        state[key] = false
+      end
+    elseif not absolute then
+      state[key] = true
+    else
+      ok = true
+    end
+  end
+
+  return ok, state
+end
+
+local function listeq(a, b, absolute, state, ok)
+  assertisa.table(a)
+  assertisa.table(b)
+
+  ok = ok or false
+
+  for i=1, #b do
+    local key = i
+    local a_value = a[key]
+    local b_value = b[key]
+
+    if is_nil(a_value) then
+      if absolute then
+        return false
+      end
+
+      state[key] = false
+    elseif is_table(a_value) and is_table(b_value) then
+      state[key] = {}
+      state = state[key]
+
+      return listeq(a_value, b_value, absolute, state, ok)
+    elseif a_value ~= b_value then
+      if absolute then
+        return false
+      else
+        state[key] = false
+      end
+    elseif not absolute then
+      state[key] = true
+    else
+      ok = true
+    end
+  end
+
+  return ok
+end
+
+local function dictne(a, b, absolute, state, ok)
+  assertisa.table(a)
+  assertisa.table(b)
+
+  for key, b_value in pairs(b) do
+    local a_value = a[key]
+
+    if is_nil(a_value) then
+      if absolute then
+        return true
+      end
+
+      state[key] = true
+    elseif is_table(a_value) and is_table(b_value) then
+      state[key] = {}
+      state = state[key]
+
+      return dictne(a_value, b_value, absolute, state, ok)
+    elseif a_value == b_value then
+      if absolute then
+        return false
+      else
+        state[key] = false
+      end
+    elseif not absolute then
+      state[key] = true
+    else
+      ok = true
+    end
+  end
+
+  return ok, state
+end
+
 local function dicteq(a, b, absolute, state, ok)
   assertisa.table(a)
   assertisa.table(b)
@@ -1512,6 +1621,38 @@ local function dicteq(a, b, absolute, state, ok)
 end
 
 --- compare A and B or is A == B
+--- @param a list
+--- @param b list
+--- @param absolute? boolean If passed then do not return a boolean list of compared times from keys of B
+--- @return list|boolean
+function list.eq(a, b, absolute)
+  if absolute then
+    return listeq(a, b, true)
+  end
+
+  local result = {}
+  listeq(a, b, false, result)
+
+  return result
+end
+
+--- compare A and B or is A ~= B
+--- @param a list
+--- @param b list
+--- @param absolute? boolean If passed then do not return a boolean list of compared times from keys of B
+--- @return list|boolean
+function list.ne(a, b, absolute)
+  if absolute then
+    return listne(a, b, true)
+  end
+
+  local result = {}
+  listne(a, b, false, result)
+
+  return result
+end
+
+--- compare A and B or is A == B
 --- @param a dict
 --- @param b dict
 --- @param absolute? boolean If passed then do not return a boolean dict of compared times from keys of B
@@ -1533,7 +1674,14 @@ end
 --- @param absolute? boolean If passed then do not return a boolean dict of compared times from keys of B
 --- @return dict|boolean
 function dict.ne(a, b, absolute)
-  return not dict.eq(a, b, absolute)
+  if absolute then
+    return dictne(a, b, true)
+  end
+
+  local result = {}
+  dictne(a, b, false, result)
+
+  return result
 end
 
 --- @param x table
