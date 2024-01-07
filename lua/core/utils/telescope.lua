@@ -2,20 +2,25 @@ local T = module()
 
 function T:__call()
   if not self.exists then
-    dict.merge(self, {{
-      exists = require "telescope",
-      pickers = require "telescope.pickers",
-      actions = require "telescope.actions",
-      action_state = require "telescope.actions.state",
-      sorters = require "telescope.sorters",
-      finders = require "telescope.finders",
-      conf = require("telescope.config").values,
-      theme = dict.merge(require("telescope.themes").get_ivy(), {{ 
-        disable_devicons = false,
-        previewer = false,
-        layout_config = {height = 0.3}
-      }}),
-    }}) end
+    dict.merge(self, {
+      {
+        exists = require "telescope",
+        pickers = require "telescope.pickers",
+        actions = require "telescope.actions",
+        action_state = require "telescope.actions.state",
+        sorters = require "telescope.sorters",
+        finders = require "telescope.finders",
+        conf = require("telescope.config").values,
+        theme = dict.merge(require("telescope.themes").get_ivy(), {
+          {
+            disable_devicons = false,
+            previewer = false,
+            layout_config = { height = 0.3 },
+          },
+        }),
+      },
+    })
+  end
 
   return self
 end

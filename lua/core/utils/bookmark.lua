@@ -130,7 +130,7 @@ function Bookmark.add(file_path, lines, desc)
   end
 
   obj.creation_time = now
-  dict.merge(obj.context, {dict.fromkeys(to_list(lines))})
+  dict.merge(obj.context, { dict.fromkeys(to_list(lines)) })
   obj.file = isfile
   obj.dir = isdir
   obj.desc = desc

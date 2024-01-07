@@ -28,7 +28,7 @@ function rsplit(x, sep, maxtimes, _prev, _n, _res)
     local out = {}
 
     for i = 1, #x do
-      list.append(out, {substr(x, i, i)})
+      list.append(out, { substr(x, i, i) })
     end
 
     return out
@@ -52,11 +52,11 @@ function rsplit(x, sep, maxtimes, _prev, _n, _res)
 
   local a, b = string.find(x, sep, prev)
   if not a then
-    list.append(res, {substr(x, prev, #x)})
+    list.append(res, { substr(x, prev, #x) })
     return res
   end
 
-  list.append(res, {substr(x, prev, a - 1)})
+  list.append(res, { substr(x, prev, a - 1) })
   prev = b + 1
 
   return rsplit(x, sep, maxtimes, prev, n + 1, res)
@@ -68,7 +68,7 @@ function split(x, sep, maxtimes, _prev, _n, _res)
   if #sep == 0 then
     local out = {}
     for i = 1, #x do
-      list.append(out, {substr(x, i, i)})
+      list.append(out, { substr(x, i, i) })
     end
 
     return out
@@ -93,7 +93,7 @@ function split(x, sep, maxtimes, _prev, _n, _res)
     return res
   end
 
-  list.append(res, {substr(x, prev, a - 1) or ""})
+  list.append(res, { substr(x, prev, a - 1) or "" })
   prev = b + 1
 
   return split(x, sep, maxtimes, prev, n + 1, res)
@@ -139,7 +139,7 @@ function strfind(x, pattern, init, times)
     a, b = x:find(pattern, a)
 
     if a then
-      list.append(res, {{ a, b }})
+      list.append(res, { { a, b } })
       a = b + 1
       n = n + 1
     else

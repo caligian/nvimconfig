@@ -119,7 +119,7 @@ function input(spec)
 
     for key, value in pairs(spec) do
       local out = process_input(key, value)
-      dict.merge(res, {out})
+      dict.merge(res, { out })
     end
 
     return res
@@ -195,7 +195,7 @@ function requirem(s)
   end
 
   if is_table(builtin) and is_table(_user) then
-    return dict.merge(copy(builtin), {_user})
+    return dict.merge(copy(builtin), { _user })
   end
 
   return builtin

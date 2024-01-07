@@ -3,7 +3,7 @@ require "core.utils.terminal"
 REPL = class "REPL"
 user.repls = {}
 
-dict.merge(REPL, {Terminal})
+dict.merge(REPL, { Terminal })
 
 function REPL.exists(self, tp)
   assertisa(self, union("REPL", "string", "number"))
@@ -76,7 +76,7 @@ function REPL:init(bufnr, opts)
   local isbuf = opts.buffer
 
   if _opts then
-    dict.merge(opts, {_opts})
+    dict.merge(opts, { _opts })
   end
 
   self.filetype = ft

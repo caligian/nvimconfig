@@ -74,7 +74,7 @@ function Positional:init(specs)
   specs.help = specs.help or ""
   specs.metavar = specs.metavar or specs.type:upper()
 
-  return dict.merge(self, {specs})
+  return dict.merge(self, { specs })
 end
 
 function Option:init(specs)
@@ -106,7 +106,7 @@ function Option:init(specs)
   specs.metavar = specs.metavar or specs.type:upper()
   specs.nargs = specs.nargs or 0
 
-  return dict.merge(self, {specs})
+  return dict.merge(self, { specs })
 end
 
 function Argparser:init(desc, short_desc)
@@ -180,11 +180,11 @@ function Argparser:_findindex(args)
     local short = short_option and "-" .. short_option
     local long_index = findall(args, long)
     local short_index = findall(args, short)
-    local all = list.extend({long_index or {}, short_index or {}})
+    local all = list.extend { long_index or {}, short_index or {} }
     opt.index = all
 
     list.each(all, function(x)
-      list.append(withindex, {{ x, name }})
+      list.append(withindex, { { x, name } })
     end)
   end)
 
@@ -255,7 +255,7 @@ function Argparser:parse(args)
     if passed then
       local use = self.options[from[2]]
       use.args = use.args or {}
-      use.args = list.extend({use.args, {passed}})
+      use.args = list.extend { use.args, { passed } }
     end
   end
 
@@ -299,7 +299,7 @@ function Argparser:parse(args)
   end
 
   ---@diagnostic disable-next-line: param-type-mismatch
-  local positional = list.extend(head, {{tail}})
+  local positional = list.extend(head, { { tail } })
   for i = 1, #positional do
     if not self.positional[i] then
       self.positional[i] = Argparser.Positional { name = i }
@@ -435,7 +435,7 @@ function Argparser:tostring()
     "",
   }
   if #self.positional > 0 then
-    list.append(usage, {"Positional arguments:"})
+    list.append(usage, { "Positional arguments:" })
 
     local names = list.map(self.positional, function(opt)
       return {
@@ -464,7 +464,7 @@ function Argparser:tostring()
       fmt = fmt .. " " .. _help
       fmt = sprintf(fmt, _name)
 
-      list.append(usage, {fmt})
+      list.append(usage, { fmt })
     end)
 
     print(concat(usage, "\n"))

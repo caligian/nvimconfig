@@ -36,22 +36,22 @@ local opts = { noremap = true, leader = true }
 
 local withopts = function(overrides)
   overrides = is_string(overrides) and { desc = overrides } or overrides
-  return dict.lmerge(overrides, {opts})
+  return dict.lmerge(overrides, { opts })
 end
 
 return {
   paste_above_cursor = {
-    'n',
-    'gp',
-    ':put<CR>',
-    {desc = 'paste above cursor'},
+    "n",
+    "gp",
+    ":put<CR>",
+    { desc = "paste above cursor" },
   },
 
   paste_below_cursor = {
-    'n',
-    'gP',
-    ':put!<CR>',
-    {desc = 'paste below cursor'},
+    "n",
+    "gP",
+    ":put!<CR>",
+    { desc = "paste below cursor" },
   },
 
   netrw = {

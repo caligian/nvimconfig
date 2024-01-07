@@ -33,10 +33,9 @@ function Plugin.init(self, name, opts)
   self.requireall = nil
   opts = copy(opts)
   opts.name = name
-  dict.merge(self, {opts})
+  dict.merge(self, { opts })
 
   user.plugins[self.name] = self
-
 
   return self
 end
@@ -107,13 +106,13 @@ function Plugin.loadfile(self)
   end
 
   if is_table(builtin) and is_table(userconfig) then
-    dict.merge(plug, {builtin, userconfig})
+    dict.merge(plug, { builtin, userconfig })
   elseif not builtin and not userconfig then
     return plug
   elseif is_table(builtin) then
-    dict.merge(plug, {builtin})
+    dict.merge(plug, { builtin })
   elseif is_table(userconfig) then
-    dict.merge(plug, {userconfig})
+    dict.merge(plug, { userconfig })
   end
 
   return plug
@@ -135,13 +134,13 @@ function Plugin.require(self)
   local plug = Plugin(name)
 
   if is_table(builtin) and is_table(userconfig) then
-    dict.merge(plug, {builtin, userconfig})
+    dict.merge(plug, { builtin, userconfig })
   elseif not builtin and not userconfig then
     return plug
   elseif is_table(builtin) then
-    dict.merge(plug, {builtin})
+    dict.merge(plug, { builtin })
   elseif is_table(userconfig) then
-    dict.merge(plug, {userconfig})
+    dict.merge(plug, { userconfig })
   end
 
   return plug
@@ -233,7 +232,7 @@ local function _set_mappings(self, mappings)
     spec[4] = copy(spec[4])
     spec[4].desc = spec[4].desc or key
 
-    dict.merge(spec[4], {opts})
+    dict.merge(spec[4], { opts })
 
     spec[4].name = name
 
@@ -269,7 +268,7 @@ function Plugin.lazy_spec()
 
   if userconfig then
     assertisa(userconfig, "table")
-    dict.merge(core, {userconfig})
+    dict.merge(core, { userconfig })
   end
 
   local specs = {}

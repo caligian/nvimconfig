@@ -27,9 +27,9 @@ local function get_quoted(cmd)
     local escaped = backslash and isquote
 
     if escaped or not isquote then
-      list.append(cache, {c})
+      list.append(cache, { c })
     elseif isquote and not escaped then
-      list.append(res, {{ true, join(list.sub(cache, 2), "") }})
+      list.append(res, { { true, join(list.sub(cache, 2), "") } })
 
       cache = { true }
 
@@ -39,7 +39,7 @@ local function get_quoted(cmd)
         break
       else
         local remaining = string.sub(cmd, i + 1, new_i - 1)
-        list.append(res, {{ false, remaining }})
+        list.append(res, { { false, remaining } })
         i = new_i
         quote = substr(cmd, new_i, new_i) or ""
       end
@@ -49,7 +49,7 @@ local function get_quoted(cmd)
   end
 
   if i <= lim then
-    list.append(res, {{ false, substr(cmd, i + 1, lim) or "" }})
+    list.append(res, { { false, substr(cmd, i + 1, lim) or "" } })
   end
 
   return res
@@ -76,9 +76,9 @@ function shlex.parse(cmd)
     end
 
     if isquoted then
-      list.append(res, {s})
+      list.append(res, { s })
     else
-      list.extend(res, {split(s, "%s+")})
+      list.extend(res, { split(s, "%s+") })
     end
   end)
 

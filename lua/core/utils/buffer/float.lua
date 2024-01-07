@@ -131,7 +131,7 @@ function float.panel(bufnr, size, opts)
     size = 0.3
   end
 
-  local o = dict.merge({ panel = size }, {opts or {}})
+  local o = dict.merge({ panel = size }, { opts or {} })
   return float.float(bufnr, o)
 end
 
@@ -146,13 +146,13 @@ function float.center_float(bufnr, size, opts)
     size = { n, n }
   end
 
-  return float.float(bufnr, dict.merge({ center = size }, {opts}))
+  return float.float(bufnr, dict.merge({ center = size }, { opts }))
 end
 
 function float.dock(bufnr, size, opts)
   size = size or 10
 
-  return float.float(bufnr, dict.merge({ dock = size }, {opts or {}}))
+  return float.float(bufnr, dict.merge({ dock = size }, { opts or {} }))
 end
 
 function float.set_float_config(bufnr, config)

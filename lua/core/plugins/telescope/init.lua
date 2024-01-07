@@ -1,24 +1,26 @@
 local M = {}
 
 local function getivy()
-  return dict.merge(require("telescope.themes").get_ivy(), {{
-    disable_devicons = true,
-    previewer = false,
-    extensions = {},
-    layout_config = {
-      height = 0.32,
+  return dict.merge(require("telescope.themes").get_ivy(), {
+    {
+      disable_devicons = true,
+      previewer = false,
+      extensions = {},
+      layout_config = {
+        height = 0.32,
+      },
     },
-  }})
+  })
 end
 
 local function picker(p, conf)
   return function()
-    require("telescope.builtin")[p](dict.merge(conf or {}, {getivy()}))
+    require("telescope.builtin")[p](dict.merge(conf or {}, { getivy() }))
   end
 end
 
 local function O(overrides)
-  return dict.lmerge(overrides, {{ noremap = true, leader = true }})
+  return dict.lmerge(overrides, { { noremap = true, leader = true } })
 end
 
 M.mappings = {

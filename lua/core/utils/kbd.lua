@@ -191,7 +191,7 @@ function Kbd.loadfile()
     if is_function(config) then
       config = config--[[@as function]]()
       if is_table(config) then
-        dict.merge(specs, {config})
+        dict.merge(specs, { config })
       end
     end
   end
@@ -201,7 +201,7 @@ function Kbd.loadfile()
     if is_function(config) then
       config = config--[[@as function]]()
       if is_table(config) then
-        dict.merge(specs, {config})
+        dict.merge(specs, { config })
       end
     end
   end
@@ -217,14 +217,14 @@ function Kbd.require()
   if usersrc then
     local config = requirex "core.defaults.kbd"
     if is_table(config) then
-      dict.merge(specs, {config})
+      dict.merge(specs, { config })
     end
   end
 
   if src then
     local config = requirex "core.defaults.kbd"
     if is_table(config) then
-      dict.merge(specs, {config})
+      dict.merge(specs, { config })
     end
   end
 

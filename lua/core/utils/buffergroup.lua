@@ -189,7 +189,7 @@ function BufferGroup.loadfile()
     config = config and config()
 
     if config and is_table(config) then
-      dict.merge(specs, {config})
+      dict.merge(specs, { config })
     end
   end
 
@@ -198,7 +198,7 @@ function BufferGroup.loadfile()
     config = config and config()
 
     if config and is_table(config) then
-      dict.merge(specs, {config})
+      dict.merge(specs, { config })
     end
   end
 
@@ -213,14 +213,14 @@ function BufferGroup.require()
   if req2path "core.defaults.buffergroup" then
     local config = requirex "core.defaults.buffergroup"
     if config and is_table(config) then
-      dict.merge(specs, {config})
+      dict.merge(specs, { config })
     end
   end
 
   if req2path "user.buffergroup" then
     local config = requirex "user.buffergroup"
     if config and is_table(config) then
-      dict.merge(specs, {config})
+      dict.merge(specs, { config })
     end
   end
 

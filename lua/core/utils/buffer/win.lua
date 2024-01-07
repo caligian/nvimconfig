@@ -1,8 +1,8 @@
 Win = module()
 Winid = module()
-Tabpage = dict.merge(module(), {nvim.tabpage})
+Tabpage = dict.merge(module(), { nvim.tabpage })
 
-dict.merge(Winid, {nvim.win})
+dict.merge(Winid, { nvim.win })
 
 local call = nvim.win.call
 wrap = identity
@@ -26,7 +26,6 @@ local function valid_winnr(winnr, f)
     return f(winnr)
   end
 end
-
 
 function Winid.call(winid, f)
   return valid_winid(winid, function()

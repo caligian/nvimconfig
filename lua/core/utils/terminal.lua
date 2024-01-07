@@ -41,7 +41,7 @@ end
 function Terminal:init(cmd, opts)
   opts = opts or {}
 
-  dict.merge(self, {opts})
+  dict.merge(self, { opts })
 
   self.cmd = cmd
   self.load_from_path = opts.load_from_path
@@ -138,11 +138,11 @@ function Terminal:if_running(callback)
 end
 
 function Terminal:center_float(opts)
-  return Terminal.float(self, dict.merge({ center = { 0.8, {0.8 } }}, {opts or {}}))
+  return Terminal.float(self, dict.merge({ center = { 0.8, { 0.8 } } }, { opts or {} }))
 end
 
 function Terminal:dock(opts)
-  return Terminal.float(self, dict.merge({ dock = 0.3 }, {opts or {}}))
+  return Terminal.float(self, dict.merge({ dock = 0.3 }, { opts or {} }))
 end
 
 function Terminal:send_node_at_cursor(src_bufnr)

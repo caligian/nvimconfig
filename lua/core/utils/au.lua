@@ -27,7 +27,7 @@ function Autocmd.init(self, event, opts)
   if not command then
     function callback(opts)
       cb(opts)
-      list.append(buffers, {Buffer.bufnr()})
+      list.append(buffers, { Buffer.bufnr() })
     end
   end
 
@@ -160,7 +160,7 @@ function Autocmd.loadfile()
     if is_function(config) then
       config = config()
       if is_table(config) then
-        dict.merge(specs, {config})
+        dict.merge(specs, { config })
       end
     end
   end
@@ -170,7 +170,7 @@ function Autocmd.loadfile()
     if is_function(config) then
       config = config()
       if is_table(config) then
-        dict.merge(specs, {config})
+        dict.merge(specs, { config })
       end
     end
   end
@@ -186,14 +186,14 @@ function Autocmd.require()
   if usersrc then
     local config = requirex "core.defaults.autocmds"
     if is_table(config) then
-      dict.merge(specs, {config})
+      dict.merge(specs, { config })
     end
   end
 
   if src then
     local config = requirex "core.defaults.autocmds"
     if is_table(config) then
-      dict.merge(specs, {config})
+      dict.merge(specs, { config })
     end
   end
 

@@ -1,8 +1,8 @@
 --- Stringify element
 --- @overload fun(x:any): string
-require 'lua-utils.copy'
-require 'lua-utils.types'
-require 'lua-utils.function'
+require "lua-utils.copy"
+require "lua-utils.types"
+require "lua-utils.function"
 
 --- @param x any
 --- @param force? bool forcefully wrap the elem in a table?
@@ -264,4 +264,4 @@ function defined(x, orelse)
   end
 end
 
-require 'lua-utils.class'
+require "lua-utils.class"

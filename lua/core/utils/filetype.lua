@@ -340,7 +340,7 @@ function lsp.setup_server(server, opts)
     flags = flags,
   }
 
-  default_conf = dict.merge(default_conf, {opts})
+  default_conf = dict.merge(default_conf, { opts })
 
   if default_conf.cmd then
     default_conf.cmd = to_list(default_conf.cmd)
@@ -355,7 +355,7 @@ function Filetype:init(name)
   elseif is_table(name) then
     assert(name.name, "name is missing in " .. dump(name))
     local l = Filetype(name.name)
-    dict.merge(l, {name})
+    dict.merge(l, { name })
 
     user.filetypes[name.name] = l
     return l
@@ -540,7 +540,7 @@ function Filetype:command(bufnr, action)
     compile = { buffer = compile }
   end
 
-  compile = dict.merge(compile, {opts})
+  compile = dict.merge(compile, { opts })
 
   local opts = dict.filter(compile, function(key, _)
     return key ~= "buffer" and key ~= "workspace" and key ~= "dir"
@@ -597,7 +597,7 @@ function Filetype:command(bufnr, action)
     local cmd, _opts = dwim(compile[1] or compile.buffer, bufname)
     _opts = _opts or {}
 
-    dict.lmerge(_opts, {opts})
+    dict.lmerge(_opts, { opts })
 
     if cmd then
       out.buffer = withpath(cmd, bufname)
@@ -609,7 +609,7 @@ function Filetype:command(bufnr, action)
     local cmd, _opts = dwim(compile.dir, d)
     _opts = _opts or {}
 
-    dict.lmerge(_opts, {opts})
+    dict.lmerge(_opts, { opts })
 
     if cmd then
       out.dir = withpath(cmd, d)
@@ -622,7 +622,7 @@ function Filetype:command(bufnr, action)
       local cmd, _opts = dwim(compile.workspace, ws)
       _opts = _opts or {}
 
-      dict.lmerge(_opts, {opts})
+      dict.lmerge(_opts, { opts })
 
       if cmd then
         out.workspace = withpath(cmd, ws)
@@ -647,7 +647,7 @@ function Filetype:format(bufnr, opts)
   end
 
   local target
-  opts = dict.lmerge(copy(opts), {_opts})
+  opts = dict.lmerge(copy(opts), { _opts })
   local stdin = opts.stdin
   local bufname = Buffer.name(bufnr)
   local name
@@ -708,7 +708,7 @@ end
 function Filetype:require()
   local config = requirem("core.filetype." .. self.name)
   if config then
-    return dict.merge(self, {config})
+    return dict.merge(self, { config })
   end
 end
 
@@ -721,7 +721,7 @@ function Filetype:loadfile()
       msg = msg()
 
       if is_table(msg) then
-        return dict.merge(self, {msg})
+        return dict.merge(self, { msg })
       else
         return false
       end
@@ -793,7 +793,7 @@ function Filetype:action(bufnr, action, opts)
       local lines = job.lines or {}
       local errs = job.errors or {}
 
-      list.extend(lines, {errs})
+      list.extend(lines, { errs })
 
       if #lines ~= 0 then
         local outbuf = Buffer.scratch()
@@ -926,7 +926,7 @@ function Filetype:set_mappings()
     spec[4] = is_string(spec[4]) and { desc = spec[4] } or spec[4]
     spec[4].name = name
 
-    dict.merge(spec[4], {opts})
+    dict.merge(spec[4], { opts })
 
     self:map(unpack(spec))
   end)
@@ -935,12 +935,11 @@ end
 function Filetype.main(use_loadfile)
   local configured = Filetype.list()
 
-    list.each(configured, function(x)
-      local obj = Filetype(x)
-      obj:setup(use_loadfile)
-    end)
+  list.each(configured, function(x)
+    local obj = Filetype(x)
+    obj:setup(use_loadfile)
+  end)
 
-  
   vim.defer_fn(function()
     Kbd.map("n", "<leader>mb", function()
       local buf = Buffer.current()
@@ -955,43 +954,57 @@ function Filetype.main(use_loadfile)
     Kbd.map("n", "<leader>cB", function()
       local buf = Buffer.current()
       local ft = Filetype(buf):require()
-			if ft then ft:action(buf, "build", { dir = true }) end
+      if ft then
+        ft:action(buf, "build", { dir = true })
+      end
     end, "build dir")
 
     Kbd.map("n", "<leader>mt", function()
       local buf = Buffer.current()
       local ft = Filetype(buf):require()
-			if ft then ft:action(buf, "test", { workspace = true }) end
+      if ft then
+        ft:action(buf, "test", { workspace = true })
+      end
     end, "test workspace")
 
     Kbd.map("n", "<leader>ct", function()
       local buf = Buffer.current()
       local ft = Filetype(buf):require()
-			if ft then ft:action(buf, "test", { buffer = true }) end
+      if ft then
+        ft:action(buf, "test", { buffer = true })
+      end
     end, "test buffer")
 
     Kbd.map("n", "<leader>cT", function()
       local buf = Buffer.current()
       local ft = Filetype(buf):require()
-			if ft then ft:action(buf, "test", { dir = true }) end
+      if ft then
+        ft:action(buf, "test", { dir = true })
+      end
     end, "test dir")
 
     Kbd.map("n", "<leader>mc", function()
       local buf = Buffer.current()
       local ft = Filetype(buf):require()
-			if ft then ft:action(buf, "compile", { workspace = true }) end
+      if ft then
+        ft:action(buf, "compile", { workspace = true })
+      end
     end, "compile workspace")
 
     Kbd.map("n", "<leader>cc", function()
       local buf = Buffer.current()
       local ft = Filetype(buf):require()
-			if ft then ft:action(buf, "compile", { buffer = true }) end
+      if ft then
+        ft:action(buf, "compile", { buffer = true })
+      end
     end, "compile buffer")
 
     Kbd.map("n", "<leader>cC", function()
       local buf = Buffer.current()
       local ft = Filetype(buf):require()
-			if ft then ft:action(buf, "compile", { dir = true }) end
+      if ft then
+        ft:action(buf, "compile", { dir = true })
+      end
     end, "compile dir")
 
     Kbd.map("n", "<leader>mf", function()
@@ -1006,7 +1019,7 @@ function Filetype.main(use_loadfile)
       local buf = Buffer.current()
       local ft = Filetype(buf)
       if ft then
-        ft:format({buffer = true})
+        ft:format(buf, { buffer = true })
       end
     end, "format buffer")
 

@@ -97,5 +97,3 @@ function is_instance(self, other)
     return self.modname() == other.modname()
   end
 end
-
-

@@ -4,9 +4,6 @@ require "lua-utils.Set"
 --- @class case
 case = case or module "case"
 
---- Contains all metatables created
-metatables = metatables or {}
-
 --- @class case.variable
 --- @field name any
 --- @field test boolean|function
@@ -21,17 +18,9 @@ end
 --- @param test? boolean|function
 --- @return case.variable
 function case.var(name, test)
-  if is_callable(name) then
+  if type(name) ~= 'string' then
     test = name
     name = nil
-  end
-
-  if test then
-    assertisa.callable(test)
-  else
-    test = function()
-      return true
-    end
   end
 
   return setmetatable({ name = name, test = test }, { type = "case.variable" })
@@ -392,7 +381,7 @@ function case.match(a, b, opts)
         else
           state[k] = {}
           state = state[k]
-          later[#later+1] = {m, n}
+          later[#later + 1] = { m, n }
         end
       else
         if not cmp(m, n) then
@@ -407,7 +396,7 @@ function case.match(a, b, opts)
       end
     end
 
-    for i=1, #later do
+    for i = 1, #later do
       ok = recurse(unpack(later[i]))
     end
 

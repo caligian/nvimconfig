@@ -14,7 +14,7 @@ local function is_project(current_dir)
   return false
 end
 
-local mix = Path.join(os.getenv('HOME'), '.asdf', 'mix', 'shims')
+local mix = Path.join(os.getenv "HOME", ".asdf", "mix", "shims")
 
 elixir.repl = {
   buffer = "iex",

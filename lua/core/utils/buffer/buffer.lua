@@ -36,7 +36,7 @@ end
 --- @param self Buffer|string|number
 --- @return number?
 function Buffer.to_bufnr(self)
-  assertisa(self, union(Buffer.isa, "string", "number", 'Buffer'))
+  assertisa(self, union(Buffer.isa, "string", "number", "Buffer"))
   local bufnr
 
   if is_table(self) then
@@ -493,10 +493,10 @@ function _Buffer.autocmd(bufnr, event, callback, opts)
 
   return Autocmd.map(
     event,
-    dict.merge(opts, {{
+    dict.merge(opts, { {
       pattern = sprintf("<buffer=%d>", bufnr),
       callback = callback,
-    }})
+    } })
   )
 end
 
@@ -707,7 +707,7 @@ function _Buffer.get_node(bufnr, row, col)
 end
 
 function _Buffer.open(bufnr)
-  vim.cmd('b ' .. bufnr)
+  vim.cmd("b " .. bufnr)
   return true
 end
 
@@ -730,8 +730,8 @@ end
 Buffer.option = nvim.buf.get_option
 Buffer.var = nvim.buf.get_var
 
-dict.merge(_Buffer, {nvim.buf})
-dict.merge(_Buffer, {require "core.utils.buffer.float"})
+dict.merge(_Buffer, { nvim.buf })
+dict.merge(_Buffer, { require "core.utils.buffer.float" })
 
 dict.each(_Buffer, function(key, value)
   local function f(bufnr, ...)

@@ -189,7 +189,7 @@ end
 function dict.get(x, ks, opts)
   assertisa.table(x)
   assertisa.table(ks)
-  
+
   if opts then
     assertisa.table(opts)
   end
@@ -342,7 +342,7 @@ end
 --- @return list
 function list.append(x, args)
   for i = 1, #args do
-			x[#x + 1] = args[i]
+    x[#x + 1] = args[i]
   end
 
   return x
@@ -970,7 +970,7 @@ function list.ziplongest(fillvalue, arrs)
   for i = 1, max do
     out[i] = {}
     for j = 1, len do
-      list.append(out[i], {arrs[j][i] or fillvalue})
+      list.append(out[i], { arrs[j][i] or fillvalue })
     end
   end
 
@@ -995,7 +995,7 @@ function list.zip(arrs)
   for i = 1, min do
     out[i] = {}
     for j = 1, len do
-      list.append(out[i], {arrs[j][i]})
+      list.append(out[i], { arrs[j][i] })
     end
   end
 
@@ -1029,7 +1029,7 @@ local function _flatten(x, depth, _len, _current_depth, _result)
     if is_table(elem) then
       _flatten(x[i], depth, _len, _current_depth + 1, _result)
     else
-      list.append(_result, {elem})
+      list.append(_result, { elem })
     end
   end
 
@@ -1126,9 +1126,9 @@ function list.partition(x, fun_or_num)
 
     for i = 1, #x do
       if fun_or_num(x[i]) then
-        list.append(result[1], {x[i]})
+        list.append(result[1], { x[i] })
       else
-        list.append(result[2], {x[i]})
+        list.append(result[2], { x[i] })
       end
     end
 
@@ -1193,7 +1193,7 @@ function dict.lmerge(x, args)
     local queue = {}
 
     if not is_table(Y) then
-      error(i .. ': expected table, got ' .. type(Y))
+      error(i .. ": expected table, got " .. type(Y))
     end
 
     while X and Y do
@@ -1203,7 +1203,7 @@ function dict.lmerge(x, args)
         if is_table(value) then
           if is_table(x_value) then
             if not cache[value] and not cache[x_value] then
-              queue[#queue+1] = {x_value, value}
+              queue[#queue + 1] = { x_value, value }
             else
               cache[value] = true
               cache[x_value] = true
@@ -1238,7 +1238,7 @@ function dict.merge(x, args)
     local queue = {}
 
     if not is_table(Y) then
-      error(i .. ': expected table, got ' .. type(Y))
+      error(i .. ": expected table, got " .. type(Y))
     end
 
     while X and Y do
@@ -1248,7 +1248,7 @@ function dict.merge(x, args)
         if is_table(value) then
           if is_table(x_value) then
             if not cache[value] and not cache[x_value] then
-              queue[#queue+1] = {x_value, value}
+              queue[#queue + 1] = { x_value, value }
             else
               cache[value] = true
               cache[x_value] = true
@@ -1273,7 +1273,6 @@ function dict.merge(x, args)
 
   return x
 end
-
 
 --- Extract the non-list part of the table
 --- @param x table
@@ -1547,7 +1546,7 @@ function list.fix(x, fill)
 
   local ks = keys(x)
 
-  list.sort(ks, function (x, y)
+  list.sort(ks, function(x, y)
     if is_number(x) and is_number(y) then
       return x > y
     end
@@ -1560,11 +1559,11 @@ function list.fix(x, fill)
     return
   end
 
-  for i=1, max do
+  for i = 1, max do
     if x[i] == nil then
       if fill then
         x[i] = fill()
-        assert(x[i] ~= nil, 'fill() cannot return nil at index ' .. i)
+        assert(x[i] ~= nil, "fill() cannot return nil at index " .. i)
       else
         x[i] = false
       end
@@ -1574,9 +1573,9 @@ function list.fix(x, fill)
   return x
 end
 
---- Remove all noninteger elements and convert dict to list 
+--- Remove all noninteger elements and convert dict to list
 --- @param x table
---- @param fill? fun(): any 
+--- @param fill? fun(): any
 --- @return table?
 function dict.to_list(x, fill)
   if not is_table(x) then
@@ -1592,12 +1591,11 @@ function dict.to_list(x, fill)
   return list.fix(x, fill)
 end
 
-
 function list.get(x, ks)
   local max = #ks
   local tmp = x
 
-  for i=1, #ks-1 do
+  for i = 1, #ks - 1 do
     local k = ks[i]
     local v = tmp[k]
 
@@ -1615,7 +1613,7 @@ function list.fetch(x, ks)
   assertisa.table(x)
 
   local res = {}
-  for i=1, #ks do
+  for i = 1, #ks do
     assertisa.table(ks[i])
     res[ks[i]] = list.get(x, ks[i])
   end

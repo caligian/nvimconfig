@@ -6,10 +6,10 @@ local function _copy_list(x)
   local cache = {}
 
   while true do
-    for i=1, #X do
+    for i = 1, #X do
       local v = X[i]
 
-      if type(v) == 'table' and not cache[v] then
+      if type(v) == "table" and not cache[v] then
         cache[v] = true
         local v_mt = getmetatable(v)
 
@@ -19,7 +19,7 @@ local function _copy_list(x)
           tmp[i] = {}
         end
 
-        queue[#queue+1] = i
+        queue[#queue + 1] = i
       else
         tmp[i] = X[i]
       end
@@ -45,7 +45,7 @@ local function _copy_table(x)
 
   while true do
     for i, v in pairs(X) do
-      if type(v) == 'table' and not cache[v] then
+      if type(v) == "table" and not cache[v] then
         cache[v] = true
         local v_mt = getmetatable(v)
 
@@ -55,7 +55,7 @@ local function _copy_table(x)
           tmp[i] = {}
         end
 
-        queue[#queue+1] = i
+        queue[#queue + 1] = i
       else
         tmp[i] = X[i]
       end
@@ -73,14 +73,14 @@ local function _copy_table(x)
 end
 
 function copy(x, islist)
-  if type(x) ~= 'table' then
+  if type(x) ~= "table" then
     return x
   end
 
   if islist then
     local result = {}
 
-    for i=1,#x do
+    for i = 1, #x do
       result[i] = x[i]
     end
 
@@ -96,7 +96,7 @@ function copy(x, islist)
 end
 
 function deepcopy(x, islist)
-  if type(x) ~= 'table' then
+  if type(x) ~= "table" then
     return x
   end
 

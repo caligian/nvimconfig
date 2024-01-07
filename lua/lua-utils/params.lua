@@ -1,5 +1,5 @@
-require 'lua-utils.table'
-require 'lua-utils.Set'
+require "lua-utils.table"
+require "lua-utils.Set"
 
 local function _claim(x, y, levelname)
   if x == nil and levelname:match "%?$" then
@@ -102,4 +102,3 @@ function params(specs)
     _claim(x, spec, name)
   end
 end
-

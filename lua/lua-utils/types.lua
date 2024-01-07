@@ -1,4 +1,4 @@
-inspect = require 'inspect'
+inspect = require "inspect"
 dump = inspect
 
 --- @type dict table<string,any>
@@ -101,8 +101,6 @@ function typeof(x)
     return x_mt.type
   end
 end
-
-
 
 --- Is x a string?
 --- @param x any
@@ -281,7 +279,7 @@ function is_list(x, list_like)
   local mt = getmetatable(x)
   if not mt then
     return size(x) == #x
-  elseif mt.type ~= 'list' then
+  elseif mt.type ~= "list" then
     return false
   end
 
@@ -353,51 +351,51 @@ end
 --- @param ... string|function|table
 --- @return fun(x): boolean, string?
 function union(...)
-  local sig = {...}
+  local sig = { ... }
 
-  return function (x)
+  return function(x)
     local failed = {}
     local x_type = typeof(x)
 
-    for i=1, #sig do
+    for i = 1, #sig do
       local current_sig = sig[i]
       local sig_type = type(sig[i])
       local sig_name = typeof(sig[i])
 
-      if current_sig == 'list' then
+      if current_sig == "list" then
         if not is_list(x) then
-          failed[#failed+1] = 'list'
+          failed[#failed + 1] = "list"
         end
-      elseif current_sig == 'table' and is_table(x) then
+      elseif current_sig == "table" and is_table(x) then
         return true
-      elseif current_sig == 'callable' then
+      elseif current_sig == "callable" then
         if not is_callable(x) then
-          failed[#failed+1] = 'callable'
+          failed[#failed + 1] = "callable"
         end
       elseif is_table(current_sig) then
         if not is_table(x) then
-          failed[#failed+1] = 'table'
+          failed[#failed + 1] = "table"
         else
           return sig_name == x_type
         end
       elseif is_function(current_sig) then
         local ok, msg = current_sig(x)
         if not ok then
-          failed[#failed+1] = msg
+          failed[#failed + 1] = msg
         end
-      elseif sig_type == 'string' then
+      elseif sig_type == "string" then
         ---@diagnostic disable-next-line: param-type-mismatch
-        local _, opt = string.gsub(current_sig, '%?$', '')
+        local _, opt = string.gsub(current_sig, "%?$", "")
         if x ~= nil then
           if x_type ~= current_sig then
-            failed[#failed+1] = current_sig
+            failed[#failed + 1] = current_sig
           end
         elseif opt == 0 then
-          failed[#failed+1] = current_sig
+          failed[#failed + 1] = current_sig
         end
       elseif type(x) ~= sig_type then
         if not ok then
-          failed[#failed+1] = sig_type
+          failed[#failed + 1] = sig_type
         end
       end
     end
@@ -405,21 +403,21 @@ function union(...)
     if #failed ~= #sig then
       return true
     else
-      return false, sprintf('expected any of %s, got %s', dump(sig), x)
+      return false, sprintf("expected any of %s, got %s", dump(sig), x)
     end
   end
 end
 
 --------------------------------------------------
-local isa_mt = {type = 'module'}
+local isa_mt = { type = "module" }
 isa = {}
 is_a = isa
 isa_mt.__index = isa_mt
 setmetatable(isa, isa_mt)
 
 function isa_mt:__index(key)
-  if key == '*' or key == 'any' then
-    return function ()
+  if key == "*" or key == "any" then
+    return function()
       return true
     end
   end
@@ -429,19 +427,20 @@ function isa_mt:__index(key)
   end
 
   local key_type = not is_string(key) and typeof(key) or key
-  local _, times = key_type:gsub('%?$', '')
+  local _, times = key_type:gsub("%?$", "")
   local optional = times > 0
 
-  local Gfun = _G['is_' .. key] or function (x)
-    local x_type = typeof(x)
-    if x_type == nil and optional then
-      return true
-    elseif x_type ~= key then
-      return false, ('expected ' .. key_type .. ', got ' .. x_type)
-    end
+  local Gfun = _G["is_" .. key]
+    or function(x)
+      local x_type = typeof(x)
+      if x_type == nil and optional then
+        return true
+      elseif x_type ~= key then
+        return false, ("expected " .. key_type .. ", got " .. x_type)
+      end
 
-    return x
-  end
+      return x
+    end
 
   if not rawget(self, key) then
     rawset(self, key, Gfun)
@@ -463,7 +462,7 @@ function isa_mt:__call(obj, expected, assert_type)
 end
 
 --------------------------------------------------
-local assertisa_mt = {type = 'module'}
+local assertisa_mt = { type = "module" }
 assertisa = {}
 setmetatable(assertisa, assertisa_mt)
 
@@ -472,23 +471,24 @@ setmetatable(assertisa, assertisa_mt)
 --- @return function validator throws an error when validation fails
 function assertisa_mt:__index(key)
   if is_function(key) then
-    return function (x)
+    return function(x)
       assert(key(x))
       return x
     end
   end
 
   local key_type = not is_string(key) and typeof(key) or key
-  local Gfun = _G['is_' .. key] or function (x)
-    local x_type = typeof(x)
-    if x_type ~= key then
-      return false, ('expected ' .. key_type .. ', got ' .. x_type)
+  local Gfun = _G["is_" .. key]
+    or function(x)
+      local x_type = typeof(x)
+      if x_type ~= key then
+        return false, ("expected " .. key_type .. ", got " .. x_type)
+      end
+
+      return x
     end
 
-    return x
-  end
-
-  local fun = function (x)
+  local fun = function(x)
     assert(Gfun(x))
     return x
   end

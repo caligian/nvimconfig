@@ -670,7 +670,7 @@ function float.panel(winnr, size, opts)
     size = 30
   end
 
-  local o = dict.merge({ panel = size }, {opts or {}})
+  local o = dict.merge({ panel = size }, { opts or {} })
   return float(winnr, o)
 end
 
@@ -685,12 +685,12 @@ function float.center(winnr, size, opts)
     size = { n, n }
   end
 
-  return float(winnr, dict.merge({ center = size }, {opts}))
+  return float(winnr, dict.merge({ center = size }, { opts }))
 end
 
 function float.dock(winnr, size, opts)
   size = size or 10
-  return float(winnr, dict.merge({ dock = size }, {opts or {}}))
+  return float(winnr, dict.merge({ dock = size }, { opts or {} }))
 end
 
 function float.set_config(winnr, config)
