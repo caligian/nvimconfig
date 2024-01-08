@@ -29,6 +29,13 @@ function M.ne.test(obj, spec, opts)
   local cond = opts.cond
   local match = opts.match
   local eq = opts.eq
+  local ass = opts.assert
+
+  if ass then
+    absolute = true
+    match = false
+    cond = true
+  end
 
   if match then
     absolute = true
@@ -47,6 +54,7 @@ function M.ne.test(obj, spec, opts)
     pop = function(self)
       local item = self[#self]
       self[#self] = nil
+
       return item
     end,
   }
@@ -54,7 +62,13 @@ function M.ne.test(obj, spec, opts)
   local state = not absolute and {}
   local State = state
 
-  local function cmp(x, y, k)
+  local function cmp(x, y, k, prefix)
+    if prefix then
+      prefix = prefix .. '.' .. k
+    else
+      prefix = k
+    end
+
     if not is_nil(x) and pre_a then
       x = pre_a(x)
     end
@@ -64,7 +78,11 @@ function M.ne.test(obj, spec, opts)
     end
 
     if is_nil(x) then
-      State[key] = true
+      if absolute then
+        return true
+      else
+        State[key] = true
+      end
     elseif M.is_var(y) then
       assert(match, ".match should be true for using match.variable")
 
@@ -76,14 +94,22 @@ function M.ne.test(obj, spec, opts)
         Vars[name] = x
       elseif is_table(test) then
         if not is_table(x) then
-          return false
+          if ass then
+            error(prefix .. ": expected table, got " .. type(x))
+          end
         else
           Vars[name] = {}
-          queue:add { x, test, vars = Vars[name] }
+          queue:add { x, test, vars = Vars[name], prefix = prefix }
         end
       elseif is_function(test) then
-        if not test(x) then
+        local ok, msg = test(x)
+        if not ok then
           Vars[name] = x
+        elseif ass then
+          if msg then
+            error(prefix .. ": " .. msg)
+          end
+          error(prefix .. ": callable failed for " .. dump(x))
         else
           return false
         end
@@ -93,69 +119,92 @@ function M.ne.test(obj, spec, opts)
     elseif is_table(y) then
       if not is_table(x) then
         if absolute then
-          return false
+          return true
         else
-          State[key] = false
+          State[key] = true
         end
       elseif not absolute then
-        State[k] = {}
+        State[key] = {}
         queue:add {
           x,
           y,
+          prefix = prefix .. "." .. key,
           state = State--[[@as table]][k],
         }
       elseif match then
-        queue:add { x, y, vars = Vars }
+        queue:add { x, y, vars = Vars, prefix = prefix }
+      else
+        queue:add { x, y, prefix = prefix  }
       end
     elseif (cond or match) and is_function(y) then
-      if not y(x) then
+      local ok, msg = y(x)
+      ok = not ok
+
+      if ok then
         if not absolute then
           State[key] = true
         end
+      elseif ass then
+        if msg then
+          error(prefix .. ": " .. msg)
+        end
+        error(prefix .. ": callable passed for " .. dump(x))
       elseif absolute then
         return false
+      else
+        State[key] = false
       end
     elseif eq then
       if not eq(x, y) then
         if not absolute then
           State[key] = true
         end
+      elseif ass then
+        error(prefix .. ": equal elements: \n" .. dump(x) .. "\n" .. dump(y))
       elseif absolute then
         return false
       end
     elseif x == y then
-      if absolute then
+      if ass then
+        error(prefix .. ": equal elements: \n" .. dump(x) .. "\n" .. dump(y))
+      elseif absolute then
         return false
       else
-        State[key] = true
+        State[key] = false
       end
     elseif not absolute then
-      State[key] = false
+      State[key] = true
     end
 
     return true
   end
 
   local function resolve_key(i)
-    key = tostring(i):gsub("(^opt_|%?$)", "")
+    key, optional = tostring(i):gsub("(^opt_|%?$)", "")
     key = tonumber(key) or key
 
-    return key
+    return key, optional > 0
   end
 
+  local prefix = ''
   while Obj and Spec do
+    if same_size and size(Obj) ~= size(Spec) then
+      return false
+    end
+
     for i, validator in pairs(Spec) do
       local key = i
       local obj_value
+      local optional
 
       if is_string(i) or is_number(i) then
-        key = resolve_key(i)
+        key, optional = resolve_key(i)
         obj_value = Obj[key]
       else
         obj_value = Obj[i]
       end
 
-      if not cmp(obj_value, validator, i) then
+      if not cmp(obj_value, validator, i, prefix) then
         return false
       end
     end
@@ -163,6 +212,7 @@ function M.ne.test(obj, spec, opts)
     local next_items = queue:pop()
     if next_items then
       Obj, Spec = next_items[1], next_items[2]
+      prefix = next_items.prefix
 
       if match then
         Vars = next_items.vars or Vars
@@ -199,6 +249,14 @@ function M.test(obj, spec, opts)
   local same_size = opts.same_size
   local capture = opts.capture
   local eq = opts.eq
+  local ass = opts.assert
+
+  if ass then
+    absolute = true
+    match = false
+    capture = false
+    cond = true
+  end
 
   if capture then
     function pre_b(y)
@@ -240,8 +298,11 @@ function M.test(obj, spec, opts)
 
   local state = not absolute and {}
   local State = state
+  local prefix = ''
 
-  local function cmp(x, y, k, optional)
+  local function cmp(x, y, k, optional, prefix)
+    prefix = prefix .. '.' .. k
+
     if not is_nil(x) and pre_a then
       x = pre_a(x)
     end
@@ -252,7 +313,9 @@ function M.test(obj, spec, opts)
 
     if is_nil(x) then
       if not optional then
-        if absolute then
+        if ass then
+          error(prefix .. ": expected value, got nil")
+        elseif absolute then
           return false
         else
           State[key] = false
@@ -269,14 +332,24 @@ function M.test(obj, spec, opts)
         Vars[name] = x
       elseif is_table(test) then
         if not is_table(x) then
-          return false
+          if ass then
+            error(prefix .. ": expected table, got " .. type(x))
+          else
+            return false
+          end
         else
           Vars[name] = {}
-          queue:add { x, test, vars = Vars[name] }
+          queue:add { x, test, vars = Vars[name], prefix = prefix  }
         end
       elseif is_function(test) then
-        if test(x) then
+        local ok, msg = test(x)
+        if ok then
           Vars[name] = x
+        elseif ass then
+          if msg then
+            error(prefix .. ": " .. msg)
+          end
+          error(prefix .. ": callable failed for " .. dump(x))
         else
           return false
         end
@@ -285,7 +358,9 @@ function M.test(obj, spec, opts)
       end
     elseif is_table(y) then
       if not is_table(x) then
-        if absolute then
+        if ass then
+          error(prefix .. ": expected table, got " .. type(x))
+        elseif absolute then
           return false
         else
           State[key] = false
@@ -295,29 +370,44 @@ function M.test(obj, spec, opts)
         queue:add {
           x,
           y,
+          prefix = prefix .. "." .. key,
           state = State--[[@as table]][k],
         }
       elseif match then
-        queue:add { x, y, vars = Vars }
+        queue:add { x, y, vars = Vars, prefix = prefix }
+      else
+        queue:add { x, y, prefix = prefix }
       end
     elseif (cond or match) and is_function(y) then
-      if y(x) then
+      local ok, msg = y(x)
+      if ok then
         if not absolute then
           State[key] = true
         end
+      elseif ass then
+        if msg then
+          error(prefix .. ": " .. msg)
+        end
+        error(prefix .. ": callable failed for " .. dump(obj_value))
       elseif absolute then
         return false
+      else
+        State[key] = false
       end
     elseif eq then
       if eq(x, y) then
         if not absolute then
           State[key] = true
         end
+      elseif ass then
+        error(prefix .. ": unequal elements: \n" .. dump(x) .. "\n" .. dump(y))
       elseif absolute then
         return false
       end
     elseif x ~= y then
-      if absolute then
+      if ass then
+        error(prefix .. ": unequal elements: \n" .. dump(x) .. "\n" .. dump(y))
+      elseif absolute then
         return false
       else
         State[key] = false
@@ -353,7 +443,7 @@ function M.test(obj, spec, opts)
         obj_value = Obj[i]
       end
 
-      if not cmp(obj_value, validator, i, optional) then
+      if not cmp(obj_value, validator, i, optional, prefix) then
         return false
       end
     end
@@ -361,6 +451,7 @@ function M.test(obj, spec, opts)
     local next_items = queue:pop()
     if next_items then
       Obj, Spec = next_items[1], next_items[2]
+      prefix = next_items.prefix
 
       if match then
         Vars = next_items.vars or Vars
@@ -699,9 +790,9 @@ local shape = {
 }
 
 local spec = {
-  Ne.list { -1, -2, -3 },
-  { is_number, is_list, is_number },
-  { 10, { 3 }, { "a", "b", Eq.strmatch { "[a-b]" } } },
+  { 1, 2, 3 },
+  {1, {2}, 3},
+  {3, {3}, {'a', 'b', 'c'}},
 }
 
 local unpack_spec = {
@@ -709,4 +800,5 @@ local unpack_spec = {
   { "D", "E", "F" },
   { "G", { "?" }, V "+" },
 }
-pp(M.test(shape, unpack_spec, { capture = true }))
+
+pp(M.test(shape, spec, { assert = true }))
