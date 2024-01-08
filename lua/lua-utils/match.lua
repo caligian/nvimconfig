@@ -710,4 +710,3 @@ local unpack_spec = {
   { "G", { "?" }, V "+" },
 }
 pp(M.test(shape, unpack_spec, { capture = true }))
-
