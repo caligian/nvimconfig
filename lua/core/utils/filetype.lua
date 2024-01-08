@@ -788,6 +788,9 @@ function Filetype:action(bufnr, action, opts)
   cmd = is_table(cmd) and join(cmd, " ") or cmd
 
   local term = Job(cmd, {
+    before = function()
+      Buffer.save(bufnr)
+    end,
     output = true,
     on_exit = function(job)
       local lines = job.lines or {}

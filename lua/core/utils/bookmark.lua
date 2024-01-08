@@ -23,7 +23,7 @@ function string_keys(x)
       local new = {}
 
       for key, value in pairs(context) do
-        new[to_string(key)] = value
+        new[tostring(key)] = value
       end
 
       value.context = new

@@ -189,6 +189,11 @@ end
 --- @return { level:table, index:number, key:any }|nil info returns only if `level` is true
 function dict.get(x, ks, opts)
   assertisa.table(x)
+
+  if is_string(ks) or is_number(ks) then
+    ks = {ks}
+  end
+
   assertisa.table(ks)
 
   if opts then
@@ -1456,9 +1461,15 @@ end
 --- @see istype
 --- @return boolean
 function list.is_a(x, tp)
-  return list.all(x, function(elem)
-    return is_a(elem, tp)
-  end)
+  for i=1, #x do
+    if not is_a(x[i], tp) then
+      return false
+    else
+      return true
+    end
+  end
+
+  return false
 end
 
 --- Fetch a list of keys
@@ -1469,7 +1480,6 @@ function dict.fetch(x, ks)
   local out = {}
 
   for i = 1, #ks do
-    assertisa.table(ks[i])
     out[i] = dict.get(x, ks[i])
   end
 

@@ -145,6 +145,13 @@ function Job:start(opts)
     self.args = args
   end
 
+  local before = opts.before
+  local after = opts.after
+
+  if before then
+    before()
+  end
+
   opts = self:opts(opts)
 
   local function on_exit(...)
@@ -154,16 +161,13 @@ function Job:start(opts)
 
     self.on_exit(...)
 
-    if opts.after then
-      opts.after(self)
+    if after then
+      after(self)
     end
   end
 
-  if opts.before then
-    opts.before()
-  end
-
   local handle = uv.spawn(cmd, opts, on_exit)
+
   if not handle then
     error("could not run command: " .. dump(cmd))
   end
@@ -470,17 +474,13 @@ function Job.format_buffer(bufnr, cmd, opts)
 
   opts = copy(opts)
 
+  Buffer.save(bufnr)
+
   return j:start(dict.merge({
-    before = function()
-      vim.cmd(":w " .. bufnr)
-      Buffer.set_option(bufnr, "modifiable", false)
-    end,
-    after = function()
-      vim.cmd "redraw! | e"
-      Buffer.set_option(bufnr, "modifiable", true)
-    end,
     output = true,
     on_exit = function(job)
+      Buffer.set_option(bufnr, "modifiable", true)
+
       if job.exit_status ~= 0 then
         if #job.output.stderr > 0 then
           is_stderr(join(job.output.stderr, "\n"))
@@ -490,6 +490,7 @@ function Job.format_buffer(bufnr, cmd, opts)
 
       if #job.output.stdout > 0 then
         Buffer.set(bufnr, { 0, -1 }, job.output.stdout)
+        vim.cmd "redraw!"
       elseif #job.output.stderr > 0 then
         is_stderr("failed to format buffer: " .. name)
       end

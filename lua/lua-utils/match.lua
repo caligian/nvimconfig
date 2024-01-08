@@ -1,9 +1,11 @@
 require "lua-utils.table"
 
-local M = { ne = module(), rules = {} }
-M.ne.rules = {}
+case = module()
+case.ne = module()
+case.rules = {}
+case.ne.rules = {}
 
-function M.var(name, test)
+function case.var(name, test)
   if type(name) ~= "string" then
     test = name
     name = nil
@@ -14,32 +16,62 @@ end
 
 --- @param x any
 --- @return boolean
-function M.is_var(x)
+function case.is_var(x)
   return mtget(x --[[@as table]], "type") == "match.variable"
 end
 
-M.variable = M.var
-M.is_variable = M.is_var
+case.variable = case.var
+case.is_variable = case.is_var
 
-function M.ne.test(obj, spec, opts)
+function case.ne.test(obj, spec, opts)
   opts = opts or {}
+  local eq = opts.eq
+  local ass = opts.assert
+  local cond = opts.cond
+
+  if is_function(spec) and (case or match) then
+    local ok, msg = spec(obj)
+    if not ok then
+      if ass then
+        if msg then
+          error(msg)
+        else
+          error("callable passed for " .. dump(obj))
+        end
+      else
+        return false, msg
+      end
+    end
+  elseif not is_table(obj) then
+    if is_table(spec) then
+      return true
+    elseif eq then
+      if not eq(obj, spec) then
+        return true
+      else
+        return false
+      end
+    elseif obj == spec then
+      return false
+    else
+      return true
+    end
+  end
+
   local pre_a = opts.pre_a
   local pre_b = opts.pre_b
   local absolute = opts.absolute
-  local cond = opts.cond
   local match = opts.match
-  local eq = opts.eq
-  local ass = opts.assert
 
   if ass then
     absolute = true
     match = false
-    cond = true
+    case = true
   end
 
   if match then
     absolute = true
-    cond = false
+    case = false
   end
 
   local vars = match and {}
@@ -64,7 +96,7 @@ function M.ne.test(obj, spec, opts)
 
   local function cmp(x, y, k, prefix)
     if prefix then
-      prefix = prefix .. '.' .. k
+      prefix = prefix .. "." .. k
     else
       prefix = k
     end
@@ -83,7 +115,7 @@ function M.ne.test(obj, spec, opts)
       else
         State[key] = true
       end
-    elseif M.is_var(y) then
+    elseif case.is_var(y) then
       assert(match, ".match should be true for using match.variable")
 
       y.name = y.name or k
@@ -134,9 +166,9 @@ function M.ne.test(obj, spec, opts)
       elseif match then
         queue:add { x, y, vars = Vars, prefix = prefix }
       else
-        queue:add { x, y, prefix = prefix  }
+        queue:add { x, y, prefix = prefix }
       end
-    elseif (cond or match) and is_function(y) then
+    elseif (case or match) and is_function(y) then
       local ok, msg = y(x)
       ok = not ok
 
@@ -186,7 +218,7 @@ function M.ne.test(obj, spec, opts)
     return key, optional > 0
   end
 
-  local prefix = ''
+  local prefix = ""
   while Obj and Spec do
     if same_size and size(Obj) ~= size(Spec) then
       return false
@@ -232,30 +264,62 @@ function M.ne.test(obj, spec, opts)
       return obj
     end
     return vars
-  elseif cond and absolute then
+  elseif case and absolute then
     return obj
   else
     return state
   end
 end
 
-function M.test(obj, spec, opts)
+function case.test(obj, spec, opts)
   opts = opts or {}
+  local eq = opts.eq
+  local cond = opts.cond
+  local match = opts.match
+  local ass = opts.assert
+
+  if is_function(spec) and (case or match) then
+    local ok, msg = spec(obj)
+    if not ok then
+      if ass then
+        if msg then
+          error(msg)
+        else
+          error("callable failed for " .. dump(obj))
+        end
+      else
+        return false, msg
+      end
+    else
+      return obj
+    end
+  elseif not is_table(obj) then
+    if is_table(spec) then
+      return false
+    elseif eq then
+      if eq(obj, spec) then
+        return obj
+      else
+        return false
+      end
+    elseif obj ~= spec then
+      return false
+    else
+      return obj
+    end
+  end
+
   local pre_a = opts.pre_a
   local pre_b = opts.pre_b
   local absolute = opts.absolute
-  local cond = opts.cond
-  local match = opts.match
   local same_size = opts.same_size
   local capture = opts.capture
-  local eq = opts.eq
-  local ass = opts.assert
 
   if ass then
     absolute = true
     match = false
     capture = false
-    cond = true
+    case = true
   end
 
   if capture then
@@ -264,7 +328,7 @@ function M.test(obj, spec, opts)
         return y
       end
       assert(is_string(y), "expected capture variable name (string), got " .. type(y))
-      return M.variable(y)
+      return case.variable(y)
     end
 
     match = true
@@ -272,7 +336,7 @@ function M.test(obj, spec, opts)
 
   if match then
     absolute = true
-    cond = false
+    case = false
   end
 
   if same_size and size(obj) ~= size(spec) then
@@ -298,13 +362,13 @@ function M.test(obj, spec, opts)
 
   local state = not absolute and {}
   local State = state
-  local prefix = ''
+  local prefix = ""
 
   local function cmp(x, y, k, optional, prefix)
     if not prefix then
       prefix = k
     else
-      prefix = prefix .. '.' .. k
+      prefix = prefix .. "." .. k
     end
 
     if not is_nil(x) and pre_a then
@@ -325,7 +389,7 @@ function M.test(obj, spec, opts)
           State[key] = false
         end
       end
-    elseif M.is_var(y) then
+    elseif case.is_var(y) then
       assert(match, ".match should be true for using match.variable")
 
       y.name = y.name or k
@@ -343,7 +407,7 @@ function M.test(obj, spec, opts)
           end
         else
           Vars[name] = {}
-          queue:add { x, test, vars = Vars[name], prefix = prefix  }
+          queue:add { x, test, vars = Vars[name], prefix = prefix }
         end
       elseif is_function(test) then
         local ok, msg = test(x)
@@ -382,7 +446,7 @@ function M.test(obj, spec, opts)
       else
         queue:add { x, y, prefix = prefix }
       end
-    elseif (cond or match) and is_function(y) then
+    elseif (case or match) and is_function(y) then
       local ok, msg = y(x)
       if ok then
         if not absolute then
@@ -475,81 +539,81 @@ function M.test(obj, spec, opts)
       return obj
     end
     return vars
-  elseif cond and absolute then
+  elseif case and absolute then
     return obj
   else
     return state
   end
 end
 
-function M.ne.match(a, b, opts)
+function case.ne.match(a, b, opts)
   opts = copy(opts or {})
   opts.match = true
 
-  return M.ne.test(a, b, opts)
+  return case.ne.test(a, b, opts)
 end
 
-function M.ne.cond(a, b, opts)
+function case.ne.case(a, b, opts)
   opts = copy(opts or {})
-  opts.cond = true
+  opts.case = true
 
-  return M.ne.test(a, b, opts)
+  return case.ne.test(a, b, opts)
 end
 
-function M.ne:__call(a, b, opts)
+function case.ne:__call(a, b, opts)
   opts = copy(opts or {})
   opts.absolute = true
 
-  return M.ne.test(a, b, opts)
+  return case.ne.test(a, b, opts)
 end
 
-function M.ne.compare(a, b, opts)
+function case.ne.compare(a, b, opts)
   opts = copy(opts or {})
   opts.absolute = false
   opts.match = false
-  opts.cond = false
+  opts.case = false
 
-  return M.ne.test(a, b, opts)
+  return case.ne.test(a, b, opts)
 end
 
-function M.match(a, b, opts)
+function case.match(a, b, opts)
   opts = copy(opts or {})
   opts.match = true
 
-  return M.test(a, b, opts)
+  return case.test(a, b, opts)
 end
 
-function M.cond(a, b, opts)
+function case.case(a, b, opts)
   opts = copy(opts or {})
-  opts.cond = true
+  opts.case = true
 
-  return M.test(a, b, opts)
+  return case.test(a, b, opts)
 end
 
-function M.eq(a, b, opts)
+function case.eq(a, b, opts)
   opts = copy(opts or {})
   opts.absolute = true
 
-  return M.test(a, b, opts)
+  return case.test(a, b, opts)
 end
 
-function M.compare(a, b, opts)
+function case.compare(a, b, opts)
   opts = copy(opts or {})
   opts.absolute = false
   opts.match = false
-  opts.cond = false
+  opts.case = false
 
-  return M.test(a, b, opts)
+  return case.test(a, b, opts)
 end
 
-function M.unpack(a, b)
+function case.unpack(a, b)
   opts = opts or {}
   opts.capture = true
-  return M.test(a, b, opts)
+  return case.test(a, b, opts)
 end
 
-local Eq = M.rules
-local Ne = M.ne.rules
+local Eq = case.rules
+local Ne = case.ne.rules
 
 function Ne.strmatch(patterns)
   return function(obj)
@@ -651,6 +715,10 @@ end
 
 function Ne.has(ks)
   return function(obj)
+    if not is_table(obj) then
+      return false
+    end
+
     return size(dict.fetch(obj, ks)) == 0
   end
 end
@@ -665,6 +733,10 @@ end
 
 function Eq.has(ks)
   return function(obj)
+    if not is_table(obj) then
+      return false
+    end
+
     return size(dict.fetch(obj, ks)) > 0
   end
 end
@@ -785,24 +857,78 @@ function Eq.gt(spec)
   end
 end
 
-local V = M.var
+function case.any(spec)
+  return mtset(spec, { type = "case.any" })
+end
 
-local shape = {
-  { 1, 2, 3 },
-  { 1, { 2 }, 3 },
-  { 3, { 3 }, { "a", "b", "c" } },
-}
+function case.is_any(x)
+  return typeof(x) == "case.any"
+end
 
-local spec = {
-  { 1, 2, 3 },
-  {1, {2}, 3},
-  {3, {3}, {'a', 'b', 'c'}},
-}
+function case.rules.list_of(value_spec)
+  return function(x)
+    return list.is_a(x, value_spec)
+  end
+end
 
-local unpack_spec = {
-  { "a", "b", "c" },
-  { "D", "E", "F" },
-  { "G", { "?" }, V "+" },
-}
+function case.rules.dict_of(value_spec, key_spec)
+  return function(x)
+    return dict.is_a(x, value_spec, key_spec)
+  end
+end
 
-pp(M.test(shape, spec, { assert = true }))
+function case:__call(obj)
+  obj = { obj }
+
+  local function match_rule(rule)
+    local spec = rule[1]
+    local callback = rule[2]
+
+    if callback == nil then
+      error(i .. ": callback missing")
+    end
+
+    if spec == nil then
+      error(i .. ": spec missing")
+    end
+
+    local opts = {
+      absolute = true,
+      case = not rule.match and true or false,
+      match = rule.match,
+      capture = rule.capture,
+    }
+
+    local ok = case.test(obj[1], spec, opts)
+    if ok then
+      assertisa.callable(callback)
+      return callback(unpack(obj)) or obj[1]
+    end
+  end
+
+  return function(rules)
+    for i = 1, #rules do
+      local rule = rules[i]
+
+      if case.is_any(rule) then
+        for j = 1, #rule do
+          local ok = match_rule(rule[j])
+          if ok then
+            return ok
+          end
+        end
+      else
+        local ok = match_rule(rule)
+        if ok then
+          return ok
+        end
+      end
+    end
+
+    if rules.default then
+      return rules.default(unpack(obj))
+    else
+      error("no callable matched for " .. dump(obj[1]))
+    end
+  end
+end
