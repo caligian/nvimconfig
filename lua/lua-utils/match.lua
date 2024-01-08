@@ -1,6 +1,7 @@
 require "lua-utils.table"
 
-local M = { ne = module(), rules = { ne = {} } }
+local M = { ne = module(), rules = {} }
+M.ne.rules = {}
 
 function M.var(name, test)
   if type(name) ~= "string" then
@@ -27,16 +28,11 @@ function M.ne.test(obj, spec, opts)
   local absolute = opts.absolute
   local cond = opts.cond
   local match = opts.match
-  local same_size = opts.same_size
   local eq = opts.eq
 
   if match then
     absolute = true
     cond = false
-  end
-
-  if same_size and size(obj) ~= size(spec) then
-    return false
   end
 
   local vars = match and {}
@@ -51,7 +47,6 @@ function M.ne.test(obj, spec, opts)
     pop = function(self)
       local item = self[#self]
       self[#self] = nil
-
       return item
     end,
   }
@@ -69,11 +64,7 @@ function M.ne.test(obj, spec, opts)
     end
 
     if is_nil(x) then
-      if absolute then
-        return true
-      else
-        State[key] = true
-      end
+      State[key] = true
     elseif M.is_var(y) then
       assert(match, ".match should be true for using match.variable")
 
@@ -85,26 +76,34 @@ function M.ne.test(obj, spec, opts)
         Vars[name] = x
       elseif is_table(test) then
         if not is_table(x) then
-          if absolute then
-            return false
-          end
+          return false
+        else
+          Vars[name] = {}
+          queue:add { x, test, vars = Vars[name] }
         end
-
-        Vars[name] = {}
-        queue:add { x, test, vars = Vars[name] }
       elseif is_function(test) then
         if not test(x) then
           Vars[name] = x
-        elseif absolute then
+        else
           return false
         end
       else
         error "match.variable.test should be (function|table)?"
       end
-    elseif is_table(x) and is_table(y) then
-      if not absolute then
+    elseif is_table(y) then
+      if not is_table(x) then
+        if absolute then
+          return false
+        else
+          State[key] = false
+        end
+      elseif not absolute then
         State[k] = {}
-        queue:add { x, y, state = State--[[@as table]][k] }
+        queue:add {
+          x,
+          y,
+          state = State--[[@as table]][k],
+        }
       elseif match then
         queue:add { x, y, vars = Vars }
       end
@@ -112,8 +111,6 @@ function M.ne.test(obj, spec, opts)
       if not y(x) then
         if not absolute then
           State[key] = true
-        else
-          return true
         end
       elseif absolute then
         return false
@@ -130,27 +127,23 @@ function M.ne.test(obj, spec, opts)
       if absolute then
         return false
       else
-        State[key] = false
+        State[key] = true
       end
     elseif not absolute then
-      State[key] = true
+      State[key] = false
     end
 
     return true
   end
 
   local function resolve_key(i)
-    key  = tostring(i):gsub("(^opt_|%?$)", "")
+    key = tostring(i):gsub("(^opt_|%?$)", "")
     key = tonumber(key) or key
 
     return key
   end
 
   while Obj and Spec do
-    if same_size and size(Obj) ~= size(Spec) then
-      return false
-    end
-
     for i, validator in pairs(Spec) do
       local key = i
       local obj_value
@@ -258,10 +251,12 @@ function M.test(obj, spec, opts)
     end
 
     if is_nil(x) then
-      if absolute and not optional then
-        return false
-      elseif not optional then
-        State[key] = false
+      if not optional then
+        if absolute then
+          return false
+        else
+          State[key] = false
+        end
       end
     elseif M.is_var(y) then
       assert(match, ".match should be true for using match.variable")
@@ -274,26 +269,34 @@ function M.test(obj, spec, opts)
         Vars[name] = x
       elseif is_table(test) then
         if not is_table(x) then
-          if absolute then
-            return false
-          end
+          return false
+        else
+          Vars[name] = {}
+          queue:add { x, test, vars = Vars[name] }
         end
-
-        Vars[name] = {}
-        queue:add { x, test, vars = Vars[name] }
       elseif is_function(test) then
         if test(x) then
           Vars[name] = x
-        elseif absolute then
+        else
           return false
         end
       else
         error "match.variable.test should be (function|table)?"
       end
-    elseif is_table(x) and is_table(y) then
-      if not absolute then
+    elseif is_table(y) then
+      if not is_table(x) then
+        if absolute then
+          return false
+        else
+          State[key] = false
+        end
+      elseif not absolute then
         State[k] = {}
-        queue:add { x, y, state = State--[[@as table]][k] }
+        queue:add {
+          x,
+          y,
+          state = State--[[@as table]][k],
+        }
       elseif match then
         queue:add { x, y, vars = Vars }
       end
@@ -301,8 +304,6 @@ function M.test(obj, spec, opts)
       if y(x) then
         if not absolute then
           State[key] = true
-        else
-          return true
         end
       elseif absolute then
         return false
@@ -321,6 +322,8 @@ function M.test(obj, spec, opts)
       else
         State[key] = false
       end
+    elseif not absolute then
+      State[key] = true
     end
 
     return true
@@ -451,7 +454,7 @@ function M.unpack(a, b)
 end
 
 local Eq = M.rules
-local Ne = M.rules.ne
+local Ne = M.ne.rules
 
 function Ne.strmatch(patterns)
   return function(obj)
@@ -706,6 +709,5 @@ local unpack_spec = {
   { "D", "E", "F" },
   { "G", { "?" }, V "+" },
 }
+pp(M.test(shape, unpack_spec, { capture = true }))
 
-pp(M)
-pp(M.test(shape, unpack_spec, { invert = true, match = true }))
