@@ -209,17 +209,17 @@ function is_callable(x)
   if tp == "function" then
     return true
   elseif tp ~= "table" then
-    return false
+    return false, 'expected table|function, got ' .. tp
   end
 
   local mt = getmetatable(x)
   if not mt then
-    return false
+    return false, 'metatable missing'
   end
 
   local ok = mt.__call ~= nil
   if not ok then
-    return false
+    return false, '__call metamethod missing'
   end
 
   return true
@@ -267,20 +267,47 @@ function size(t)
   return n
 end
 
+function is_dict(x, dict_like)
+  if not is_table(x) then
+    return false, 'expected table, got ' .. type(x)
+  end
+
+  local mt = not dict_like and getmetatable(x)
+  if mt and mt.type ~= 'dict' then
+    return false, 'expected dict, got ' .. mt.type
+  end
+
+  local len = size(x)
+  if len == 0 then
+    return false, 'expected list, got empty table'
+  end
+
+  local ok = len ~= #x
+  if not ok then
+    return false, 'expected dict, got dict'
+  end
+
+  return true
+end
+
 function is_list(x, list_like)
   if not is_table(x) then
-    return false
+    return false, 'expected table, got ' .. type(x)
   end
 
-  if list_like then
-    return size(x) == #x
+  local mt = not list_like and getmetatable(x)
+  if mt and mt.type ~= 'list' then
+    return false, 'expected list, got ' .. mt.type
   end
 
-  local mt = getmetatable(x)
-  if not mt then
-    return size(x) == #x
-  elseif mt.type ~= "list" then
-    return false
+  local len = size(x)
+  if len == 0 then
+    return false, 'expected list, got empty table'
+  end
+
+  local ok = len == #x
+  if not ok then
+    return false, 'expected list, got dict'
   end
 
   return true
@@ -289,27 +316,26 @@ end
 --- @
 function is_dict(x, skip_mtcheck)
   if not is_table(x) then
-    return false
-  elseif size(x) == 0 then
-    return false
+    return false, 'expected table, got ' .. type(x)
   elseif not skip_mtcheck then
     local mt = getmetatable(x)
     if mt then
       if mt.type == "dict" then
         return true
       elseif mt.type ~= nil then
-        return false
+        return false, 'expected dict, got ' .. mt.type
       end
     end
   end
 
-  for k, v in pairs(x) do
-    if not is_string(k) then
-      return false
-    end
+  local len = size(x)
+  if len == 0 then
+    return false, 'expected dict, got empty table'
+  elseif len == #x then 
+    return false, 'expected dict, got list'
+  else
+    return true
   end
-
-  return true
 end
 
 --- Is module?

@@ -128,7 +128,7 @@ function M.ne.test(obj, spec, opts)
         queue:add {
           x,
           y,
-          prefix = prefix .. "." .. key,
+          prefix = prefix,
           state = State--[[@as table]][k],
         }
       elseif match then
@@ -301,7 +301,11 @@ function M.test(obj, spec, opts)
   local prefix = ''
 
   local function cmp(x, y, k, optional, prefix)
-    prefix = prefix .. '.' .. k
+    if not prefix then
+      prefix = k
+    else
+      prefix = prefix .. '.' .. k
+    end
 
     if not is_nil(x) and pre_a then
       x = pre_a(x)
@@ -370,7 +374,7 @@ function M.test(obj, spec, opts)
         queue:add {
           x,
           y,
-          prefix = prefix .. "." .. key,
+          prefix = prefix,
           state = State--[[@as table]][k],
         }
       elseif match then
