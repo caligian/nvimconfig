@@ -37,7 +37,7 @@ local function _claim(x, y, levelname)
   end
 
   local optional = list.filter(ykeys, function(X)
-    return (tostring(X):match "%?$") or (X == "__extra" or X == "__name")
+    return (tostring(X):match "^opt_") or (tostring(X):match "%?$") or (X == "__extra" or X == "__name")
   end, resolve)
 
   optional = Set(optional)
@@ -91,7 +91,7 @@ end
 
 function params(specs)
   for key, value in pairs(specs) do
-    assertisa(value, function(x)
+    assert_is_a(value, function(x)
       return is_list(x) and #x <= 2, "expected at least 1 item long list, got " .. dump(x)
     end)
 

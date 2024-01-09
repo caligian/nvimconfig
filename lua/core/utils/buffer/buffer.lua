@@ -19,7 +19,7 @@ end
 --- @param self Buffer|string|number
 --- @return string?
 function Buffer.to_name(self)
-  assertisa(self, union(Buffer.isa, "string", "number"))
+  assert_is_a(self, union(Buffer.is_a, "string", "number"))
 
   local bufnr
   if is_table(self) then
@@ -36,7 +36,7 @@ end
 --- @param self Buffer|string|number
 --- @return number?
 function Buffer.to_bufnr(self)
-  assertisa(self, union(Buffer.isa, "string", "number", "Buffer"))
+  assert_is_a(self, union(Buffer.is_a, "string", "number", "Buffer"))
   local bufnr
 
   if is_table(self) then
@@ -240,7 +240,7 @@ function _Buffer.info(bufnr, all)
     return new, info
   end
 
-  if isa.dict(bufnr) then
+  if is_a.dict(bufnr) then
     return _todict(vim.fn.getbufinfo(bufnr))
   end
 
@@ -286,7 +286,7 @@ function _Buffer.list(bufnr, opts)
 
   if remove_empty then
     out = list.filter(out, function(x)
-      if isa.string(x) then
+      if is_a.string(x) then
         return #x > 0
       else
         return #vim.fn.bufname(x) > 0
@@ -466,7 +466,7 @@ end
 function _Buffer.map(bufnr, mode, lhs, callback, opts)
   opts = opts or {}
 
-  if isa.string(opts) then
+  if is_a.string(opts) then
     opts = { desc = opts }
   end
 
@@ -478,7 +478,7 @@ end
 function _Buffer.noremap(bufnr, mode, lhs, callback, opts)
   opts = opts or {}
 
-  if isa.string(opts) then
+  if is_a.string(opts) then
     opts = { desc = opts }
   end
 
@@ -515,7 +515,7 @@ function Buffer.windows(bufnr)
 end
 
 function _Buffer.bufnr_options(bufnr, opts)
-  assertisa(opts, "list")
+  assert_is_a(opts, "list")
 
   local out = {}
   list.each(opts, function(key)
@@ -712,12 +712,12 @@ function _Buffer.open(bufnr)
 end
 
 function _Buffer.set(bufnr, pos, lines)
-  assertisa(pos, function(x)
+  assert_is_a(pos, function(x)
     return is_list(x) and (#x == 2 or #x == 4) and list.is_a(x, "number"),
       "expected a list of numbers of length 2 or 4, got " .. dump(x)
   end)
 
-  assertisa(lines, union("string", "table"))
+  assert_is_a(lines, union("string", "table"))
   lines = is_string(lines) and split(lines, "\n") or lines
 
   if #pos == 2 then

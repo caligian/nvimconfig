@@ -3,27 +3,30 @@ require "core.utils.kbd"
 
 if not BufferGroup then
   BufferGroup = class "BufferGroup"
-  BufferGroup.buffergroups = {}
-  BufferGroup._buffers = {}
+  user.buffer_groups = {}
+  user.buffers = {}
 end
 
 function BufferGroup:exclude_buffer(bufnr)
   self.exclude[bufnr] = true
   self.buffers[bufnr] = nil
-  dict.unset(BufferGroup._buffers, { bufnr, self.name })
+
+  dict.unset(user.buffers, { bufnr, "buffer_groups", self.name })
 end
 
 function BufferGroup.telescope_list_groups(bufnr)
   if not Buffer.exists(bufnr) then
     return
-  end
-
-  local groups = BufferGroup._buffers[bufnr]
-  if not groups then
+  elseif not user.buffers[bufnr] or not user.buffers[bufnr].buffer_groups then
     return
   end
 
-  ls = keys(groups)
+  groups = keys(user.buffers[bufnr].buffer_groups)
+  if #groups == 0 then
+    return
+  end
+
+  local ls = groups
   if #ls == 0 then
     is_stderr("no buffergroups exist for " .. Buffer.name(bufnr))
     return
@@ -31,7 +34,7 @@ function BufferGroup.telescope_list_groups(bufnr)
 
   local usegroups = {}
   list.each(ls, function(x)
-    usegroups[x] = BufferGroup.buffergroups[x]
+    usegroups[x] = user.buffer_groups[x]
   end)
 
   return {
@@ -78,7 +81,7 @@ function BufferGroup.create_picker(self)
     if not ls then
       return
     elseif #ls.results == 1 then
-      return BufferGroup.create_picker(BufferGroup.buffergroups[ls.results[1]])
+      return BufferGroup.create_picker(user.buffer_groups[ls.results[1]])
     end
 
     local T = require "core.utils.telescope"()
@@ -88,7 +91,7 @@ function BufferGroup.create_picker(self)
       end
 
       group = group[1]
-      BufferGroup.run_picker(BufferGroup.buffergroups[group.value])
+      BufferGroup.run_picker(user.buffer_groups[group.value])
     end, {
       prompt_title = "BufferGroups for buffer " .. Buffer.name(self):gsub(os.getenv "HOME", "~"),
     })
@@ -131,7 +134,7 @@ end
 function BufferGroup.fromdict(specs)
   local out = {}
   for key, value in pairs(specs) do
-    assertisa(value, function(x)
+    assert_is_a(value, function(x)
       return is_list(x) and #x == 2
     end)
     out[key] = BufferGroup(key, unpack(value))
@@ -141,8 +144,8 @@ function BufferGroup.fromdict(specs)
 end
 
 function BufferGroup:init(name, event, pattern, opts)
-  if BufferGroup.buffergroups[name] then
-    return BufferGroup.buffergroups[name]
+  if user.buffer_groups[name] then
+    return user.buffer_groups[name]
   end
 
   opts = opts or {}
@@ -160,12 +163,12 @@ function BufferGroup:init(name, event, pattern, opts)
       local buf = o.buf
       if not self.exclude[buf] then
         self.buffers[buf] = true
-        dict.set(BufferGroup._buffers, { buf, name }, true)
+        dict.set(user.buffers, { buf, "buffer_groups", name }, true)
       end
     end,
   })
 
-  BufferGroup.buffergroups[self.name] = self
+  user.buffer_groups[self.name] = self
   self.telescope = setmetatable({}, {
     __index = function(here, key)
       if T[key] then

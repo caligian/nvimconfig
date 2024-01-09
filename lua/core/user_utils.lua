@@ -54,9 +54,7 @@ function user.enable_temp_buffers(overrides)
     })
   end
 
-  local Any = case.any
-
-  local pattern_spec = Any {
+  local specs = {
     {
       is_string,
       set_pattern_autocmd,
@@ -65,22 +63,22 @@ function user.enable_temp_buffers(overrides)
       case.rules.list_of "string",
       set_pattern_autocmd,
     },
-  }
-
-  local lua_pattern_spec = {
-    case.rules.has { "pattern", "filetype" },
-    set_lua_pattern_autocmd,
-  }
-
-  local ft_pattern_spec = {
-    case.rules.has { "ft", "filetype" },
-    set_ft_autocmd,
-  }
-
-  local specs = {
-    pattern_spec,
-    lua_pattern_spec,
-    ft_pattern_spec,
+    {
+      { pat = is_string },
+      set_lua_pattern_autocmd,
+    },
+    {
+      { pattern = is_string },
+      set_lua_pattern_autocmd,
+    },
+    {
+      { ft = is_string },
+      set_ft_autocmd,
+    },
+    {
+      { filetype = is_string },
+      set_ft_autocmd,
+    },
   }
 
   for i = 1, #temp_buffer_patterns do
@@ -208,7 +206,7 @@ function user.setup_defaults()
   end
 
   if user.enable.mappings then
-    vim.defer_fn(function ()
+    vim.defer_fn(function()
       Kbd.map("n", "<leader>hC", ":ReloadColorscheme<CR>", "reload colorscheme")
       Kbd.map("n", "<leader>h=", ":ReloadStatusline<CR>", "reload statusline")
       Kbd.main()
@@ -223,16 +221,15 @@ function user.setup_defaults()
     user.plugins.colorscheme:setup()
   end, {})
 
+  if user.enable.commands then
+    local cmds = require('core.defaults.commands')
 
-  -- if user.enable.commands then
-  --   local cmds = require('core.defaults.commands')
+    if req2path('user.commands') then
+      dict.merge(cmds, requirex('user.commands'))
+    end
 
-  --   if req2path('user.commands') then
-  --     dict.merge(cmds, requirex('user.commands'))
-  --   end
-
-  --   dict.each(cmds, function (name, args)
-  --     nvim.create.user_command(name, unpack(args))
-  --   end)
-  -- end
+    dict.each(cmds, function (name, args)
+      nvim.create.user_command(name, unpack(args))
+    end)
+  end
 end

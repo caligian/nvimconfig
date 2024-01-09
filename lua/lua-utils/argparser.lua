@@ -1,8 +1,3 @@
-require "lua-utils.table"
-require "lua-utils.compare"
-require "lua-utils.string"
-require "lua-utils.Path"
-
 --- @class Argparser.Positional
 --- @field name string|number
 --- @field post function

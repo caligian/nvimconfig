@@ -1,8 +1,6 @@
 --- Stringify element
 --- @overload fun(x:any): string
-require "lua-utils.copy"
 require "lua-utils.types"
-require "lua-utils.function"
 
 function tuple_size(...)
   return select("#", ...)
@@ -282,5 +280,3 @@ function defined(x, orelse)
     return orelse
   end
 end
-
-require "lua-utils.class"

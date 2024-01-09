@@ -43,7 +43,7 @@ function parse.keys(match, repl)
   if not repl[k] then
     error("undefined placeholder: " .. k)
   else
-    assertisa(repl[k], "table")
+    assert_is_a(repl[k], "table")
   end
 
   local ok = dict.get(repl[k], list.sub(ks, 2, -1))
@@ -62,7 +62,7 @@ function parse.sed(match, repl)
   if not repl[var] then
     error("undefined placeholder: " .. var)
   else
-    assertisa(repl[var], union("string", "number"))
+    assert_is_a(repl[var], union("string", "number"))
   end
 
   local till_end = string.find(match, "[^\\]/", till + 1)
@@ -104,7 +104,7 @@ function parse.match(match, repl)
   if not repl[var] then
     error("undefined placeholder: " .. var)
   else
-    assertisa(repl[var], union("string", "number"))
+    assert_is_a(repl[var], union("string", "number"))
   end
 
   local regex = string.sub(match, till + 1, #match)

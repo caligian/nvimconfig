@@ -243,7 +243,7 @@ function Terminal:send(s)
     end)
   end
 
-  if isa.string(s) then
+  if is_a.string(s) then
     s = vim.split(s, "[\n\r]+")
   end
 

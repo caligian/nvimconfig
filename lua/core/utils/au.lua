@@ -133,7 +133,7 @@ function Autocmd.map(...)
 end
 
 function Autocmd.fromdict(specs)
-  assertisa(specs, function(x)
+  assert_is_a(specs, function(x)
     return dict.is_a(x, function(arg)
       return is_list(arg) and #arg == 2 and is_dict(arg[2]) and arg[2].callback and arg[2].pattern
     end)

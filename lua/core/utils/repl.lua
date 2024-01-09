@@ -6,7 +6,7 @@ user.repls = {}
 dict.merge(REPL, { Terminal })
 
 function REPL.exists(self, tp)
-  assertisa(self, union("REPL", "string", "number"))
+  assert_is_a(self, union("REPL", "string", "number"))
 
   if is_string(self) then
     return user.repls[self.name]
@@ -159,7 +159,7 @@ function REPL.set_mappings()
       if self:is_running() then
         print("started REPL for " .. tp .. " with cmd: " .. self.cmd)
       else
-        is_stderr("could not start REPL for " .. tp .. " with cmd: " .. self.cmd)
+        tostderr("could not start REPL for " .. tp .. " with cmd: " .. self.cmd)
       end
     end, desc)
   end

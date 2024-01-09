@@ -6,92 +6,78 @@ local function compile_and_run(lines)
 
   local compiled, err = loadstring(lines)
   if err then
-    is_stderr(err)
+    tostderr(err)
   elseif compiled then
     compiled()
   end
 end
 
--- Open logs
-command("ShowLogs", function()
-  local log_path = vim.fn.stdpath "config" .. "/nvim.log"
-  if Path.exists(log_path) then
-    vim.cmd("tabnew " .. log_path)
-    vim.cmd "setlocal readonly"
-    vim.cmd "noremap <buffer> q :bwipeout <bar> b#<CR>"
-  end
-end, {})
+return {
+  OpenScratch = {
+    function()
+      Buffer.split(Buffer.scratch "scratch", "s")
+    end,
+    {},
+  },
 
--- Open scratch buffer
-command("OpenScratch", function()
-  buffer.split(buffer.scratch "scratch", "s")
-end, {})
+  OpenScratchVertically = {
+    function()
+      Buffer.split(Buffer.scratch "scratch", "v")
+    end,
+    {},
+  },
 
-command("OpenScratchVertically", function()
-  buffer.split(buffer.scratch "scratch", "v")
-end, {})
+  -- Setup commands
+  NvimEvalRegion = {
+    function(opts)
+      local lines = Buffer.range_text(opts.buf)
+      compile_and_run(lines)
+    end,
+    {},
+  },
 
--- Setup commands
-command("NvimEvalRegion", function(opts)
-  local lines = buffer.range_text(opts.buf)
-  compile_and_run(lines)
-end, {})
+  NvimEvalBuffer = {
+    function()
+      local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+      compile_and_run(lines)
+    end,
+    {},
+  },
 
-command("NvimEvalBuffer", function()
-  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-  compile_and_run(lines)
-end, {})
+  NvimEvalTillCursor = {
+    function()
+      local line = vim.fn.line "."
+      local lines = vim.api.nvim_buf_get_lines(0, 0, line - 1, false)
+      compile_and_run(lines)
+    end,
+    {},
+  },
 
-command("NvimEvalTillCursor", function()
-  local line = vim.fn.line "."
-  local lines = vim.api.nvim_buf_get_lines(0, 0, line - 1, false)
-  compile_and_run(lines)
-end, {})
+  NvimEvalLine = {
+    function()
+      local line = vim.fn.getline "."
+      compile_and_run(line)
+    end,
+    {},
+  },
 
-command("NvimEvalLine", function()
-  local line = vim.fn.getline "."
-  compile_and_run(line)
-end, {})
+  TrimWhiteSpace = {
+    function()
+      local layout = vim.fn.winsaveview()
+      vim.cmd "keeppatterns %s/\\s\\+$//e"
+      vim.fn.winrestview(layout)
+    end,
+    {},
+  },
 
--- Only works for guifg and guibg
-command("Darken", function(args)
-  args = vim.split(args.args, " +")
-  assert(#args == 2)
-
-  local what, by = unpack(args)
-  local hi = highlight "Normal"
-
-  if is_empty(hi) then
-    return
-  end
-
-  local set = {}
-  if what == "fg" then
-    set["guifg"] = darken(hi["guifg"], is_number(by))
-  else
-    set["guibg"] = darken(hi["guibg"], is_number(by))
-  end
-
-  highlightset("Normal", set)
-end, { nargs = "+" })
-
-command("TrimWhiteSpace", function()
-  local layout = vim.fn.winsaveview()
-  vim.cmd "keeppatterns %s/\\s\\+$//e"
-  vim.fn.winrestview(layout)
-end, {})
-
-command("EnableZenMode", function()
-  vim.o.laststatus = 0
-end, {})
-
-command("ToggleZenMode", function()
-  user.zenmode_toggled = vim.o.laststatus == 0
-  if user.zenmode_toggled then
-    user.zenmode_toggled = false
-    vim.o.laststatus = 3
-  else
-    user.zenmode_toggled = true
-    vim.o.laststatus = 0
-  end
-end, {})
+  ToggleZenMode = {
+    function()
+      if vim.o.laststatus ~= 0 then
+        vim.o.laststatus = 0
+      else
+        vim.o.laststatus = 3
+      end
+    end,
+    {},
+  },
+}

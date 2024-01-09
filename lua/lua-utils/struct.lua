@@ -86,7 +86,7 @@ function struct:__call(name, attribs)
     return mod.init(obj, ...)
   end
 
-  attribs = dict.fromkeys(attribs)
+  attribs = dict.from_list(attribs)
   structmt.attribs = attribs
 
   return setmetatable(mod, structmt)

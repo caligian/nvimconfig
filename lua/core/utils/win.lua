@@ -182,7 +182,7 @@ end
 
 function win.restore_view(winnr, view)
   return win.call(winnr, function()
-    if isa.string(view) then
+    if is_a.string(view) then
       vim.cmd(view)
     else
       vim.fn.winrestview(view)
@@ -504,7 +504,7 @@ function win.set_var(winnr, k, v)
     return
   end
 
-  if isa.string(k) then
+  if is_a.string(k) then
     vim.api.nvim_win_set_var(winnr, k, v)
   else
     dict.each(k, function(key, value)
@@ -521,7 +521,7 @@ function win.set_option(winnr, k, v)
     return
   end
 
-  if isa.string(k) then
+  if is_a.string(k) then
     vim.api.nvim_win_set_option(win.nr2id(winnr), k, v)
   else
     dict.each(k, function(key, value)

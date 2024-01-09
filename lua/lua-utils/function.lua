@@ -18,15 +18,17 @@ end
 
 --- Prepend args and apply params
 --- @param f function
---- @param ... list params to prepend
+--- @param ... any params to prepend
 --- @return function
-function rpartial(f, ...)
+function partial(f, ...)
   local outer = { ... }
+
   return function(...)
     local inner = { ... }
     local len = #outer
-    for idx, a in ipairs(outer) do
-      inner[len + idx] = a
+
+    for i=1, len do
+      inner[#inner+1] = outer[i]
     end
 
     return f(unpack(inner))
@@ -35,15 +37,16 @@ end
 
 --- Append args and apply params
 --- @param f function
---- @param ... list params to append
+--- @param ... any params to append
 --- @return function
-function partial(f, ...)
+function rpartial(f, ...)
   local outer = { ... }
+
   return function(...)
     local inner = { ... }
-    local len = #outer
-    for idx, a in ipairs(inner) do
-      outer[len + idx] = a
+
+    for i=1, #inner do
+      outer[#outer+1] = inner[i]
     end
 
     return f(unpack(outer))
@@ -71,29 +74,4 @@ function thread(x, ...)
   end
 
   return out
-end
-
-function is_class(self)
-  local mt = mtget(self)
-  if mt.type and mt.class then
-    return true
-  end
-
-  return false
-end
-
-function is_classmod(self)
-  return is_table(self) and mtget(self, "type") == "classmod" and self or false
-end
-
-function is_instance(self, other)
-  if not is_table(self) or not is_table(other) then
-    return false
-  elseif is_classmod(other) or is_class(other) then
-    return false
-  elseif is_classmod(self) or is_class(self) then
-    return false
-  else
-    return self.modname() == other.modname()
-  end
 end

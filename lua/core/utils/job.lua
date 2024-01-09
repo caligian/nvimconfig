@@ -311,7 +311,7 @@ function Job:_create_on_exit_handler(opts)
 end
 
 function Job:init(cmd)
-  assertisa[union("string", "table")](cmd)
+  assert_is_a[union("string", "table")](cmd)
 
   if is_table(cmd) then
     cmd[1] = whereis(cmd[1])[1]
@@ -444,7 +444,7 @@ end
 
 ---@diagnostic disable-next-line: duplicate-set-field
 function Job:send(s)
-  assertisa[union("string", "table")](s)
+  assert_is_a[union("string", "table")](s)
 
   if not self.handle or not uv.is_active(self.handle) then
     return false
@@ -483,23 +483,23 @@ function Job.format_buffer(bufnr, cmd, opts)
 
       if job.exit_status ~= 0 then
         if #job.output.stderr > 0 then
-          is_stderr(join(job.output.stderr, "\n"))
+          tostderr(join(job.output.stderr, "\n"))
         end
-        is_stderr("failed to format buffer: " .. name)
+        tostderr("failed to format buffer: " .. name)
       end
 
       if #job.output.stdout > 0 then
         Buffer.set(bufnr, { 0, -1 }, job.output.stdout)
         vim.cmd "redraw!"
       elseif #job.output.stderr > 0 then
-        is_stderr("failed to format buffer: " .. name)
+        tostderr("failed to format buffer: " .. name)
       end
     end,
   }, { opts }))
 end
 
 function Job.shell(cmd, opts)
-  assertisa.string(cmd)
+  assert_is_a.string(cmd)
 
   local j = Job(cmd)
   if j then

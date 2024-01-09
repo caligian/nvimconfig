@@ -533,7 +533,7 @@ function Filetype:command(bufnr, action)
   if not compile then
     return
   else
-    assert(isa[spec](compile))
+    assert(is_a[spec](compile))
   end
 
   if not is_table(compile) then
@@ -891,7 +891,7 @@ function Filetype:set_autocmds()
   end
 
   dict.each(self.autocmds, function(name, opts)
-    assertisa(opts, union("function", "table"))
+    assert_is_a(opts, union("function", "table"))
 
     local cb, options
     options = {}

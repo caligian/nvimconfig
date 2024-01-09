@@ -34,7 +34,7 @@ function Path.sep()
 end
 
 function Path.is(p, mode)
-  assertisa.string(mode)
+  assert_is_a.string(mode)
 
   local attribs, msg = Path.attributes(p)
 
@@ -215,7 +215,7 @@ function Path.write(p, lines)
     return
   end
 
-  assertisa(lines, union("string", "table"))
+  assert_is_a(lines, union("string", "table"))
   lines = is_table(lines) and join(lines, "\n") or lines
 
   fh:write(lines)

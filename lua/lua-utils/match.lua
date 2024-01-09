@@ -29,7 +29,7 @@ function case.ne.test(obj, spec, opts)
   local ass = opts.assert
   local cond = opts.cond
 
-  if is_function(spec) and (case or match) then
+  if is_function(spec) and (cond or match) then
     local ok, msg = spec(obj)
     if not ok then
       if ass then
@@ -66,12 +66,12 @@ function case.ne.test(obj, spec, opts)
   if ass then
     absolute = true
     match = false
-    case = true
+    cond = true
   end
 
   if match then
     absolute = true
-    case = false
+    cond = false
   end
 
   local vars = match and {}
@@ -168,7 +168,7 @@ function case.ne.test(obj, spec, opts)
       else
         queue:add { x, y, prefix = prefix }
       end
-    elseif (case or match) and is_function(y) then
+    elseif (cond or match) and is_function(y) then
       local ok, msg = y(x)
       ok = not ok
 
@@ -278,7 +278,7 @@ function case.test(obj, spec, opts)
   local match = opts.match
   local ass = opts.assert
 
-  if is_function(spec) and (case or match) then
+  if is_function(spec) and (cond or match) then
     local ok, msg = spec(obj)
     if not ok then
       if ass then
@@ -319,7 +319,7 @@ function case.test(obj, spec, opts)
     absolute = true
     match = false
     capture = false
-    case = true
+    cond = true
   end
 
   if capture then
@@ -336,7 +336,7 @@ function case.test(obj, spec, opts)
 
   if match then
     absolute = true
-    case = false
+    cond = false
   end
 
   if same_size and size(obj) ~= size(spec) then
@@ -364,7 +364,7 @@ function case.test(obj, spec, opts)
   local State = state
   local prefix = ""
 
-  local function cmp(x, y, k, optional, prefix)
+  local function cmp(x, y, k, prefix)
     if not prefix then
       prefix = k
     else
@@ -380,14 +380,12 @@ function case.test(obj, spec, opts)
     end
 
     if is_nil(x) then
-      if not optional then
-        if ass then
-          error(prefix .. ": expected value, got nil")
-        elseif absolute then
-          return false
-        else
-          State[key] = false
-        end
+      if ass then
+        error(prefix .. ": expected value, got nil")
+      elseif absolute then
+        return false
+      else
+        State[key] = false
       end
     elseif case.is_var(y) then
       assert(match, ".match should be true for using match.variable")
@@ -446,7 +444,7 @@ function case.test(obj, spec, opts)
       else
         queue:add { x, y, prefix = prefix }
       end
-    elseif (case or match) and is_function(y) then
+    elseif (cond or match) and is_function(y) then
       local ok, msg = y(x)
       if ok then
         if not absolute then
@@ -487,13 +485,6 @@ function case.test(obj, spec, opts)
     return true
   end
 
-  local function resolve_key(i)
-    key, optional = tostring(i):gsub("(^opt_|%?$)", "")
-    key = tonumber(key) or key
-
-    return key, optional > 0
-  end
-
   while Obj and Spec do
     if same_size and size(Obj) ~= size(Spec) then
       return false
@@ -502,16 +493,10 @@ function case.test(obj, spec, opts)
     for i, validator in pairs(Spec) do
       local key = i
       local obj_value
-      local optional
 
-      if is_string(i) or is_number(i) then
-        key, optional = resolve_key(i)
-        obj_value = Obj[key]
-      else
-        obj_value = Obj[i]
-      end
+      obj_value = Obj[i]
 
-      if not cmp(obj_value, validator, i, optional, prefix) then
+      if not cmp(obj_value, validator, i, prefix) then
         return false
       end
     end
@@ -535,9 +520,6 @@ function case.test(obj, spec, opts)
   end
 
   if match then
-    if size(vars) == 0 then
-      return obj
-    end
     return vars
   elseif case and absolute then
     return obj
@@ -555,7 +537,7 @@ end
 
 function case.ne.case(a, b, opts)
   opts = copy(opts or {})
-  opts.case = true
+  opts.cond = true
 
   return case.ne.test(a, b, opts)
 end
@@ -571,7 +553,7 @@ function case.ne.compare(a, b, opts)
   opts = copy(opts or {})
   opts.absolute = false
   opts.match = false
-  opts.case = false
+  opts.cond = false
 
   return case.ne.test(a, b, opts)
 end
@@ -583,9 +565,9 @@ function case.match(a, b, opts)
   return case.test(a, b, opts)
 end
 
-function case.case(a, b, opts)
+function case.cond(a, b, opts)
   opts = copy(opts or {})
-  opts.case = true
+  opts.cond = true
 
   return case.test(a, b, opts)
 end
@@ -601,7 +583,7 @@ function case.compare(a, b, opts)
   opts = copy(opts or {})
   opts.absolute = false
   opts.match = false
-  opts.case = false
+  opts.cond = false
 
   return case.test(a, b, opts)
 end
@@ -614,68 +596,6 @@ end
 
 local Eq = case.rules
 local Ne = case.ne.rules
-
-function Ne.strmatch(patterns)
-  return function(obj)
-    if not is_a.string(obj) then
-      return false
-    end
-
-    local failure = 0
-    local len = #patterns
-
-    for i = 1, len do
-      local pat = patterns[i]
-      assertisa[union("string", "table")](pat)
-
-      if is_table(pat) then
-        local ok = string.match(obj, pat[1])
-        if not (pat.optional or pat.opt) and ok then
-          failure = failure + 1
-        end
-      elseif string.match(obj, pat) then
-        failure = failure + 1
-      end
-    end
-
-    if failure == len then
-      return false
-    end
-
-    return true
-  end
-end
-
-function Eq.strmatch(patterns)
-  return function(obj)
-    if not is_a.string(obj) then
-      return false
-    end
-
-    local failure = 0
-    local len = #patterns
-
-    for i = 1, len do
-      local pat = patterns[i]
-      assertisa[union("string", "table")](pat)
-
-      if is_table(pat) then
-        local ok = string.match(obj, pat[1])
-        if not (pat.optional or pat.opt) and not ok then
-          failure = failure + 1
-        end
-      elseif not string.match(obj, pat) then
-        failure = failure + 1
-      end
-    end
-
-    if failure == len then
-      return false
-    end
-
-    return true
-  end
-end
 
 function Ne.literal(spec)
   return function(obj)
@@ -713,12 +633,8 @@ function Eq.list(spec)
   end
 end
 
-function Ne.has(ks)
+function Ne.has(...)
   return function(obj)
-    if not is_table(obj) then
-      return false
-    end
-
     return size(dict.fetch(obj, ks)) == 0
   end
 end
@@ -774,7 +690,7 @@ function Eq.is_a(spec)
 end
 
 function Eq.lt(spec)
-  assertisa.number(spec)
+  assert_is_a.number(spec)
 
   return function(x)
     if is_table(x) or is_string(x) then
@@ -788,7 +704,7 @@ function Eq.lt(spec)
 end
 
 function Eq.le(spec)
-  assertisa.number(spec)
+  assert_is_a.number(spec)
 
   return function(x)
     if is_table(x) or is_string(x) then
@@ -802,7 +718,7 @@ function Eq.le(spec)
 end
 
 function Eq.ge(spec)
-  assertisa.number(spec)
+  assert_is_a.number(spec)
 
   return function(x)
     if is_table(x) or is_string(x) then
@@ -816,7 +732,7 @@ function Eq.ge(spec)
 end
 
 function Eq.eq(spec)
-  assertisa.number(spec)
+  assert_is_a.number(spec)
 
   return function(x)
     if is_table(x) or is_string(x) then
@@ -830,7 +746,7 @@ function Eq.eq(spec)
 end
 
 function Eq.ne(spec)
-  assertisa.number(spec)
+  assert_is_a.number(spec)
 
   return function(x)
     if is_table(x) or is_string(x) then
@@ -844,7 +760,7 @@ function Eq.ne(spec)
 end
 
 function Eq.gt(spec)
-  assertisa.number(spec)
+  assert_is_a.number(spec)
 
   return function(x)
     if is_table(x) or is_string(x) then
@@ -855,14 +771,6 @@ function Eq.gt(spec)
 
     return x > spec
   end
-end
-
-function case.any(spec)
-  return mtset(spec, { type = "case.any" })
-end
-
-function case.is_any(x)
-  return typeof(x) == "case.any"
 end
 
 function case.rules.list_of(value_spec)
@@ -894,14 +802,14 @@ function case:__call(obj)
 
     local opts = {
       absolute = true,
-      case = not rule.match and true or false,
+      cond = not rule.match and true or false,
       match = rule.match,
       capture = rule.capture,
     }
 
     local ok = case.test(obj[1], spec, opts)
     if ok then
-      assertisa.callable(callback)
+      assert_is_a.callable(callback)
       return callback(unpack(obj)) or obj[1]
     end
   end
@@ -909,19 +817,10 @@ function case:__call(obj)
   return function(rules)
     for i = 1, #rules do
       local rule = rules[i]
+      local ok = match_rule(rule)
 
-      if case.is_any(rule) then
-        for j = 1, #rule do
-          local ok = match_rule(rule[j])
-          if ok then
-            return ok
-          end
-        end
-      else
-        local ok = match_rule(rule)
-        if ok then
-          return ok
-        end
+      if ok then
+        return ok
       end
     end
 

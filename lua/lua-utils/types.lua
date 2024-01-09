@@ -435,13 +435,12 @@ function union(...)
 end
 
 --------------------------------------------------
-local isa_mt = { type = "module" }
-isa = {}
-is_a = isa
-isa_mt.__index = isa_mt
-setmetatable(isa, isa_mt)
+local is_a_mt = { type = "module" }
+is_a = {}
+is_a_mt.__index = is_a_mt
+setmetatable(is_a, is_a_mt)
 
-function isa_mt:__index(key)
+function is_a_mt:__index(key)
   if key == "*" or key == "any" then
     return function()
       return true
@@ -475,27 +474,27 @@ function isa_mt:__index(key)
   return Gfun
 end
 
-function isa_mt:__call(obj, expected, assert_type)
+function is_a_mt:__call(obj, expected, assert_type)
   if is_nil(obj) and is_nil(expected) then
     return true
   end
 
   if assert_type then
-    assert(isa[expected](obj))
+    assert(is_a[expected](obj))
   end
 
-  return isa[expected](obj)
+  return is_a[expected](obj)
 end
 
 --------------------------------------------------
-local assertisa_mt = { type = "module" }
-assertisa = {}
-setmetatable(assertisa, assertisa_mt)
+local assert_is_a_mt = { type = "module" }
+assert_is_a = {}
+setmetatable(assert_is_a, assert_is_a_mt)
 
 --- Usage
 --- @param key string|fun(x): boolean,string
 --- @return function validator throws an error when validation fails
-function assertisa_mt:__index(key)
+function assert_is_a_mt:__index(key)
   if is_function(key) then
     return function(x)
       assert(key(x))
@@ -526,12 +525,12 @@ function assertisa_mt:__index(key)
   return fun
 end
 
-function assertisa_mt:__call(obj, expected)
+function assert_is_a_mt:__call(obj, expected)
   if is_nil(obj) and is_nil(expected) then
     return true
   end
 
-  return assertisa[expected](obj)
+  return assert_is_a[expected](obj)
 end
 
 --------------------------------------------------
@@ -565,7 +564,7 @@ function sameref(x, y)
   return ref(x) == ref(y)
 end
 
-asserttype = assertisa
+asserttype = assert_is_a
 
 --------------------------------------------------
 function class(name, static)
@@ -635,7 +634,7 @@ function class(name, static)
     return true
   end
 
-  function mod.assertisa(self)
+  function mod.assert_is_a(self)
     if not mod.is_a(self) then
       error("expected " .. name .. ", got " .. type(self))
     end

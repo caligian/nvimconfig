@@ -11,7 +11,7 @@ function Plugin.init(self, name, opts)
   if is_string(name) and user.plugins[name] then
     return user.plugins[name]
   elseif is_table(name) then
-    assertisa(name.name, "string")
+    assert_is_a(name.name, "string")
     return Plugin(name.name, name)
   end
 
@@ -263,17 +263,17 @@ function Plugin.lazy_spec()
 
   if not core and not userconfig then
   elseif core then
-    assertisa(core, "table")
+    assert_is_a(core, "table")
   end
 
   if userconfig then
-    assertisa(userconfig, "table")
+    assert_is_a(userconfig, "table")
     dict.merge(core, { userconfig })
   end
 
   local specs = {}
   dict.each(core, function(name, spec)
-    assertisa(spec[1], "string")
+    assert_is_a(spec[1], "string")
 
     local conf = spec.config
     function spec.config()

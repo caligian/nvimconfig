@@ -127,7 +127,7 @@ function highlightset(hi, set, defaults)
       return
     end
 
-    if isa.callable(transformer) then
+    if is_a.callable(transformer) then
       hi[attrib] = transformer(hi[attrib])
       vim.cmd(sprintf("hi %s %s=%s", group, attrib, hi[attrib]))
     else
@@ -162,7 +162,7 @@ function is_dark(...)
 end
 
 function luminance(red_or_hex, green, blue)
-  if isa.string(red_or_hex) then
+  if is_a.string(red_or_hex) then
     return luminance(hex2rgb(red_or_hex))
   end
 

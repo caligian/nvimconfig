@@ -14,7 +14,7 @@ function vimsize()
   return { width, height }
 end
 
-function is_stderr(...)
+function tostderr(...)
   for _, s in ipairs { ... } do
     vim.api.nvim_err_writeln(s)
   end
@@ -114,7 +114,7 @@ local function process_input(key, value)
 end
 
 function input(spec)
-  if isa.table(spec) then
+  if is_a.table(spec) then
     local res = {}
 
     for key, value in pairs(spec) do

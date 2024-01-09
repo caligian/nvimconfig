@@ -212,7 +212,7 @@ end
 
 function Winid.restview(winid, view)
   return Winid.call(winid, function()
-    if isa.string(view) then
+    if is_a.string(view) then
       vim.cmd(view)
     else
       vim.fn.winrestview(view)

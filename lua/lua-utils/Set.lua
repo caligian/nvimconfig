@@ -37,7 +37,7 @@ function Set:__call(x)
     return x
   end
 
-  x = dict.fromkeys(x)
+  x = dict.from_list(x)
   mtset(x, Setmt)
 
   return x
