@@ -617,9 +617,9 @@ function list.zip2(a, b)
 end
 
 function dict.some(t, f)
-  for _, value in pairs(t) do
+  for key, value in pairs(t) do
     if f then
-      if f(value) then
+      if f(key, value) then
         return true
       end
     elseif value then
@@ -631,9 +631,9 @@ function dict.some(t, f)
 end
 
 function dict.all(t, f)
-  for _, value in pairs(t) do
+  for key, value in pairs(t) do
     if f then
-      if not f(value) then
+      if not f(key, value) then
         return false
       end
     elseif not value then

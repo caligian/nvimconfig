@@ -392,6 +392,10 @@ function union(...)
         if not is_list(x) then
           failed[#failed + 1] = "list"
         end
+      elseif current_sig == "dict" then
+        if not is_dict(x) then
+          failed[#failed + 1] = "dict"
+        end
       elseif current_sig == "table" and is_table(x) then
         return true
       elseif current_sig == "callable" then
@@ -410,13 +414,14 @@ function union(...)
           failed[#failed + 1] = msg
         end
       elseif sig_type == "string" then
-        ---@diagnostic disable-next-line: param-type-mismatch
-        local _, opt = string.gsub(current_sig, "%?$", "")
-        if x ~= nil then
-          if x_type ~= current_sig then
+        local opt = string.match(current_sig, '^opt^')
+        opt = opt or string.match(current_sig, '%?$')
+
+        if x == nil then
+          if not opt then
             failed[#failed + 1] = current_sig
           end
-        elseif opt == 0 then
+        elseif x_type ~= current_sig then
           failed[#failed + 1] = current_sig
         end
       elseif type(x) ~= sig_type then

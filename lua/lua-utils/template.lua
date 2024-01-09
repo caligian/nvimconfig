@@ -207,4 +207,4 @@ function is_F(var)
 end
 
 template = F
-istemplate = isF
+is_template = is_F
