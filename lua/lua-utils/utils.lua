@@ -4,6 +4,25 @@ require "lua-utils.copy"
 require "lua-utils.types"
 require "lua-utils.function"
 
+function tuple_size(...)
+  return select("#", ...)
+end
+
+--- Pack varargs into a list filling all the nils with false
+--- @param ... any
+--- @return any[]
+function pack_tuple(...)
+  local args = {...}
+
+  for i=1, select("#", ...) do
+    if args[i] == nil then
+      args[i] = false
+    end
+  end
+
+  return args
+end
+
 --- @param x any
 --- @param force? bool forcefully wrap the elem in a table?
 --- @return table

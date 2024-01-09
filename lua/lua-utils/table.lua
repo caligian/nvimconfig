@@ -191,7 +191,7 @@ function dict.get(x, ks, opts)
   assertisa.table(x)
 
   if is_string(ks) or is_number(ks) then
-    ks = {ks}
+    ks = { ks }
   end
 
   assertisa.table(ks)
@@ -293,23 +293,6 @@ function dict.get(x, ks, opts)
   end
 
   return ret
-end
-
---- Set a value directly
---- @param x table
---- @param ks list
---- @param value any
---- @param level? bool
---- @see dict.get
---- @return any, table?
-function dict.set(x, ks, value, level)
-  local opts = {
-    level = level,
-    force = true,
-    put = value,
-    rawset = true,
-  }
-  return dict.get(x, ks, opts)
 end
 
 --- Update a value with a function
@@ -455,24 +438,6 @@ function list.pop(x, pos)
 
   local y = table.remove(x, pos)
   return y
-end
-
---- Remove key
---- @param x table
---- @param key any
---- @return any
-function dict.remove(x, key)
-  local found = x[key]
-  if found == nil then
-    return
-  end
-
-  x[key] = nil
-  return found
-end
-
-function dict.unset(x, ks)
-  return dict.get(x, ks, { unset = true })
 end
 
 --- Join list with a string
@@ -1461,7 +1426,7 @@ end
 --- @see istype
 --- @return boolean
 function list.is_a(x, tp)
-  for i=1, #x do
+  for i = 1, #x do
     if not is_a(x[i], tp) then
       return false
     else
@@ -1490,7 +1455,7 @@ local function listne(a, b, absolute, state, ok)
   assertisa.table(a)
   assertisa.table(b)
 
-  for i=1, #b do
+  for i = 1, #b do
     local key = i
     local a_value = a[key]
     local b_value = b[key]
@@ -1528,7 +1493,7 @@ local function listeq(a, b, absolute, state, ok)
 
   ok = ok or false
 
-  for i=1, #b do
+  for i = 1, #b do
     local key = i
     local a_value = a[key]
     local b_value = b[key]
@@ -1694,87 +1659,432 @@ function dict.ne(a, b, absolute)
   return result
 end
 
---- @param x table
---- @param fill? fun(): any
---- @return list?
-function list.fix(x, fill)
-  if not is_table(x) then
-    return
+--- Get value at position[s]
+--- > list.get({1, 2, {3, {3, {5}}}}, {3, 2, 1}) -- 5 
+--- @param x any[]
+--- @param ks (number)[] | number 
+--- @param get_level? boolean is passed then get the table where the key was last found
+--- @return any?
+--- @return (table | { [1]: table, [2]: {[1]: number, [2]: number} })? level returns the second form when no match is found and get_level = true. The first element is the last matched table and the second list is the key index and the key last used
+function list.get(x, ks, get_level)
+  if is_number(ks) then
+    ks = {ks}
   end
 
-  local ks = keys(x)
+  local n = #ks
+  local last_key = ks[n]
+  local v = x
+  local prev
 
-  list.sort(ks, function(x, y)
-    if is_number(x) and is_number(y) then
-      return x > y
-    end
-
-    return false
-  end)
-
-  local max = ks[1]
-  if not ks[1] then
-    return
-  end
-
-  for i = 1, max do
-    if x[i] == nil then
-      if fill then
-        x[i] = fill()
-        assert(x[i] ~= nil, "fill() cannot return nil at index " .. i)
-      else
-        x[i] = false
-      end
-    end
-  end
-
-  return x
-end
-
---- Remove all noninteger elements and convert dict to list
---- @param x table
---- @param fill? fun(): any
---- @return table?
-function dict.to_list(x, fill)
-  if not is_table(x) then
-    return
-  end
-
-  for key, _ in pairs(x) do
-    if not is_number(key) then
-      x[key] = nil
-    end
-  end
-
-  return list.fix(x, fill)
-end
-
-function list.get(x, ks)
-  local max = #ks
-  local tmp = x
-
-  for i = 1, #ks - 1 do
+  for i=1, n-1  do
     local k = ks[i]
-    local v = tmp[k]
+    v = v[k]
 
     if not is_table(v) then
       return
     else
-      tmp = v
+      prev = {v, {i, k}}
+      v = v[k]
     end
   end
 
-  return tmp[ks[max]]
-end
+  if not is_table(v) or not is_number(last_key) then
+    if get_level then
+      return nil, prev
+    end
 
-function list.fetch(x, ks)
-  assertisa.table(x)
-
-  local res = {}
-  for i = 1, #ks do
-    assertisa.table(ks[i])
-    res[ks[i]] = list.get(x, ks[i])
+    return
   end
 
-  return res
+  if get_level then
+    return v[last_key], v
+  end
+
+  return v[last_key]
+end
+
+function list.rawget(x, ks, get_level)
+  if is_number(ks) then
+    ks = {ks}
+  end
+
+  local n = #ks
+  local last_key = ks[n]
+  local v = x
+  local prev
+
+  for i=1, n-1  do
+    local k = ks[i]
+    v = rawget(v, k)
+
+    if not is_table(v) then
+      return
+    else
+      prev = {v, {i, k}}
+      v = rawget(v, k)
+    end
+  end
+
+  if not is_table(v) or not is_number(last_key) then
+    if get_level then
+      return nil, prev
+    end
+
+    return
+  end
+
+  if get_level then
+    return rawget(v, last_key), v
+  end
+
+  return rawget(v, last_key)
+end
+
+function dict.rawunset(x, ks)
+  if is_string(ks) or is_number(ks) or is_boolean(ks) then
+    ks = {ks}
+  end
+
+  local n = #ks
+  local last_key = ks[n]
+  local v = x
+
+  for i=1, n-1  do
+    local k =  ks[i]
+    v = rawget(v, k)
+
+    if not is_table(v) then
+      return
+    end
+  end
+
+  if not is_table(v) then
+    return
+  end
+
+  local found = rawget(v, last_key)
+
+  if found == nil then
+    return
+  end
+
+  rawset(v, last_key, nil)
+
+  return found
+end
+
+function dict.unset(x, ks)
+  if is_string(ks) or is_number(ks) or is_boolean(ks) then
+    ks = {ks}
+  end
+
+  local n = #ks
+  local last_key = ks[n]
+  local v = x
+
+  for i=1, n-1  do
+    local k = ks[i]
+    v = v[k]
+
+    if not is_table(v) then
+      return
+    end
+  end
+
+  if not is_table(v) then
+    return
+  end
+
+  local found = v[last_key]
+
+  if found == nil then
+    return
+  end
+
+  v[last_key] = nil
+
+  return found
+end
+
+function list.rawunset(x, ks)
+  if is_number(ks) then
+    ks = {ks}
+  end
+
+  local n = #ks
+  local last_key = ks[n]
+  local v = x
+
+  for i=1, n-1  do
+    local k = ks[i]
+    v = rawget(v, k)
+
+    if not is_table(v) then
+      return
+    end
+  end
+
+  if not is_table(v) or not is_number(last_key) then
+    return
+  end
+
+  local found = rawget(v, last_key)
+
+  if found == nil then
+    return
+  end
+
+  rawset(v, last_key, nil)
+
+  return found
+end
+
+function list.unset(x, ks)
+  if is_number(ks) then
+    ks = {ks}
+  end
+
+  local n = #ks
+  local last_key = ks[n]
+  local v = x
+
+  for i=1, n-1  do
+    local k = ks[i]
+    v = v[k]
+
+    if not is_table(v) then
+      return
+    end
+  end
+
+  if not is_table(v) or not is_number(last_key) then
+    return
+  end
+
+  local found = v[last_key]
+
+  if found == nil then
+    return
+  end
+
+  v[last_key] = nil
+
+  return found
+end
+
+function dict.rawremove(x, ks)
+  if is_number(ks) or is_string(ks) or is_boolean(ks) then
+    ks = {ks}
+  end
+
+  assertisa.table(ks)
+
+  local n = #ks
+  local last_key = ks[n]
+  local v = x
+
+  for i=1, n-1  do
+    local k = ks[i]
+    v = rawget(v, k)
+
+    if not is_table(v) then
+      return
+    end
+  end
+
+  if not is_table(v) or (not is_number(last_key)) or last_key > #v then
+    return
+  end
+
+  local found = rawget(v, last_key)
+
+  if found == nil then
+    return
+  end
+
+  table.remove(v, last_key)
+
+  return found
+end
+
+function dict.remove(x, ks)
+  if is_number(ks) then
+    ks = {ks}
+  end
+
+  local n = #ks
+  local last_key = ks[n]
+  local v = x
+
+  for i=1, n-1  do
+    local k = ks[i]
+    v = v[k]
+
+    if not is_table(v) then
+      return
+    end
+  end
+
+  if not is_table(v) or (not is_number(last_key)) or last_key > #v then
+    return
+  end
+
+  local found = v[last_key]
+
+  if found == nil then
+    return
+  end
+
+  table.remove(v, last_key)
+
+  return found
+end
+
+function dict.set(x, ks, value)
+  if is_number(ks) then
+    ks = {ks}
+  end
+
+  local n = #ks
+  local last_key = ks[n]
+  local v = x
+
+  for i=1, n-1  do
+    local k = ks[i]
+    v = v[k]
+
+    if not is_table(v) then
+      return
+    end
+  end
+
+  if not is_table(v) then
+    return
+  end
+
+  v[last_key] = value
+
+  return true
+end
+
+function list.rawset(x, ks, value)
+  if is_number(ks) then
+    ks = {ks}
+  end
+
+  local n = #ks
+  local last_key = ks[n]
+  local v = x
+
+  for i=1, n-1  do
+    local k = ks[i]
+    v = rawget(v, k)
+
+    if not is_table(v) then
+      return
+    end
+  end
+
+  if not is_table(v) or (not is_number(last_key)) or last_key > #v then
+    return
+  end
+
+  local prev = rawget(v, last_key)
+  rawset(v, last_key, value)
+
+  return prev
+end
+
+function list.set(x, ks, value)
+  if is_number(ks) then
+    ks = {ks}
+  end
+
+  local n = #ks
+  local last_key = ks[n]
+  local v = x
+
+  for i=1, n-1  do
+    local k = ks[i]
+    v = v[k]
+
+    if not is_table(v) then
+      return
+    end
+  end
+
+  if not is_table(v) or (not is_number(last_key)) or last_key > #v then
+    return
+  end
+
+  local prev = v[last_key]
+  v[last_key] = value
+
+  return prev
+end
+
+function list.rawremove(x, ks)
+  if is_number(ks) then
+    ks = {ks}
+  end
+
+  local n = #ks
+  local last_key = ks[n]
+  local v = x
+
+  for i=1, n-1  do
+    local k = ks[i]
+    v = rawget(v, k)
+
+    if not is_table(v) then
+      return
+    end
+  end
+
+  if not is_table(v) or not is_number(last_key) then
+    return
+  end
+
+  local found = rawget(v, last_key)
+
+  if found == nil then
+    return
+  end
+
+  table.remove(v, last_key)
+
+  return found
+end
+
+function list.remove(x, ks)
+  if is_number(ks) then
+    ks = {ks}
+  end
+
+  local n = #ks
+  local last_key = ks[n]
+  local v = x
+
+  for i=1, n-1  do
+    local k = ks[i]
+    v = v[k]
+
+    if not is_table(v) then
+      return
+    end
+  end
+
+  if not is_table(v) or not is_number(last_key) then
+    return
+  end
+
+  local found = v[last_key]
+
+  if found == nil then
+    return
+  end
+
+  table.remove(v, last_key)
+
+  return found
 end
