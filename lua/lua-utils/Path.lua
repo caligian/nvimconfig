@@ -12,20 +12,47 @@ Path.cd = Path.chdir
 Path.cwd = Path.currentdir
 Path.lock_dir = nil
 
-function Path.join(p, ...)
+local lpeg = require 'lpeg'
+
+function Path.split(p)
+  local P = lpeg.P
+  local C = lpeg.C
+  local Ct = lpeg.Ct
+  local V = lpeg.V
+  local Cp = lpeg.Cp()
+  local B = lpeg.B
+
+  local path_sep = Path.sep()
+  local escaped = P('\\' .. path_sep)
+  local sep = B(1 - escaped) * P(path_sep)
+  local elem = C((1 - sep) ^ 1)
+  local pat =  Ct(C(P"/" ^ 0) * elem * (sep * elem) ^ 0)
+  local found = pat:match(p) 
+
+  if not found then
+    return
+  end
+
+  return found
+end
+
+function Path.join(...)
   local iswin = package.path:match "\\"
-  if is_table(p) then
-    if iswin then
-      return join(p, "\\")
+  local p =  {...}
+  local sep = iswin and '\\' or '/' 
+
+  if p[1] == sep then
+    if #p == 1 then
+      return sep
     else
-      return join(p, "/")
+      p[1] = ''
     end
+  end
+
+  if iswin then
+    return join(p, "\\")
   else
-    if iswin then
-      return join({ p, ... }, "\\")
-    else
-      return join({ p, ... }, "/")
-    end
+    return join(p, '/')
   end
 end
 
@@ -140,14 +167,28 @@ function Path.blocks(p)
   return Path.attrib(p, "blocks")
 end
 
-function Path.ls(p)
+--- ls [-p] <path>
+--- @param p string dirpath
+--- @param show_dirs? boolean add '/' at the end of dirs
+--- @return string[]
+function Path.ls(p, show_dirs)
   if not Path.is_dir(p) then
     return
   end
 
   local out = {}
+  p = p:gsub('/$', '')
+
   for f in Path.dir(p) do
     if f ~= "." and f ~= ".." then
+      f = Path.join(p, f)
+
+      if show_dirs then
+        if Path.is_dir(f) then
+          f = Path.join(f, '')
+        end
+      end
+
       out[#out + 1] = f
     end
   end
@@ -234,33 +275,19 @@ function Path:__call(...)
 end
 
 function Path.dirname(p)
-  local last_sep
-  local sep = Path.sep()
+  p = Path.split(p)
 
-  if not p:match(sep) then
-    return p
+  if not p then
+    return
   end
 
-  if sep == "\\" then
-    for i = #p, 1, -1 do
-      if p:sub(i, i) == sep then
-        last_sep = i
-        break
-      end
-    end
-  else
-    for i = #p, 2, -1 do
-      local a = p:sub(i, i)
-      local b = p:sub(i - 1, i - 1)
-
-      if a == "/" and b ~= "\\" then
-        last_sep = i
-        break
-      end
-    end
+  local path_sep = Path.sep() 
+  if #p == 1 then
+    return false
   end
 
-  return p:sub(last_sep + 1)
+  p[#p] = nil
+  return Path.join(unpack(p))
 end
 
 function Path.basename(p)

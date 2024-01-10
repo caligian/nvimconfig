@@ -202,7 +202,7 @@ local function _set_autocmds(self, autocmds)
     name = "plugin." .. self.name .. "." .. name
     spec[2] = spec[2] or {}
     spec[2].name = name
-    Autocmd.map(unpack(spec))
+    Autocmd(unpack(spec))
   end)
 end
 

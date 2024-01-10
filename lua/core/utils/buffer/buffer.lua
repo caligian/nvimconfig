@@ -112,6 +112,10 @@ end
 --------------------------------------------------
 local _Buffer = {}
 
+function _Buffer.call(bufnr, cb)
+  return vim.api.nvim_buf_call(bufnr, cb)
+end
+
 function _Buffer.filetype(bufnr)
   return nvim.buf.get_option(bufnr, "filetype")
 end
@@ -210,10 +214,6 @@ function _Buffer.normal(bufnr, keys)
   end)
 
   return true
-end
-
-function _Buffer.call(bufnr, cb)
-  return vim.api.nvim_buf_call(bufnr, cb)
 end
 
 function _Buffer.linecount(bufnr)
@@ -363,6 +363,9 @@ function _Buffer.split(bufnr, direction)
     cmd ":vsplit"
   elseif strmatch(direction, "^s$", "^split$") then
     cmd ":split"
+  elseif is_template(direction) then
+    direction = F(direction, {buf = bufnr})
+    vim.cmd(direction)
   elseif direction:match "botright" then
     cmd(direction)
   elseif direction:match "topleft" then
@@ -376,6 +379,8 @@ function _Buffer.split(bufnr, direction)
   elseif string.match(direction, "qf") then
     local lines = _Buffer.lines(bufnr, 0, -1)
     to_qflist(lines)
+  else
+    cmd(direction)
   end
 end
 
@@ -464,34 +469,17 @@ function _Buffer.vsplit(bufnr)
 end
 
 function _Buffer.map(bufnr, mode, lhs, callback, opts)
-  opts = opts or {}
-
-  if is_a.string(opts) then
-    opts = { desc = opts }
-  end
-
-  opts.buffer = bufnr
-
-  return _Buffer.map(bufnr, mode, lhs, callback, opts)
+  return Kbd.buffer.map(bufnr, mode, lhs, callback, opts)
 end
 
 function _Buffer.noremap(bufnr, mode, lhs, callback, opts)
-  opts = opts or {}
-
-  if is_a.string(opts) then
-    opts = { desc = opts }
-  end
-
-  opts.buffer = bufnr
-  opts.noremap = true
-
-  return _Buffer.map(bufnr, mode, lhs, callback, opts)
+  return Kbd.buffer.noremap(bufnr, mode, lhs, callback, opts)
 end
 
 function _Buffer.autocmd(bufnr, event, callback, opts)
   opts = opts or {}
 
-  return Autocmd.map(
+  return Autocmd(
     event,
     dict.merge(opts, { {
       pattern = sprintf("<buffer=%d>", bufnr),
@@ -537,8 +525,9 @@ function _Buffer.string(bufnr)
   return table.concat(_Buffer.lines(bufnr, 0, -1), "\n")
 end
 
-function _Buffer.currentline(bufnr)
-  return _Buffer.bufnrpos(bufnr).row
+function _Buffer.current_line(bufnr)
+  local row = _Buffer.pos(bufnr).row 
+  return _Buffer.get_lines(bufnr, row-1, row, false)[1]
 end
 
 function _Buffer.till_cursor(bufnr)
@@ -558,7 +547,7 @@ function _Buffer.prepend(bufnr, lines)
   return _Buffer.set_lines(bufnr, 0, 0, false, lines)
 end
 
-function _Buffer.maplines(bufnr, f)
+function _Buffer.map_lines(bufnr, f)
   return list.map(_Buffer.lines(bufnr, 0, -1), f)
 end
 
@@ -642,17 +631,17 @@ function _Buffer.pos(bufnr, expr)
 end
 
 function _Buffer.row(bufnr)
-  local res = _Buffer.bufnrpos(bufnr)
+  local res = _Buffer.pos(bufnr)
   return res.row
 end
 
 function _Buffer.col(bufnr)
-  local res = _Buffer.bufnrpos(bufnr)
+  local res = _Buffer.pos(bufnr)
   return res.col
 end
 
 function _Buffer.curpos(bufnr)
-  local res = _Buffer.bufnrpos(bufnr)
+  local res = _Buffer.pos(bufnr)
   return { res.row, res.col }
 end
 

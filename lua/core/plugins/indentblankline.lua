@@ -31,7 +31,7 @@ function indentblankline:setup()
   indent.setup(self.config or {})
 end
 
-Autocmd.map("Colorscheme", {
+Autocmd("Colorscheme", {
   pattern = "*",
   callback = function()
     indentblankline:setup()

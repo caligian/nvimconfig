@@ -324,7 +324,7 @@ function lsp.on_attach(client, bufnr)
     end
 
     vim.defer_fn(function()
-      Kbd.fromdict(mappings)
+      Kbd.from_dict(mappings)
     end, 100)
   end
 end
@@ -746,7 +746,7 @@ function Filetype:autocmd(callback, opts)
   opts.callback = callback
   opts.name = defined(opts.name and self.name .. "." .. opts.name)
 
-  return Autocmd.map("FileType", opts)
+  return Autocmd("FileType", opts)
 end
 
 function Filetype:action(bufnr, action, opts)

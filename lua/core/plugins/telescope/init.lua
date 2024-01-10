@@ -71,9 +71,7 @@ M.mappings = {
   find_files = {
     "n",
     "ff",
-    function()
-      picker("find_files", { cwd = vim.fn.expand "%:p:h" })()
-    end,
+    picker "find_files",
     O { desc = "Find files in workspace" },
   },
 
@@ -207,7 +205,7 @@ local file_browser_actions = require "core.plugins.telescope.actions.file-browse
 M.config = {}
 M.config.extensions = {
   file_browser = {
-    hijack_netrw = true,
+    hijack_netrw = false,
     mappings = {
       n = {
         x = file_browser_actions.delete,

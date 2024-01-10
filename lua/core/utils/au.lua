@@ -4,11 +4,12 @@ local getinfo = vim.api.nvim_get_autocmds
 local create_augroup = vim.api.nvim_create_augroup
 
 if not Autocmd then
-  Autocmd = class "Autocmd"
-  user.autocmds = {}
+  Autocmd = class("Autocmd", { "loadfile", "require", "main", "from_dict", "map", "find" })
+  user.autocmds = { buffers = {} }
+  Autocmd.buffer = module()
 end
 
-function Autocmd.init(self, event, opts)
+function Autocmd:init(event, opts)
   local pattern = opts.pattern
   local callback = opts.callback
   local group = opts.group or "MyGroup"
@@ -27,15 +28,11 @@ function Autocmd.init(self, event, opts)
   if not command then
     function callback(opts)
       cb(opts)
-      list.append(buffers, { Buffer.bufnr() })
+      buffers[opts.buf] = true
     end
   end
 
-  self.map = nil
-  self.fromdict = nil
-  self.require = nil
-  self.loadfile = nil
-  self.main = nil
+  self.buffers = buffers
   self.event = event
   self.pattern = pattern
   self.group = group
@@ -55,6 +52,14 @@ function Autocmd.init(self, event, opts)
     buffer = buf,
   }
 
+  if buf then
+    assert(nvim.buf.is_valid(buf), "expected valid buffer, got " .. tostring(buf))
+
+    if name then
+      dict.set(user, { "buffers", buf, "autocmds", name }, self)
+    end
+  end
+
   if group then
     create_augroup(group, { clear = false })
   end
@@ -72,7 +77,15 @@ function Autocmd.init(self, event, opts)
   return self
 end
 
-function Autocmd.exists(self)
+function Autocmd.buffer:__call(bufnr, event, opts)
+  opts = copy(opts or {})
+  opts.buffer = bufnr
+  opts.pattern = nil
+
+  return Autocmd(event, opts)
+end
+
+function Autocmd:exists()
   local found, msg = pcall(get, {
     group = self.group,
     event = self.event,
@@ -97,23 +110,7 @@ function Autocmd.exists(self)
   end
 end
 
-function Autocmd.enable(self)
-  if Autocmd.exists(self) then
-    return self.id
-  end
-
-  self.id = enable(self.event, {
-    pattern = self.pattern,
-    group = self.group,
-    callback = self.callback,
-    once = self.once,
-    nested = self.nested,
-  })
-
-  return id
-end
-
-function Autocmd.disable(self)
+function Autocmd:disable()
   if not Autocmd.exists(self) then
     return
   end
@@ -125,14 +122,7 @@ function Autocmd.find(spec)
   return getinfo(spec)
 end
 
-function Autocmd.map(...)
-  local x = Autocmd(...)
-  local id = Autocmd.enable(x)
-
-  return x, id
-end
-
-function Autocmd.fromdict(specs)
+function Autocmd.from_dict(specs)
   assert_is_a(specs, function(x)
     return dict.is_a(x, function(arg)
       return is_list(arg) and #arg == 2 and is_dict(arg[2]) and arg[2].callback and arg[2].pattern
@@ -144,7 +134,7 @@ function Autocmd.fromdict(specs)
     value[2] = is_string(value[2]) and { desc = value[2] } or value[2]
     value[2].name = key
 
-    out[key] = Autocmd.map(unpack(value))
+    out[key] = Autocmd(unpack(value))
   end
 
   return out
@@ -175,7 +165,7 @@ function Autocmd.loadfile()
     end
   end
 
-  return Autocmd.fromdict(specs)
+  return Autocmd.from_dict(specs)
 end
 
 function Autocmd.require()
@@ -197,9 +187,11 @@ function Autocmd.require()
     end
   end
 
-  return Autocmd.fromdict(specs)
+  return Autocmd.from_dict(specs)
 end
 
 function Autocmd.main()
   return Autocmd.require()
 end
+
+return Autocmd

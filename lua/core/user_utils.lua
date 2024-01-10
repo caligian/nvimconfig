@@ -9,13 +9,11 @@ function user.enable_temp_buffers(overrides)
       { ft = "help" },
       { ft = "text" },
       "help",
-      '*.local/share/nvim/*',
+      "*.local/share/nvim/*",
       { "text" },
     }
 
   dict.merge(temp_buffer_patterns, { overrides })
-
-  local Any = case.any
 
   local function set_mappings(buf)
     nvim.buf.set_keymap(buf, "n", "q", ":hide | bprev<CR>", { desc = "hide buffer" })
@@ -75,14 +73,16 @@ function user.enable_temp_buffers(overrides)
     {
       { ft = is_string },
       set_ft_autocmd,
+      name = "filetype",
     },
     {
       { filetype = is_string },
       set_ft_autocmd,
+      name = "filetype",
     },
   }
 
-  for i=1, #temp_buffer_patterns do
+  for i = 1, #temp_buffer_patterns do
     local obj = temp_buffer_patterns[i]
     Rules:match(obj)
   end
@@ -211,26 +211,29 @@ function user.setup_defaults()
       Kbd.map("n", "<leader>hC", ":ReloadColorscheme<CR>", "reload colorscheme")
       Kbd.map("n", "<leader>h=", ":ReloadStatusline<CR>", "reload statusline")
       Kbd.main()
+
+      vim.api.nvim_create_user_command("ReloadStatusline", function()
+        user.plugins.statusline:setup()
+      end, {})
+
+      vim.api.nvim_create_user_command("ReloadColorscheme", function()
+        user.plugins.colorscheme:setup()
+      end, {})
+
+      if user.enable.commands then
+        local cmds = require "core.defaults.commands"
+
+        if req2path "user.commands" then
+          dict.merge(cmds, requirex "user.commands")
+        end
+
+        dict.each(cmds, function(name, args)
+          nvim.create.user_command(name, unpack(args))
+        end)
+      end
+
+      vim.cmd 'ReloadColorscheme'
+      vim.cmd 'ReloadStatusline'
     end, 100)
-  end
-
-  vim.api.nvim_create_user_command("ReloadStatusline", function()
-    user.plugins.statusline:setup()
-  end, {})
-
-  vim.api.nvim_create_user_command("ReloadColorscheme", function()
-    user.plugins.colorscheme:setup()
-  end, {})
-
-  if user.enable.commands then
-    local cmds = require('core.defaults.commands')
-
-    if req2path('user.commands') then
-      dict.merge(cmds, requirex('user.commands'))
-    end
-
-    dict.each(cmds, function (name, args)
-      nvim.create.user_command(name, unpack(args))
-    end)
   end
 end

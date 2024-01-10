@@ -3,7 +3,8 @@ require "core.utils.au"
 --- @class kbd
 
 if not Kbd then
-  Kbd = class "Kbd"
+  Kbd = class("Kbd", {'require', 'loadfile', 'main', 'from_dict'})
+  Kbd.buffer = module()
   user.kbds = {}
 end
 
@@ -11,7 +12,7 @@ local enable = vim.keymap.set
 local delete = vim.keymap.del
 local del = delete
 
-function Kbd.opts(self)
+function Kbd:opts()
   return dict.filter(self, function(key, _)
     return strmatch(
       key,
@@ -29,7 +30,7 @@ function Kbd.opts(self)
   end)
 end
 
-function Kbd.init(self, mode, ks, callback, rest)
+function Kbd:init(mode, ks, callback, rest)
   rest = rest or {}
   mode = mode or "n"
   local _rest = rest
@@ -81,7 +82,7 @@ function Kbd.init(self, mode, ks, callback, rest)
   self.callback = callback
   self.map = nil
   self.noremap = nil
-  self.fromdict = nil
+  self.from_dict = nil
   self.require = nil
   self.loadfile = nil
   self.main = nil
@@ -93,7 +94,7 @@ function Kbd.init(self, mode, ks, callback, rest)
   return self
 end
 
-function Kbd.enable(self)
+function Kbd:enable()
   if self.autocmd and Autocmd.exists(self.autocmd) then
     return self
   end
@@ -133,7 +134,7 @@ function Kbd.enable(self)
   return self
 end
 
-function Kbd.disable(self)
+function Kbd:disable()
   if self.buffer then
     if self.buffer then
       del(self.mode, self.keys, { buffer = self.buffer })
@@ -151,8 +152,31 @@ function Kbd.disable(self)
   return self
 end
 
+function Kbd.buffer:__call(buf, mode, ks, callback, opts)
+  assert_is_a.number(buf)
+  assert(nvim.buf.is_valid(buf), 'invalid buffer: ' .. tostring(buf))
+
+  opts = is_string(opts) and {desc = opts} or opts
+  opts = copy(opts or {})
+  opts.buffer = buf
+
+  return Kbd(mode, ks, callback, opts)
+end
+
+function Kbd.buffer.map(buf, mode, ks, callback, opts)
+  return Kbd.buffer(buf, mode, ks, callback, opts):enable()
+end
+
+function Kbd.buffer.noremap(buf, mode, ks, callback, opts)
+  opts = is_string(opts) and { desc = opts } or opts
+  opts = opts or {}
+  opts.noremap = true
+
+  return Kbd.buffer(buf, mode, ks, callback, opts):enable()
+end
+
 function Kbd.map(mode, ks, callback, opts)
-  return Kbd.enable(Kbd(mode, ks, callback, opts))
+  return Kbd(mode, ks, callback, opts):enable()
 end
 
 function Kbd.noremap(mode, ks, callback, opts)
@@ -163,7 +187,7 @@ function Kbd.noremap(mode, ks, callback, opts)
   return Kbd.map(mode, ks, callback, opts)
 end
 
-function Kbd.fromdict(specs)
+function Kbd.from_dict(specs)
   local out = {}
   for key, value in pairs(specs) do
     value[4] = not value[4] and { desc = key }
@@ -206,7 +230,7 @@ function Kbd.loadfile()
     end
   end
 
-  return Kbd.fromdict(specs)
+  return Kbd.from_dict(specs)
 end
 
 function Kbd.require()
@@ -228,7 +252,7 @@ function Kbd.require()
     end
   end
 
-  return Kbd.fromdict(specs)
+  return Kbd.from_dict(specs)
 end
 
 function Kbd.main()

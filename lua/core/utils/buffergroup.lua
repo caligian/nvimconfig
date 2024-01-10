@@ -131,7 +131,7 @@ function BufferGroup:run_picker()
   end
 end
 
-function BufferGroup.fromdict(specs)
+function BufferGroup.from_dict(specs)
   local out = {}
   for key, value in pairs(specs) do
     assert_is_a(value, function(x)
@@ -155,7 +155,7 @@ function BufferGroup:init(name, event, pattern, opts)
   self.exclude = exclude
   self.name = name
   self.buffers = {}
-  self.au = Autocmd.map(event, {
+  self.au = Autocmd(event, {
     name = self.name,
     group = "BufferGroup",
     pattern = self.pattern,
@@ -206,7 +206,7 @@ function BufferGroup.loadfile()
   end
 
   if size(specs) > 0 then
-    return BufferGroup.fromdict(specs)
+    return BufferGroup.from_dict(specs)
   end
 end
 
@@ -228,7 +228,7 @@ function BufferGroup.require()
   end
 
   if size(specs) > 0 then
-    return BufferGroup.fromdict(specs)
+    return BufferGroup.from_dict(specs)
   end
 end
 

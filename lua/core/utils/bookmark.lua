@@ -68,7 +68,7 @@ function Bookmark.main()
 
   user.bookmarks = s
 
-  Kbd.fromdict {
+  Kbd.from_dict {
     add_bookmark = {
       "n",
       "gba",

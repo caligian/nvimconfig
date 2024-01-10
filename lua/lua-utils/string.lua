@@ -21,47 +21,6 @@ function substr(x, from, till)
   return x:sub(from, till)
 end
 
---- Split from right. This will reverse the string before splitting so this will match everything (in sequence) in reverse
---- @overload fun(x: string, sep: string, maxtimes: number): string[]
-function rsplit(x, sep, maxtimes, _prev, _n, _res)
-  if #sep == 0 then
-    local out = {}
-
-    for i = 1, #x do
-      list.append(out, { substr(x, i, i) })
-    end
-
-    return out
-  end
-
-  _res = _res or {}
-  _prev = _prev or 1
-  _n = _n or 0
-  local res = _res
-  local n = _n
-  local prev = _prev
-
-  if prev == 1 then
-    x = reverse(x)
-    --- @cast x string
-  end
-
-  if maxtimes and n > maxtimes or prev > #x then
-    return reverse_liststr(res)
-  end
-
-  local a, b = string.find(x, sep, prev)
-  if not a then
-    list.append(res, { substr(x, prev, #x) })
-    return res
-  end
-
-  list.append(res, { substr(x, prev, a - 1) })
-  prev = b + 1
-
-  return rsplit(x, sep, maxtimes, prev, n + 1, res)
-end
-
 --- Split string
 --- @overload fun(x: string, sep: string, maxtimes: number): string[]
 function split(x, sep, maxtimes, _prev, _n, _res)
