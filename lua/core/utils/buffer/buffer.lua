@@ -191,7 +191,7 @@ function _Buffer.unload(bufnr)
   return true
 end
 
-function _Buffer.bufnr_keymap(bufnr, mode)
+function _Buffer.get_keymap(bufnr, mode)
   if not Buffer.exists(bufnr) then
     return
   end
@@ -514,7 +514,7 @@ function Buffer.windows(bufnr)
   end
 end
 
-function _Buffer.bufnr_options(bufnr, opts)
+function _Buffer.get_options(bufnr, opts)
   assert_is_a(opts, "list")
 
   local out = {}
@@ -588,12 +588,12 @@ function _Buffer.shell(bufnr, command)
   return _Buffer.lines(bufnr, 0, -1)
 end
 
-function _Buffer.readfile(bufnr, fname)
+function _Buffer.read_file(bufnr, fname)
   local s = Path.read(fname)
   return _Buffer.set_lines(bufnr, -1, s)
 end
 
-function _Buffer.insertfile(bufnr, fname)
+function _Buffer.insert_file(bufnr, fname)
   local s = Path.read(fname)
   return _Buffer.append(bufnr, s)
 end
@@ -626,7 +626,7 @@ function Buffer.scratch(name, filetype)
   return bufnr
 end
 
-function _Buffer.bufnrpos(bufnr, expr)
+function _Buffer.pos(bufnr, expr)
   return _Buffer.call(bufnr, function()
     local _, lnum, col, off = unpack(vim.fn.getpos(expr or "."))
 
@@ -706,11 +706,6 @@ function _Buffer.get_node(bufnr, row, col)
   return table.concat(_Buffer.text(bufnr, node:range()), "\n")
 end
 
-function _Buffer.open(bufnr)
-  vim.cmd("b " .. bufnr)
-  return true
-end
-
 function _Buffer.set(bufnr, pos, lines)
   assert_is_a(pos, function(x)
     return is_list(x) and (#x == 2 or #x == 4) and list.is_a(x, "number"),
@@ -732,7 +727,6 @@ Buffer.var = nvim.buf.get_var
 
 dict.merge(_Buffer, { nvim.buf })
 dict.merge(_Buffer, { require "core.utils.buffer.float" })
-
 dict.each(_Buffer, function(key, value)
   local function f(bufnr, ...)
     bufnr = Buffer.to_bufnr(bufnr)

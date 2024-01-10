@@ -1,6 +1,6 @@
 require "core.utils.buffer.buffer"
 
-Terminal = class "Terminal"
+Terminal = class("Terminal", {'stop_all'})
 user.terminals = user.terminals or {}
 
 Terminal.exceptions = {
@@ -48,7 +48,6 @@ function Terminal:init(cmd, opts)
   self.on_input = opts.on_input
   opts.load_from_path = nil
   opts.on_input = nil
-  self.stopall = nil
   self.on_exit = on_exit
 
   return self
@@ -318,7 +317,7 @@ function Terminal:is_visible()
   return false
 end
 
-function Terminal.stopall()
+function Terminal.stop_all()
   list.each(values(user.terminals), Terminal.stop)
 end
 

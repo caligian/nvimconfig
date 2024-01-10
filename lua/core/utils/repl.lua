@@ -1,9 +1,11 @@
 require "core.utils.terminal"
 
-REPL = class "REPL"
-user.repls = {}
+if not REPL then
+  REPL = class "REPL"
+  REPL:include(Terminal)
 
-dict.merge(REPL, { Terminal })
+  user.repls = {}
+end
 
 function REPL.exists(self, tp)
   assert_is_a(self, union("REPL", "string", "number"))

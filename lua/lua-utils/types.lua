@@ -575,7 +575,7 @@ asserttype = assert_is_a
 function class(name, static)
   static = static or {}
 
-  if not static[1] then
+  if static[1] then
     for i = 1, #static do
       static[static[i]] = true
       static[i] = nil

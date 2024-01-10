@@ -10,35 +10,35 @@ end
 
 local function traverse_till_key(x, ks, makepath)
   ks = parse_keys(ks)
-  local max = #ks
   local v = x
+  local k
 
-  for i=1,max-1 do
-    local k = ks[i]
-    local current = v[k]
+  for i=1, #ks-1 do
+    k = ks[i]
 
-    if makepath and current == nil then
-      v[k] = {}
+    if is_nil(v[k]) then
+      if makepath then
+        v[k] = {}
+      else
+        return nil, v, i
+      end
+    end
+
+    if is_table(v[k]) then
       v = v[k]
-      current = v
-    end
-
-    if not is_table(current) then
-      return nil, current, i
     else
-      v = current
+      return nil, v, i
     end
   end
 
-  local last_value = v[ks[#ks]]
-
-  if makepath and last_value == nil then
-    v[ks[#ks]] = {}
-    last_value = v[ks[#ks]]
+  local last_key = ks[#ks]
+  if makepath and v[last_key] == nil then
+    v[last_key] = {}
   end
 
-  return last_value, v, i
+  return v[last_key], v
 end
+
 
 local function lookup_apply(x, ks, makepath, callback, orelse)
   local found, last_found, last_index = traverse_till_key(x, ks, makepath)
@@ -92,6 +92,10 @@ local function update(x, ks, makepath, default, f, islist)
       elseif ks[last_index] < #last_found then
         return
       end
+    end
+
+    if last_index ~= #ks then
+      return
     end
 
     set_value(last_found, ks[last_index], default())
@@ -187,8 +191,12 @@ function dict.fetch(x, ks)
   return out
 end
 
-function list.has_some_keys(x, ks)
+function list.has_some_index(x, ks)
   for i = 1, #ks do
+    if not is_number(ks[i]) then
+      return false
+    end
+
     if list.get(x, ks[i]) then
       return true
     end
@@ -197,8 +205,13 @@ function list.has_some_keys(x, ks)
   return false
 end
 
-function list.has_keys(x, ks)
+function list.has_index(x, ks)
   for i = 1, #ks do
+    if not is_number(ks[i]) then
+      return false
+    end
+
+
     if not list.get(x, ks[i]) then
       return false
     end

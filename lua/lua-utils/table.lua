@@ -1056,6 +1056,10 @@ end
 function dict.from_list(X, default)
   local res = {}
 
+  if default then
+    assert_is_a.callable(default)
+  end
+
   for _, x in ipairs(X) do
     if default then
       res[x] = default()
@@ -1210,12 +1214,10 @@ function list.is_a(x, tp)
   for i = 1, #x do
     if not is_a(x[i], tp) then
       return false
-    else
-      return true
     end
   end
 
-  return false
+  return true
 end
 
 local function listne(a, b, absolute, state, ok)

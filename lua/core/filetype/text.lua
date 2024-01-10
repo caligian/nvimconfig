@@ -9,7 +9,7 @@ text.autocmds = {
 
       Buffer.set_option(buf, "formatoptions", "tqwan1p")
       Buffer.set_option(buf, "textwidth", 80)
-    end)
+    end, {})
   end
 }
 

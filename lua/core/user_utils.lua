@@ -9,6 +9,7 @@ function user.enable_temp_buffers(overrides)
       { ft = "help" },
       { ft = "text" },
       "help",
+      '*.local/share/nvim/*',
       { "text" },
     }
 
