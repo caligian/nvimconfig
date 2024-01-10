@@ -452,12 +452,16 @@ end
 
 function case.rules.list_of(value_spec)
   return function(x)
-    return list.is_a(x, value_spec)
+    if #x == 0 then return false end
+    local ok = list.is_a(x, value_spec)
+
+    return ok 
   end
 end
 
 function case.rules.dict_of(value_spec, key_spec)
   return function(x)
+    if is_empty(x) then return false end
     return dict.is_a(x, value_spec, key_spec)
   end
 end
@@ -536,6 +540,7 @@ local function case_call(specs)
         capture = rule.capture,
       }
 
+
       local ok = case.test(obj, spec, opts)
       ok = ok and ok == true and obj or ok
 
@@ -543,8 +548,10 @@ local function case_call(specs)
     end,
 
     match_rule = function(self, obj, rule)
-      if self:test_rule(obj, rule) then
-        return rule[2](obj)
+      local ok = self:test_rule(obj, rule)
+
+      if ok then
+        return rule[2](ok)
       end
     end,
 
@@ -620,6 +627,31 @@ function multimethod(specs)
   local mt = mtget(obj)
 
   mt.type = 'multimethod'
+
+  function obj:literal_add(sig, callback)
+    rules:add {sig, callback, absolute = true, match = false, cond = false}
+    return obj
+  end
+
+  function obj:capture_add(sig, callback)
+    rules:add {sig, callback, capture = true}
+    return obj
+  end
+
+  function obj:match_add(sig, callback)
+    rules:add {sig, callback, match = true}
+    return obj
+  end
+
+  function obj:add(sig, callback)
+    rules:add {sig, callback, cond = true}
+    return obj
+  end
+
+  obj.L = obj.literal_add
+  obj.M = obj.match_add
+  obj.C = obj.capture_add
+  obj.P = obj.add
 
   function mt:__newindex(sig, callback)
     rules:add {sig, callback, cond = true}
