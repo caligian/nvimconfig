@@ -5,7 +5,7 @@ function user.enable_temp_buffers(overrides)
 
   local temp_buffer_patterns = user.temp_buffer_patterns
     or {
-      { pattern = "nvim/.*doc.*txt" },
+      { pattern = { ".*nvim/.*doc.*txt" } },
       { ft = "help" },
       { ft = "text" },
       "help",
@@ -54,7 +54,7 @@ function user.enable_temp_buffers(overrides)
     })
   end
 
-  local specs = {
+  local Rules = case {
     {
       is_string,
       set_pattern_autocmd,
@@ -81,9 +81,9 @@ function user.enable_temp_buffers(overrides)
     },
   }
 
-  for i = 1, #temp_buffer_patterns do
+  for i=1, #temp_buffer_patterns do
     local obj = temp_buffer_patterns[i]
-    case(obj)(specs)
+    Rules:match(obj)
   end
 
   return true
