@@ -463,7 +463,7 @@ function Job.format_buffer(bufnr, cmd, opts)
     return
   end
 
-  local name = Buffer.name(bufnr)
+  local name = Buffer.get_name(bufnr)
   local j = Job(cmd)
   j.target_buffer = bufnr
   j.target_buffer_name = name

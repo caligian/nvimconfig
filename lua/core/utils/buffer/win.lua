@@ -110,7 +110,7 @@ function Winid.current()
   return Win.nr2id(Win.current())
 end
 
-function Win.currentid()
+function Win.current_id()
   return Winid.current()
 end
 
@@ -228,7 +228,7 @@ function Winid.saveview(winid)
   end)
 end
 
-function Winid.currentline(winid)
+function Winid.current_line(winid)
   return Winid.call(winid, function()
     return vim.fn.getline "."
   end)

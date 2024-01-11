@@ -2,9 +2,9 @@ require "core.utils.au"
 require "core.utils.kbd"
 
 if not BufferGroup then
-  BufferGroup = class "BufferGroup"
+  BufferGroup = class("BufferGroup", { "loadfile", "require", "main", "from_dict", "telescope_list_groups" })
   user.buffer_groups = {}
-  user.buffers = {}
+  user.buffers = user.buffers or {}
 end
 
 function BufferGroup:exclude_buffer(bufnr)
@@ -28,7 +28,7 @@ function BufferGroup.telescope_list_groups(bufnr)
 
   local ls = groups
   if #ls == 0 then
-    is_stderr("no buffergroups exist for " .. Buffer.name(bufnr))
+    is_stderr("no buffergroups exist for " .. Buffer.get_name(bufnr))
     return
   end
 
@@ -61,7 +61,7 @@ function BufferGroup:telescope_list_buffers()
     results = ls,
     entry_maker = function(x)
       local bufnr = x
-      x = Buffer.name(x)
+      x = Buffer.get_name(x)
       local event = sprintf("{%s}", join(to_list(self.event), " "))
       local pattern = sprintf("{%s}", join(to_list(self.pattern), " "))
       return {
@@ -93,7 +93,7 @@ function BufferGroup.create_picker(self)
       group = group[1]
       BufferGroup.run_picker(user.buffer_groups[group.value])
     end, {
-      prompt_title = "BufferGroups for buffer " .. Buffer.name(self):gsub(os.getenv "HOME", "~"),
+      prompt_title = "BufferGroups for buffer " .. Buffer.get_name(self):gsub(os.getenv "HOME", "~"),
     })
   end
 
@@ -116,7 +116,7 @@ function BufferGroup.create_picker(self)
       "x",
       function(bufs)
         list.each(bufs, function(buf)
-          print("excluding buffer " .. Buffer.name(buf.value))
+          print("excluding buffer " .. Buffer.get_name(buf.value))
           self:exclude_buffer(buf.value)
         end)
       end,
@@ -124,8 +124,9 @@ function BufferGroup.create_picker(self)
   }, { prompt_title = "Buffers in " .. self.name })
 end
 
-function BufferGroup:run_picker()
+function BufferGroup.run_picker(self)
   local picker = BufferGroup.create_picker(self)
+
   if picker then
     picker:find()
   end
@@ -155,7 +156,7 @@ function BufferGroup:init(name, event, pattern, opts)
   self.exclude = exclude
   self.name = name
   self.buffers = {}
-  self.au = Autocmd(event, {
+  self.autocmd = Autocmd(event, {
     name = self.name,
     group = "BufferGroup",
     pattern = self.pattern,

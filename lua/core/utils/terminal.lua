@@ -61,9 +61,7 @@ function Terminal:start(callback)
   local scratch = Buffer.scratch()
   local cmd = self.cmd
   local id, term, pid
-
-  Buffer.center_float(scratch)
-  local winid = Buffer.winid(scratch)
+  local winid = Buffer.center_float(scratch)
 
   Winid.call(winid, function()
     local opts = Terminal.opts(self)
@@ -137,11 +135,15 @@ function Terminal:if_running(callback)
 end
 
 function Terminal:center_float(opts)
-  return Terminal.float(self, dict.merge({ center = { 0.8, { 0.8 } } }, { opts or {} }))
+  opts = copy(opts or {})
+  opts.center = defined(opts.center, true)
+  return self:float(opts)
 end
 
 function Terminal:dock(opts)
-  return Terminal.float(self, dict.merge({ dock = 0.3 }, { opts or {} }))
+  opts = copy(opts or {})
+  opts.dock = defined(opts.dock, true)
+  return self:float(opts)
 end
 
 function Terminal:send_node_at_cursor(src_bufnr)
@@ -151,7 +153,7 @@ function Terminal:send_node_at_cursor(src_bufnr)
   line = line - 1
   col = col - 1
 
-  Terminal.send(self, Buffer.get_node(src_bufnr, line, col))
+  return self:send(Buffer.get_node(src_bufnr, line, col))
 end
 
 function Terminal:send_current_line(src_bufnr)
@@ -162,7 +164,7 @@ function Terminal:send_current_line(src_bufnr)
   src_bufnr = src_bufnr or vim.fn.bufnr()
   return vim.api.nvim_buf_call(src_bufnr, function()
     local s = vim.fn.getline "."
-    return Terminal.send(self, s)
+    return self:send(s)
   end)
 end
 
@@ -172,7 +174,7 @@ function Terminal:send_buffer(src_bufnr)
   end
 
   src_bufnr = src_bufnr or vim.fn.bufnr()
-  return Terminal.send(self, vim.api.nvim_buf_get_lines(src_bufnr, 0, -1, false))
+  return self:send(vim.api.nvim_buf_get_lines(src_bufnr, 0, -1, false))
 end
 
 function Terminal:send_till_cursor(src_bufnr)
@@ -283,6 +285,10 @@ function Terminal:float(opts)
   end
 
   if not self:is_visible() and self.termbuf then
+    if is_empty(opts) then
+      opts.center = true
+    end
+
     return self.termbuf:float(opts)
   end
 end

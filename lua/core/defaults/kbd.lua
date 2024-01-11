@@ -17,7 +17,7 @@ local function _toggle_option(option)
 end
 
 local function close_other_windows()
-  local current_winid = win.current_id()
+  local current_winid = Win.current_id()
   local current_tab = vim.api.nvim_get_current_tabpage()
   local wins = vim.api.nvim_tabpage_list_wins(current_tab)
 
@@ -25,7 +25,7 @@ local function close_other_windows()
     if winid == current_winid then
       return
     else
-      win.call(win.id2nr(winid), function()
+      Win.call(Winid.id2nr(winid), function()
         vim.cmd ":hide"
       end)
     end

@@ -1,3 +1,5 @@
+require 'core.utils.buffer.win'
+
 local float = {}
 
 --------------------------------------------------
@@ -48,6 +50,22 @@ function float.float_opts(opts)
   }
 end
 
+local function vimsize()
+  local scratch = vim.api.nvim_create_buf(false, true)
+
+  vim.api.nvim_buf_call(scratch, function()
+    vim.cmd "tabnew"
+    local tabpage = vim.fn.tabpagenr()
+    width = vim.fn.winwidth(0)
+    height = vim.fn.winheight(0)
+    vim.cmd("tabclose " .. tabpage)
+  end)
+
+  vim.cmd(":bwipeout! " .. scratch)
+
+  return { width, height }
+end
+
 function float.float(bufnr, opts)
   opts = opts or {}
   bufnr = bufnr or buffer.current()
@@ -58,9 +76,9 @@ function float.float(bufnr, opts)
   local focus = opts.focus
   opts.style = opts.style or "minimal"
   opts.border = opts.border or "single"
-  local editor_size = win.vimsize()
-  local current_width = win.width()
-  local current_height = win.height()
+  local editor_size = vimsize()
+  local current_width = Win.width()
+  local current_height = Win.height()
   opts.width = opts.width or current_width
   opts.height = opts.height or current_height
   opts.relative = opts.relative or "editor"
@@ -74,6 +92,7 @@ function float.float(bufnr, opts)
       current_height = editor_size[2]
     end
 
+    center = center == true and {0.8, 0.8} or center
     local width, height = unpack(center)
     width = math.floor(from_percent(current_width, width, 10))
     height = math.floor(from_percent(current_height, height, 5))
@@ -89,9 +108,10 @@ function float.float(bufnr, opts)
       current_height = editor_size[2]
     end
 
+    panel = panel == true and 0.3 or panel
     opts.row = 0
     opts.col = 1
-    opts.width = from_percent(current_width, panel == true and 0.3 or panel, 5)
+    opts.width = from_percent(current_width, panel, 5)
     opts.height = current_height
 
     if reverse then

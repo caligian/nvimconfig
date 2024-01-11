@@ -1,7 +1,6 @@
 require "core.utils.au"
 require "core.utils.buffer.buffer"
 require "core.utils.buffer.win"
-require "core.utils.win"
 require "core.utils.kbd"
 require "core.utils.job"
 
@@ -489,7 +488,7 @@ function Filetype.workspace(bufnr, pats, maxdepth, _depth)
   ---@diagnostic disable-next-line: param-type-mismatch
   local server = Filetype.query(Buffer.filetype(bufnr), "server")
 
-  local bufname = Buffer.name(bufnr)
+  local bufname = Buffer.get_name(bufnr)
 
   if server then
     server = to_list(server)
@@ -526,7 +525,7 @@ function Filetype:command(bufnr, action)
 
   assert(Buffer.exists(bufnr), "invalid buffer: " .. dump(bufnr))
 
-  local bufname = Buffer.name(bufnr)
+  local bufname = Buffer.get_name(bufnr)
   local compile = self[action]
   local spec = union("string", "table", "function")
 
@@ -649,7 +648,7 @@ function Filetype:format(bufnr, opts)
   local target
   opts = dict.lmerge(copy(opts), { _opts })
   local stdin = opts.stdin
-  local bufname = Buffer.name(bufnr)
+  local bufname = Buffer.get_name(bufnr)
   local name
 
   if opts.dir then

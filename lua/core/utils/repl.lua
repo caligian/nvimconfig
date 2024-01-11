@@ -1,7 +1,7 @@
 require "core.utils.terminal"
 
 if not REPL then
-  REPL = class "REPL"
+  REPL = class("REPL", {'set_mappings', 'main'})
   REPL:include(Terminal)
 
   user.repls = {}
@@ -14,11 +14,11 @@ function REPL.exists(self, tp)
     return user.repls[self.name]
   elseif is_number(self) then
     if tp == "dir" then
-      return user.repls[Path.dirname(Buffer.name(self))]
+      return user.repls[Path.dirname(Buffer.get_name(self))]
     elseif tp == "workspace" then
       return user.repls[Filetype.workspace(self)]
     else
-      return user.repls[Buffer.name(self)]
+      return user.repls[Buffer.get_name(self)]
     end
   elseif REPL.is_a(self) then
     return self
@@ -121,10 +121,6 @@ function REPL:init(bufnr, opts)
   self.main = nil
 
   return Terminal.init(self, cmd, opts)
-end
-
-function REPL:stop()
-  Terminal.stop(self)
 end
 
 function REPL.main()

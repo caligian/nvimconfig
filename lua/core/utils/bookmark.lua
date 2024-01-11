@@ -73,7 +73,7 @@ function Bookmark.main()
       "n",
       "gba",
       function()
-        Bookmark.add_and_save(Buffer.name(Buffer.bufnr()), Win.pos(Buffer.winnr(Buffer.current())).row)
+        Bookmark.add_and_save(Buffer.get_name(Buffer.bufnr()), Win.pos(Buffer.winnr(Buffer.current())).row)
       end,
       {
         desc = "add bookmark",
@@ -265,7 +265,7 @@ function Bookmark.picker_results(file_path)
 end
 
 function Bookmark.create_line_picker(file_path)
-  file_path = is_number(file_path) and Buffer.exists(file_path) and Buffer.name(file_path) or file_path
+  file_path = is_number(file_path) and Buffer.exists(file_path) and Buffer.get_name(file_path) or file_path
   local obj = user.bookmarks[file_path]
   local fail = not obj or obj.dir or not obj.context or is_empty(obj.context)
   if fail then
@@ -370,7 +370,7 @@ function Bookmark.create_dwim_picker()
   elseif len > 1 then
     return Bookmark.create_picker()
   else
-    return Bookmark.create_line_picker(Buffer.name(Buffer.bufnr()))
+    return Bookmark.create_line_picker(Buffer.get_name(Buffer.bufnr()))
   end
 end
 

@@ -21,6 +21,14 @@ return {
     },
   },
 
+  spectre = {
+    'nvim-pack/nvim-spectre',
+    event = 'InsertEnter',
+    config = function ()
+      vim.keymap.set('n', '<leader>%', '<cmd>lua require("spectre").toggle()<CR>', {desc = 'open nvim-spectre'})
+    end
+  },
+
   hy = {
     "hylang/vim-hy",
     ft = "hy",

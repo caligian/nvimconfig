@@ -1,7 +1,7 @@
 require "core.utils.kbd"
 
 --- @class Buffer
---- @field buffer_index number
+--- @field id number
 --- @field buffer_name string
 --- @field mappings table<string,kbd>
 
@@ -26,7 +26,7 @@ function Buffer.bufnr(bufnr)
   assert_is_a(bufnr, union(Buffer.is_a, "string", "number", "Buffer"))
 
   if is_table(bufnr) then
-    bufnr = bufnr.buffer_index
+    bufnr = bufnr.id
   elseif is_string(bufnr) then
     bufnr = vim.fn.bufnr(bufnr --[[@as number]])
   end
@@ -38,7 +38,6 @@ end
 
 Buffer.current = Buffer.bufnr
 Buffer.exists = Buffer.bufnr
-Buffer.name = Buffer.get_name
 
 function Buffer.create(name)
   if not is_string(name) and not is_number(name) then
@@ -57,7 +56,7 @@ local function init(self, bufnr_or_name, scratch, listed)
     bufnr_or_name = vim.fn.bufnr()
   end
 
-  if Buffer.is_a(bufnr_or_name) and nvim.buf.is_valid(bufnr_or_name.buffer_index) then
+  if Buffer.is_a(bufnr_or_name) and nvim.buf.is_valid(bufnr_or_name.id) then
     return bufnr_or_name
   end
 
@@ -69,8 +68,8 @@ local function init(self, bufnr_or_name, scratch, listed)
   end
 
   self.is_scratch = scratch
-  self.buffer_index = bufnr
-  self.buffer_name = vim.fn.bufname(bufnr)
+  self.id = bufnr
+  self.name = vim.fn.bufname(bufnr)
   self.mappings = {}
 
   if self.scratch then
@@ -93,11 +92,11 @@ function Buffer:__call(bufnr_or_name, scratch, listed)
   obj.init = init
 
   function obj:exists()
-    if not self.buffer_index then
+    if not self.id then
       return
     end
 
-    return nvim.buf.is_valid(self.buffer_index)
+    return nvim.buf.is_valid(self.id)
   end
 
   function obj:scratch(listed)
@@ -109,7 +108,7 @@ function Buffer:__call(bufnr_or_name, scratch, listed)
       return
     end
 
-    local bufnr = self.buffer_index
+    local bufnr = self.id
 
     if listed then
       nvim.buf.set_option(bufnr, 'buflisted', true)
@@ -125,11 +124,11 @@ function Buffer:__call(bufnr_or_name, scratch, listed)
   end
 
   function obj:create()
-    if not self.buffer_name then
+    if not self.name then
       return
     end
 
-    return vim.fn.bufadd(self.buffer_name)
+    return vim.fn.bufadd(self.name)
   end
 
   function obj:delete()
@@ -137,8 +136,8 @@ function Buffer:__call(bufnr_or_name, scratch, listed)
       return
     end
 
-    nvim.buf.delete(self.buffer_index, {force = true})
-    self.buffer_index = nil
+    nvim.buf.delete(self.id, {force = true})
+    self.id = nil
 
     return true
   end
@@ -167,10 +166,10 @@ function Buffer:__call(bufnr_or_name, scratch, listed)
 
     obj[fun] = function (self, ...)
       if not self:exists() then
-        return nil, 'invalid buffer ' .. dump(self.buffer_index)
+        return nil, 'invalid buffer ' .. dump(self.id)
       end
 
-      return method(self.buffer_index, ...)
+      return method(self.id, ...)
     end
   end)
 
