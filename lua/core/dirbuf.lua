@@ -6,7 +6,7 @@ local job = Job
 local function persistent(self)
   if not Buffer.exists(self.buffer) then
     local buf = Buffer.create(self.buffer_name)
-    self.buffer = buf
+    self.buffer = Buffer(buf)
   end
 
   return self.buffer
@@ -24,23 +24,9 @@ function Dirbuf:unmark_all_paths()
   end)
 end
 
-local function get_path_at_cursor(bufnr)
-  if not Buffer.exists(bufnr) then
-    return
-  end
-
-  local row = Buffer.pos(bufnr)
-  return row.row, vim.fn.getline(row.row)
-end
-
-function Dirbuf:get_path_at_cursor()
-  local buffer = persistent(self)
-  return get_path_at_cursor(buffer)
-end
-
 function Dirbuf:get_cursor_pos()
   local buf = persistent(self)
-  local row = Buffer.row(buf)
+  local row = buf:row()
   return row
 end
 
@@ -78,6 +64,8 @@ function Dirbuf:unmark_path(row)
   end
 
   line = unmark_path(line)
+  local buf = self.buffer
+
 
   Buffer.set_option(self.buffer, "modifiable", true)
   Buffer.set(self.buffer, { row - 1, row }, { line })

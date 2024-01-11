@@ -30,7 +30,7 @@ return {
   -- Setup commands
   NvimEvalRegion = {
     function(opts)
-      local lines = Buffer.range_text(opts.buf)
+      local lines = Buffer.range_text(Buffer.current)
       compile_and_run(lines)
     end,
     {},

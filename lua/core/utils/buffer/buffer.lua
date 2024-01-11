@@ -5,46 +5,30 @@ require "core.utils.kbd"
 --- @field buffer_name string
 --- @field mappings table<string,kbd>
 
--- if not Buffer then
-Buffer = class "Buffer"
--- end
+if not Buffer then
+  Buffer = module()
+end
 
 --- Is object a Buffer
---- @param self any
+--- @param bufnr any
 --- @return boolean
-function Buffer.is_a(self)
-  return is_table(self) and typeof(self) == "Buffer"
+function Buffer.is_a(bufnr)
+  return is_table(bufnr) and typeof(bufnr) == "Buffer"
 end
 
---- @param self Buffer|string|number
---- @return string?
-function Buffer.to_name(self)
-  assert_is_a(self, union(Buffer.is_a, "string", "number"))
-
-  local bufnr
-  if is_table(self) then
-    bufnr = self.buffer_index --[[@as Buffer]]
-  else
-    bufnr = vim.fn.bufnr(self --[[@as number]])
+--- @param bufnr Buffer|string|number
+--- @return number?
+function Buffer.bufnr(bufnr)
+  if is_nil(bufnr) then
+    return vim.fn.bufnr()
   end
 
-  local ok = vim.fn.bufnr(bufnr --[[@as number]]) ~= -1 and nvim.buf.get_name(bufnr)
+  assert_is_a(bufnr, union(Buffer.is_a, "string", "number", "Buffer"))
 
-  return defined(ok)
-end
-
---- @param self Buffer|string|number
---- @return number?
-function Buffer.to_bufnr(self)
-  assert_is_a(self, union(Buffer.is_a, "string", "number", "Buffer"))
-  local bufnr
-
-  if is_table(self) then
-    bufnr = self.buffer_index
-  elseif is_string(self) then
-    bufnr = vim.fn.bufnr(self --[[@as number]])
-  else
-    bufnr = self
+  if is_table(bufnr) then
+    bufnr = bufnr.buffer_index
+  elseif is_string(bufnr) then
+    bufnr = vim.fn.bufnr(bufnr --[[@as number]])
   end
 
   local ok = vim.fn.bufnr(bufnr --[[@as number]]) ~= -1 and bufnr
@@ -52,13 +36,9 @@ function Buffer.to_bufnr(self)
   return defined(ok)
 end
 
-function Buffer.bufnr(bufnr)
-  return bufnr and Buffer.to_bufnr(bufnr) or vim.fn.bufnr()
-end
-
 Buffer.current = Buffer.bufnr
-Buffer.exists = Buffer.to_bufnr
-Buffer.name = Buffer.to_name
+Buffer.exists = Buffer.bufnr
+Buffer.name = Buffer.get_name
 
 function Buffer.create(name)
   if not is_string(name) and not is_number(name) then
@@ -72,30 +52,25 @@ function Buffer.create(name)
   end
 end
 
-function Buffer:init(bufnr_or_name, scratch, listed)
-  params {
-    bufid = {
-      union("string", "number", "Buffer"),
-      bufnr_or_name,
-    },
-    ["scratch?"] = { "boolean", scratch },
-    ["listed?"] = { "boolean", listed },
-  }
-
-  if Buffer.is_a(bufnr_or_name) and nvim.buf.is_valid(bufnr_or_name.buffer_index) then
-    return bufnr_or_name.buffer_index
+local function init(self, bufnr_or_name, scratch, listed)
+  if is_nil(bufnr_or_name) then
+    bufnr_or_name = vim.fn.bufnr()
   end
 
+  if Buffer.is_a(bufnr_or_name) and nvim.buf.is_valid(bufnr_or_name.buffer_index) then
+    return bufnr_or_name
+  end
+
+  local bufnr
   if is_string(bufnr_or_name) then
     bufnr = vim.fn.bufadd(bufnr_or_name)
   else
-    bufnr = Buffer.to_bufnr(bufnr_or_name)
+    bufnr = Buffer.bufnr(bufnr_or_name)
   end
 
+  self.is_scratch = scratch
   self.buffer_index = bufnr
   self.buffer_name = vim.fn.bufname(bufnr)
-  self.history = nil
-  self.recent = nil
   self.mappings = {}
 
   if self.scratch then
@@ -109,14 +84,105 @@ function Buffer:init(bufnr_or_name, scratch, listed)
   return self
 end
 
---------------------------------------------------
-local _Buffer = {}
+function Buffer:__call(bufnr_or_name, scratch, listed)
+  if not Buffer.exists(bufnr) then
+    return
+  end
 
-function _Buffer.call(bufnr, cb)
+  local obj = class('Buffer')
+  obj.init = init
+
+  function obj:exists()
+    if not self.buffer_index then
+      return
+    end
+
+    return nvim.buf.is_valid(self.buffer_index)
+  end
+
+  function obj:scratch(listed)
+    if self.is_scratch and self:exists() then
+      return
+    end
+
+    if not obj:exists() then
+      return
+    end
+
+    local bufnr = self.buffer_index
+
+    if listed then
+      nvim.buf.set_option(bufnr, 'buflisted', true)
+    end
+
+    nvim.buf.set_option(bufnr, 'buftype', 'nofile')
+
+    vim.keymap.set({'n', 'i'}, 'q', ':hide<CR>', {desc = 'hide buffer', buffer = bufnr})
+
+    obj.is_scratch = true
+
+    return obj
+  end
+
+  function obj:create()
+    if not self.buffer_name then
+      return
+    end
+
+    return vim.fn.bufadd(self.buffer_name)
+  end
+
+  function obj:delete()
+    if not self:exists() then
+      return
+    end
+
+    nvim.buf.delete(self.buffer_index, {force = true})
+    self.buffer_index = nil
+
+    return true
+  end
+
+  obj.wipeout = obj.delete
+
+  local ignore = {
+    'current',
+    '__call',
+    'to_bufnr',
+    'to_name',
+    '__index',
+    '__newindex',
+  }
+
+  local function should_ignore(key)
+    return list.contains(ignore, key)
+  end
+
+  dict.each(Buffer, function (fun, method)
+    if obj[fun] then
+      return
+    elseif should_ignore(fun) then
+      return
+    end
+
+    obj[fun] = function (self, ...)
+      if not self:exists() then
+        return nil, 'invalid buffer ' .. dump(self.buffer_index)
+      end
+
+      return method(self.buffer_index, ...)
+    end
+  end)
+
+
+  return init(obj, bufnr_or_name, scratch, listed)
+end
+
+function Buffer.call(bufnr, cb)
   return vim.api.nvim_buf_call(bufnr, cb)
 end
 
-function _Buffer.filetype(bufnr)
+function Buffer.filetype(bufnr)
   return nvim.buf.get_option(bufnr, "filetype")
 end
 
@@ -130,8 +196,8 @@ local function range_text(buf, ...)
   return vim.api.nvim_buf_get_text(buf, unpack(args))
 end
 
-function _Buffer.range_text(bufnr)
-  local range = _Buffer.range(bufnr)
+function Buffer.range_text(bufnr)
+  local range = Buffer.range(bufnr)
   if not range then
     return
   end
@@ -145,8 +211,8 @@ function _Buffer.range_text(bufnr)
   return range_text(buf, csrow, cscol, cerow, cecol)
 end
 
-function _Buffer.range(bufnr)
-  return _Buffer.call(bufnr, function()
+function Buffer.range(bufnr)
+  return Buffer.call(bufnr, function()
     if vim.fn.mode() == "v" then
       vim.cmd "normal! "
     end
@@ -162,13 +228,13 @@ function _Buffer.range(bufnr)
   end)
 end
 
-function _Buffer.focus(bufnr)
-  if _Buffer.is_visible(bufnr) then
-    return vim.fn.win_gotoid(_Buffer.winid(bufnr))
+function Buffer.focus(bufnr)
+  if Buffer.is_visible(bufnr) then
+    return vim.fn.win_gotoid(Buffer.winid(bufnr))
   end
 end
 
-function _Buffer.winnr(bufnr)
+function Buffer.winnr(bufnr)
   local winnr = vim.fn.bufwinnr(bufnr)
   if winnr == -1 then
     return false
@@ -177,7 +243,7 @@ function _Buffer.winnr(bufnr)
   return winnr
 end
 
-function _Buffer.winid(bufnr)
+function Buffer.winid(bufnr)
   local winid = vim.fn.bufwinid(bufnr)
   if winid == -1 then
     return false
@@ -186,7 +252,7 @@ function _Buffer.winid(bufnr)
   return winid
 end
 
-function _Buffer.unload(bufnr)
+function Buffer.unload(bufnr)
   if not Buffer.exists(bufnr) then
     return
   end
@@ -195,7 +261,7 @@ function _Buffer.unload(bufnr)
   return true
 end
 
-function _Buffer.get_keymap(bufnr, mode)
+function Buffer.get_keymap(bufnr, mode)
   if not Buffer.exists(bufnr) then
     return
   end
@@ -203,34 +269,34 @@ function _Buffer.get_keymap(bufnr, mode)
   return vim.api.nvim_buf_get_keymap(bufnr, mode)
 end
 
-function _Buffer.wipeout(bufnr)
+function Buffer.wipeout(bufnr)
   vim.api.nvim_buf_delete(bufnr, { force = true })
   return true
 end
 
-function _Buffer.normal(bufnr, keys)
-  _Buffer.call(bufnr, function()
+function Buffer.normal(bufnr, keys)
+  Buffer.call(bufnr, function()
     vim.cmd("normal! " .. keys)
   end)
 
   return true
 end
 
-function _Buffer.linecount(bufnr)
+function Buffer.linecount(bufnr)
   return vim.api.nvim_buf_line_count(bufnr)
 end
 
-function _Buffer.linenum(bufnr)
-  return _Buffer.call(bufnr, function()
+function Buffer.linenum(bufnr)
+  return Buffer.call(bufnr, function()
     return vim.fn.getpos(".")[2]
   end)
 end
 
-function _Buffer.listed(bufnr)
+function Buffer.listed(bufnr)
   return vim.fn.buflisted(bufnr) ~= 0
 end
 
-function _Buffer.info(bufnr, all)
+function Buffer.info(bufnr, all)
   local function _todict(lst)
     local new = {}
     list.each(lst, function(info)
@@ -256,7 +322,7 @@ function _Buffer.info(bufnr, all)
   end
 end
 
-function _Buffer.list(bufnr, opts)
+function Buffer.list(bufnr, opts)
   params {
     bufnr = { "number", bufnr },
     ["opts?"] = { "table", opts },
@@ -319,11 +385,11 @@ function _Buffer.list(bufnr, opts)
   return out
 end
 
-function _Buffer.is_visible(bufnr)
+function Buffer.is_visible(bufnr)
   return vim.fn.bufwinid(bufnr) ~= -1
 end
 
-function _Buffer.hide(bufnr)
+function Buffer.hide(bufnr)
   local winnr = vim.fn.bufwinnr(bufnr)
   if winnr == -1 then
     return
@@ -351,7 +417,7 @@ local function to_qflist(out)
   vim.cmd ":botright copen"
 end
 
-function _Buffer.split(bufnr, direction)
+function Buffer.split(bufnr, direction)
   direction = direction or "s"
 
   local function cmd(s)
@@ -377,32 +443,32 @@ function _Buffer.split(bufnr, direction)
   elseif direction == "tabnew" or direction == "t" or direction == "tab" then
     cmd ":tabnew"
   elseif string.match(direction, "qf") then
-    local lines = _Buffer.lines(bufnr, 0, -1)
+    local lines = Buffer.lines(bufnr, 0, -1)
     to_qflist(lines)
   else
     cmd(direction)
   end
 end
 
-function _Buffer.lines(bufnr, startrow, tillrow)
+function Buffer.lines(bufnr, startrow, tillrow)
   startrow = startrow or 0
   tillrow = tillrow or -1
 
   return vim.api.nvim_buf_get_lines(bufnr, startrow, tillrow, false)
 end
 
-function _Buffer.text(bufnr, start_row, start_col, end_row, end_col, opts)
+function Buffer.text(bufnr, start_row, start_col, end_row, end_col, opts)
   return vim.api.nvim_buf_get_text(bufnr, start_row, start_col, end_row, end_col, opts or {})
 end
 
 --- Switch to this buffer
-function _Buffer.open(bufnr)
+function Buffer.open(bufnr)
   vim.cmd("b " .. bufnr)
   return true
 end
 
 --- Load buffer
-function _Buffer.load(bufnr)
+function Buffer.load(bufnr)
   if vim.fn.bufloaded(bufnr) == 1 then
     return true
   else
@@ -412,80 +478,79 @@ function _Buffer.load(bufnr)
   return true
 end
 
-function _Buffer.botright_vsplit(bufnr)
-  return _Buffer.split(bufnr, "botright vsplit")
+function Buffer.botright_vsplit(bufnr)
+  return Buffer.split(bufnr, "botright vsplit")
 end
 
-function _Buffer.topleft_vsplit(bufnr)
-  return _Buffer.split(bufnr, "topleft vsplit")
+function Buffer.topleft_vsplit(bufnr)
+  return Buffer.split(bufnr, "topleft vsplit")
 end
 
-function _Buffer.rightbelow_vsplit(bufnr)
-  return _Buffer.split(bufnr, "belowright vsplit")
+function Buffer.rightbelow_vsplit(bufnr)
+  return Buffer.split(bufnr, "belowright vsplit")
 end
 
-function _Buffer.leftabove_vsplit(bufnr)
-  return _Buffer.split(bufnr, "aboveleft vsplit")
+function Buffer.leftabove_vsplit(bufnr)
+  return Buffer.split(bufnr, "aboveleft vsplit")
 end
 
-function _Buffer.belowright_vsplit(bufnr)
-  return _Buffer.split(bufnr, "belowright vsplit")
+function Buffer.belowright_vsplit(bufnr)
+  return Buffer.split(bufnr, "belowright vsplit")
 end
 
-function _Buffer.aboveleft_vsplit(bufnr)
-  return _Buffer.split(bufnr, "aboveleft vsplit")
+function Buffer.aboveleft_vsplit(bufnr)
+  return Buffer.split(bufnr, "aboveleft vsplit")
 end
 
-function _Buffer.botright(bufnr)
-  return _Buffer.split(bufnr, "botright split")
+function Buffer.botright(bufnr)
+  return Buffer.split(bufnr, "botright split")
 end
 
-function _Buffer.is_pleft(bufnr)
-  return _Buffer.split(bufnr, "topleft split")
+function Buffer.topleft(bufnr)
+  return Buffer.split(bufnr, "topleft split")
 end
 
-function _Buffer.rightbelow(bufnr)
-  return _Buffer.split(bufnr, "belowright split")
+function Buffer.rightbelow(bufnr)
+  return Buffer.split(bufnr, "belowright split")
 end
 
-function _Buffer.leftabove(bufnr)
-  return _Buffer.split(bufnr, "aboveleft split")
+function Buffer.leftabove(bufnr)
+  return Buffer.split(bufnr, "aboveleft split")
 end
 
-function _Buffer.belowright(bufnr)
-  return _Buffer.split(bufnr, "belowright split")
+function Buffer.belowright(bufnr)
+  return Buffer.split(bufnr, "belowright split")
 end
 
-function _Buffer.aboveleft(bufnr)
-  return _Buffer.split(bufnr, "aboveleft split")
+function Buffer.aboveleft(bufnr)
+  return Buffer.split(bufnr, "aboveleft split")
 end
 
-function _Buffer.tabnew(bufnr)
-  return _Buffer.split(bufnr, "t")
+function Buffer.tabnew(bufnr)
+  return Buffer.split(bufnr, "t")
 end
 
-function _Buffer.vsplit(bufnr)
-  return _Buffer.split(bufnr, "v")
+function Buffer.vsplit(bufnr)
+  return Buffer.split(bufnr, "v")
 end
 
-function _Buffer.map(bufnr, mode, lhs, callback, opts)
+function Buffer.map(bufnr, mode, lhs, callback, opts)
   return Kbd.buffer.map(bufnr, mode, lhs, callback, opts)
 end
 
-function _Buffer.noremap(bufnr, mode, lhs, callback, opts)
+function Buffer.noremap(bufnr, mode, lhs, callback, opts)
   return Kbd.buffer.noremap(bufnr, mode, lhs, callback, opts)
 end
 
-function _Buffer.autocmd(bufnr, event, callback, opts)
+function Buffer.autocmd(bufnr, event, callback, opts)
   opts = opts or {}
 
-  return Autocmd(
-    event,
-    dict.merge(opts, { {
-      pattern = sprintf("<buffer=%d>", bufnr),
-      callback = callback,
-    } })
-  )
+  opts = dict.merge(opts, {{
+    pattern = sprintf("<buffer=%d>", bufnr),
+    callback = callback,
+  }})
+
+  return Autocmd(event, opts)
 end
 
 function Buffer.windows(bufnr)
@@ -502,7 +567,7 @@ function Buffer.windows(bufnr)
   end
 end
 
-function _Buffer.get_options(bufnr, opts)
+function Buffer.get_options(bufnr, opts)
   assert_is_a(opts, "list")
 
   local out = {}
@@ -513,7 +578,9 @@ function _Buffer.get_options(bufnr, opts)
   return out
 end
 
-function _Buffer.set_options(bufnr, opts)
+function Buffer.set_options(bufnr, opts)
+  opts = opts or {}
+
   dict.each(opts, function(key, value)
     nvim.buf.set_option(bufnr, key, value)
   end)
@@ -521,77 +588,77 @@ function _Buffer.set_options(bufnr, opts)
   return true
 end
 
-function _Buffer.string(bufnr)
-  return table.concat(_Buffer.lines(bufnr, 0, -1), "\n")
+function Buffer.string(bufnr)
+  return table.concat(Buffer.lines(bufnr, 0, -1), "\n")
 end
 
-function _Buffer.current_line(bufnr)
-  local row = _Buffer.pos(bufnr).row 
-  return _Buffer.get_lines(bufnr, row-1, row, false)[1]
+function Buffer.current_line(bufnr)
+  local row = Buffer.pos(bufnr).row 
+  return Buffer.get_lines(bufnr, row-1, row, false)[1]
 end
 
-function _Buffer.till_cursor(bufnr)
-  local winnr = _Buffer.winnr(bufnr)
+function Buffer.till_cursor(bufnr)
+  local winnr = Buffer.winnr(bufnr)
   if not winnr then
     return
   end
 
-  return _Buffer.lines(bufnr, 0, win.row)
+  return Buffer.lines(bufnr, 0, win.row)
 end
 
-function _Buffer.append(bufnr, lines)
-  return _Buffer.set_lines(bufnr, -1, -1, false, lines)
+function Buffer.append(bufnr, lines)
+  return Buffer.set_lines(bufnr, -1, -1, false, lines)
 end
 
-function _Buffer.prepend(bufnr, lines)
-  return _Buffer.set_lines(bufnr, 0, 0, false, lines)
+function Buffer.prepend(bufnr, lines)
+  return Buffer.set_lines(bufnr, 0, 0, false, lines)
 end
 
-function _Buffer.map_lines(bufnr, f)
-  return list.map(_Buffer.lines(bufnr, 0, -1), f)
+function Buffer.map_lines(bufnr, f)
+  return list.map(Buffer.lines(bufnr, 0, -1), f)
 end
 
-function _Buffer.filter(bufnr, f)
-  return list.filter(_Buffer.lines(bufnr, 0, -1), f)
+function Buffer.filter(bufnr, f)
+  return list.filter(Buffer.lines(bufnr, 0, -1), f)
 end
 
-function _Buffer.match(bufnr, pat)
-  return list.filter(_Buffer.lines(bufnr, 0, -1), function(s)
+function Buffer.match(bufnr, pat)
+  return list.filter(Buffer.lines(bufnr, 0, -1), function(s)
     return s:match(pat)
   end)
 end
 
-function _Buffer.save(bufnr)
-  _Buffer.call(bufnr, function()
+function Buffer.save(bufnr)
+  Buffer.call(bufnr, function()
     vim.cmd "w! %:p"
   end)
 
   return true
 end
 
-function _Buffer.shell(bufnr, command)
-  _Buffer.call(bufnr, function()
+function Buffer.shell(bufnr, command)
+  Buffer.call(bufnr, function()
     vim.cmd(":%! " .. command)
   end)
 
-  return _Buffer.lines(bufnr, 0, -1)
+  return Buffer.lines(bufnr, 0, -1)
 end
 
-function _Buffer.read_file(bufnr, fname)
+function Buffer.read_file(bufnr, fname)
   local s = Path.read(fname)
-  return _Buffer.set_lines(bufnr, -1, s)
+  return Buffer.set_lines(bufnr, -1, s)
 end
 
-function _Buffer.insert_file(bufnr, fname)
+function Buffer.insert_file(bufnr, fname)
   local s = Path.read(fname)
-  return _Buffer.append(bufnr, s)
+  return Buffer.append(bufnr, s)
 end
 
-function _Buffer.is_empty(bufnr)
-  return #_Buffer.lines(bufnr, 0, -1) == 0
+function Buffer.is_empty(bufnr)
+  return #Buffer.lines(bufnr, 0, -1) == 0
 end
 
-function Buffer.scratch(name, filetype)
+function Buffer.scratch(name, listed)
   local bufnr
 
   if not name then
@@ -603,20 +670,20 @@ function Buffer.scratch(name, filetype)
     return
   end
 
-  _Buffer.set_options(bufnr, {
+  Buffer.set_options(bufnr, {
     buflisted = false,
     buftype = "nofile",
-    filetype = filetype or "scratch",
+    filetype ="scratch",
     bufhidden = "wipe",
   })
 
-  _Buffer.set_keymap(bufnr, "n", "q", ":hide<CR>", { noremap = true, desc = "hide buffer" })
+  Buffer.set_keymap(bufnr, "n", "q", ":hide<CR>", { noremap = true, desc = "hide buffer" })
 
   return bufnr
 end
 
-function _Buffer.pos(bufnr, expr)
-  return _Buffer.call(bufnr, function()
+function Buffer.pos(bufnr, expr)
+  return Buffer.call(bufnr, function()
     local _, lnum, col, off = unpack(vim.fn.getpos(expr or "."))
 
     local out = {
@@ -630,22 +697,22 @@ function _Buffer.pos(bufnr, expr)
   end)
 end
 
-function _Buffer.row(bufnr)
-  local res = _Buffer.pos(bufnr)
+function Buffer.row(bufnr)
+  local res = Buffer.pos(bufnr)
   return res.row
 end
 
-function _Buffer.col(bufnr)
-  local res = _Buffer.pos(bufnr)
+function Buffer.col(bufnr)
+  local res = Buffer.pos(bufnr)
   return res.col
 end
 
-function _Buffer.curpos(bufnr)
-  local res = _Buffer.pos(bufnr)
+function Buffer.curpos(bufnr)
+  local res = Buffer.pos(bufnr)
   return { res.row, res.col }
 end
 
-function _Buffer.width(bufnr)
+function Buffer.width(bufnr)
   local winid = vim.fn.bufwinid(bufnr)
   if winid == -1 then
     return
@@ -656,7 +723,7 @@ function _Buffer.width(bufnr)
   end)
 end
 
-function _Buffer.height(bufnr)
+function Buffer.height(bufnr)
   local winid = vim.fn.bufwinid(bufnr)
   if winid == -1 then
     return
@@ -667,7 +734,7 @@ function _Buffer.height(bufnr)
   end)
 end
 
-function _Buffer.size(bufnr)
+function Buffer.size(bufnr)
   local winid = vim.fn.bufwinid(bufnr)
 
   if winid == -1 then
@@ -682,7 +749,7 @@ function _Buffer.size(bufnr)
   end)
 end
 
-function _Buffer.get_node(bufnr, row, col)
+function Buffer.get_node(bufnr, row, col)
   local node = vim.treesitter.get_node {
     bufnr = bufnr,
     pos = { row, col },
@@ -692,10 +759,10 @@ function _Buffer.get_node(bufnr, row, col)
     return
   end
 
-  return table.concat(_Buffer.text(bufnr, node:range()), "\n")
+  return table.concat(Buffer.text(bufnr, node:range()), "\n")
 end
 
-function _Buffer.set(bufnr, pos, lines)
+function Buffer.set(bufnr, pos, lines)
   assert_is_a(pos, function(x)
     return is_list(x) and (#x == 2 or #x == 4) and list.is_a(x, "number"),
       "expected a list of numbers of length 2 or 4, got " .. dump(x)
@@ -705,26 +772,30 @@ function _Buffer.set(bufnr, pos, lines)
   lines = is_string(lines) and split(lines, "\n") or lines
 
   if #pos == 2 then
-    return _Buffer.set_lines(bufnr, pos[1], pos[2], false, lines)
+    return Buffer.set_lines(bufnr, pos[1], pos[2], false, lines)
   end
 
-  return _Buffer.set_text(bufnr, pos[1], pos[2], pos[3], pos[4], lines)
+  return Buffer.set_text(bufnr, pos[1], pos[2], pos[3], pos[4], lines)
+end
+
+function Buffer.get_line(bufnr, row)
+  if not Buffer.exists(bufnr) then
+    return
+  end
+
+  local row = row or Buffer.row(bufnr, row) - 1
+
+  if row then
+    return Buffer.get_lines(bufnr, row, row+1, false)[1]
+  end
 end
 
 Buffer.option = nvim.buf.get_option
 Buffer.var = nvim.buf.get_var
 
-dict.merge(_Buffer, { nvim.buf })
-dict.merge(_Buffer, { require "core.utils.buffer.float" })
-dict.each(_Buffer, function(key, value)
-  local function f(bufnr, ...)
-    bufnr = Buffer.to_bufnr(bufnr)
-    if bufnr then
-      return value(bufnr, ...)
-    end
+dict.merge(Buffer, { nvim.buf })
+dict.merge(Buffer, { require "core.utils.buffer.float" })
 
-    return false, "expected valid bufnr, got" .. dump(bufnr)
-  end
-
-  Buffer[key] = f
-end)
+function is_buffer(self)
+  return typeof(self) == 'Buffer'
+end
