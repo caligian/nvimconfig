@@ -120,7 +120,7 @@ end
 
 --- Create a module. It is possible to set metatable keys and retrieve them. Supports tostring()
 --- @return table
-function module()
+function module(name)
   local mod = {}
   local mt = { __tostring = dump, type = "module" }
 
@@ -135,6 +135,30 @@ function module()
   function mt:__index(key)
     if mtkeys[key] then
       return mt[key]
+    end
+  end
+
+  function mod.get_module_name()
+    return name
+  end
+
+  function mod:include(other)
+    return dict.merge(mod, {other})
+  end
+
+  function mod:is_a()
+    return typeof(self) == 'module' and self.get_name() == name
+  end
+
+  function mod:get_methods()
+    return dict.filter(self, function (_, value)
+      return is_callable(value)
+    end)
+  end
+
+  function mod:to_callable(fn)
+    return function (...)
+      return fn(self, ...)
     end
   end
 

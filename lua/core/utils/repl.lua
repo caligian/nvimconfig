@@ -40,8 +40,9 @@ function REPL:init_shell(opts)
 end
 
 function REPL:init(bufnr, opts)
-  if is_string(bufnr) and user.repls[bufnr] then
-    return user.repls[bufnr]
+  local already = user.repls[bufnr]
+  if already and already:is_running() then
+    return already
   end
 
   opts = opts or {}
@@ -51,6 +52,7 @@ function REPL:init(bufnr, opts)
   end
 
   bufnr = bufnr or Buffer.current()
+
   if not Buffer.exists(bufnr) then
     return false, "invalid buffer: " .. bufnr
   end
@@ -76,6 +78,14 @@ function REPL:init(bufnr, opts)
   local isws = opts.workspace
   local isdir = opts.dir
   local isbuf = opts.buffer
+
+  if isbuf then
+    Autocmd.buffer(bufnr, {'BufDelete'}, {
+      callback = function (opts)
+        self:delete()
+      end
+    })
+  end
 
   if _opts then
     dict.merge(opts, { _opts })
@@ -268,4 +278,15 @@ function REPL.set_mappings()
     float(x)
     dock(x)
   end)
+end
+
+function REPL:delete()
+  if not self:is_running() then
+    return
+  end
+
+  Terminal.delete(self)
+  user.repls[self.name] = nil
+
+  return self
 end

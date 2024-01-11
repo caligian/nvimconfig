@@ -3,117 +3,58 @@ require "core.utils.buffer.buffer"
 require "core.utils.buffer.win"
 require "core.utils.au"
 
---- @class Bookmark
+dict.get(_G, {'user', 'bookmarks'}, true)
+dict.get(_G, {'user', 'buffers'}, true)
 
-if not Bookmark then
-  Bookmark = module "Bookmark"
-  Bookmark.path = Path.join(os.getenv "HOME", ".bookmarks.json")
-  user.bookmarks = {}
-end
+local BOOKMARKS = user.bookmarks
+local BUFFERS = user.buffers
+
+Bookmark = module()
+Bookmark.path = Path.join(os.getenv "HOME", ".bookmarks.json")
 
 local bookmarks = user.bookmarks
 
-function string_keys(x)
-  local out = {}
+function Bookmark.dump()
+  local fh = io.open(Bookmark.path, 'w')
 
-  for key, value in pairs(x) do
-    local context = value.context
+  if fh then
+    bookmarks = BOOKMARKS
+    bookmarks = dump(bookmarks)
+    fh:write('return ' .. bookmarks)
 
-    if context then
-      local new = {}
+    return bookmarks
+  end
+end
 
-      for key, value in pairs(context) do
-        new[tostring(key)] = value
-      end
+function Bookmark.load()
+  local fh = io.open(Bookmark.path, 'r')
 
-      value.context = new
+  if fh then
+    bookmarks = fh:read '*a'
+    bookmarks = loadstring(bookmarks)
+
+    local ok, msg = pcall(bookmarks)
+    if ok then
+      user.bookmarks = msg
+      BOOKMARKS = user.bookmarks
+
+      return BOOKMARKS
+    else
+      user.bookmarks = {}
+      BOOKMARKS = user.bookmarks
+
+      return BOOKMARKS
     end
 
-    out[key] = value
+    return bookmarks
   end
-
-  return out
 end
 
-local function from_string_keys(parsed_json)
-  local out = {}
-
-  for key, value in pairs(parsed_json) do
-    local context = value.context
-
-    if context then
-      local new = {}
-
-      for K, V in pairs(context) do
-        new[tonumber(K)] = V
-      end
-
-      value.context = new
-    end
-
-    out[key] = value
-  end
-
-  return out
+function Bookmark:__call()
+  return Bookmark.load()
 end
 
-function Bookmark.init()
-  user.bookmarks = Bookmark.main()
-  return user.bookmarks
-end
-
-function Bookmark.main()
-  s = Path.read(Bookmark.path) or "{}"
-  s = from_string_keys(json.decode(s))
-
-  user.bookmarks = s
-
-  Kbd.from_dict {
-    add_bookmark = {
-      "n",
-      "gba",
-      function()
-        Bookmark.add_and_save(Buffer.get_name(Buffer.bufnr()), Win.pos(Buffer.winnr(Buffer.current())).row)
-      end,
-      {
-        desc = "add bookmark",
-      },
-    },
-
-    bookmark_line_picker = {
-      "n",
-      "g.",
-      function()
-        Bookmark.run_line_picker(Buffer.current())
-      end,
-      {
-        desc = "buffer bookmarks ",
-      },
-    },
-
-    bookmark_picker = {
-      "n",
-      "g<space>",
-      function()
-        Bookmark.run_dwim_picker()
-      end,
-      {
-        desc = "all bookmarks",
-      },
-    },
-  }
-
-  return s
-end
-
-function Bookmark.save()
-  local bookmarks = user.bookmarks
-  Path.write(Bookmark.path, json.encode(string_keys(bookmarks)))
-
-  Bookmark.main()
-
-  return user.bookmarks
-end
+Bookmark.save = Bookmark.dump
 
 function Bookmark.add(file_path, lines, desc)
   local obj = user.bookmarks[file_path] or { context = {} }
@@ -130,7 +71,9 @@ function Bookmark.add(file_path, lines, desc)
   end
 
   obj.creation_time = now
+
   dict.merge(obj.context, { dict.from_list(to_list(lines)) })
+   
   obj.file = isfile
   obj.dir = isdir
   obj.desc = desc
@@ -189,7 +132,7 @@ function Bookmark.get_context(file_path, line)
   line = tonumber(line) or line
 
   if line > #data or #data < 1 then
-    error(sprintf("invalid line %d provided for %s", line, file_path))
+    return nil, sprintf("invalid line %d provided for %s", line, file_path)
   end
 
   return data[line]
@@ -272,29 +215,35 @@ function Bookmark.create_line_picker(file_path)
     return
   end
 
-  local t = require "core.utils.telescope"()
+  user.telescope()
   local line_mod = {}
 
-  function line_mod.default_action(sel)
-    local obj = sel[1]
+  function line_mod.default_action(prompt_bufnr)
+    local obj = user.telescope:selected(prompt_bufnr)
     local linenum = obj.value
     local file_path = obj.path
-
     Bookmark.open(file_path, linenum, "s")
   end
 
-  function line_mod.del(sel)
-    list.each(sel, function(obj)
+  function line_mod.open(prompt_bufnr)
+    local obj = user.telescope:selected(prompt_bufnr)
+    vim.cmd(':b ' .. obj.value)
+  end
+
+  function line_mod.del(prompt_bufnr)
+    local sels = user.telescope:selected(prompt_bufnr, true)
+    list.each(sels, function(obj)
       local linenum = value.value
       local file_path = obj.path
-
       Bookmark.del_and_save(file_path, linenum)
     end)
   end
 
   local context = Bookmark.picker_results(obj.path)
-  local picker = t:create_picker(context, {
+
+  local picker = user.telescope:create_picker(context, {
     line_mod.default_action,
+    { "n", "o", line_mod.open },
     { "n", "x", line_mod.del },
   }, {
     prompt_title = "Bookmarked lines",
@@ -320,11 +269,11 @@ function Bookmark.create_picker()
     return
   end
 
-  local t = require "core.utils.telescope"()
+  user.telescope()
   local mod = {}
 
-  function mod.default_action(sel)
-    local obj = sel[1]
+  function mod.default_action(prompt_bufnr)
+    local obj = user.telescope:selected(prompt_bufnr)
 
     if obj.file then
       local line_picker = Bookmark.create_line_picker(obj.path)
@@ -336,14 +285,15 @@ function Bookmark.create_picker()
     end
   end
 
-  function mod.del(sel)
-    list.each(sel, function(obj)
+  function mod.del(prompt_bufnr)
+    local sels = user.telescope:selected(prompt_bufnr, true)
+    list.each(sels, function(obj)
       Bookmark.del_and_save(obj.path)
       say("removed Bookmark " .. obj.path)
     end)
   end
 
-  return t:create_picker(results, { mod.default_action, { "n", "x", mod.del } }, { prompt_title = "bookmarks" })
+  return user.telescope:create_picker(results, { mod.default_action, { "n", "x", mod.del } }, { prompt_title = "bookmarks" })
 end
 
 function Bookmark.run_picker()
@@ -382,4 +332,43 @@ function Bookmark.run_dwim_picker()
   end
 
   return true
+end
+
+Bookmark.mappings = {
+  add_bookmark = {
+    "n",
+    "gba",
+    function()
+      Bookmark.add_and_save(Buffer.get_name(Buffer.bufnr()), Win.pos(Buffer.winnr(Buffer.current())).row)
+    end,
+    {
+      desc = "add bookmark",
+    },
+  },
+
+  bookmark_line_picker = {
+    "n",
+    "g.",
+    function()
+      Bookmark.run_line_picker(Buffer.current())
+    end,
+    {
+      desc = "buffer bookmarks ",
+    },
+  },
+
+  bookmark_picker = {
+    "n",
+    "g<space>",
+    function()
+      Bookmark.run_dwim_picker()
+    end,
+    {
+      desc = "all bookmarks",
+    },
+  },
+}
+
+function Bookmark.set_mappings(mappings)
+  Kbd.from_dict(mappings or Bookmark.mappings)
 end

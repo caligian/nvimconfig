@@ -92,7 +92,7 @@ function Font.telescope_list()
 end
 
 function Font.create_picker()
-  local _ = require "core.utils.telescope"()
+  local _ = user.telescope()
 
   return _:create_picker(Font.telescope_list(), function(sel)
     sel = sel[1]

@@ -102,6 +102,17 @@ function Terminal:start(callback)
   return id, pid
 end
 
+function Terminal:delete()
+  if not self:is_running() then
+    return
+  end
+
+  self:stop()
+  user.terminals[self.job_id] = nil
+
+  return self
+end
+
 function Terminal:getpid()
   return getpid(self.job_pid)
 end
@@ -295,7 +306,7 @@ end
 
 function Terminal:hide()
   if self.termbuf then
-    Buffer.hide(self.termbuf)
+    self.termbuf:hide()
   end
 end
 

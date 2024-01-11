@@ -1,16 +1,8 @@
 local M = {}
 
 local function getivy()
-  return dict.merge(require("telescope.themes").get_ivy(), {
-    {
-      disable_devicons = true,
-      previewer = false,
-      extensions = {},
-      layout_config = {
-        height = 0.32,
-      },
-    },
-  })
+  user.telescope()
+  return user.telescope.theme
 end
 
 local function picker(p, conf)
@@ -20,7 +12,7 @@ local function picker(p, conf)
 end
 
 local function O(overrides)
-  return dict.lmerge(overrides, { { noremap = true, leader = true } })
+  return dict.merge(overrides, { { noremap = true, leader = true } })
 end
 
 M.mappings = {
@@ -137,11 +129,13 @@ M.mappings = {
   --     end,
   --     { desc = "Show buffer LSP diagnostics" },
   -- },
-  -- lsp_diagnostics = {
-  --     "l`",
-  --     picker "diagnostics",
-  --     { desc = "Show LSP diagnostics" },
-  -- },
+  lsp_diagnostics = {
+    'n',
+    "l`",
+    picker "diagnostics",
+    O { desc = "Show LSP diagnostics" },
+  },
+
   git_commits = {
     "n",
     "gC",
@@ -167,7 +161,8 @@ M.mappings = {
     "n",
     "<leader>p",
     function()
-      require("telescope").extensions.project.project(require "core.utils.telescope"().theme)
+      user.telescope()
+      require("telescope").extensions.project.project(getivy())
     end,
     { desc = "Projects" },
   },
@@ -246,3 +241,4 @@ function M:setup()
 end
 
 return M
+

@@ -199,7 +199,8 @@ function user.setup_defaults()
   end
 
   if user.enable.bookmarks then
-    Bookmark.main()
+    Bookmark()
+    Bookmark.set_mappings()
   end
 
   if user.enable.repl then

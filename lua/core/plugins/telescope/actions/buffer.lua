@@ -1,7 +1,7 @@
 local mod = {}
 
 function mod.bwipeout(bufnr)
-  local _ = require "core.utils.telescope"()
+  local _ = user.telescope()
   local sel = _:selected(bufnr, true)
 
   list.each(sel, function(x)
@@ -11,7 +11,7 @@ function mod.bwipeout(bufnr)
 end
 
 function mod.nomodified(bufnr)
-  local _ = require "core.utils.telescope"()
+  local _ = user.telescope()
   local sels = _:selected(bufnr, true)
 
   list.each(sels, function(sel)
@@ -23,7 +23,7 @@ function mod.nomodified(bufnr)
 end
 
 function mod.save(bufnr)
-  local _ = require "core.utils.telescope"()
+  local _ = user.telescope()
   local sels = _:selected(bufnr, true)
 
   list.each(sels, function()
@@ -34,7 +34,7 @@ function mod.save(bufnr)
 end
 
 function mod.readonly(bufnr)
-  local _ = require "core.utils.telescope"()
+  local _ = user.telescope()
   local sels = _:selected(bufnr, true)
   list.each(sels, function(sel)
     print("Setting buffer to readonly: " .. vim.fn.bufname(sel.bufnr))

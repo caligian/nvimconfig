@@ -1,7 +1,7 @@
 local mod = {}
 
 function mod.delete(bufnr)
-  local _ = require "core.utils.telescope"()
+  local _ = user.telescope()
   local sels = _:selected(bufnr, true)
 
   list.each(sels, function(sel)
@@ -11,7 +11,7 @@ function mod.delete(bufnr)
 end
 
 function mod.force_delete(bufnr)
-  local _ = require "core.utils.telescope"()
+  local _ = user.telescope()
   local sels = _:selected(bufnr)
 
   list.each(sels, function(sel)
@@ -20,9 +20,9 @@ function mod.force_delete(bufnr)
   end)
 end
 
-function mod.is_uch(bufnr)
-  local _ = require "core.utils.telescope"()
-  local sel = _:selected(bufnr, true)
+function mod.touch(bufnr)
+  local _ = user.telescope()
+  local sel = _:selected(bufnr)
   local cwd = sel.Path._cwd
   local fname = vim.fn.input "Filename % "
   if #fname == 0 then

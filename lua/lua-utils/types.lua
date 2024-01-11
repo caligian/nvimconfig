@@ -1,10 +1,8 @@
 inspect = require "inspect"
 dump = inspect
 
---- @type dict table<string,any>
---m
---- @type list any[]
---- @type kv_pairs table<table<string,any>>
+--- @alias kv_pair { [1]: string|number, [2]: any }
+--- @alias kv_pairs kv_pair[]
 
 --- Valid lua metatable keys
 --- @enum
@@ -209,17 +207,17 @@ function is_callable(x)
   if tp == "function" then
     return true
   elseif tp ~= "table" then
-    return false, 'expected table|function, got ' .. tp
+    return false, "expected table|function, got " .. tp
   end
 
   local mt = getmetatable(x)
   if not mt then
-    return false, 'metatable missing'
+    return false, "metatable missing"
   end
 
   local ok = mt.__call ~= nil
   if not ok then
-    return false, '__call metamethod missing'
+    return false, "__call metamethod missing"
   end
 
   return true
@@ -269,22 +267,22 @@ end
 
 function is_dict(x, dict_like)
   if not is_table(x) then
-    return false, 'expected table, got ' .. type(x)
+    return false, "expected table, got " .. type(x)
   end
 
   local mt = not dict_like and getmetatable(x)
-  if mt and mt.type ~= 'dict' then
-    return false, 'expected dict, got ' .. mt.type
+  if mt and mt.type ~= "dict" then
+    return false, "expected dict, got " .. mt.type
   end
 
   local len = size(x)
   if len == 0 then
-    return false, 'expected list, got empty table'
+    return false, "expected list, got empty table"
   end
 
   local ok = len ~= #x
   if not ok then
-    return false, 'expected dict, got dict'
+    return false, "expected dict, got dict"
   end
 
   return true
@@ -292,22 +290,22 @@ end
 
 function is_list(x, list_like)
   if not is_table(x) then
-    return false, 'expected table, got ' .. type(x)
+    return false, "expected table, got " .. type(x)
   end
 
   local mt = not list_like and getmetatable(x)
-  if mt and mt.type ~= 'list' then
-    return false, 'expected list, got ' .. mt.type
+  if mt and mt.type ~= "list" then
+    return false, "expected list, got " .. mt.type
   end
 
   local len = size(x)
   if len == 0 then
-    return false, 'expected list, got empty table'
+    return false, "expected list, got empty table"
   end
 
   local ok = len == #x
   if not ok then
-    return false, 'expected list, got dict'
+    return false, "expected list, got dict"
   end
 
   return true
@@ -316,23 +314,23 @@ end
 --- @
 function is_dict(x, skip_mtcheck)
   if not is_table(x) then
-    return false, 'expected table, got ' .. type(x)
+    return false, "expected table, got " .. type(x)
   elseif not skip_mtcheck then
     local mt = getmetatable(x)
     if mt then
       if mt.type == "dict" then
         return true
       elseif mt.type ~= nil then
-        return false, 'expected dict, got ' .. mt.type
+        return false, "expected dict, got " .. mt.type
       end
     end
   end
 
   local len = size(x)
   if len == 0 then
-    return false, 'expected dict, got empty table'
-  elseif len == #x then 
-    return false, 'expected dict, got list'
+    return false, "expected dict, got empty table"
+  elseif len == #x then
+    return false, "expected dict, got list"
   else
     return true
   end
@@ -414,8 +412,8 @@ function union(...)
           failed[#failed + 1] = msg
         end
       elseif sig_type == "string" then
-        local opt = string.match(current_sig, '^opt^')
-        opt = opt or string.match(current_sig, '%?$')
+        local opt = string.match(current_sig, "^opt^")
+        opt = opt or string.match(current_sig, "%?$")
 
         if x == nil then
           if not opt then
@@ -659,12 +657,34 @@ function class(name, static)
     return self
   end
 
-  function mod.classmod()
+  function mod.get_classmod()
     return mod
   end
 
-  function mod.modname()
+  function mod.get_module_name()
     return name
+  end
+
+  function mod:get_methods()
+    return dict.filter(self, function(_, value)
+      return is_callable(value)
+    end)
+  end
+
+  function mod:to_callable(fn)
+    return function(...)
+      return fn(self, ...)
+    end
+  end
+
+  function mod:get_method(fun)
+    if not self[fun] then
+      return
+    end
+
+    return function(...)
+      return fun(self, ...)
+    end
   end
 
   return mod

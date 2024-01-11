@@ -4,7 +4,7 @@ end
 
 local mod = {
   delete = function(prompt_bufnr)
-    local _ = require "core.utils.telescope"()
+    local _ = user.telescope()
     local sel = _:selected(prompt_bufnr, true)
 
     list.each(sel, function(x)
@@ -14,7 +14,7 @@ local mod = {
     end)
   end,
   touch_and_open = function(prompt_bufnr)
-    local _ = require "core.utils.telescope"()
+    local _ = user.telescope()
     _.actions.close(prompt_bufnr)
 
     local filename = vim.fn.input "touch file % "
@@ -31,7 +31,7 @@ local mod = {
     vim.cmd(":e " .. filename)
   end,
   touch = function(prompt_bufnr)
-    local _ = require "core.utils.telescope"()
+    local _ = user.telescope()
     _.actions.close(prompt_bufnr)
 
     local filename = vim.fn.input "touch file % "
