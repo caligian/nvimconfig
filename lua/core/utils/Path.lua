@@ -7,57 +7,25 @@ Path = dict.merge(module(), { lfs })
 Path.ln = Path.link
 Path.stat = Path.attributes
 Path.lnstat = Path.symlinkattributes
-Path.lockdir = Path.lock_dir
 Path.cd = Path.chdir
 Path.cwd = Path.currentdir
-Path.lock_dir = nil
-
-local lpeg = require 'lpeg'
-
-function Path.split(p)
-  local P = lpeg.P
-  local C = lpeg.C
-  local Ct = lpeg.Ct
-  local V = lpeg.V
-  local Cp = lpeg.Cp()
-  local B = lpeg.B
-
-  local path_sep = Path.sep()
-  local escaped = P('\\' .. path_sep)
-  local sep = B(1 - escaped) * P(path_sep)
-  local elem = C((1 - sep) ^ 1)
-  local pat =  Ct(C(P"/" ^ 0) * elem * (sep * elem) ^ 0)
-  local found = pat:match(p) 
-
-  if not found then
-    return
-  end
-
-  return found
-end
 
 function Path.join(...)
-  local iswin = package.path:match "\\"
   local p =  {...}
-  local sep = iswin and '\\' or '/' 
+  local sep = '/'
+  local had_root = p[1]:match('^/')
 
-  if p[1] == sep then
-    if #p == 1 then
-      return sep
-    else
-      p[1] = ''
-    end
+  for i=1, #p do
+    p[i] = p[i]:gsub('^/+', '')
+    p[i] = p[i]:gsub('/+$', '')
   end
 
-  if iswin then
-    return join(p, "\\")
-  else
-    return join(p, '/')
+  local out = join(p, '/')
+  if had_root then
+    return '/' .. out
   end
-end
 
-function Path.sep()
-  return package.path:match "\\" and "\\" or "/"
+  return out
 end
 
 function Path.is(p, mode)
@@ -207,12 +175,12 @@ function Path.getdirs(p)
   p = p:gsub("[/\\]$", "")
 
   return list.filter(fs, function(x)
-    x = p .. Path.sep() .. x
+    x = p .. '/' .. x
     if Path.is_dir(x) then
       return true
     end
   end, function(x)
-    return p .. Path.sep() .. x
+    return p .. '/' .. x
   end)
 end
 
@@ -225,12 +193,12 @@ function Path.getfiles(p)
   p = p:gsub("[/\\]$", "")
 
   return list.filter(fs, function(x)
-    x = p .. Path.sep() .. p
+    x = p .. '/' .. p
     if not Path.is_dir(x) then
       return true
     end
   end, function(x)
-    return p .. Path.sep() .. x
+    return p .. '/' .. x
   end)
 end
 
@@ -281,7 +249,7 @@ function Path.dirname(p)
     return
   end
 
-  local path_sep = Path.sep() 
+  local path_sep = '/' 
   if #p == 1 then
     return false
   end
@@ -292,28 +260,19 @@ end
 
 function Path.basename(p)
   local last_sep
-  local sep = Path.sep()
+  local sep = '/'
 
   if not p:match(sep) then
     return p
   end
 
-  if sep == "\\" then
-    for i = #p, 1, -1 do
-      if p:sub(i, i) == sep then
-        last_sep = i
-        break
-      end
-    end
-  else
-    for i = #p, 2, -1 do
-      local a = p:sub(i, i)
-      local b = p:sub(i - 1, i - 1)
+  for i = #p, 2, -1 do
+    local a = p:sub(i, i)
+    local b = p:sub(i - 1, i - 1)
 
-      if a == "/" and b ~= "\\" then
-        last_sep = i
-        break
-      end
+    if a == "/" and b ~= "\\" then
+      last_sep = i
+      break
     end
   end
 
@@ -340,9 +299,9 @@ function Path.abspath(p, exists)
     return
   elseif p:match "^/" or p:match "^[A-Za-z0-9_]+:\\" then
     return p
-  elseif p:match("^%." .. Path.sep()) then
+  elseif p:match("^%." .. '/') then
     p = p:sub(3)
-  elseif p:match("^%.%." .. Path.sep()) then
+  elseif p:match("^%.%." .. '/') then
     p = Path.dirname(p)
   end
 
@@ -355,14 +314,14 @@ function Path.abspath(p, exists)
     return p
   end
 
-  p = p:gsub("[/\\]$", "")
+  p = p:gsub("/*$", "")
   return Path.join(cwd, p)
 end
 
 function Path.is_abs(p, exists)
   if not Path.exists(p) and exists then
     return
-  elseif p:match "^/" or p:match "^[A-Za-z0-9_]+:\\" then
+  elseif p:match "^/" then
     return p
   end
 end
@@ -382,6 +341,14 @@ function Path.relpath(p, exists)
     local found = pat:match(p)
     return "." .. found
   end
+end
+
+function Path.abspath(x)
+  if x:match('^/') then
+    return x
+  end
+
+  return Path.join(Path.cwd(), x)
 end
 
 Path.delete = os.remove

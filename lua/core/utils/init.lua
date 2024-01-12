@@ -1,3 +1,5 @@
+-- split = vim.split
+
 require "core.utils.logger"
 require "core.utils.nvim"
 require "core.utils.color"

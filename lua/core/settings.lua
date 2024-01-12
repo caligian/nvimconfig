@@ -1,5 +1,5 @@
 --- @type string
-user.colorscheme = "material"
+user.colorscheme = "material-darker"
 
 --- @type ({ft: string}|string|{pattern: string|string[]}|string[])[]
 user.temp_buffer_patterns = {

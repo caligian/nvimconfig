@@ -8,5 +8,4 @@ require "lua-utils.params"
 require "lua-utils.struct"
 require "lua-utils.string"
 require "lua-utils.template"
-require "lua-utils.Path"
 require 'lua-utils.match'

@@ -179,39 +179,41 @@ function user.enable_recent_buffers(overrides)
 end
 
 function user.setup_defaults()
-  user.enable_temp_buffers()
-  user.enable_recent_buffers()
+  vim.schedule(function ()
+    if user.enable.filetypes then
+      Filetype.main()
+    end
 
-  if user.enable.filetypes then
-    Filetype.main()
-  end
+    if user.enable.autocmds then
+      Autocmd.main()
+    end
 
-  if user.enable.autocmds then
-    Autocmd.main()
-  end
+    if user.enable.plugins then
+      Plugin.main()
+    end
 
-  if user.enable.plugins then
-    Plugin.main()
-  end
+    if user.enable.buffergroups then
+      BufferGroup.main()
+    end
 
-  if user.enable.buffergroups then
-    BufferGroup.main()
-  end
+    if user.enable.bookmarks then
+      Bookmark()
+      Bookmark.set_mappings()
+    end
 
-  if user.enable.bookmarks then
-    Bookmark()
-    Bookmark.set_mappings()
-  end
+    if user.enable.repl then
+      REPL.main()
+    end
 
-  if user.enable.repl then
-    REPL.main()
-  end
+    user.enable_temp_buffers()
+    user.enable_recent_buffers()
 
-  if user.enable.mappings then
-    vim.defer_fn(function()
-      Kbd.map("n", "<leader>hC", ":ReloadColorscheme<CR>", "reload colorscheme")
-      Kbd.map("n", "<leader>h=", ":ReloadStatusline<CR>", "reload statusline")
-      Kbd.main()
+    if user.enable.mappings then
+      vim.schedule(function ()
+        Kbd.map("n", "<leader>hC", ":ReloadColorscheme<CR>", "reload colorscheme")
+        Kbd.map("n", "<leader>h=", ":ReloadStatusline<CR>", "reload statusline")
+        Kbd.main()
+      end)
 
       vim.api.nvim_create_user_command("ReloadStatusline", function()
         user.plugins.statusline:setup()
@@ -235,6 +237,6 @@ function user.setup_defaults()
 
       vim.cmd 'ReloadColorscheme'
       vim.cmd 'ReloadStatusline'
-    end, 100)
-  end
+    end
+  end)
 end

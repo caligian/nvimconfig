@@ -21,45 +21,140 @@ function substr(x, from, till)
   return x:sub(from, till)
 end
 
+local function pat_split(x, sep, opts)
+  opts = opts or {}
+  local max = opts.max
+  local results = {}
+  local len = 0
+  local init = opts.init or 1
+
+  while init do
+    local next_sep = {string.find(x, sep, init)}
+
+    if #next_sep == 0 then
+      break
+    elseif max and len == max then
+      break
+    else
+      local word = x:sub(init, next_sep[1]-1)
+      init = next_sep[2] + 1
+      results[len+1] = word
+      len = len + 1
+    end
+  end
+
+  if #results == 0 then
+    return {x}
+  else
+    if max and max == len then
+      return results
+    end
+
+    results[len+1] = x:sub(init, #x)
+    return results
+  end
+end
+
 --- Split string
 --- @overload fun(x: string, sep: string, maxtimes: number): string[]
-function split(x, sep, maxtimes, _prev, _n, _res)
-  if #sep == 0 then
+function string.split(x, sep, opts)
+  assert(type(x) == "string", "needed string, got " .. tostring(x))
+  assert(type(sep) == "string", "needed string, got " .. tostring(sep))
+
+  if sep == "" then
     local out = {}
-    for i = 1, #x do
-      list.append(out, { substr(x, i, i) })
+    for i=1, #x do
+      out[i] = x:sub(i, i)
     end
 
     return out
   end
 
-  _res = _res or {}
-  _prev = _prev or 1
-  _n = _n or 1
-  local res = _res
-  local n = _n
-  local prev = _prev
-
-  if maxtimes and n > maxtimes then
-    return res
-  elseif prev > #x then
-    return res
+  opts = opts or {}
+  if defined(opts.pattern, true) then
+    return pat_split(x, sep, opts)
   end
 
-  local a, b = string.find(x, sep, prev)
-  if not a then
-    res[#res + 1] = substr(x, prev, #x)
-    return res
+  local init = opts.init
+  local max = opts.max
+  local ignore_escaped = opts.ignore_escaped
+  local word = ignore_escaped and string.format("[^%s]+|\\%s+", sep, sep)
+  local pos = opts.pos
+  init = init or 1
+  local lpeg = require "lpeg"
+  local sep_pat = lpeg.P(sep)
+
+  local function match_seps_only(init_from)
+    local pat = lpeg.C(sep_pat ^ 1) * lpeg.Cp() 
+    local matched, next_pos = pat:match(x, init_from)
+
+    if not matched then
+      return
+    end
+
+    len = #matched
+    if len > 0 then
+      return len-1, next_pos
+    end
   end
 
-  list.append(res, { substr(x, prev, a - 1) or "" })
-  prev = b + 1
+  local function get_next(init_from, results)
+    local len = #results
 
-  return split(x, sep, maxtimes, prev, n + 1, res)
+    if max and len == max then
+      return 
+    end
+
+    init_from = init_from or 1
+    local full_word, next_init
+    local word
+    local pat
+    local extra_sep, new_init = match_seps_only(init_from, 0)
+
+    if extra_sep then
+      if max and len + extra_sep > max  then
+        extra_sep = (len + extra_sep) - max
+      end
+
+      for i=1,extra_sep do
+        results[#results+1] = ""
+      end
+
+      return new_init
+    end
+
+    if ignore_escaped then
+      local escaped = lpeg.P("\\" .. sep)
+      local new_sep = lpeg.B(1 - escaped) * sep_pat
+      word = ((1 - new_sep) + escaped)
+      pat = lpeg.C(word ^ 1 * word ^ 0) * lpeg.Cp()
+    else
+      word = (1 - sep_pat)
+      pat = lpeg.C(word ^ 1) * lpeg.Cp()
+    end
+
+    local found, next_init = pat:match(x, init_from or 1)
+    if found then
+      results[#results + 1] = found
+      return next_init
+    end
+  end
+
+  local results = {}
+  local next_init = get_next(init, results) 
+
+  if not next_init then
+    return { x }
+  end
+
+  while next_init do
+    next_init = get_next(next_init, results)
+  end
+
+  return results
 end
 
-strsplit = split
-strrsplit = rsplit
+split = string.split
 
 --- Matching multiple patterns
 --- @param x string
