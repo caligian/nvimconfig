@@ -12,7 +12,6 @@ Path.cwd = Path.currentdir
 
 function Path.join(...)
   local p =  {...}
-  local sep = '/'
   local had_root = p[1]:match('^/')
 
   for i=1, #p do
