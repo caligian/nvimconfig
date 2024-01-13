@@ -28,7 +28,7 @@ return {
   compile = {
     buffer = "lua {path}",
     workspace = function(ws)
-      local kids = split(vim.fn.glob(ws .. "/*.rockspec"), "\n")
+      local kids = strsplit(vim.fn.glob(ws .. "/*.rockspec"), "\n")
       local cmd = "luarocks --local build " .. (kids[1] or "")
       return cmd
     end,

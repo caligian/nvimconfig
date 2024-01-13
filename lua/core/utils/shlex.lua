@@ -78,7 +78,7 @@ function shlex.parse(cmd)
     if isquoted then
       list.append(res, { s })
     else
-      list.extend(res, { split(s, "%s+") })
+      list.extend(res, { strsplit(s, "%s+") })
     end
   end)
 

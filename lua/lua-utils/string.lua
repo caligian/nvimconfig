@@ -2,24 +2,7 @@
 require "lua-utils.utils"
 require "lua-utils.table"
 
---- Extract substring
---- @param x string
---- @param from number supports negative indexes from -1
---- @param till? number supports negative indexes from -1
---- @return string|nil
-function substr(x, from, till)
-  local len = #x
-  from = from or 1
-  till = till or len
-  from = from < 0 and len + (from + 1) or from
-  till = till < 0 and len + (till + 1) or till
-
-  if from > till or till > len or from < 0 then
-    return
-  end
-
-  return x:sub(from, till)
-end
+substr = string.sub
 
 local function pat_split(x, sep, opts)
   opts = opts or {}
@@ -29,41 +12,41 @@ local function pat_split(x, sep, opts)
   local init = opts.init or 1
 
   while init do
-    local next_sep = {string.find(x, sep, init)}
+    local next_sep = { string.find(x, sep, init) }
 
     if #next_sep == 0 then
       break
     elseif max and len == max then
       break
     else
-      local word = x:sub(init, next_sep[1]-1)
+      local word = x:sub(init, next_sep[1] - 1)
       init = next_sep[2] + 1
-      results[len+1] = word
+      results[len + 1] = word
       len = len + 1
     end
   end
 
   if #results == 0 then
-    return {x}
+    return { x }
   else
     if max and max == len then
       return results
     end
 
-    results[len+1] = x:sub(init, #x)
+    results[len + 1] = x:sub(init, #x)
     return results
   end
 end
 
 --- Split string
 --- @overload fun(x: string, sep: string, maxtimes: number): string[]
-function string.split(x, sep, opts)
+function strsplit(x, sep, opts)
   assert(type(x) == "string", "needed string, got " .. tostring(x))
   assert(type(sep) == "string", "needed string, got " .. tostring(sep))
 
   if sep == "" then
     local out = {}
-    for i=1, #x do
+    for i = 1, #x do
       out[i] = x:sub(i, i)
     end
 
@@ -93,7 +76,7 @@ function string.split(x, sep, opts)
   local sep_pat = lpeg.P(sep)
 
   local function match_seps_only(init_from)
-    local pat = lpeg.C(sep_pat ^ 1) * lpeg.Cp() 
+    local pat = lpeg.C(sep_pat ^ 1) * lpeg.Cp()
     local matched, next_pos = pat:match(x, init_from)
 
     if not matched then
@@ -102,7 +85,7 @@ function string.split(x, sep, opts)
 
     len = #matched
     if len > 0 then
-      return len-1, next_pos
+      return len - 1, next_pos
     end
   end
 
@@ -110,7 +93,7 @@ function string.split(x, sep, opts)
     local len = #results
 
     if max and len == max then
-      return 
+      return
     end
 
     init_from = init_from or 1
@@ -118,14 +101,15 @@ function string.split(x, sep, opts)
     local word
     local pat
     local extra_sep, new_init = match_seps_only(init_from, 0)
+    local found, next_init
 
     if extra_sep then
-      if max and len + extra_sep > max  then
+      if max and len + extra_sep > max then
         extra_sep = (len + extra_sep) - max
       end
 
-      for i=1,extra_sep do
-        results[#results+1] = ""
+      for i = 1, extra_sep do
+        results[#results + 1] = ""
       end
 
       return new_init
@@ -141,7 +125,7 @@ function string.split(x, sep, opts)
       pat = lpeg.C(word ^ 1) * lpeg.Cp()
     end
 
-    local found, next_init = pat:match(x, init_from or 1)
+    found, next_init = pat:match(x, init_from or 1)
     if found then
       results[#results + 1] = found
       return next_init
@@ -149,7 +133,7 @@ function string.split(x, sep, opts)
   end
 
   local results = {}
-  local next_init = get_next(init, results) 
+  next_init = get_next(init, results)
 
   if not next_init then
     return { x }
@@ -161,8 +145,6 @@ function string.split(x, sep, opts)
 
   return results
 end
-
-split = string.split
 
 --- Matching multiple patterns
 --- @param x string
@@ -304,28 +286,10 @@ function endswith(x, s)
   return x:match(s .. "$")
 end
 
-function gmatch(x, pat, times)
-  times = times or -1
-  local res = {}
-  local i = 0
-
-  for match in string.gmatch(x, pat) do
-    if i > times then
-      if #res == 0 then
-        return
-      end
-
-      return res
-    elseif i ~= -1 then
-      i = i + 1
-    end
-
-    res[#res + 1] = match
-  end
-
-  if #res == 0 then
-    return
-  end
-
-  return res
-end
+string.startswith = startswith
+string.endswith = endswith
+string.findall = strfind
+string.ltrim = ltrim
+string.rtrim = rtrim
+string.trim = trim
+string.chomp = chomp

@@ -172,7 +172,7 @@ function lsp.on_attach(client, bufnr)
     lsp.attach_formatter(client)
   end
 
-  local mappings =  {
+  local mappings = {
     float_diagnostic = {
       "n",
       "<leader>li",
@@ -339,7 +339,7 @@ function lsp.setup_server(server, opts)
   default_conf = dict.merge(default_conf, { opts })
 
   if default_conf.cmd then
-    default_conf.cmd = to_list(default_conf.cmd)
+    default_conf.cmd = totable(default_conf.cmd)
   end
 
   require("lspconfig")[server].setup(default_conf)
@@ -437,7 +437,7 @@ end
 local function find_workspace(start_dir, pats, maxdepth, _depth)
   maxdepth = maxdepth or 5
   _depth = _depth or 0
-  pats = to_list(pats or "%.git$")
+  pats = totable(pats or "%.git$")
 
   if maxdepth == _depth then
     return false
@@ -488,7 +488,7 @@ function Filetype.workspace(bufnr, pats, maxdepth, _depth)
   local bufname = Buffer.get_name(bufnr)
 
   if server then
-    server = to_list(server)
+    server = totable(server)
 
     local config = is_string(server) and lspconfig[server] or lspconfig[server[1]]
 

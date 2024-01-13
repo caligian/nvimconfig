@@ -68,7 +68,7 @@ end
 --- @param x any
 --- @param force? bool forcefully wrap the elem in a table?
 --- @return table
-function to_list(x, force)
+function totable(x, force)
   if force then
     return { x }
   elseif type(x) == "table" then
@@ -432,7 +432,7 @@ function union(...)
     if #failed ~= #sig then
       return true
     else
-      return false, sprintf("expected any of %s, got %s", dump(sig), x)
+      return false, sprintf("expected any of %s, got %s", dump(sig), x_type)
     end
   end
 end

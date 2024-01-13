@@ -14,4 +14,4 @@ require "core.utils.bookmark"
 require "core.utils.job"
 require "core.utils.terminal"
 require "core.utils.repl"
-require 'core.utils.telescope_utils'
+require "core.utils.telescope_utils"

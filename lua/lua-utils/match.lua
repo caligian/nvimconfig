@@ -452,16 +452,20 @@ end
 
 function case.rules.list_of(value_spec)
   return function(x)
-    if #x == 0 then return false end
+    if #x == 0 then
+      return false
+    end
     local ok = list.is_a(x, value_spec)
 
-    return ok 
+    return ok
   end
 end
 
 function case.rules.dict_of(value_spec, key_spec)
   return function(x)
-    if is_empty(x) then return false end
+    if is_empty(x) then
+      return false
+    end
     return dict.is_a(x, value_spec, key_spec)
   end
 end
@@ -486,7 +490,7 @@ function case.R(callback, ...)
   local args = { ... }
 
   for i = 1, #args do
-    args[i] = to_list(args[i])
+    args[i] = totable(args[i])
     args[i][2] = callback
   end
 
@@ -513,10 +517,9 @@ local function case_call(specs)
           return ok
         end
       end
-
     end,
 
-    test_rule =  function(self, obj, rule)
+    test_rule = function(self, obj, rule)
       if not is_table(rule) then
         rule = self.rules[rule]
         assert(not is_nil(rule), "invalid rule name given " .. dump(rule))
@@ -539,7 +542,6 @@ local function case_call(specs)
         match = rule.match,
         capture = rule.capture,
       }
-
 
       local ok = case.test(obj, spec, opts)
       ok = ok and ok == true and obj or ok
@@ -618,7 +620,7 @@ function case:__call(specs)
 end
 
 function is_multimethod(x)
-  return typeof(x) == 'multimethod'
+  return typeof(x) == "multimethod"
 end
 
 function multimethod(specs)
@@ -626,25 +628,25 @@ function multimethod(specs)
   local obj = module()
   local mt = mtget(obj)
 
-  mt.type = 'multimethod'
+  mt.type = "multimethod"
 
   function obj:literal_add(sig, callback)
-    rules:add {sig, callback, absolute = true, match = false, cond = false}
+    rules:add { sig, callback, absolute = true, match = false, cond = false }
     return obj
   end
 
   function obj:capture_add(sig, callback)
-    rules:add {sig, callback, capture = true}
+    rules:add { sig, callback, capture = true }
     return obj
   end
 
   function obj:match_add(sig, callback)
-    rules:add {sig, callback, match = true}
+    rules:add { sig, callback, match = true }
     return obj
   end
 
   function obj:add(sig, callback)
-    rules:add {sig, callback, cond = true}
+    rules:add { sig, callback, cond = true }
     return obj
   end
 
@@ -654,7 +656,7 @@ function multimethod(specs)
   obj.P = obj.add
 
   function mt:__newindex(sig, callback)
-    rules:add {sig, callback, cond = true}
+    rules:add { sig, callback, cond = true }
     return callback
   end
 
@@ -665,7 +667,7 @@ function multimethod(specs)
   function mt:__call(...)
     local args = pack_tuple(...)
 
-    for i=1, #rules[1] do
+    for i = 1, #rules[1] do
       local rule = rules[1][i]
       local ok = rules:test_rule(args, rule)
       local cb = rule[2]
@@ -675,7 +677,7 @@ function multimethod(specs)
       end
     end
 
-    error('no signature matched for args\n' .. dump(args))
+    error("no signature matched for args\n" .. dump(args))
   end
 
   return obj

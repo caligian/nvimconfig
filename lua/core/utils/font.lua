@@ -16,7 +16,7 @@ function Font.list(pat)
   local all = {}
 
   for i = 1, #out do
-    local fs = split(out[i], ",")
+    local fs = strsplit(out[i], ",")
     for j = 1, #fs do
       all[fs[j]] = true
     end
@@ -58,7 +58,7 @@ end
 function Font.current()
   local res = nvimexec("set guifont?", { output = true })
   res = res.output
-  res = split(res, "=")[2]:match " *([^$]+)"
+  res = strsplit(res, "=")[2]:match " *([^$]+)"
 
   if #res == 0 then
     return

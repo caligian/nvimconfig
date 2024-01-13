@@ -237,10 +237,12 @@ function Job:_create_on_exit_handler(opts)
   local function create_outbuf()
     local buf = Buffer.scratch()
 
-    Buffer.autocmd(buf, { "WinClosed" }, function()
-      Buffer.wipeout(buf)
-      self.output.buffer = nil
-    end)
+    Buffer.autocmd(buf, { "WinClosed" }, {
+      callback = function()
+        Buffer.wipeout(buf)
+        self.output.buffer = nil
+      end,
+    })
 
     return buf
   end
@@ -459,7 +461,7 @@ function Job:send(s)
     return false
   end
 
-  s = is_string(s) and split(s, "\n") or s
+  s = is_string(s) and strsplit(s, "\n") or s
   return uv.write(self.pipes.stdin, s)
 end
 

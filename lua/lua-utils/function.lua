@@ -1,3 +1,15 @@
+local function pack_tuple(...)
+  local args = { ... }
+
+  for i = 1, select("#", ...) do
+    if args[i] == nil then
+      args[i] = false
+    end
+  end
+
+  return args
+end
+
 --- Decorate a function
 --- @param f1 function to be decorated
 --- @param f2 function decorating function
@@ -10,25 +22,25 @@ end
 
 --- Apply an list of args to a function
 --- @param f function
---- @param args list to apply
+--- @param ... any to apply
 --- @return any
-function apply(f, args)
-  return f(unpack(args))
+function apply(f, ...)
+  return f(...)
 end
 
 --- Prepend args and apply params
 --- @param f function
 --- @param ... any params to prepend
 --- @return function
-function partial(f, ...)
-  local outer = { ... }
+function rpartial(f, ...)
+  local outer = pack_tuple(...)
 
   return function(...)
-    local inner = { ... }
+    local inner = pack_tuple(...)
     local len = #outer
 
-    for i=1, len do
-      inner[#inner+1] = outer[i]
+    for i = 1, len do
+      inner[#inner + 1] = outer[i]
     end
 
     return f(unpack(inner))
@@ -39,14 +51,14 @@ end
 --- @param f function
 --- @param ... any params to append
 --- @return function
-function rpartial(f, ...)
-  local outer = { ... }
+function partial(f, ...)
+  local outer = pack_tuple(...)
 
   return function(...)
-    local inner = { ... }
+    local inner = pack_tuple(...)
 
-    for i=1, #inner do
-      outer[#outer+1] = inner[i]
+    for i = 1, #inner do
+      outer[#outer + 1] = inner[i]
     end
 
     return f(unpack(outer))
@@ -66,7 +78,7 @@ end
 --- @return any
 function thread(x, ...)
   local out = x
-  local args = { ... }
+  local args = pack_tuple(...)
 
   for i = 1, #args do
     local f = args[i]

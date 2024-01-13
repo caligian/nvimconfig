@@ -22,7 +22,8 @@ function dict.filter(x, f, mapper)
   for i, v in pairs(x) do
     if f(i, v) then
       if mapper then
-        out[i] = mapper(v)
+        i, v = mapper(i, v)
+        out[i] = v
       else
         out[i] = v
       end
@@ -558,7 +559,7 @@ function list.rest(t, n)
 end
 
 function list.contains(x, query_value, cmp)
-  for key=1, #x do
+  for key = 1, #x do
     local value = x[key]
 
     if cmp then
@@ -1091,7 +1092,7 @@ function dict.groupby(x, spec)
       error("no pattern provided for group " .. name)
     end
 
-    list.each(to_list(pattern), function(pat)
+    list.each(totable(pattern), function(pat)
       if patterns[pat] then
         error(sprintf("pattern %s already exists for %s", pat, name))
       end

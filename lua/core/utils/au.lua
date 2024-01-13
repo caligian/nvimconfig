@@ -4,16 +4,16 @@ local getinfo = vim.api.nvim_get_autocmds
 local create_augroup = vim.api.nvim_create_augroup
 
 if not Autocmd then
-  Autocmd = class("Autocmd", { 
-    "loadfile", 
-    "require", 
-    "main", 
+  Autocmd = class("Autocmd", {
+    "loadfile",
+    "require",
+    "main",
     "from_dict",
     "map",
     "find",
-    'buffer'
+    "buffer",
   })
-    
+
   user.autocmds = { buffers = {} }
   Autocmd.buffer = module()
 end
@@ -49,7 +49,7 @@ function Autocmd:init(event, opts)
       self.buffers[au_opts.buf] = true
 
       if name then
-        dict.set(user.buffers, {au_opts.buf, 'autocmds', au_opts.id}, self)
+        dict.set(user.buffers, { au_opts.buf, "autocmds", au_opts.id }, self)
       end
     end
   end
@@ -103,16 +103,16 @@ function Autocmd:unref(bufnr)
     return
   end
 
-  if is_number(bufnr)  then
-    dict.unset(user.buffers, {bufnr, 'autocmds', id})
+  if is_number(bufnr) then
+    dict.unset(user.buffers, { bufnr, "autocmds", id })
     return
   end
 
-  dict.each(user.buffers, function (bufnr, state)
+  dict.each(user.buffers, function(bufnr, state)
     if not nvim.buf.is_valid(bufnr) then
       user.buffers[bufnr] = nil
     else
-      dict.unset(state, {'autocmds', id})
+      dict.unset(state, { "autocmds", id })
     end
   end)
 end
@@ -242,4 +242,3 @@ function Autocmd.main()
 end
 
 return Autocmd
-

@@ -3,8 +3,8 @@ require "core.utils.buffer.buffer"
 require "core.utils.buffer.win"
 require "core.utils.au"
 
-dict.get(_G, {'user', 'bookmarks'}, true)
-dict.get(_G, {'user', 'buffers'}, true)
+dict.get(_G, { "user", "bookmarks" }, true)
+dict.get(_G, { "user", "buffers" }, true)
 
 local BOOKMARKS = user.bookmarks
 local BUFFERS = user.buffers
@@ -15,22 +15,22 @@ Bookmark.path = Path.join(os.getenv "HOME", ".bookmarks.json")
 local bookmarks = user.bookmarks
 
 function Bookmark.dump()
-  local fh = io.open(Bookmark.path, 'w')
+  local fh = io.open(Bookmark.path, "w")
 
   if fh then
     bookmarks = BOOKMARKS
     bookmarks = dump(bookmarks)
-    fh:write('return ' .. bookmarks)
+    fh:write("return " .. bookmarks)
 
     return bookmarks
   end
 end
 
 function Bookmark.load()
-  local fh = io.open(Bookmark.path, 'r')
+  local fh = io.open(Bookmark.path, "r")
 
   if fh then
-    bookmarks = fh:read '*a'
+    bookmarks = fh:read "*a"
     bookmarks = loadstring(bookmarks)
 
     local ok, msg = pcall(bookmarks)
@@ -72,8 +72,8 @@ function Bookmark.add(file_path, lines, desc)
 
   obj.creation_time = now
 
-  dict.merge(obj.context, { dict.from_list(to_list(lines)) })
-   
+  dict.merge(obj.context, { dict.from_list(totable(lines)) })
+
   obj.file = isfile
   obj.dir = isdir
   obj.desc = desc
@@ -95,7 +95,7 @@ function Bookmark.del(file_path, lines)
   local obj = user.bookmarks[file_path]
   if lines then
     local context = obj.context
-    for _, line in ipairs(to_list(lines)) do
+    for _, line in ipairs(totable(lines)) do
       context[line] = nil
     end
   else
@@ -128,7 +128,7 @@ function Bookmark.del_and_save(file_path, lines)
 end
 
 function Bookmark.get_context(file_path, line)
-  data = split(Path.read(file_path), "\n")
+  data = strsplit(Path.read(file_path), "\n")
   line = tonumber(line) or line
 
   if line > #data or #data < 1 then
@@ -227,7 +227,7 @@ function Bookmark.create_line_picker(file_path)
 
   function line_mod.open(prompt_bufnr)
     local obj = user.telescope:selected(prompt_bufnr)
-    vim.cmd(':b ' .. obj.value)
+    vim.cmd(":b " .. obj.value)
   end
 
   function line_mod.del(prompt_bufnr)
@@ -293,7 +293,11 @@ function Bookmark.create_picker()
     end)
   end
 
-  return user.telescope:create_picker(results, { mod.default_action, { "n", "x", mod.del } }, { prompt_title = "bookmarks" })
+  return user.telescope:create_picker(
+    results,
+    { mod.default_action, { "n", "x", mod.del } },
+    { prompt_title = "bookmarks" }
+  )
 end
 
 function Bookmark.run_picker()

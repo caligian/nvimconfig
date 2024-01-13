@@ -3,7 +3,7 @@ user.colorscheme = "material-darker"
 
 --- @type ({ft: string}|string|{pattern: string|string[]}|string[])[]
 user.temp_buffer_patterns = {
-  {ft = 'spectre_panel'},
+  { ft = "spectre_panel" },
   { ft = "qf" },
   "__*",
   "/usr/share/nvim/runtime/doc*",

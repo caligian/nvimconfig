@@ -1,4 +1,3 @@
-
 return {
   highlight_on_yank = {
     "TextYankPost",

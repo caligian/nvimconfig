@@ -480,7 +480,7 @@ return {
     "#",
     function()
       local tw = vim.bo.textwidth
-      local comment = split(vim.bo.commentstring or "#", " ")[1]
+      local comment = strsplit(vim.bo.commentstring or "#", " ")[1]
       if not comment then
         return
       end

@@ -88,7 +88,7 @@ end
 function Winid.bufname(winid)
   return valid_winid(winid, function()
     local bufnr = Winid.bufnr(winid)
-    return defined(bufnr and nvim.buf.get_name(bufnr))
+    return defined(bufnr and vim.api.nvim_buf_get_name(bufnr))
   end)
 end
 
@@ -263,7 +263,7 @@ function Winid.virtualcol(winid)
 end
 
 function Win.bufname(winnr)
-  return nvim.buf.get_name(vim.fn.winbufnr(winnr))
+  return vim.api.nvim_buf_get_name(vim.fn.winbufnr(winnr))
 end
 
 function Win.bufnr(winnr)
@@ -367,6 +367,7 @@ local function range_text(buf, ...)
   args = list.map(args, function(x)
     return x - 1
   end)
+
   args[#args + 1] = {}
 
   return vim.api.nvim_buf_get_text(buf, unpack(args))

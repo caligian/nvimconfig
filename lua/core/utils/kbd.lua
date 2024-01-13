@@ -3,13 +3,13 @@ require "core.utils.au"
 --- @class kbd
 if not Kbd then
   Kbd = class("Kbd", {
-    'require', 
-    'loadfile', 
-    'main', 
-    'from_dict',
-    'buffer',
-    'map',
-    'noremap',
+    "require",
+    "loadfile",
+    "main",
+    "from_dict",
+    "buffer",
+    "map",
+    "noremap",
   })
 
   Kbd.buffer = module()
@@ -43,7 +43,7 @@ function Kbd:init(mode, ks, callback, rest)
   mode = mode or "n"
   local _rest = rest
   rest = is_string(_rest) and { desc = _rest } or _rest
-  mode = is_string(mode) and split(mode, "") or mode
+  mode = is_string(mode) and strsplit(mode, "") or mode
   local command = is_string(callback) and callback
   callback = is_callable(callback) and callback
   local prefix = rest.prefix
@@ -128,21 +128,21 @@ function Kbd:enable()
         enable(self.mode, self.keys, callback, opts)
         self.enabled = true
 
-        dict.set(user.buffers, {au_opts.buf, 'kbds', au_opts.id}, self)
+        dict.set(user.buffers, { au_opts.buf, "kbds", au_opts.id }, self)
       end,
     })
   else
     enable(self.mode, self.keys, callback, opts)
 
     if opts.buffer and name then
-      dict.set(user.buffers, {opts.buffer, 'kbds', name}, self)
+      dict.set(user.buffers, { opts.buffer, "kbds", name }, self)
     end
 
     self.enabled = true
   end
 
   if name then
-    dict.set(user.kbds, {name}, self)
+    dict.set(user.kbds, { name }, self)
   end
 
   return self
@@ -153,7 +153,7 @@ function Kbd:disable()
   if self.buffer then
     del(self.mode, self.keys, { buffer = self.buffer })
   elseif self.autocmd then
-    dict.each(self.autocmd.buffers, function (bufnr, _)
+    dict.each(self.autocmd.buffers, function(bufnr, _)
       del(self.mode, self.keys, { buffer = bufnr })
     end)
 
@@ -162,16 +162,16 @@ function Kbd:disable()
     del(self.mode, self.keys, {})
   end
 
-  self.enabled = false 
+  self.enabled = false
 
   return self
 end
 
 function Kbd.buffer:__call(buf, mode, ks, callback, opts)
   assert_is_a.number(buf)
-  assert(nvim.buf.is_valid(buf), 'invalid buffer: ' .. tostring(buf))
+  assert(nvim.buf.is_valid(buf), "invalid buffer: " .. tostring(buf))
 
-  opts = is_string(opts) and {desc = opts} or opts
+  opts = is_string(opts) and { desc = opts } or opts
   opts = copy(opts or {})
   opts.buffer = buf
 
@@ -209,7 +209,7 @@ function Kbd.from_dict(specs)
     local opts = copy(value[4])
 
     if is_string(opts) then
-      opts = {desc = opts}
+      opts = { desc = opts }
     elseif not opts then
       opts = {}
     end

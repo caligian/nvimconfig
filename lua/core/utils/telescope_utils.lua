@@ -53,22 +53,24 @@ function T:create_picker(items, mappings, opts)
     opts.finder = self.finders.new_table(items)
   end
 
+  items.results = list.map(items, tostring)
   opts.sorter = opts.sorter or self.sorters.get_fzy_sorter()
 
   if mappings then
-    mappings = to_list(mappings)
+    assert_is_a(mappings, union("table", "function"))
+    local default = mappings[1]
 
     opts.attach_mappings = function(prompt_bufnr, map)
-      if mappings then
-        local default = mappings[1]
+      if default then
+        map("n", "<CR>", default)
+      end
 
-        self.actions.select_default:replace(function()
-          default(prompt_bufnr)
-        end)
+      if #mappings < 2 then
+        return true
+      end
 
-        for i = 2, #mappings do
-          map(unpack(mappings[i]))
-        end
+      for i = 2, #mappings do
+        map(unpack(mappings[i]))
       end
 
       return true

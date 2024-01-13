@@ -23,7 +23,7 @@ end
 function nvimexec(s, as_string)
   local ok, res = pcall(vim.api.nvim_exec2, s, { output = true })
   if ok and res and res.output then
-    return not as_string and split(res.output, "\n") or res.output
+    return not as_string and strsplit(res.output, "\n") or res.output
   end
 end
 
@@ -52,7 +52,7 @@ end
 
 --- Only works for user and doom dirs
 function loadfilex(s)
-  s = split(s, "%.")
+  s = strsplit(s, "%.")
   local fname
 
   local function _loadfile(p)
@@ -133,7 +133,7 @@ function whereis(bin)
   local out = vim.fn.system("whereis " .. bin .. [[ | cut -d : -f 2- | sed -r "s/(^ *| *$)//mg"]])
 
   out = trim(out)
-  out = split(out, " ")
+  out = strsplit(out, " ")
 
   if is_empty(out) then
     return false
@@ -143,7 +143,7 @@ function whereis(bin)
 end
 
 function req2path(s, isfile)
-  local p = split(s, "[./]") or { s }
+  local p = strsplit(s, "[./]") or { s }
   local test
 
   if p[1]:match "user" then

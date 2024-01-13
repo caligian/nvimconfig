@@ -1,6 +1,6 @@
 require "core.utils.buffer.buffer"
 
-Terminal = class("Terminal", {'stop_all'})
+Terminal = class("Terminal", { "stop_all" })
 user.terminals = user.terminals or {}
 
 Terminal.exceptions = {
@@ -234,7 +234,7 @@ function Terminal:send(s)
   local id = self.job_id
 
   local function send_string(s)
-    s = to_list(s)
+    s = totable(s)
     s[#s + 1] = ""
 
     vim.api.nvim_chan_send(id, table.concat(s, "\n"))
@@ -351,9 +351,9 @@ function Terminal:reset()
   return Terminal(self.cmd, self.opts)
 end
 
-nvim.create.autocmd('ExitPre', {
-  pattern = '*',
-  callback = function ()
+nvim.create.autocmd("ExitPre", {
+  pattern = "*",
+  callback = function()
     Terminal.stop_all()
-  end
+  end,
 })

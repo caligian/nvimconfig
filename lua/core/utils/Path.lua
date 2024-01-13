@@ -11,25 +11,25 @@ Path.cd = Path.chdir
 Path.cwd = Path.currentdir
 
 function Path.clean(x)
-  return x:gsub('//+', '/')
+  return x:gsub("//+", "/")
 end
 
 function Path.split(x)
-  return split(Path.clean(x), '/', {ignore_escaped = true})
+  return strsplit(Path.clean(x), "/", { ignore_escaped = true })
 end
 
 function Path.join(...)
-  local p =  {...}
-  local had_root = p[1]:match('^/')
+  local p = { ... }
+  local had_root = p[1]:match "^/"
 
-  for i=1, #p do
-    p[i] = p[i]:gsub('^/+', '')
-    p[i] = p[i]:gsub('/+$', '')
+  for i = 1, #p do
+    p[i] = p[i]:gsub("^/+", "")
+    p[i] = p[i]:gsub("/+$", "")
   end
 
-  local out = join(p, '/')
+  local out = join(p, "/")
   if had_root then
-    return '/' .. out
+    return "/" .. out
   end
 
   return out
@@ -152,7 +152,7 @@ function Path.ls(p, show_dirs)
   end
 
   local out = {}
-  p = p:gsub('/$', '')
+  p = p:gsub("/$", "")
 
   for f in Path.dir(p) do
     if f ~= "." and f ~= ".." then
@@ -160,7 +160,7 @@ function Path.ls(p, show_dirs)
 
       if show_dirs then
         if Path.is_dir(f) then
-          f = Path.join(f, '')
+          f = Path.join(f, "")
         end
       end
 
@@ -182,12 +182,12 @@ function Path.get_dirs(p)
   p = p:gsub("[/\\]$", "")
 
   return list.filter(fs, function(x)
-    x = p .. '/' .. x
+    x = p .. "/" .. x
     if Path.is_dir(x) then
       return true
     end
   end, function(x)
-    return p .. '/' .. x
+    return p .. "/" .. x
   end)
 end
 
@@ -200,12 +200,12 @@ function Path.get_files(p)
   p = p:gsub("[/\\]$", "")
 
   return list.filter(fs, function(x)
-    x = p .. '/' .. p
+    x = p .. "/" .. p
     if not Path.is_dir(x) then
       return true
     end
   end, function(x)
-    return p .. '/' .. x
+    return p .. "/" .. x
   end)
 end
 
@@ -256,7 +256,7 @@ function Path.dirname(p)
     return
   end
 
-  local path_sep = '/' 
+  local path_sep = "/"
   if #p == 1 then
     return false
   end
@@ -267,7 +267,7 @@ end
 
 function Path.basename(p)
   local last_sep
-  local sep = '/'
+  local sep = "/"
 
   if not p:match(sep) then
     return p
@@ -306,9 +306,9 @@ function Path.abspath(p, exists)
     return
   elseif p:match "^/" or p:match "^[A-Za-z0-9_]+:\\" then
     return p
-  elseif p:match("^%." .. '/') then
+  elseif p:match("^%." .. "/") then
     p = p:sub(3)
-  elseif p:match("^%.%." .. '/') then
+  elseif p:match("^%.%." .. "/") then
     p = Path.dirname(p)
   end
 
@@ -351,7 +351,7 @@ function Path.relpath(p, exists)
 end
 
 function Path.abspath(x)
-  if x:match('^/') then
+  if x:match "^/" then
     return x
   end
 

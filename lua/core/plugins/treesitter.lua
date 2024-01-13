@@ -5,11 +5,11 @@ treesitter.config = {
     navigation = {
       enable = true,
       keymaps = {
-        gotodefinition = "gnd",
+        goto_definition = "gnd",
         list_definitions = "gnD",
         list_definitions_toc = "gO",
-        gotonext_usage = "<a-*>",
-        gotoprevious_usage = "<a-#>",
+        goto_next_usage = "<a-*>",
+        goto_previous_usage = "<a-#>",
       },
     },
     highlight_definitions = {

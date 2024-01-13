@@ -1,7 +1,7 @@
 return {
-  setup = function (self)
+  setup = function(self)
     list.each(Filetype.list(), function(x)
       Filetype(x):require():setup_lsp()
     end)
-  end
+  end,
 }

@@ -10,9 +10,9 @@ end
 --- @param ... any
 --- @return any[]
 function pack_tuple(...)
-  local args = {...}
+  local args = { ... }
 
-  for i=1, select("#", ...) do
+  for i = 1, select("#", ...) do
     if args[i] == nil then
       args[i] = false
     end
@@ -24,7 +24,7 @@ end
 --- @param x any
 --- @param force? bool forcefully wrap the elem in a table?
 --- @return table
-function to_list(x, force)
+function totable(x, force)
   if force then
     return { x }
   elseif type(x) == "table" then
@@ -143,21 +143,21 @@ function module(name)
   end
 
   function mod:include(other)
-    return dict.merge(mod, {other})
+    return dict.merge(mod, { other })
   end
 
   function mod:is_a()
-    return typeof(self) == 'module' and self.get_name() == name
+    return typeof(self) == "module" and self.get_name() == name
   end
 
   function mod:get_methods()
-    return dict.filter(self, function (_, value)
+    return dict.filter(self, function(_, value)
       return is_callable(value)
     end)
   end
 
   function mod:to_callable(fn)
-    return function (...)
+    return function(...)
       return fn(self, ...)
     end
   end

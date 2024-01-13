@@ -2,13 +2,14 @@ if not user then
   local data_dir = vim.fn.stdpath "data"
 
   user = {
-    buffers = {}, 
-    buffer_groups = {}, 
-    bookmarks = {}, 
-    filetypes = {}, 
+    buffers = {},
+    buffer_groups = {},
+    bookmarks = {},
+    filetypes = {},
     autocmds = {},
     kbds = {},
-    repls = {}, 
+    repls = {},
+    plugins = { exclude = {} },
   }
 
   local dir = vim.fn.stdpath "config"
@@ -102,9 +103,9 @@ nvim = setmetatable(api, {
   end,
 })
 
-nvim.create.autocmd({'BufDelete'}, {
-  pattern = '*',
-  callback = function (opts)
+nvim.create.autocmd({ "BufDelete" }, {
+  pattern = "*",
+  callback = function(opts)
     if not user or not user.buffers then
       return
     end
@@ -112,7 +113,7 @@ nvim.create.autocmd({'BufDelete'}, {
     if user.buffers[opts.buf] then
       user.buffers[opts.buf] = nil
     end
-  end
+  end,
 })
 
 -- Load the framework

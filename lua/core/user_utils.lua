@@ -16,7 +16,12 @@ function user.enable_temp_buffers(overrides)
   dict.merge(temp_buffer_patterns, { overrides })
 
   local function set_mappings(buf)
-    nvim.buf.set_keymap(buf, "n", "q", ":hide<CR>", { desc = "hide buffer" })
+    nvim.buf.set_keymap(buf, "n", "q", "", {
+      desc = "hide buffer",
+      callback = function()
+        Buffer.hide(buf)
+      end,
+    })
   end
 
   local function default_callback(opts)
@@ -187,6 +192,17 @@ function user.setup_defaults()
     Plugin.main()
   end
 
+  vim.api.nvim_create_user_command("ReloadStatusline", function()
+    user.plugins.statusline:setup()
+  end, {})
+
+  vim.api.nvim_create_user_command("ReloadColorscheme", function()
+    user.plugins.colorscheme:setup()
+  end, {})
+
+  vim.cmd "ReloadColorscheme"
+  vim.cmd "ReloadStatusline"
+
   vim.schedule(function()
     if user.enable.filetypes then
       Filetype.main()
@@ -215,14 +231,6 @@ function user.setup_defaults()
         Kbd.main()
       end)
 
-      vim.api.nvim_create_user_command("ReloadStatusline", function()
-        user.plugins.statusline:setup()
-      end, {})
-
-      vim.api.nvim_create_user_command("ReloadColorscheme", function()
-        user.plugins.colorscheme:setup()
-      end, {})
-
       if user.enable.commands then
         local cmds = require "core.defaults.commands"
 
@@ -234,9 +242,6 @@ function user.setup_defaults()
           nvim.create.user_command(name, unpack(args))
         end)
       end
-
-      vim.cmd "ReloadColorscheme"
-      vim.cmd "ReloadStatusline"
     end
   end)
 end

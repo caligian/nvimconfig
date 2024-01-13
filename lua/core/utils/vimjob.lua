@@ -74,7 +74,7 @@ function Vimjob:init(cmd, opts)
       if stdout_buffer then
         Buffer.set_lines(stdout_buffer, -1, -1, false, data)
       else
-        list.extend(self.stdout, {data})
+        list.extend(self.stdout, { data })
       end
 
       if on_stdout then
@@ -84,7 +84,7 @@ function Vimjob:init(cmd, opts)
       if stderr_buffer then
         Buffer.set_lines(stderr_buffer, -1, -1, false, data)
       else
-        list.extend(self.stderr, {data})
+        list.extend(self.stderr, { data })
       end
 
       if on_stderr then
@@ -110,10 +110,10 @@ function Vimjob:init(cmd, opts)
         all_output[1] = "-- STDOUT --"
 
         if is_number(stdout_buffer) then
-          list.extend(all_output, {Buffer.lines(stdout_buffer}))
+          list.extend(all_output, { Buffer.lines(stdout_buffer) })
           Buffer.wipeout(stdout_buffer)
         else
-          list.extend(all_output, {self.stdout})
+          list.extend(all_output, { self.stdout })
         end
 
         all_output[#all_output] = "-- END OF STDOUT --"
@@ -123,13 +123,13 @@ function Vimjob:init(cmd, opts)
         all_output[#all_output + 1] = "-- STDERR --"
 
         if is_number(stderr_buffer) then
-          list.extend(all_output, {Buffer.lines(stderr_buffer}))
+          list.extend(all_output, { Buffer.lines(stderr_buffer) })
           Buffer.wipeout(stderr_buffer)
         else
-          list.extend(all_output, {self.stderr})
+          list.extend(all_output, { self.stderr })
         end
 
-        list.append(all_output, {"-- END OF STDERR --"})
+        list.append(all_output, { "-- END OF STDERR --" })
       end
 
       self.stdout_buffer = nil
@@ -142,10 +142,12 @@ function Vimjob:init(cmd, opts)
 
         Buffer.set_option(output_buffer, "bufhidden", "wipe")
         Buffer.set_keymap(output_buffer, "n", "q", ":hide<CR>", { desc = "hide buffer" })
-        Buffer.autocmd(output_buffer, { "BufHidden", "BufDelete", "WinLeave" }, function()
-          Buffer.wipeout(output_buffer)
-          self.output_buffer = nil
-        end)
+        Buffer.autocmd(output_buffer, { "BufHidden", "BufDelete", "WinLeave" }, {
+          callback = function()
+            Buffer.wipeout(output_buffer)
+            self.output_buffer = nil
+          end,
+        })
 
         show = show == true and "split" or show
         Buffer.set(output_buffer, { 0, -1 }, all_output)

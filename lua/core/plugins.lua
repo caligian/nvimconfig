@@ -1,6 +1,7 @@
-return {
+local default = {
   statusline = {
     "nvim-lualine/lualine.nvim",
+    priority = 1000,
   },
 
   neorg = {
@@ -15,18 +16,15 @@ return {
   telescope = {
     "nvim-telescope/telescope.nvim",
     dependencies = {
-       "nvim-telescope/telescope-project.nvim",
+      "nvim-telescope/telescope-project.nvim",
       "nvim-telescope/telescope-fzy-native.nvim",
       "nvim-telescope/telescope-file-browser.nvim",
     },
   },
 
   spectre = {
-    'nvim-pack/nvim-spectre',
-    event = 'InsertEnter',
-    config = function ()
-      vim.keymap.set('n', '<leader>%', '<cmd>lua require("spectre").toggle()<CR>', {desc = 'open nvim-spectre'})
-    end
+    "nvim-pack/nvim-spectre",
+    event = "BufEnter",
   },
 
   hy = {
@@ -36,22 +34,18 @@ return {
 
   notify = {
     "rcarriga/nvim-notify",
-    event = "BufEnter",
   },
 
   signs = {
     "lewis6991/gitsigns.nvim",
-    event = "InsertEnter",
   },
 
   indentblankline = {
     "lukas-reineke/indent-blankline.nvim",
-    event = "InsertEnter",
   },
 
   align = {
     "junegunn/vim-easy-align",
-    event = "InsertEnter",
   },
 
   suda = {
@@ -103,18 +97,15 @@ return {
 
   surround = {
     "kylechui/nvim-surround",
-    event = "InsertEnter",
   },
 
   autopairs = {
     "windwp/nvim-autopairs",
-    event = "InsertEnter",
   },
 
   clipboard = {
     "jasonccox/vim-wayland-clipboard",
     keys = '"',
-    event = "BufEnter",
   },
 
   startuptime = {
@@ -134,7 +125,6 @@ return {
 
   comment = {
     "tpope/vim-commentary",
-    event = "InsertEnter",
   },
 
   fennel = {
@@ -144,17 +134,15 @@ return {
 
   hop = {
     "phaazon/hop.nvim",
-    event = "BufEnter",
   },
 
   illuminate = {
     "RRethy/vim-illuminate",
-    event = "InsertEnter",
   },
 
   treesitter = {
     "nvim-treesitter/nvim-treesitter",
-    event = "InsertEnter",
+
     dependencies = {
       "windwp/nvim-autopairs",
       "RRethy/vim-illuminate",
@@ -209,12 +197,11 @@ return {
   snippets = {
     "L3MON4D3/LuaSnip",
     dependencies = { "rafamadriz/friendly-snippets" },
-    event = "InsertEnter",
   },
 
   cmp = {
     "hrsh7th/nvim-cmp",
-    event = "InsertEnter",
+
     dependencies = {
       "onsails/lspkind.nvim",
       "L3MON4D3/LuaSnip",
@@ -233,7 +220,6 @@ return {
   fugitive = {
     "tpope/vim-fugitive",
     dependencies = { "tpope/vim-git" },
-    event = "BufEnter",
   },
 
   tagbar = {
@@ -241,7 +227,6 @@ return {
     config = function()
       Kbd.map("n", "<localleader>t", ":TagbarToggle<CR>", { desc = "Tagbar", name = "tagbar" })
     end,
-    event = "InsertEnter",
   },
 
   whichkey = {
@@ -256,7 +241,6 @@ return {
 
   lspsaga = {
     "nvimdev/lspsaga.nvim",
-    event = "BufEnter",
   },
 
   lsp = {
@@ -269,7 +253,6 @@ return {
 
   undotree = {
     "mbbill/undotree",
-    event = "InsertEnter",
   },
 
   elixir = {
@@ -277,3 +260,12 @@ return {
     ft = "elixir",
   },
 }
+
+if req2path "user.plugins" then
+  local spec = requirex "user.string"
+  if is_table(spec) then
+    dict.merge(default, { spec })
+  end
+end
+
+return default

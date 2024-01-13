@@ -13,7 +13,7 @@ local function traverse_till_key(x, ks, makepath)
   local v = x
   local k
 
-  for i=1, #ks-1 do
+  for i = 1, #ks - 1 do
     k = ks[i]
 
     if is_nil(v[k]) then
@@ -38,7 +38,6 @@ local function traverse_till_key(x, ks, makepath)
 
   return v[last_key], v
 end
-
 
 local function lookup_apply(x, ks, makepath, callback, orelse)
   local found, last_found, last_index = traverse_till_key(x, ks, makepath)
@@ -210,7 +209,6 @@ function list.has_index(x, ks)
     if not is_number(ks[i]) then
       return false
     end
-
 
     if not list.get(x, ks[i]) then
       return false

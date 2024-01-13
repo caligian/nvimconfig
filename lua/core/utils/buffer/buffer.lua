@@ -56,7 +56,7 @@ local function init(self, bufnr_or_name, scratch, listed)
     bufnr_or_name = vim.fn.bufnr()
   end
 
-  if Buffer.is_a(bufnr_or_name) and nvim.buf.is_valid(bufnr_or_name.id) then
+  if Buffer.is_a(bufnr_or_name) and vim.api.nvim_buf_is_valid(bufnr_or_name.id) then
     return bufnr_or_name
   end
 
@@ -73,11 +73,11 @@ local function init(self, bufnr_or_name, scratch, listed)
   self.mappings = {}
 
   if self.scratch then
-    nvim.buf.set_keymap(bufnr, "n", "q", ":hide<CR>", { desc = "hide buffer", noremap = true })
-    nvim.buf.set_option(bufnr, "bufhidden", "wipe")
+    vim.api.nvim_buf_set_keymap(bufnr, "n", "q", ":hide<CR>", { desc = "hide buffer", noremap = true })
+    vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
   end
 
-  nvim.buf.set_option(bufnr, "buflisted", listed and true or false)
+  vim.api.nvim_buf_set_option(bufnr, "buflisted", listed and true or false)
 
   return self
 end
@@ -87,7 +87,7 @@ function Buffer:__call(bufnr_or_name, scratch, listed)
     return
   end
 
-  local obj = class('Buffer')
+  local obj = class "Buffer"
   obj.init = init
 
   function obj:exists()
@@ -95,7 +95,7 @@ function Buffer:__call(bufnr_or_name, scratch, listed)
       return
     end
 
-    return nvim.buf.is_valid(self.id)
+    return vim.api.nvim_buf_is_valid(self.id)
   end
 
   function obj:scratch(listed)
@@ -110,12 +110,12 @@ function Buffer:__call(bufnr_or_name, scratch, listed)
     local bufnr = self.id
 
     if listed then
-      nvim.buf.set_option(bufnr, 'buflisted', true)
+      vim.api.nvim_buf_set_option(bufnr, "buflisted", true)
     end
 
-    nvim.buf.set_option(bufnr, 'buftype', 'nofile')
+    vim.api.nvim_buf_set_option(bufnr, "buftype", "nofile")
 
-    vim.keymap.set({'n', 'i'}, 'q', ':hide<CR>', {desc = 'hide buffer', buffer = bufnr})
+    vim.keymap.set({ "n", "i" }, "q", ":hide<CR>", { desc = "hide buffer", buffer = bufnr })
 
     obj.is_scratch = true
 
@@ -135,7 +135,7 @@ function Buffer:__call(bufnr_or_name, scratch, listed)
       return
     end
 
-    nvim.buf.delete(self.id, {force = true})
+    vim.api.nvim_buf_delete(self.id, { force = true })
     self.id = nil
 
     return true
@@ -144,34 +144,31 @@ function Buffer:__call(bufnr_or_name, scratch, listed)
   obj.wipeout = obj.delete
 
   local ignore = {
-    'current',
-    '__call',
-    'to_bufnr',
-    'to_name',
-    '__index',
-    '__newindex',
+    "current",
+    "__call",
+    "__index",
+    "__newindex",
   }
 
   local function should_ignore(key)
     return list.contains(ignore, key)
   end
 
-  dict.each(Buffer, function (fun, method)
+  dict.each(Buffer, function(fun, method)
     if obj[fun] then
       return
     elseif should_ignore(fun) then
       return
     end
 
-    obj[fun] = function (self, ...)
+    obj[fun] = function(self, ...)
       if not self:exists() then
-        return nil, 'invalid buffer ' .. dump(self.id)
+        return nil, "invalid buffer " .. dump(self.id)
       end
 
       return method(self.id, ...)
     end
   end)
-
 
   return init(obj, bufnr_or_name, scratch, listed)
 end
@@ -181,7 +178,7 @@ function Buffer.call(bufnr, cb)
 end
 
 function Buffer.filetype(bufnr)
-  return nvim.buf.get_option(bufnr, "filetype")
+  return vim.api.nvim_buf_get_option(bufnr, "filetype")
 end
 
 local function range_text(buf, ...)
@@ -401,10 +398,10 @@ function Buffer.hide(bufnr)
   local wins = nvim.tabpage.list_wins(0)
   if #wins == 1 then
     if #nvim.list.tabpages() > 1 then
-      vim.cmd 'tabclose'
+      vim.cmd "tabclose"
     else
-      vim.cmd 'tabnew'
-      vim.cmd 'tabprev | tabclose'
+      vim.cmd "tabnew"
+      vim.cmd "tabprev | tabclose"
     end
   else
     vim.api.nvim_win_hide(winid)
@@ -439,7 +436,7 @@ function Buffer.split(bufnr, direction)
   elseif strmatch(direction, "^s$", "^split$") then
     cmd ":split"
   elseif is_template(direction) then
-    direction = F(direction, {buf = bufnr})
+    direction = F(direction, { buf = bufnr })
     vim.cmd(direction)
   elseif direction:match "botright" then
     cmd(direction)
@@ -459,10 +456,52 @@ function Buffer.split(bufnr, direction)
   end
 end
 
+--- Get buffer substring
+--- @param bufnr number
+--- @param X number | {[1]:number, [2]:number} row or {start_row, end_row}
+--- @param Y number | {[1]:number, [2]:number} col or {start_col, end_col}
+--- @return string[]
+function Buffer.substr(bufnr, X, Y, s)
+  local spec = function(x)
+    local ok, msg = union("table", "number")(x)
+
+    if not ok then
+      return false, msg
+    end
+
+    if is_number(x) then
+      return x
+    end
+
+    if #x == 0 then
+      return false, "expected list of at least one element, got " .. dump(x)
+    end
+
+    return true
+  end
+
+  X = assert_is_a[spec](X)
+  Y = assert_is_a[spec](Y)
+
+  if is_number(X) and is_table(Y) then
+    X = { X, X }
+    assert(#Y == 2, "start and end col required, got " .. dump(Y))
+  elseif is_number(Y) and is_table(X) then
+    Y = { 0, Y }
+  else
+    return vim.api.nvim_buf_get_lines(bufnr, X, Y, false)
+  end
+
+  return vim.api.nvim_buf_get_text(bufnr, X[1], Y[1], X[2], Y[2], {})
+end
+
+function Buffer.set_line(bufnr, row, line)
+  return vim.api.nvim_buf_set_lines(bufnr, row, row + 1, false, { line })
+end
+
 function Buffer.lines(bufnr, startrow, tillrow)
   startrow = startrow or 0
   tillrow = tillrow or -1
-
   return vim.api.nvim_buf_get_lines(bufnr, startrow, tillrow, false)
 end
 
@@ -551,18 +590,11 @@ function Buffer.noremap(bufnr, mode, lhs, callback, opts)
   return Kbd.buffer.noremap(bufnr, mode, lhs, callback, opts)
 end
 
-function Buffer.autocmd(bufnr, event, callback, opts)
-  opts = opts or {}
-
-  opts = dict.merge(opts, {{
-    pattern = sprintf("<buffer=%d>", bufnr),
-    callback = callback,
-  }})
-
-  return Autocmd(event, opts)
+function Buffer.autocmd(bufnr, event, opts)
+  return Autocmd.buffer(bufnr, event, opts)
 end
 
-function Buffer.windows(bufnr)
+function Buffer.get_wins(bufnr)
   bufnr = bufnr or vim.fn.bufnr()
   if not Buffer.exists(bufnr) then
     return
@@ -581,7 +613,7 @@ function Buffer.get_options(bufnr, opts)
 
   local out = {}
   list.each(opts, function(key)
-    out[key] = nvim.buf.get_option(bufnr, key)
+    out[key] = vim.api.nvim_buf_get_option(bufnr, key)
   end)
 
   return out
@@ -591,7 +623,7 @@ function Buffer.set_options(bufnr, opts)
   opts = opts or {}
 
   dict.each(opts, function(key, value)
-    nvim.buf.set_option(bufnr, key, value)
+    vim.api.nvim_buf_set_option(bufnr, key, value)
   end)
 
   return true
@@ -602,8 +634,8 @@ function Buffer.string(bufnr)
 end
 
 function Buffer.current_line(bufnr)
-  local row = Buffer.pos(bufnr).row 
-  return Buffer.get_lines(bufnr, row-1, row, false)[1]
+  local row = Buffer.pos(bufnr).row
+  return Buffer.get_lines(bufnr, row - 1, row, false)[1]
 end
 
 function Buffer.till_cursor(bufnr)
@@ -650,7 +682,7 @@ function Buffer.shell(bufnr, command)
     vim.cmd(":%! " .. command)
   end)
 
-  return Buffer.lines(bufnr, 0, -1)
+  return Buffer.lines(bufnr)
 end
 
 function Buffer.read_file(bufnr, fname)
@@ -682,7 +714,7 @@ function Buffer.scratch(name, listed)
   Buffer.set_options(bufnr, {
     buflisted = false,
     buftype = "nofile",
-    filetype ="scratch",
+    filetype = "scratch",
     bufhidden = "wipe",
   })
 
@@ -778,7 +810,7 @@ function Buffer.set(bufnr, pos, lines)
   end)
 
   assert_is_a(lines, union("string", "table"))
-  lines = is_string(lines) and split(lines, "\n") or lines
+  lines = is_string(lines) and strsplit(lines, "\n") or lines
 
   if #pos == 2 then
     return Buffer.set_lines(bufnr, pos[1], pos[2], false, lines)
@@ -795,16 +827,26 @@ function Buffer.get_line(bufnr, row)
   local row = row or Buffer.row(bufnr, row) - 1
 
   if row then
-    return Buffer.get_lines(bufnr, row, row+1, false)[1]
+    return Buffer.get_lines(bufnr, row, row + 1, false)[1]
   end
 end
 
-Buffer.option = nvim.buf.get_option
-Buffer.var = nvim.buf.get_var
+Buffer.option = vim.api.nvim_buf_get_option
+Buffer.var = vim.api.nvim_buf_get_var
 
-dict.merge(Buffer, { nvim.buf })
+dict.merge(Buffer, {
+  dict.filter(vim.api, function(key, _)
+    return key:match "^nvim_buf_"
+  end, function(key, value)
+    return key:gsub("^nvim_buf_", ""), value
+  end),
+})
+
 dict.merge(Buffer, { require "core.utils.buffer.float" })
 
+--- is obj a Buffer
+--- @param self
+--- @return boolean
 function is_buffer(self)
-  return typeof(self) == 'Buffer'
+  return typeof(self) == "Buffer"
 end

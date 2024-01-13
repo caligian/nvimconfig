@@ -2,9 +2,10 @@ require "core.utils.au"
 require "core.utils.kbd"
 
 if not BufferGroup then
-  BufferGroup = class("BufferGroup", { "loadfile", "require", "main", "from_dict", "telescope_list_groups_for_buffer",  "telescope_list_groups" })
-  user.buffer_groups = {}
-  user.buffers = user.buffers or {}
+  BufferGroup = class(
+    "BufferGroup",
+    { "loadfile", "require", "main", "from_dict", "telescope_list_groups_for_buffer", "telescope_list_groups" }
+  )
 end
 
 function BufferGroup:reinclude_buffer(bufnr)
@@ -28,25 +29,28 @@ function BufferGroup:create_reinclude_buffers_picker()
 
   excluded = {
     results = excluded,
-    entry_maker = function (obj)
+    entry_maker = function(obj)
       local name = Buffer.get_name(obj)
       return {
         display = name,
-        value = obj,
+        value = tostring(obj),
         ordinal = name,
       }
-    end
+    end,
   }
 
   user.telescope()
   local function default_action(bufnr)
-    list.each(user.telescope:selected(bufnr, true), function (obj)
-      self:reinclude_buffer(obj.value)
-      print('reincluded buffer: ' .. obj.value)
+    list.each(user.telescope:selected(bufnr, true), function(obj)
+      self:reinclude_buffer(tonumber(obj.value))
     end)
   end
 
-  return user.telescope:create_picker(excluded, default_action, {prompt_title = 'reinclude buffers for ' .. self.name})
+  return user.telescope:create_picker(
+    excluded,
+    { default_action },
+    { prompt_title = "reinclude buffers for " .. self.name }
+  )
 end
 
 function BufferGroup:reinclude_buffers()
@@ -82,8 +86,8 @@ function BufferGroup.telescope_list_groups()
   return {
     results = ls,
     entry_maker = function(x)
-      local event = sprintf("{%s}", join(to_list(usegroups[x].event), " "))
-      local pattern = sprintf("{%s}", join(to_list(usegroups[x].pattern), " "))
+      local event = sprintf("{%s}", join(totable(usegroups[x].event), " "))
+      local pattern = sprintf("{%s}", join(totable(usegroups[x].pattern), " "))
       return {
         display = x .. " " .. event .. " " .. pattern,
         value = x,
@@ -119,8 +123,8 @@ function BufferGroup.telescope_list_groups_for_buffer(bufnr)
   return {
     results = ls,
     entry_maker = function(x)
-      local event = sprintf("{%s}", join(to_list(usegroups[x].event), " "))
-      local pattern = sprintf("{%s}", join(to_list(usegroups[x].pattern), " "))
+      local event = sprintf("{%s}", join(totable(usegroups[x].event), " "))
+      local pattern = sprintf("{%s}", join(totable(usegroups[x].pattern), " "))
       return {
         display = x .. " " .. event .. " " .. pattern,
         value = x,
@@ -141,8 +145,8 @@ function BufferGroup:telescope_list_buffers()
     entry_maker = function(x)
       local bufnr = x
       x = Buffer.get_name(x)
-      local event = sprintf("{%s}", join(to_list(self.event), " "))
-      local pattern = sprintf("{%s}", join(to_list(self.pattern), " "))
+      local event = sprintf("{%s}", join(totable(self.event), " "))
+      local pattern = sprintf("{%s}", join(totable(self.pattern), " "))
       return {
         display = x:gsub(os.getenv "HOME", "~") .. " " .. event .. " " .. pattern,
         value = bufnr,
@@ -165,7 +169,6 @@ local function create_buffer_picker(self)
     exclude = function(prompt_bufnr)
       local bufs = user.telescope:selected(prompt_bufnr, true)
       list.each(bufs, function(buf)
-        print("excluding buffer " .. Buffer.get_name(buf.value))
         self:exclude_buffer(buf.value)
       end)
     end,
@@ -186,7 +189,7 @@ local function create_buffer_picker(self)
 end
 
 --- @param self number|BufferGroup
-function BufferGroup.create_buffer_picker(self)
+function BufferGroup:create_buffer_picker()
   local ls
 
   if is_number(self) then
@@ -201,28 +204,38 @@ function BufferGroup.create_buffer_picker(self)
     user.telescope()
 
     local mod = {
-      reinclude = function (prompt_bufnr)
+      reinclude = function(prompt_bufnr)
         local group = user.telescope:selected(prompt_bufnr)
         group = user.buffer_groups[group.value]
         local picker = group:create_reinclude_buffers_picker()
         if picker then
           picker:find()
         end
-      end
+      end,
     }
 
     return user.telescope:create_picker(ls, {
       function(prompt_bufnr)
         local group = user.telescope:selected(prompt_bufnr)
-        BufferGroup.run_picker(user.buffer_groups[group.value])
+        user.buffer_groups[group.value]:run_buffer_picker()
       end,
-      {'n', 'X', mod.reinclude},
+      { "n", "X", mod.reinclude },
     }, {
       prompt_title = "BufferGroups for buffer " .. Buffer.get_name(self):gsub(os.getenv "HOME", "~"),
     })
   end
 
   return create_buffer_picker(self)
+end
+
+function BufferGroup:run_reinclude_buffers_picker()
+  local picker = self:create_reinclude_buffers_picker()
+  if picker then
+    picker:find()
+    return true
+  end
+
+  return
 end
 
 function BufferGroup.run_main_picker()
@@ -244,32 +257,32 @@ function BufferGroup.create_main_picker()
   user.telescope()
 
   local mod = {
-    reinclude = function (prompt_bufnr)
+    reinclude = function(prompt_bufnr)
       local group = user.telescope:selected(prompt_bufnr)
       group = user.buffer_groups[group.value]
-      local picker = group:create_reinclude_buffers_picker()
-      if picker then
-        picker:find()
-      else
-        print 'no buffers excluded yet'
+      group:run_reinclude_buffers_picker()
+
+      if not group:create_reinclude_buffers_picker() then
+        print "no buffers excluded yet"
       end
     end,
-    delete = function (prompt_bufnr)
-      list.each(user.telescope:selected(prompt_bufnr, true), function (group)
+    delete = function(prompt_bufnr)
+      list.each(user.telescope:selected(prompt_bufnr, true), function(group)
         group = user.buffer_groups[group.value]
         group:delete()
       end)
-    end
+    end,
   }
 
   return user.telescope:create_picker(groups, {
     function(prompt_bufnr)
       local group = user.telescope:selected(prompt_bufnr)
-      BufferGroup.run_picker(user.buffer_groups[group.value])
+      group = user.buffer_groups[group.value]
+      group:run_buffer_picker()
     end,
-    {'n', 'X', mod.reinclude},
-    {'n', 'x', mod.delete},
-  }, { prompt_title = "BufferGroups"})
+    { "n", "X", mod.reinclude },
+    { "n", "x", mod.delete },
+  }, { prompt_title = "BufferGroups" })
 end
 
 function BufferGroup.run_buffer_picker(self)
@@ -296,7 +309,7 @@ function BufferGroup:delete()
   self:disable()
   user.buffer_groups[self.name] = nil
 
-  dict.each(user.buffers, function (bufnr, state)
+  dict.each(user.buffers, function(bufnr, state)
     state.buffer_groups[self.name] = nil
   end)
 end
@@ -417,7 +430,3 @@ function BufferGroup.main()
     BufferGroup.run_buffer_picker(Buffer.current())
   end, "show buffergroups for buffer")
 end
-
--- BufferGroup.main()
--- BufferGroup.run_main_picker()
-

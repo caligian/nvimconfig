@@ -61,7 +61,7 @@ plug.mappings = {
   },
   hint_char2_before_cursor = {
     "nvx",
-    "S",
+    "<A-s>",
     function()
       local hop = require "hop"
       local directions = require("hop.hint").HintDirection

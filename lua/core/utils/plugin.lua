@@ -2,17 +2,34 @@ require "core.utils.au"
 require "core.utils.kbd"
 require "core.utils.logger"
 
-if not Plugin then
-  Plugin = class "Plugin"
-  user.plugins = {}
-end
+Plugin = class("Plugin", {
+  "setup_lazy",
+  "loadfile_all",
+  "require_all",
+  "list",
+  "configure_all",
+  "lazy_spec",
+})
 
-function Plugin.init(self, name, opts)
-  if is_string(name) and user.plugins[name] then
+function Plugin:init(name, opts)
+  if user.plugins.exclude[name] then
+    return
+  end
+
+  if is_string(name) and user.plugins[name] and Plugin.is_a(user.plugins[name]) then
     return user.plugins[name]
   elseif is_table(name) then
-    assert_is_a(name.name, "string")
-    return Plugin(name.name, name)
+    local given_opts = copy(name)
+    local name = given_opts.name or given_opts[1]
+    given_opts.name = nil
+
+    if given_opts[1] then
+      table.remove(given_opts, 1)
+    end
+
+    assert_is_a.string(name)
+
+    return Plugin(name, given_opts)
   end
 
   opts = opts
@@ -26,11 +43,11 @@ function Plugin.init(self, name, opts)
     }
 
   self.configureall = nil
-  self.loadfileall = nil
+  self.loadfile_all = nil
   self.lazy_spec = nil
   self.main = nil
   self.setup_lazy = nil
-  self.requireall = nil
+  self.require_all = nil
   opts = copy(opts)
   opts.name = name
   dict.merge(self, { opts })
@@ -60,28 +77,7 @@ function Plugin.list()
   return fs
 end
 
-local function conv(name)
-  if is_string(name) then
-    if user.plugins[name] then
-      return user.plugins[name]
-    else
-      return Plugin(name)
-    end
-  elseif is_table(name) then
-    if not name.name then
-      return
-    else
-      return Plugin(name.name, name)
-    end
-  end
-end
-
-function Plugin.loadfile(self)
-  self = conv(self)
-  if not self then
-    return
-  end
-
+function Plugin:loadfile()
   local name = self.name
   local luapath = req2path("core.plugins." .. name)
   local userluapath = req2path("user.plugins." .. name)
@@ -118,12 +114,7 @@ function Plugin.loadfile(self)
   return plug
 end
 
-function Plugin.require(self)
-  self = conv(self)
-  if not self then
-    return
-  end
-
+function Plugin:require()
   local name = self.name
   local luapath = req2path("core.plugins." .. name)
   local userluapath = req2path("user.plugins." .. name)
@@ -146,13 +137,7 @@ function Plugin.require(self)
   return plug
 end
 
-function Plugin.configure(self)
-  self = conv(self)
-
-  if not self then
-    return
-  end
-
+function Plugin:configure()
   if self.setup then
     pcall_warn(self.setup, self)
   end
@@ -163,7 +148,7 @@ function Plugin.configure(self)
   return self
 end
 
-function Plugin.loadfileall()
+function Plugin.loadfile_all()
   local out = {}
 
   list.each(Plugin.list(), function(x)
@@ -177,7 +162,7 @@ function Plugin.loadfileall()
   return out
 end
 
-function Plugin.requireall()
+function Plugin.require_all()
   local out = {}
 
   list.each(Plugin.list(), function(x)
@@ -206,7 +191,7 @@ local function _set_autocmds(self, autocmds)
   end)
 end
 
-function Plugin.set_autocmds(self, autocmds)
+function Plugin:set_autocmds(autocmds)
   return pcall_warn(_set_autocmds, self, autocmds)
 end
 
@@ -240,11 +225,11 @@ local function _set_mappings(self, mappings)
   end)
 end
 
-function Plugin.set_mappings(self, mappings)
+function Plugin:set_mappings(mappings)
   return pcall_warn(_set_mappings, self, mappings)
 end
 
-local function _configureall()
+local function _configure_all()
   list.each(Plugin.list(), function(x)
     local plug = Plugin(x)
     plug:require()
@@ -253,23 +238,12 @@ local function _configureall()
 end
 
 function Plugin.configure_all()
-  return pcall_warn(_configureall)
+  return pcall_warn(_configure_all)
 end
 
 function Plugin.lazy_spec()
-  local userpath = req2path "user.plugins"
   local core = requirex "core.plugins"
-  local userconfig = userpath and requirex "user.plugins"
-
-  if not core and not userconfig then
-  elseif core then
-    assert_is_a(core, "table")
-  end
-
-  if userconfig then
-    assert_is_a(userconfig, "table")
-    dict.merge(core, { userconfig })
-  end
+  assert_is_a(core, "table")
 
   local specs = {}
   dict.each(core, function(name, spec)
@@ -279,6 +253,7 @@ function Plugin.lazy_spec()
     function spec.config()
       local ok, msg = pcall(function()
         local plug = Plugin(name)
+
         plug:require()
         plug:configure()
 

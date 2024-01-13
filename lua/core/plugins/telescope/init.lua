@@ -130,7 +130,7 @@ M.mappings = {
   --     { desc = "Show buffer LSP diagnostics" },
   -- },
   lsp_diagnostics = {
-    'n',
+    "n",
     "l`",
     picker "diagnostics",
     O { desc = "Show LSP diagnostics" },
@@ -241,4 +241,3 @@ function M:setup()
 end
 
 return M
-

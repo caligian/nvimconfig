@@ -134,7 +134,9 @@ function REPL:init(bufnr, opts)
   if isbuf then
     dict.set(user.buffers, { bufnr, "repls", self.name }, self)
     Autocmd.buffer(bufnr, { "BufDelete" }, {
-      callback = function(au) self:delete() end,
+      callback = function(au)
+        self:delete()
+      end,
     })
   end
 
