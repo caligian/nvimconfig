@@ -71,7 +71,15 @@ function string.split(x, sep, opts)
   end
 
   opts = opts or {}
-  if defined(opts.pattern, true) then
+  if opts.pattern then
+    opts.ignore_escaped = false
+  end
+
+  if opts.ignore_escaped then
+    opts.pattern = false
+  end
+
+  if (not opts.pattern and not opts.ignore_escaped) or opts.pattern then
     return pat_split(x, sep, opts)
   end
 

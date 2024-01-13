@@ -14,12 +14,12 @@ local function is_project(current_dir)
   return false
 end
 
-local mix = Path.join(os.getenv "HOME", ".asdf", "mix", "shims")
-
 elixir.repl = {
   buffer = "iex",
   workspace = "iex",
 }
+
+local mix = whereis("mix")[1]
 
 if mix then
   elixir.formatter = {

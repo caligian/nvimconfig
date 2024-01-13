@@ -4,7 +4,16 @@ local getinfo = vim.api.nvim_get_autocmds
 local create_augroup = vim.api.nvim_create_augroup
 
 if not Autocmd then
-  Autocmd = class("Autocmd", { "loadfile", "require", "main", "from_dict", "map", "find" })
+  Autocmd = class("Autocmd", { 
+    "loadfile", 
+    "require", 
+    "main", 
+    "from_dict",
+    "map",
+    "find",
+    'buffer'
+  })
+    
   user.autocmds = { buffers = {} }
   Autocmd.buffer = module()
 end
@@ -23,12 +32,25 @@ function Autocmd:init(event, opts)
   local desc = opts.desc
   local buf = opts.buffer
 
+  if name then
+    if group then
+      name = group .. "." .. name
+    end
+
+    user.autocmds[name] = self
+  end
+
   assert(cb or command, "expected command or callback")
 
   if not command then
-    function callback(opts)
-      cb(opts)
-      buffers[opts.buf] = true
+    function callback(au_opts)
+      cb(au_opts)
+
+      self.buffers[au_opts.buf] = true
+
+      if name then
+        dict.set(user.buffers, {au_opts.buf, 'autocmds', au_opts.id}, self)
+      end
     end
   end
 
@@ -54,10 +76,6 @@ function Autocmd:init(event, opts)
 
   if buf then
     assert(nvim.buf.is_valid(buf), "expected valid buffer, got " .. tostring(buf))
-
-    if name then
-      dict.set(user, { "buffers", buf, "autocmds", name }, self)
-    end
   end
 
   if group then
@@ -65,17 +83,41 @@ function Autocmd:init(event, opts)
   end
 
   self.id = enable(event, opts)
+  user.autocmds[self.id] = self
 
   if name then
-    if group then
-      name = group .. "." .. name
-    end
-
     user.autocmds[name] = self
   end
 
   return self
 end
+
+function Autocmd:unref(bufnr)
+  local id = self:disable()
+
+  if self.name then
+    user.autocmds[self.name] = nil
+  end
+
+  if not id then
+    return
+  end
+
+  if is_number(bufnr)  then
+    dict.unset(user.buffers, {bufnr, 'autocmds', id})
+    return
+  end
+
+  dict.each(user.buffers, function (bufnr, state)
+    if not nvim.buf.is_valid(bufnr) then
+      user.buffers[bufnr] = nil
+    else
+      dict.unset(state, {'autocmds', id})
+    end
+  end)
+end
+
+Autocmd.delete = Autocmd.unref
 
 function Autocmd.buffer:__call(bufnr, event, opts)
   opts = copy(opts or {})
@@ -111,11 +153,16 @@ function Autocmd:exists()
 end
 
 function Autocmd:disable()
-  if not Autocmd.exists(self) then
+  if not self:exists() then
     return
   end
 
-  return disable(self.id)
+  local id = self.id
+  disable(id)
+
+  self.id = nil
+
+  return id
 end
 
 function Autocmd.find(spec)
@@ -195,3 +242,4 @@ function Autocmd.main()
 end
 
 return Autocmd
+

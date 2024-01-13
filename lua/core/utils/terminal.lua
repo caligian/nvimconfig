@@ -102,17 +102,6 @@ function Terminal:start(callback)
   return id, pid
 end
 
-function Terminal:delete()
-  if not self:is_running() then
-    return
-  end
-
-  self:stop()
-  user.terminals[self.job_id] = nil
-
-  return self
-end
-
 function Terminal:getpid()
   return getpid(self.job_pid)
 end
@@ -305,7 +294,7 @@ function Terminal:float(opts)
 end
 
 function Terminal:hide()
-  if self.termbuf then
+  if self.termbuf and self.termbuf:is_visible() then
     self.termbuf:hide()
   end
 end
@@ -317,14 +306,26 @@ function Terminal:stop()
     return false
   elseif not self:is_running() then
     return false
-  else
-    killpid(self.job_pid, 9)
-
-    self.job_pid = false
-    self.job_id = false
   end
 
-  return true
+  local job_id = self.job_id
+
+  killpid(self.job_pid, 9)
+
+  self.job_pid = false
+  self.job_id = false
+
+  return job_id
+end
+
+function Terminal:delete()
+  local job_id = self:stop()
+  if not job_id then
+    return
+  end
+
+  user.terminals[job_id] = nil
+  return job_id
 end
 
 function Terminal:is_visible()
@@ -349,3 +350,10 @@ end
 function Terminal:reset()
   return Terminal(self.cmd, self.opts)
 end
+
+nvim.create.autocmd('ExitPre', {
+  pattern = '*',
+  callback = function ()
+    Terminal.stop_all()
+  end
+})

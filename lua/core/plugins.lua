@@ -15,7 +15,7 @@ return {
   telescope = {
     "nvim-telescope/telescope.nvim",
     dependencies = {
-      { "nvim-telescope/telescope-project.nvim" },
+       "nvim-telescope/telescope-project.nvim",
       "nvim-telescope/telescope-fzy-native.nvim",
       "nvim-telescope/telescope-file-browser.nvim",
     },
@@ -265,7 +265,6 @@ return {
       "lukas-reineke/lsp-format.nvim",
       { "folke/neodev.nvim", opts = {} },
     },
-    event = "InsertEnter",
   },
 
   undotree = {

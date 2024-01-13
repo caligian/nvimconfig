@@ -38,6 +38,7 @@ local uv = require "luv"
 --- @field exit_status number
 --- @overload fun(cmd:string, opts?:Job.opts): Job
 Job = class("Job", { format_buffer = true, shell = true })
+dict.get(user, "jobs", true)
 
 function Job:mkpipes()
   self.pipes = {} --[[@as Job.pipes]]
@@ -108,7 +109,6 @@ local function create_cmd(cmd, cmdmaker, shell)
     else
       fullcmd = join({
         "#!/bin/bash",
-        "source ~/.bashrc",
         cmd,
       }, "\n")
     end
@@ -189,6 +189,8 @@ function Job:start(opts)
   if self.on_stdout then
     uv.read_start(self.pipes.stdout, self.on_stdout)
   end
+
+  user.jobs[self.handle] = self
 
   return self
 end
@@ -378,10 +380,15 @@ function Job:close()
   self.pipes.stderr:shutdown()
   self.handle:close()
   self.check:stop()
+
+  user.jobs[self.handle] = nil
+
   self.handle = nil
 
   return self
 end
+
+Job.stop = Job.close
 
 function Job:is_active()
   if not self.handle then
@@ -506,3 +513,12 @@ function Job.shell(cmd, opts)
     return j:start(opts)
   end
 end
+
+nvim.create.autocmd({ "ExitPre" }, {
+  pattern = "*",
+  callback = function()
+    dict.each(user.jobs, function(_, obj)
+      obj:stop()
+    end)
+  end,
+})

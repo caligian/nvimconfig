@@ -1,10 +1,17 @@
 require "core.utils.terminal"
 
 if not REPL then
-  REPL = class("REPL", {'set_mappings', 'main'})
+  REPL = class("REPL", { "set_mappings", "main" })
   REPL:include(Terminal)
+  REPL.stop_all = nil
 
   user.repls = {}
+end
+
+function REPL.stop_all()
+  list.each(values(user.repls), function(x)
+    x:delete()
+  end)
 end
 
 function REPL.exists(self, tp)
@@ -57,7 +64,8 @@ function REPL:init(bufnr, opts)
     return false, "invalid buffer: " .. bufnr
   end
 
-  local exists = REPL.exists(bufnr, opts.workspace and "workspace" or opts.buffer and "buffer" or "dir")
+  local given_type = opts.workspace and "workspace" or opts.buffer and "buffer" or "dir"
+  local exists = REPL.exists(bufnr, given_type)
 
   if exists then
     return exists
@@ -69,7 +77,7 @@ function REPL:init(bufnr, opts)
   end
 
   self._bufnr = bufnr
-  local ftobj = Filetype(ft):loadfile()
+  local ftobj = Filetype(ft):require()
   if not ftobj then
     return false, "no command found for filetype: " .. ftobj
   end
@@ -78,14 +86,6 @@ function REPL:init(bufnr, opts)
   local isws = opts.workspace
   local isdir = opts.dir
   local isbuf = opts.buffer
-
-  if isbuf then
-    Autocmd.buffer(bufnr, {'BufDelete'}, {
-      callback = function (opts)
-        self:delete()
-      end
-    })
-  end
 
   if _opts then
     dict.merge(opts, { _opts })
@@ -129,6 +129,14 @@ function REPL:init(bufnr, opts)
   user.repls[self.name] = self
   self.set_mappings = nil
   self.main = nil
+  self.type = given_type
+
+  if isbuf then
+    dict.set(user.buffers, { bufnr, "repls", self.name }, self)
+    Autocmd.buffer(bufnr, { "BufDelete" }, {
+      callback = function(au) self:delete() end,
+    })
+  end
 
   return Terminal.init(self, cmd, opts)
 end
@@ -290,3 +298,10 @@ function REPL:delete()
 
   return self
 end
+
+nvim.create.autocmd("ExitPre", {
+  pattern = "*",
+  callback = function()
+    REPL.stop_all()
+  end,
+})

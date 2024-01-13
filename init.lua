@@ -1,6 +1,16 @@
 if not user then
   local data_dir = vim.fn.stdpath "data"
-  user = {buffers = {}, buffer_groups = {}, bookmarks = {}, filetypes = {}, repls = {} }
+
+  user = {
+    buffers = {}, 
+    buffer_groups = {}, 
+    bookmarks = {}, 
+    filetypes = {}, 
+    autocmds = {},
+    kbds = {},
+    repls = {}, 
+  }
+
   local dir = vim.fn.stdpath "config"
   local user_dir = table.concat({ os.getenv "HOME", ".nvim" }, "/")
   local plugins_dir = table.concat({ data_dir, "lazy" }, "/")

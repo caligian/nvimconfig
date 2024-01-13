@@ -1,5 +1,7 @@
-list.each(Filetype.list(), function(x)
-  Filetype(x):setup_lsp()
-end)
-
-return {}
+return {
+  setup = function (self)
+    list.each(Filetype.list(), function(x)
+      Filetype(x):require():setup_lsp()
+    end)
+  end
+}

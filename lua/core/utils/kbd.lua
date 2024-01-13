@@ -1,9 +1,17 @@
 require "core.utils.au"
 
 --- @class kbd
-
 if not Kbd then
-  Kbd = class("Kbd", {'require', 'loadfile', 'main', 'from_dict'})
+  Kbd = class("Kbd", {
+    'require', 
+    'loadfile', 
+    'main', 
+    'from_dict',
+    'buffer',
+    'map',
+    'noremap',
+  })
+
   Kbd.buffer = module()
   user.kbds = {}
 end
@@ -80,12 +88,6 @@ function Kbd:init(mode, ks, callback, rest)
   self.enabled = false
   self.autocmd = false
   self.callback = callback
-  self.map = nil
-  self.noremap = nil
-  self.from_dict = nil
-  self.require = nil
-  self.loadfile = nil
-  self.main = nil
 
   if name then
     user.kbds[name] = self
@@ -99,7 +101,7 @@ function Kbd:enable()
     return self
   end
 
-  local opts = copy(Kbd.opts(self))
+  local opts = self:opts()
   local cond = self.cond
   local callback
 
@@ -119,35 +121,48 @@ function Kbd:enable()
         if cond and not cond() then
           return
         end
+
         opts = copy(opts)
         opts.buffer = au_opts.buf
 
         enable(self.mode, self.keys, callback, opts)
         self.enabled = true
+
+        dict.set(user.buffers, {au_opts.buf, 'kbds', au_opts.id}, self)
       end,
     })
   else
     enable(self.mode, self.keys, callback, opts)
+
+    if opts.buffer and name then
+      dict.set(user.buffers, {opts.buffer, 'kbds', name}, self)
+    end
+
     self.enabled = true
+  end
+
+  if name then
+    dict.set(user.kbds, {name}, self)
   end
 
   return self
 end
 
+--- needs work
 function Kbd:disable()
   if self.buffer then
-    if self.buffer then
-      del(self.mode, self.keys, { buffer = self.buffer })
-    end
-  elseif self.events and self.pattern then
-    del(self.mode, self.keys, { buffer = buffer.bufnr() })
+    del(self.mode, self.keys, { buffer = self.buffer })
+  elseif self.autocmd then
+    dict.each(self.autocmd.buffers, function (bufnr, _)
+      del(self.mode, self.keys, { buffer = bufnr })
+    end)
+
+    self.autocmd:disable()
   else
     del(self.mode, self.keys, {})
   end
 
-  if self.autocmd then
-    Autocmd.disable(self.autocmd)
-  end
+  self.enabled = false 
 
   return self
 end
@@ -189,15 +204,21 @@ end
 
 function Kbd.from_dict(specs)
   local out = {}
-  for key, value in pairs(specs) do
-    value[4] = not value[4] and { desc = key }
-      or is_string(value[4]) and { desc = value[4] }
-      or is_table(value[4]) and value[4]
-      or { desc = key }
 
-    value[4] = copy(value[4])
-    value[4].name = key
-    value[4].desc = value[4].desc or key
+  for key, value in pairs(specs) do
+    local opts = copy(value[4])
+
+    if is_string(opts) then
+      opts = {desc = opts}
+    elseif not opts then
+      opts = {}
+    end
+
+    if not opts.desc then
+      opts.desc = key
+    end
+
+    value[4] = opts
 
     out[key] = Kbd.map(unpack(value))
   end

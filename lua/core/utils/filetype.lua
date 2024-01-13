@@ -76,8 +76,103 @@ vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
 
 vim.diagnostic.config(lsp.diagnostic)
 
-lsp.mappings = lsp.mappings
-  or {
+---@diagnostic disable-next-line: inject-field
+function lsp.fix_omnisharp(client, _)
+  client.server_capabilities.semanticTokensProvider = {
+    full = vim.empty_dict(),
+    legend = {
+      tokenModifiers = { "static_symbol" },
+      tokenTypes = {
+        "comment",
+        "excluded_code",
+        "identifier",
+        "keyword",
+        "keyword_control",
+        "number",
+        "operator",
+        "operator_overloaded",
+        "preprocessor_keyword",
+        "string",
+        "whitespace",
+        "text",
+        "static_symbol",
+        "preprocessor_text",
+        "punctuation",
+        "string_verbatim",
+        "string_escape_character",
+        "class_name",
+        "delegate_name",
+        "enum_name",
+        "interface_name",
+        "module_name",
+        "struct_name",
+        "type_parameter_name",
+        "field_name",
+        "enum_member_name",
+        "constant_name",
+        "local_name",
+        "parameter_name",
+        "method_name",
+        "extension_method_name",
+        "property_name",
+        "event_name",
+        "namespace_name",
+        "label_name",
+        "xml_doc_comment_attribute_name",
+        "xml_doc_comment_attribute_quotes",
+        "xml_doc_comment_attribute_value",
+        "xml_doc_comment_cdata_section",
+        "xml_doc_comment_comment",
+        "xml_doc_comment_delimiter",
+        "xml_doc_comment_entity_reference",
+        "xml_doc_comment_name",
+        "xml_doc_comment_processing_instruction",
+        "xml_doc_comment_text",
+        "xml_literal_attribute_name",
+        "xml_literal_attribute_quotes",
+        "xml_literal_attribute_value",
+        "xml_literal_cdata_section",
+        "xml_literal_comment",
+        "xml_literal_delimiter",
+        "xml_literal_embedded_expression",
+        "xml_literal_entity_reference",
+        "xml_literal_name",
+        "xml_literal_processing_instruction",
+        "xml_literal_text",
+        "regex_comment",
+        "regex_character_class",
+        "regex_anchor",
+        "regex_quantifier",
+        "regex_grouping",
+        "regex_alternation",
+        "regex_text",
+        "regex_self_escaped_character",
+        "regex_other_escape",
+      },
+    },
+    range = true,
+  }
+end
+
+function lsp.attach_formatter(client)
+  require("lsp-format").on_attach(client)
+end
+
+function lsp.on_attach(client, bufnr)
+  if client.name == "omnisharp" then
+    lsp.fix_omnisharp(client)
+  else
+    Buffer.set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
+  end
+
+  local ft = vim.bo.filetype
+  local has_formatter = Filetype(ft):loadfile()
+
+  if has_formatter and not has_formatter.formatter then
+    lsp.attach_formatter(client)
+  end
+
+  local mappings =  {
     float_diagnostic = {
       "n",
       "<leader>li",
@@ -221,111 +316,13 @@ lsp.mappings = lsp.mappings
     },
   }
 
----@diagnostic disable-next-line: inject-field
-function lsp.fix_omnisharp(client, _)
-  client.server_capabilities.semanticTokensProvider = {
-    full = vim.empty_dict(),
-    legend = {
-      tokenModifiers = { "static_symbol" },
-      tokenTypes = {
-        "comment",
-        "excluded_code",
-        "identifier",
-        "keyword",
-        "keyword_control",
-        "number",
-        "operator",
-        "operator_overloaded",
-        "preprocessor_keyword",
-        "string",
-        "whitespace",
-        "text",
-        "static_symbol",
-        "preprocessor_text",
-        "punctuation",
-        "string_verbatim",
-        "string_escape_character",
-        "class_name",
-        "delegate_name",
-        "enum_name",
-        "interface_name",
-        "module_name",
-        "struct_name",
-        "type_parameter_name",
-        "field_name",
-        "enum_member_name",
-        "constant_name",
-        "local_name",
-        "parameter_name",
-        "method_name",
-        "extension_method_name",
-        "property_name",
-        "event_name",
-        "namespace_name",
-        "label_name",
-        "xml_doc_comment_attribute_name",
-        "xml_doc_comment_attribute_quotes",
-        "xml_doc_comment_attribute_value",
-        "xml_doc_comment_cdata_section",
-        "xml_doc_comment_comment",
-        "xml_doc_comment_delimiter",
-        "xml_doc_comment_entity_reference",
-        "xml_doc_comment_name",
-        "xml_doc_comment_processing_instruction",
-        "xml_doc_comment_text",
-        "xml_literal_attribute_name",
-        "xml_literal_attribute_quotes",
-        "xml_literal_attribute_value",
-        "xml_literal_cdata_section",
-        "xml_literal_comment",
-        "xml_literal_delimiter",
-        "xml_literal_embedded_expression",
-        "xml_literal_entity_reference",
-        "xml_literal_name",
-        "xml_literal_processing_instruction",
-        "xml_literal_text",
-        "regex_comment",
-        "regex_character_class",
-        "regex_anchor",
-        "regex_quantifier",
-        "regex_grouping",
-        "regex_alternation",
-        "regex_text",
-        "regex_self_escaped_character",
-        "regex_other_escape",
-      },
-    },
-    range = true,
-  }
-end
-
-function lsp.attach_formatter(client)
-  require("lsp-format").on_attach(client)
-end
-
-function lsp.on_attach(client, bufnr)
-  if client.name == "omnisharp" then
-    lsp.fix_omnisharp(client)
-  else
-    Buffer.set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
-
-    local ft = vim.bo.filetype
-    local has_formatter = Filetype(ft)
-    if has_formatter and not has_formatter.formatter then
-      lsp.attach_formatter(client)
-    end
-
-    local mappings = deepcopy(lsp.mappings)
-    for name, value in pairs(mappings) do
-      value[4] = value[4] or {}
-      value[4].buffer = bufnr
-      value[4].name = "lsp." .. name
-    end
-
-    vim.defer_fn(function()
-      Kbd.from_dict(mappings)
-    end, 100)
+  for name, value in pairs(mappings) do
+    value[4] = value[4] or {}
+    value[4].buffer = bufnr
+    value[4].name = "lsp." .. name
   end
+
+  Kbd.from_dict(mappings)
 end
 
 function lsp.setup_server(server, opts)
@@ -786,28 +783,30 @@ function Filetype:action(bufnr, action, opts)
   name = name .. target
   cmd = is_table(cmd) and join(cmd, " ") or cmd
 
-  local term = Job(cmd, {
+  local term = Job(cmd)
+  local ok = term:start {
     before = function()
       Buffer.save(bufnr)
     end,
     output = true,
     on_exit = function(job)
-      local lines = job.lines or {}
-      local errs = job.errors or {}
+      local lines = job.output.stdout or {}
+      local errs = job.output.stderr or {}
 
       list.extend(lines, { errs })
 
       if #lines ~= 0 then
         local outbuf = Buffer.scratch()
         Buffer.set(outbuf, { 0, -1 }, lines)
-        Buffer.split(outbuf, "qf")
+        Buffer.split(outbuf, "split | resize 10 | b {buf}")
       end
     end,
-  })
+  }
 
-  self.jobs[name] = term
-
-  return term
+  if ok then
+    self.jobs[name] = term
+    return term
+  end
 end
 
 function Filetype:setup_triggers()
@@ -829,7 +828,7 @@ function Filetype:setup(should_loadfile)
   self:setbo()
   self:setwo()
 
-  vim.defer_fn(function()
+  vim.schedule(function()
     self:set_mappings()
 
     self:map("n", "<leader>ct", function()
@@ -855,7 +854,7 @@ function Filetype:setup(should_loadfile)
     self:map("n", "<leader>cc", function()
       self:action(Buffer.bufnr(), "compile")
     end, { desc = "compile buffer" })
-  end, 100)
+  end)
 
   return self
 end

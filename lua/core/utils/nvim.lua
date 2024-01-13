@@ -84,6 +84,7 @@ local function process_input(key, value)
   cancelreturn = value.cancelreturn
   highlight = value.highlight
   completion = value[3] or value.completion
+
   local opts = {
     prompt = prompt,
     default = default,

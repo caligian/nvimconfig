@@ -1,4 +1,5 @@
 local command = vim.api.nvim_create_user_command
+
 local function compile_and_run(lines)
   if is_a(lines, "table") then
     lines = table.concat(lines, "\n")
@@ -30,7 +31,7 @@ return {
   -- Setup commands
   NvimEvalRegion = {
     function(opts)
-      local lines = Buffer.range_text(Buffer.current)
+      local lines = Buffer.range_text(Buffer.current())
       compile_and_run(lines)
     end,
     {},

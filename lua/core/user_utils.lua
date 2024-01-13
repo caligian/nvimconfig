@@ -16,7 +16,7 @@ function user.enable_temp_buffers(overrides)
   dict.merge(temp_buffer_patterns, { overrides })
 
   local function set_mappings(buf)
-    nvim.buf.set_keymap(buf, "n", "q", ":hide | bprev<CR>", { desc = "hide buffer" })
+    nvim.buf.set_keymap(buf, "n", "q", ":hide<CR>", { desc = "hide buffer" })
   end
 
   local function default_callback(opts)
@@ -179,17 +179,17 @@ function user.enable_recent_buffers(overrides)
 end
 
 function user.setup_defaults()
-  vim.schedule(function ()
+  if user.enable.autocmds then
+    Autocmd.main()
+  end
+
+  if user.enable.plugins then
+    Plugin.main()
+  end
+
+  vim.schedule(function()
     if user.enable.filetypes then
       Filetype.main()
-    end
-
-    if user.enable.autocmds then
-      Autocmd.main()
-    end
-
-    if user.enable.plugins then
-      Plugin.main()
     end
 
     if user.enable.buffergroups then
@@ -209,7 +209,7 @@ function user.setup_defaults()
     user.enable_recent_buffers()
 
     if user.enable.mappings then
-      vim.schedule(function ()
+      vim.schedule(function()
         Kbd.map("n", "<leader>hC", ":ReloadColorscheme<CR>", "reload colorscheme")
         Kbd.map("n", "<leader>h=", ":ReloadStatusline<CR>", "reload statusline")
         Kbd.main()
@@ -235,8 +235,8 @@ function user.setup_defaults()
         end)
       end
 
-      vim.cmd 'ReloadColorscheme'
-      vim.cmd 'ReloadStatusline'
+      vim.cmd "ReloadColorscheme"
+      vim.cmd "ReloadStatusline"
     end
   end)
 end

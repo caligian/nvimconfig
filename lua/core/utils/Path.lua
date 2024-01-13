@@ -10,6 +10,14 @@ Path.lnstat = Path.symlinkattributes
 Path.cd = Path.chdir
 Path.cwd = Path.currentdir
 
+function Path.clean(x)
+  return x:gsub('//+', '/')
+end
+
+function Path.split(x)
+  return split(Path.clean(x), '/', {ignore_escaped = true})
+end
+
 function Path.join(...)
   local p =  {...}
   local had_root = p[1]:match('^/')
@@ -165,7 +173,7 @@ end
 
 Path.children = Path.ls
 
-function Path.getdirs(p)
+function Path.get_dirs(p)
   local fs = Path.ls(p)
   if not fs then
     return
@@ -183,7 +191,7 @@ function Path.getdirs(p)
   end)
 end
 
-function Path.getfiles(p)
+function Path.get_files(p)
   local fs = Path.ls(p)
   if not fs then
     return

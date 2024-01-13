@@ -74,7 +74,6 @@ local function init(self, bufnr_or_name, scratch, listed)
 
   if self.scratch then
     nvim.buf.set_keymap(bufnr, "n", "q", ":hide<CR>", { desc = "hide buffer", noremap = true })
-
     nvim.buf.set_option(bufnr, "bufhidden", "wipe")
   end
 
@@ -399,7 +398,18 @@ function Buffer.hide(bufnr)
     return
   end
 
-  vim.api.nvim_win_hide(winid)
+  local wins = nvim.tabpage.list_wins(0)
+  if #wins == 1 then
+    if #nvim.list.tabpages() > 1 then
+      vim.cmd 'tabclose'
+    else
+      vim.cmd 'tabnew'
+      vim.cmd 'tabprev | tabclose'
+    end
+  else
+    vim.api.nvim_win_hide(winid)
+  end
+
   return true
 end
 
