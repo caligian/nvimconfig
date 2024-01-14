@@ -1,4 +1,5 @@
 require "lua-utils.utils"
+require 'lua-utils.string'
 
 local lpeg = require "lpeg"
 local P = lpeg.P
@@ -30,50 +31,26 @@ echo {{1}} -- will print echo {1}
 local parse = {}
 
 function parse.keys(match, repl)
-  local ks = C(P(lpeg.alnum) + (1 - P "."))
-  local pat = Ct(ks * (P "." * ks) ^ 0)
-  ks = pat:match(match)
+  local ks = strsplit(match, '%.')
 
-  if not ks then
-    return
-  end
-
-  local k = ks[1]
-  repl = repl or {}
-
-  if not repl[k] then
-    error("undefined placeholder: " .. k)
-  else
-    assert_is_a(repl[k], "table")
-  end
-
-  local ok = dict.get(repl[k], list.sub(ks, 2, -1))
-  if not ok then
-    error("keys not found in table: " .. match)
-  end
-
-  return tostring(ok)
+  ks = list.map(ks, function (x)
+    return tonumber(x) or x
+  end)
+  return dict.get(repl, ks)
 end
 
 function parse.sed(match, repl)
-  repl = repl or {}
-  local _, till = match:find "/"
-  local var = match:sub(1, till - 1)
+  local matches = strsplit(match, "/", {ignore_escaped = true})
+  if #matches ~= 3 then
+    error('spec should be {var_name, pattern, replacement}, got ' .. match)
+  end
 
+  local var, regex, with = unpack(matches)
   if not repl[var] then
     error("undefined placeholder: " .. var)
   else
     assert_is_a(repl[var], union("string", "number"))
   end
-
-  local till_end = string.find(match, "[^\\]/", till + 1)
-
-  if not till_end then
-    error("expected spec {var/regex/replacement?}, got " .. match)
-  end
-
-  local regex = string.sub(match, till + 1, till_end)
-  local with = string.sub(match, till_end + 2, #match)
 
   return (tostring(repl[var]):gsub(regex, with))
 end
@@ -144,15 +121,20 @@ function parse.parse(match, repl)
 end
 
 local function gmatch(s, repl)
-  local nl = P"\n"
+  assert_is_a(repl, union('callable', 'table'))
+
+  local nl = P"\n" ^ 0
   local escaped_open = P"\\{"
   local escaped_close = P"\\}"
   local paren_open = -B("\\") * P"{"
   local paren_close = -B("\\") * P"}"
   local before = C((1 - paren_open) ^ 0 + nl) 
-  local chars = C((1 - paren_close) ^ 1) / function (x)
-    local v = repl[x]
+  local chars = C((1 - paren_close) ^ 1 + nl) / function (x)
+    if is_callable(repl) then
+      return repl(x)
+    end
 
+    local v = parse.parse(x, repl)
     if is_nil(v) then
       error('undefined placeholder: ' .. x)
     end
@@ -168,34 +150,6 @@ local function gmatch(s, repl)
   end
 
   return
-end
-
-local function gmatch_old(s, repl)
-  repl = repl or {}
-  local open = P "{" - P "{{"
-  local close = P "}" - P "}}"
-  local placeholder = (open * Cs((lpeg.alnum + S "_.-/?") ^ 1) * close)
-    / function(match)
-      return parse.parse(match, repl)
-    end
-
-  local before = C(1 - placeholder) ^ 0
-  local extra = C(1)
-  local pat = Ct((before * placeholder + extra) ^ 0) * P "\n" ^ 0
-  local var = pat:match(s)
-
-  if var then
-    for i = 1, #var - 1 do
-      local current, next = var[i], var[i + 1]
-      if (current == "{" and next == "{") or (current == "}" and next == "}") then
-        var[i] = ""
-      end
-    end
-
-    return join(var, "")
-  else
-    return s
-  end
 end
 
 function F(x, vars)

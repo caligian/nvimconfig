@@ -1164,6 +1164,13 @@ end
 --- @param b string
 --- @param desc? bool if passed then return false at a < b else at a > b
 function strcmp(a, b, desc)
+  assert_is_a.string(a)
+  assert_is_a.string(b)
+
+  if a == b then
+    return 0
+  end
+
   local a_len = #a
   local b_len = #b
   local max = (a_len > b_len and b_len) or a_len
@@ -1174,15 +1181,15 @@ function strcmp(a, b, desc)
 
     if desc then
       if b_byte < a_byte then
-        return true
+        return 1
       else
-        return false
+        return -1
       end
     else
       if b_byte < a_byte then
-        return true
+        return -1
       else
-        return false
+        return 1
       end
     end
   end
@@ -1427,4 +1434,56 @@ function dict.ne(a, b, absolute)
   dictne(a, b, false, result)
 
   return result
+end
+
+function compare_elems(a, b)
+  if is_number(a) and is_number(b) then
+    if a == b then
+      return 0
+    elseif a > b then
+      return -1
+    else
+      return 1
+    end
+  elseif is_string(a) and is_string(b) then
+    return strcmp(a, b)
+  else
+    error('expected either string, string or number, number, got ' .. dump {a, b})
+  end
+end
+
+local function bsearch(arr, elem, cmp, i, j, maxi)
+  maxi = maxi or 0
+
+  if maxi == 3 then
+    return
+  end
+
+	i = i or 1
+	j = j or #arr
+
+  if j < i then
+    return
+  end
+
+  local mid = i + math.floor((j - i) / 2)
+  local mid_elem = arr[mid]
+  local result = cmp(elem, mid_elem)
+
+
+  if result == 0  then
+    return mid, mid_elem
+  elseif result == 1 then
+    return bsearch(arr, elem, cmp, i, mid-1, maxi + 1)
+  elseif result == -1 then
+    return bsearch(arr, elem, cmp, mid+1, j, maxi+1)
+  end
+end
+
+function list.bsearch(arr, elem, cmp)
+  assert_is_a.table(arr)
+  cmp = cmp or compare_elems
+
+  assert_is_a(cmp, 'function')
+  return bsearch(arr, elem, cmp)
 end
