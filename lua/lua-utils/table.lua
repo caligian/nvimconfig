@@ -1452,14 +1452,8 @@ function equals(a, b)
   end
 end
 
-local function bsearch(arr, elem, cmp, i, j, maxi)
-  maxi = maxi or 0
-
-  if maxi == 3 then
-    return
-  end
-
-	i = i or 1
+local function bsearch(arr, elem, cmp, i, j)
+  i = i or 1
 	j = j or #arr
 
   if j < i then
@@ -1474,9 +1468,9 @@ local function bsearch(arr, elem, cmp, i, j, maxi)
   if result == 0  then
     return mid, mid_elem
   elseif result == 1 then
-    return bsearch(arr, elem, cmp, i, mid-1, maxi + 1)
+    return bsearch(arr, elem, cmp, i, mid-1)
   elseif result == -1 then
-    return bsearch(arr, elem, cmp, mid+1, j, maxi+1)
+    return bsearch(arr, elem, cmp, mid+1, j)
   end
 end
 
