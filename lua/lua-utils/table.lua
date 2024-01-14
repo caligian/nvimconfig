@@ -1436,7 +1436,7 @@ function dict.ne(a, b, absolute)
   return result
 end
 
-function compare_elems(a, b)
+function equals(a, b)
   if is_number(a) and is_number(b) then
     if a == b then
       return 0
@@ -1482,7 +1482,7 @@ end
 
 function list.bsearch(arr, elem, cmp)
   assert_is_a.table(arr)
-  cmp = cmp or compare_elems
+  cmp = cmp or equals
 
   assert_is_a(cmp, 'function')
   return bsearch(arr, elem, cmp)
