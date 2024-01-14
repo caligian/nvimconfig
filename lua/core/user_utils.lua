@@ -223,7 +223,9 @@ function user.setup_defaults()
 
     user.enable_temp_buffers()
     user.enable_recent_buffers()
+  end)
 
+  vim.schedule(function()
     if user.enable.mappings then
       vim.schedule(function()
         Kbd.map("n", "<leader>hC", ":ReloadColorscheme<CR>", "reload colorscheme")

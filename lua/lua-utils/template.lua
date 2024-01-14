@@ -3,6 +3,7 @@ require "lua-utils.utils"
 local lpeg = require "lpeg"
 local P = lpeg.P
 local Cb = lpeg.Cb
+local B = lpeg.B
 local Cg = lpeg.Cg
 local S = lpeg.S
 local R = lpeg.R
@@ -143,6 +144,33 @@ function parse.parse(match, repl)
 end
 
 local function gmatch(s, repl)
+  local nl = P"\n"
+  local escaped_open = P"\\{"
+  local escaped_close = P"\\}"
+  local paren_open = -B("\\") * P"{"
+  local paren_close = -B("\\") * P"}"
+  local before = C((1 - paren_open) ^ 0 + nl) 
+  local chars = C((1 - paren_close) ^ 1) / function (x)
+    local v = repl[x]
+
+    if is_nil(v) then
+      error('undefined placeholder: ' .. x)
+    end
+
+    return v
+  end
+
+  local pat = Ct((before * paren_open * chars * paren_close * before) ^ 0)
+  local ok = pat:match(s)
+
+  if #ok > 0 then
+    return (join(ok, ''):gsub('\\([{}])', '%1'))
+  end
+
+  return
+end
+
+local function gmatch_old(s, repl)
   repl = repl or {}
   local open = P "{" - P "{{"
   local close = P "}" - P "}}"
@@ -182,29 +210,4 @@ function F(x, vars)
   return use(vars)
 end
 
-function is_F(var)
-  if not is_string(var) then
-    return false
-  end
-
-  local open = var:find "[{]"
-  if not open then
-    return false
-  end
-
-  local close = var:find "[}]"
-  if not close then
-    return false
-  end
-
-  local open1 = var:find("[{]", open + 1)
-  local close1 = var:find("[}]", close + 1)
-  if open1 and close1 then
-    return false
-  end
-
-  return true
-end
-
 template = F
-is_template = is_F

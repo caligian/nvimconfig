@@ -139,11 +139,15 @@ end
 
 function Plugin:configure()
   if self.setup then
-    pcall_warn(self.setup, self)
+    vim.schedule(function() 
+      self:setup()
+    end)
   end
 
-  self:set_autocmds()
-  self:set_mappings()
+  vim.schedule(function()
+    self:set_autocmds()
+    self:set_mappings()
+  end)
 
   return self
 end

@@ -410,49 +410,38 @@ function Buffer.hide(bufnr)
   return true
 end
 
-local function to_qflist(out)
-  out = list.filter(out, function(x)
-    return #x ~= 0
-  end)
-
-  out = list.map(out, function(x)
-    return { bufnr = 0, text = x }
-  end)
-
-  vim.fn.setqflist(out)
-  vim.cmd ":botright copen"
-end
-
 function Buffer.split(bufnr, direction)
   direction = direction or "s"
 
   local function cmd(s)
-    s = s .. " | b " .. bufnr
+    s = ':' .. s .. " | b " .. bufnr
     vim.cmd(s)
   end
 
-  if strmatch(direction, "^v$", "^vsplit$") then
-    cmd ":vsplit"
-  elseif strmatch(direction, "^s$", "^split$") then
-    cmd ":split"
-  elseif is_template(direction) then
-    direction = F(direction, { buf = bufnr })
-    vim.cmd(direction)
-  elseif direction:match "botright" then
-    cmd(direction)
-  elseif direction:match "topleft" then
-    cmd(direction)
-  elseif strmatch(direction, "aboveleft", "leftabove") then
-    cmd(direction)
-  elseif strmatch(direction, "belowright", "rightbelow") then
-    cmd(direction)
-  elseif direction == "tabnew" or direction == "t" or direction == "tab" then
-    cmd ":tabnew"
-  elseif string.match(direction, "qf") then
-    local lines = Buffer.lines(bufnr, 0, -1)
-    to_qflist(lines)
-  else
-    cmd(direction)
+  local valid = {
+    'vsplit',
+    'split',
+    'topleft_vsplit',
+    'aboveleft_vsplit',
+    'leftabove_vsplit',
+    'belowright_vsplit',
+    'rightbelow_vsplit',
+    'topleft',
+    'aboveleft',
+    'leftabove',
+    'belowright',
+    'rightbelow',
+    'tabnew',
+  }
+
+  if not list.contains(valid, direction) then
+    local ok = cmd(direction, {buf = bufnr})
+    if not ok then
+      return 'expected valid command or command template with {buf}, got ' .. dump(direction)
+    end
+    vim.cmd(ok)
+  elseif direction:match('_vsplit') then
+    cmd(direction:gsub('([^_]+)_vsplit', 'vert %1'))
   end
 end
 

@@ -9,9 +9,7 @@ local default = {
     ft = "norg",
   },
 
-  plenary = {
-    "nvim-lua/plenary.nvim",
-  },
+  plenary = { "nvim-lua/plenary.nvim", },
 
   telescope = {
     "nvim-telescope/telescope.nvim",
@@ -24,7 +22,7 @@ local default = {
 
   spectre = {
     "nvim-pack/nvim-spectre",
-    event = "BufEnter",
+    event = "InsertEnter",
   },
 
   hy = {
@@ -34,23 +32,27 @@ local default = {
 
   notify = {
     "rcarriga/nvim-notify",
+    event = 'BufRead',
   },
 
   signs = {
     "lewis6991/gitsigns.nvim",
+    event = 'BufRead',
   },
 
   indentblankline = {
     "lukas-reineke/indent-blankline.nvim",
+    event = 'BufRead',
   },
 
   align = {
     "junegunn/vim-easy-align",
+    event = 'InsertEnter',
   },
 
   suda = {
     "lambdalisue/suda.vim",
-    event = "BufAdd",
+    event = "BufRead",
   },
 
   colorscheme = {
@@ -79,7 +81,7 @@ local default = {
       "mhartington/oceanic-next",
       "folke/tokyonight.nvim",
     },
-    priority = 300,
+    priority = 3000,
   },
 
   vimtex = {
@@ -93,14 +95,17 @@ local default = {
 
   netrw = {
     "prichrd/netrw.nvim",
+    event = 'BufRead',
   },
 
   surround = {
     "kylechui/nvim-surround",
+    event = 'BufRead',
   },
 
   autopairs = {
     "windwp/nvim-autopairs",
+    event = 'BufRead',
   },
 
   clipboard = {
@@ -125,6 +130,7 @@ local default = {
 
   comment = {
     "tpope/vim-commentary",
+    event = 'BufRead',
   },
 
   fennel = {
@@ -134,10 +140,12 @@ local default = {
 
   hop = {
     "phaazon/hop.nvim",
+    event = 'BufRead',
   },
 
   illuminate = {
     "RRethy/vim-illuminate",
+    event = 'BufRead',
   },
 
   treesitter = {
@@ -177,31 +185,29 @@ local default = {
         },
         event = "BufReadPost",
       },
-      {
-        "mfussenegger/nvim-treehopper",
-        dependencies = { "phaazon/hop.nvim" },
-      },
       "kiyoon/treesitter-indent-object.nvim",
-      "cshuaimin/ssr.nvim",
       "nvim-treesitter/nvim-treesitter-refactor",
       "MunifTanjim/nui.nvim",
     },
+
+    event = 'BufReadPost',
   },
 
-  treehopper = {
+  hop = {
     "mfussenegger/nvim-treehopper",
     dependencies = { "phaazon/hop.nvim" },
-    event = { "BufEnter" },
+    event = { "InsertEnter" },
   },
 
   snippets = {
     "L3MON4D3/LuaSnip",
+    event = 'BufRead',
     dependencies = { "rafamadriz/friendly-snippets" },
   },
 
   cmp = {
     "hrsh7th/nvim-cmp",
-
+    event = 'BufRead',
     dependencies = {
       "onsails/lspkind.nvim",
       "L3MON4D3/LuaSnip",
@@ -227,6 +233,7 @@ local default = {
     config = function()
       Kbd.map("n", "<localleader>t", ":TagbarToggle<CR>", { desc = "Tagbar", name = "tagbar" })
     end,
+    event = 'BufRead'
   },
 
   whichkey = {
@@ -241,6 +248,7 @@ local default = {
 
   lspsaga = {
     "nvimdev/lspsaga.nvim",
+    event = 'BufRead',
   },
 
   lsp = {
@@ -249,10 +257,12 @@ local default = {
       "lukas-reineke/lsp-format.nvim",
       { "folke/neodev.nvim", opts = {} },
     },
+    event = 'BufReadPost',
   },
 
   undotree = {
     "mbbill/undotree",
+    event = 'BufReadPost',
   },
 
   elixir = {

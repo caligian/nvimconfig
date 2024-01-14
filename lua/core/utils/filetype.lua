@@ -582,11 +582,14 @@ function Filetype:command(bufnr, action)
 
   local out = {}
   local function withpath(cmd, p)
-    if is_F(cmd) then
-      cmd = F(cmd, { path = p })
+    local templ = template(cmd, { path = p })
+    if templ then
+      return { templ, p }
+    else
+      return { cmd, p }
     end
 
-    return { cmd, p }
+    return cmd
   end
 
   if compile[1] or compile.buffer then
