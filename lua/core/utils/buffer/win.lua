@@ -1,6 +1,6 @@
-Win = module()
-Winid = module()
-Tabpage = dict.merge(module(), { nvim.tabpage })
+Win = namespace()
+Winid = namespace()
+Tabpage = dict.merge(namespace(), { nvim.tabpage })
 
 dict.merge(Winid, { nvim.win })
 

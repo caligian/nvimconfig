@@ -1,7 +1,7 @@
 require "lua-utils.utils"
 
-list = module()
-dict = module()
+list = list or namespace()
+dict = dict or namespace()
 dict.keys = keys
 dict.values = values
 
@@ -212,7 +212,11 @@ end
 --- @param args any
 --- @return list
 function list.lappend(x, args)
-  return list.insert(x, 1, args)
+  for i=#args, 1, -1 do
+    return list.insert(x, 1, args[i])
+  end
+
+  return x
 end
 
 --- Extend list at the beginning with other lists
@@ -1503,6 +1507,14 @@ end
 
 dict.find_value = dict.contains
 list.find_value = list.contains
+
+function list.push(x, y)
+  return list.append(x, { y })
+end
+
+function list.lpush(x, y)
+  return list.lappend(x, { y })
+end
 
 function dict.merge2(x, y)
   return dict.merge(x, { y })

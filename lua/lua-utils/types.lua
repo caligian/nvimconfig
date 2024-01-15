@@ -336,11 +336,11 @@ function is_dict(x, skip_mtcheck)
   end
 end
 
---- Is module?
+--- Is namespace?
 --- @param x any
 --- @return boolean,string?
-function is_module(x)
-  local ok = typeof(x) == "module"
+function is_namespace(x)
+  local ok = typeof(x) == "namespace"
 
   if not ok then
     return false
@@ -438,7 +438,7 @@ function union(...)
 end
 
 --------------------------------------------------
-local is_a_mt = { type = "module" }
+local is_a_mt = { type = "namespace" }
 is_a = {}
 is_a_mt.__index = is_a_mt
 setmetatable(is_a, is_a_mt)
@@ -490,7 +490,7 @@ function is_a_mt:__call(obj, expected, assert_type)
 end
 
 --------------------------------------------------
-local assert_is_a_mt = { type = "module" }
+local assert_is_a_mt = { type = "namespace" }
 assert_is_a = {}
 setmetatable(assert_is_a, assert_is_a_mt)
 

@@ -118,11 +118,11 @@ function printf(fmt, ...)
   print(sprintf(fmt, ...))
 end
 
---- Create a module. It is possible to set metatable keys and retrieve them. Supports tostring()
+--- Create a namespace. It is possible to set metatable keys and retrieve them. Supports tostring()
 --- @return table
-function module(name)
+function namespace(name)
   local mod = {}
-  local mt = { __tostring = dump, type = "module" }
+  local mt = { __tostring = dump, type = "namespace" }
 
   function mt:__newindex(key, value)
     if mtkeys[key] then
@@ -147,7 +147,7 @@ function module(name)
   end
 
   function mod:is_a()
-    return typeof(self) == "module" and self.get_name() == name
+    return typeof(self) == "namespace" and self.get_name() == name
   end
 
   function mod:get_methods()

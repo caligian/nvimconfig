@@ -1,4 +1,4 @@
-user.telescope = module()
+user.telescope = namespace()
 local T = user.telescope
 
 function T:__call()
@@ -17,7 +17,7 @@ function T:__call()
     {
       disable_devicons = false,
       previewer = false,
-      layout_config = { height = 0.3 },
+      layout_config = { height = 10 },
     },
   }, { dict.filter(T, function(key, _)
     return key ~= "__call"

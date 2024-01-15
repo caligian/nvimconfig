@@ -1,4 +1,4 @@
-shlex = module "shlex"
+shlex = namespace "shlex"
 
 ---
 -- @tparam string cmd

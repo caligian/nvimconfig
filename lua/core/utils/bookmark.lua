@@ -9,7 +9,7 @@ dict.get(_G, { "user", "buffers" }, true)
 local BOOKMARKS = user.bookmarks
 local BUFFERS = user.buffers
 
-Bookmark = module()
+Bookmark = namespace()
 Bookmark.path = Path.join(os.getenv "HOME", ".bookmarks.json")
 
 local bookmarks = user.bookmarks

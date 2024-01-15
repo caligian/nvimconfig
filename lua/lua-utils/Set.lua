@@ -8,7 +8,7 @@ require "lua-utils.table"
 --- @operator sub(Set | list):Set difference
 --- @operator pow(Set | list):Set intersection
 
-Set = module()
+Set = namespace()
 
 local Setmt = {
   type = "Set",

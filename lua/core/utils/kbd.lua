@@ -12,7 +12,7 @@ if not Kbd then
     "noremap",
   })
 
-  Kbd.buffer = module()
+  Kbd.buffer = namespace()
   user.kbds = {}
 end
 

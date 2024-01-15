@@ -1,8 +1,8 @@
 require "lua-utils.table"
 require "lua-utils.copy"
 
-case = module()
-case.rules = module()
+case = namespace()
+case.rules = namespace()
 
 function case.var(name, test)
   if type(name) ~= "string" and type(name) ~= "number" then
@@ -625,7 +625,7 @@ end
 
 function multimethod(specs)
   local rules = case(specs)
-  local obj = module()
+  local obj = namespace()
   local mt = mtget(obj)
 
   mt.type = "multimethod"

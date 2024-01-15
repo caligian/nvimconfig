@@ -15,7 +15,7 @@ if not Autocmd then
   })
 
   user.autocmds = { buffers = {} }
-  Autocmd.buffer = module()
+  Autocmd.buffer = namespace()
 end
 
 function Autocmd:init(event, opts)

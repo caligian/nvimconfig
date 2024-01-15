@@ -14,7 +14,7 @@ if not Filetype then
   })
 
   user.filetypes = {}
-  Filetype.lsp = module()
+  Filetype.lsp = namespace()
 end
 
 --- @alias Filetype.commandspec string|table|fun(path:string): string
