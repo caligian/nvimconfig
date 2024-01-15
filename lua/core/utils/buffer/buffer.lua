@@ -6,7 +6,7 @@ require "core.utils.kbd"
 --- @field mappings table<string,kbd>
 
 if not Buffer then
-  Buffer = module()
+  Buffer = namespace()
 end
 
 --- Is object a Buffer
@@ -434,6 +434,14 @@ function Buffer.split(bufnr, direction)
     'tabnew',
   }
 
+  if direction == 's' or direction == 'v' then
+    if direction == 's' then
+      direction = 'split'
+    else
+      direction = 'vsplit'
+    end
+  end
+
   if not list.contains(valid, direction) then
     local ok = cmd(direction, {buf = bufnr})
     if not ok then
@@ -442,6 +450,8 @@ function Buffer.split(bufnr, direction)
     vim.cmd(ok)
   elseif direction:match('_vsplit') then
     cmd(direction:gsub('([^_]+)_vsplit', 'vert %1'))
+  else
+    cmd(direction)
   end
 end
 

@@ -1,7 +1,7 @@
 require "lua-utils.utils"
 
-list = list or module()
-dict = dict or module()
+list = module()
+dict = module()
 dict.keys = keys
 dict.values = values
 
@@ -1447,13 +1447,13 @@ function equals(a, b)
   elseif is_string(a) and is_string(b) then
     return strcmp(a, b)
   else
-    error('expected either string, string or number, number, got ' .. dump {a, b})
+    error("expected either string, string or number, number, got " .. dump { a, b })
   end
 end
 
 local function bsearch(arr, elem, cmp, i, j)
   i = i or 1
-	j = j or #arr
+  j = j or #arr
 
   if j < i then
     return
@@ -1463,13 +1463,12 @@ local function bsearch(arr, elem, cmp, i, j)
   local mid_elem = arr[mid]
   local result = cmp(elem, mid_elem)
 
-
-  if result == 0  then
+  if result == 0 then
     return mid, mid_elem
   elseif result == 1 then
-    return bsearch(arr, elem, cmp, i, mid-1)
+    return bsearch(arr, elem, cmp, i, mid - 1)
   elseif result == -1 then
-    return bsearch(arr, elem, cmp, mid+1, j)
+    return bsearch(arr, elem, cmp, mid + 1, j)
   end
 end
 
@@ -1477,6 +1476,38 @@ function list.bsearch(arr, elem, cmp)
   assert_is_a.table(arr)
   cmp = cmp or equals
 
-  assert_is_a(cmp, 'function')
+  assert_is_a(cmp, "function")
   return bsearch(arr, elem, cmp)
+end
+
+if is_table(jit) then
+  require "table.new"
+  local new = table.new --[[@as function]]
+
+  --- Return a preallocated dict
+  --- @param size number
+  --- @return table
+  function dict.new(size)
+    assert_is_a.number(size)
+    return new(0, size)
+  end
+
+  --- Return a preallocated list
+  --- @param size number
+  --- @return any[]
+  function list.new(size)
+    assert_is_a.number(size)
+    return new(size, 0)
+  end
+end
+
+dict.find_value = dict.contains
+list.find_value = list.contains
+
+function dict.merge2(x, y)
+  return dict.merge(x, { y })
+end
+
+function dict.lmerge2(x, y)
+  return dict.merge(x, { y })
 end

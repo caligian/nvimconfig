@@ -105,7 +105,7 @@ end
 --- @return boolean,string?
 function is_string(x)
   local ok = type(x) == "string"
-  local msg = "expected string, got " .. type(x)
+  local msg = "expected string, got " .. dump(x)
 
   if not ok then
     return false, msg
@@ -121,7 +121,7 @@ function is_table(x)
   local ok = type(x) == "table"
 
   if not ok then
-    local msg = "expected table, got " .. type(x)
+    local msg = "expected table, got " .. dump(x)
     return false, msg
   end
 
@@ -133,7 +133,7 @@ end
 --- @return boolean,string?
 function is_function(x)
   local ok = type(x) == "function"
-  local msg = "expected function, got " .. type(x)
+  local msg = "expected function, got " .. dump(x)
 
   if not ok then
     return false, msg
@@ -149,7 +149,7 @@ function is_userdata(x)
   local ok = type(x) == "userdata"
 
   if not ok then
-    local msg = "expected userdata, got " .. type(x)
+    local msg = "expected userdata, got " .. dump(x)
     return false, msg
   end
 
@@ -161,7 +161,7 @@ end
 --- @return boolean,string?
 function is_thread(x)
   local ok = type(x) == "thread"
-  local msg = "expected thread, got " .. type(x)
+  local msg = "expected thread, got " .. dump(x)
 
   if not ok then
     return false, msg
@@ -177,7 +177,7 @@ function is_boolean(x)
   local ok = type(x) == "boolean"
 
   if not ok then
-    local msg = "expected boolean, got " .. type(x)
+    local msg = "expected boolean, got " .. dump(x)
     return false, msg
   end
 
@@ -191,7 +191,7 @@ function is_number(x)
   local ok = type(x) == "number"
 
   if not ok then
-    local msg = "expected number, got " .. type(x)
+    local msg = "expected number, got " .. dump(x)
     return false, msg
   end
 
@@ -207,7 +207,7 @@ function is_callable(x)
   if tp == "function" then
     return true
   elseif tp ~= "table" then
-    return false, "expected table|function, got " .. tp
+    return false, "expected table|function, got " .. dump(tp)
   end
 
   local mt = getmetatable(x)
@@ -267,12 +267,12 @@ end
 
 function is_dict(x, dict_like)
   if not is_table(x) then
-    return false, "expected table, got " .. type(x)
+    return false, "expected table, got " .. dump(x)
   end
 
   local mt = not dict_like and getmetatable(x)
   if mt and mt.type ~= "dict" then
-    return false, "expected dict, got " .. mt.type
+    return false, "expected dict, got " .. dump(x)
   end
 
   local len = size(x)
@@ -282,7 +282,7 @@ function is_dict(x, dict_like)
 
   local ok = len ~= #x
   if not ok then
-    return false, "expected dict, got dict"
+    return false, "expected dict, got list " .. dump(x)
   end
 
   return true
@@ -290,12 +290,12 @@ end
 
 function is_list(x, list_like)
   if not is_table(x) then
-    return false, "expected table, got " .. type(x)
+    return false, "expected table, got " .. dump(x)
   end
 
   local mt = not list_like and getmetatable(x)
   if mt and mt.type ~= "list" then
-    return false, "expected list, got " .. mt.type
+    return false, "expected list, got " .. dump(x)
   end
 
   local len = size(x)
@@ -314,14 +314,14 @@ end
 --- @
 function is_dict(x, skip_mtcheck)
   if not is_table(x) then
-    return false, "expected table, got " .. type(x)
+    return false, "expected table, got " .. dump(x)
   elseif not skip_mtcheck then
     local mt = getmetatable(x)
     if mt then
       if mt.type == "dict" then
         return true
       elseif mt.type ~= nil then
-        return false, "expected dict, got " .. mt.type
+        return false, "expected dict, got " .. dump(x)
       end
     end
   end
@@ -330,7 +330,7 @@ function is_dict(x, skip_mtcheck)
   if len == 0 then
     return false, "expected dict, got empty table"
   elseif len == #x then
-    return false, "expected dict, got list"
+    return false, "expected dict, got list " .. dump(x)
   else
     return true
   end
@@ -639,7 +639,7 @@ function class(name, static)
 
   function mod.assert_is_a(self)
     if not mod.is_a(self) then
-      error("expected " .. name .. ", got " .. type(self))
+      error("expected " .. name .. ", got " .. dump(self))
     end
 
     return self
@@ -671,19 +671,25 @@ function class(name, static)
     end)
   end
 
-  function mod:to_callable(fn)
+  function mod:create_instance_method(fn)
+    assert_is_a(fn, union('string', 'callable'))
+
+    if is_string(fn) then
+      return self:get_method(fn)
+    end
+
     return function(...)
       return fn(self, ...)
     end
   end
 
   function mod:get_method(fun)
-    if not self[fun] then
-      return
-    end
+    local ok = self[fun]
 
-    return function(...)
-      return fun(self, ...)
+    if not ok then
+      return nil, 'invalid method name: ' .. dump(fun)
+    else
+      return ok
     end
   end
 
