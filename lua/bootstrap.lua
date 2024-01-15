@@ -50,4 +50,4 @@ json = {
 -- regex = require "rex_pcre2"
 
 require "lua-utils"
-require "core.utils.Path"
+require "nvim-utils"

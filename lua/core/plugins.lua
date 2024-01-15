@@ -9,7 +9,7 @@ local default = {
     ft = "norg",
   },
 
-  plenary = { "nvim-lua/plenary.nvim", },
+  plenary = { "nvim-lua/plenary.nvim" },
 
   telescope = {
     "nvim-telescope/telescope.nvim",
@@ -32,22 +32,22 @@ local default = {
 
   notify = {
     "rcarriga/nvim-notify",
-    event = 'BufRead',
+    event = "BufRead",
   },
 
   signs = {
     "lewis6991/gitsigns.nvim",
-    event = 'BufRead',
+    event = "BufRead",
   },
 
   indentblankline = {
     "lukas-reineke/indent-blankline.nvim",
-    event = 'BufRead',
+    event = "BufRead",
   },
 
   align = {
     "junegunn/vim-easy-align",
-    event = 'InsertEnter',
+    event = "InsertEnter",
   },
 
   suda = {
@@ -95,17 +95,17 @@ local default = {
 
   netrw = {
     "prichrd/netrw.nvim",
-    event = 'BufRead',
+    event = "BufRead",
   },
 
   surround = {
     "kylechui/nvim-surround",
-    event = 'BufRead',
+    event = "BufRead",
   },
 
   autopairs = {
     "windwp/nvim-autopairs",
-    event = 'BufRead',
+    event = "BufRead",
   },
 
   clipboard = {
@@ -130,7 +130,7 @@ local default = {
 
   comment = {
     "tpope/vim-commentary",
-    event = 'BufRead',
+    event = "BufRead",
   },
 
   fennel = {
@@ -140,12 +140,12 @@ local default = {
 
   hop = {
     "phaazon/hop.nvim",
-    event = 'BufRead',
+    event = "BufRead",
   },
 
   illuminate = {
     "RRethy/vim-illuminate",
-    event = 'BufRead',
+    event = "BufRead",
   },
 
   treesitter = {
@@ -190,7 +190,7 @@ local default = {
       "MunifTanjim/nui.nvim",
     },
 
-    event = 'BufReadPost',
+    event = "BufReadPost",
   },
 
   hop = {
@@ -201,13 +201,13 @@ local default = {
 
   snippets = {
     "L3MON4D3/LuaSnip",
-    event = 'BufRead',
+    event = "BufRead",
     dependencies = { "rafamadriz/friendly-snippets" },
   },
 
   cmp = {
     "hrsh7th/nvim-cmp",
-    event = 'BufRead',
+    event = "BufRead",
     dependencies = {
       "onsails/lspkind.nvim",
       "L3MON4D3/LuaSnip",
@@ -233,7 +233,7 @@ local default = {
     config = function()
       Kbd.map("n", "<localleader>t", ":TagbarToggle<CR>", { desc = "Tagbar", name = "tagbar" })
     end,
-    event = 'BufRead'
+    event = "BufRead",
   },
 
   whichkey = {
@@ -248,7 +248,7 @@ local default = {
 
   lspsaga = {
     "nvimdev/lspsaga.nvim",
-    event = 'BufRead',
+    event = "BufRead",
   },
 
   lsp = {
@@ -257,12 +257,12 @@ local default = {
       "lukas-reineke/lsp-format.nvim",
       { "folke/neodev.nvim", opts = {} },
     },
-    event = 'BufReadPost',
+    event = "BufReadPost",
   },
 
   undotree = {
     "mbbill/undotree",
-    event = 'BufReadPost',
+    event = "BufReadPost",
   },
 
   elixir = {
