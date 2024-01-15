@@ -158,7 +158,6 @@ function list.map(x, f, inplace)
   for i = 1, #x do
     local v = f(x[i])
     assert(v ~= nil, "mapper cannot return non-nil: " .. tostring(x[i]))
-
     res[i] = v
   end
 

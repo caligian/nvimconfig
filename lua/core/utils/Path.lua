@@ -321,7 +321,7 @@ function Path.abspath(p, exists)
     return p
   end
 
-  p = p:gsub("/*$", "")
+  p = Path.clean(p)
   return Path.join(cwd, p)
 end
 
@@ -348,14 +348,6 @@ function Path.relpath(p, exists)
     local found = pat:match(p)
     return "." .. found
   end
-end
-
-function Path.abspath(x)
-  if x:match "^/" then
-    return x
-  end
-
-  return Path.join(Path.cwd(), x)
 end
 
 Path.delete = os.remove

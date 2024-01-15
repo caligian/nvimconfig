@@ -175,7 +175,7 @@ function Argparser:_findindex(args)
     local short = short_option and "-" .. short_option
     local long_index = findall(args, long)
     local short_index = findall(args, short)
-    local all = list.extend { long_index or {}, short_index or {} }
+    local all = list.extend(long_index, { short_index })
     opt.index = all
 
     list.each(all, function(x)
@@ -250,7 +250,7 @@ function Argparser:parse(args)
     if passed then
       local use = self.options[from[2]]
       use.args = use.args or {}
-      use.args = list.extend { use.args, { passed } }
+      use.args = list.extend(use.args, { passed })
     end
   end
 
@@ -302,6 +302,8 @@ function Argparser:parse(args)
   end
 
   list.eachi(self.positional, function(i, opt)
+    local out = args[i]
+
     if opt.required and out == nil then
       error(opt.name .. ": missing positional arg " .. i)
     end
@@ -342,12 +344,16 @@ function Argparser:parse(args)
     parsed[name:gsub("-", "_")] = switch.args
   end)
 
-  list.each(self.positional, function(switch)
+  list.eachi(self.positional, function(i, switch)
     name = switch.name
     if is_number(name) then
       pos[name] = switch.arg
     else
       pos[name:gsub("-", "_")] = switch.arg
+    end
+
+    if not pos[i] then
+      pos[i] = switch.arg
     end
   end)
 
@@ -363,6 +369,34 @@ end
 --long-name STR[+]   wrap when the description is beyond 60 characters
 
 --]]
+
+local function wrap_lines(full_name, help)
+  local maxlen = 30
+  local optlen = #full_name
+  local totalhelp = { full_name }
+
+  if optlen > maxlen then
+    totalhelp[#totalhelp + 1] = "\n"
+    totalhelp[#totalhelp + 1] = string.rep(" ", maxlen)
+  else
+    totalhelp[#totalhelp + 1] = string.rep(" ", maxlen - optlen)
+  end
+
+  local ctr = 0
+  for value in string.gmatch(help, "[^%s]+") do
+    if ctr > maxlen then
+      ctr = 0
+      totalhelp[#totalhelp + 1] = "\n" .. string.rep(" ", maxlen + 1)
+    else
+      ctr = ctr + #value
+      totalhelp[#totalhelp + 1] = " "
+    end
+
+    totalhelp[#totalhelp + 1] = value
+  end
+
+  return join(totalhelp, "")
+end
 
 function Argparser.Option:tostring()
   local metavar, long, short, required, nargs, help, name
@@ -388,31 +422,11 @@ function Argparser.Option:tostring()
     name = name .. " " .. metavar
   end
 
-  local maxlen = 30
-  local optlen = #name
-  local totalhelp = { name }
+  return wrap_lines(name, help)
+end
 
-  if optlen > maxlen then
-    totalhelp[#totalhelp + 1] = "\n"
-    totalhelp[#totalhelp + 1] = string.rep(" ", maxlen)
-  else
-    totalhelp[#totalhelp + 1] = string.rep(" ", maxlen - optlen)
-  end
-
-  local ctr = 0
-  for value in string.gmatch(help, "[^%s]+") do
-    if ctr > maxlen then
-      ctr = 0
-      totalhelp[#totalhelp + 1] = "\n" .. string.rep(" ", maxlen + 1)
-    else
-      ctr = ctr + #value
-      totalhelp[#totalhelp + 1] = " "
-    end
-
-    totalhelp[#totalhelp + 1] = value
-  end
-
-  return join(totalhelp, "")
+function Argparser.Positional:tostring()
+  --- similar to above algo
 end
 
 function Argparser:tostring()
@@ -429,6 +443,7 @@ function Argparser:tostring()
     header or "",
     "",
   }
+
   if #self.positional > 0 then
     list.append(usage, { "Positional arguments:" })
 
@@ -467,7 +482,6 @@ function Argparser:tostring()
 end
 
 local s = "1 2 3 4 --name 1 -a 2 --name 2 3 4 10 --b-name 1 2 3 4 5 -b -1"
-
 local parser = Argparser("Hello world", "!")
 parser.args = strsplit(s, " ")
 
@@ -475,6 +489,7 @@ parser:on {
   short = "a",
   long = "name",
   help = "please print something here or else i will die of not getting attention",
+  nargs = "*",
 }
 
 parser:on {
@@ -502,3 +517,6 @@ parser:on {
   type = "number",
   required = true,
 }
+
+-- pp(parser:parse())
+-- print(parser.optional["b-name"]:tostring())
