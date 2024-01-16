@@ -184,26 +184,17 @@ function user.enable_recent_buffers(overrides)
 end
 
 function user.setup_defaults()
-  if user.enable.autocmds then
-    Autocmd.main()
-  end
-
   if user.enable.plugins then
     Plugin.main()
   end
 
-  vim.api.nvim_create_user_command("ReloadStatusline", function()
-    user.plugins.statusline:setup()
-  end, {})
-
-  vim.api.nvim_create_user_command("ReloadColorscheme", function()
-    user.plugins.colorscheme:setup()
-  end, {})
-
-  vim.cmd "ReloadColorscheme"
-  vim.cmd "ReloadStatusline"
+  user.plugins.colorscheme:setup()
 
   vim.schedule(function()
+    if user.enable.autocmds then
+      Autocmd.main()
+    end
+
     if user.enable.filetypes then
       Filetype.main()
     end
