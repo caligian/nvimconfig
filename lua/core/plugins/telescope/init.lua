@@ -198,6 +198,7 @@ local find_files_actions = require "core.plugins.telescope.actions.find-files"
 local file_browser_actions = require "core.plugins.telescope.actions.file-browser"
 
 M.config = {}
+
 M.config.extensions = {
   file_browser = {
     hijack_netrw = false,

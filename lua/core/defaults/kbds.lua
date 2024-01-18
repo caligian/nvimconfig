@@ -39,7 +39,7 @@ local withopts = function(overrides)
   return dict.lmerge(overrides, { opts })
 end
 
-return {
+return  {
   paste_above_cursor = {
     "n",
     "gp",
@@ -91,13 +91,6 @@ return {
     "oz",
     ":ToggleZenMode<CR>",
     withopts "Toggle Zen mode",
-  },
-
-  save_bookmark = {
-    "n",
-    "fb",
-    "mA",
-    withopts { desc = "Bookmark current file at pos" },
   },
 
   open_doom_config = {

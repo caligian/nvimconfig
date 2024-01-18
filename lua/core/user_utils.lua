@@ -189,6 +189,7 @@ function user.setup_defaults()
   end
 
   user.plugins.colorscheme:setup()
+  user.plugins.statusline:setup()
 
   vim.schedule(function()
     if user.enable.autocmds then
@@ -214,15 +215,10 @@ function user.setup_defaults()
 
     user.enable_temp_buffers()
     user.enable_recent_buffers()
-  end)
 
-  vim.schedule(function()
     if user.enable.mappings then
-      vim.schedule(function()
-        Kbd.map("n", "<leader>hC", ":ReloadColorscheme<CR>", "reload colorscheme")
-        Kbd.map("n", "<leader>h=", ":ReloadStatusline<CR>", "reload statusline")
-        Kbd.main()
-      end)
+      Kbd.map("n", "<leader>hC", ":ReloadColorscheme<CR>", "reload colorscheme")
+      Kbd.map("n", "<leader>h=", ":ReloadStatusline<CR>", "reload statusline")
 
       if user.enable.commands then
         local cmds = require "core.defaults.commands"
@@ -237,4 +233,10 @@ function user.setup_defaults()
       end
     end
   end)
+
+  vim.defer_fn(function ()
+    Kbd.main()
+  end, 100)
 end
+
+
