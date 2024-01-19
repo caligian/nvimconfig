@@ -40,11 +40,6 @@ local default = {
     event = "BufRead",
   },
 
-  indentblankline = {
-    "lukas-reineke/indent-blankline.nvim",
-    event = "BufRead",
-  },
-
   align = {
     "junegunn/vim-easy-align",
     event = "InsertEnter",
@@ -136,11 +131,6 @@ local default = {
   fennel = {
     "jaawerth/fennel.vim",
     ft = "fennel",
-  },
-
-  hop = {
-    "phaazon/hop.nvim",
-    event = "BufRead",
   },
 
   illuminate = {

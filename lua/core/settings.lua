@@ -1,5 +1,5 @@
 --- @type string
-user.colorscheme = "oceanic"
+user.colorscheme = "darksolar"
 
 --- @type ({ft: string}|string|{pattern: string|string[]}|string[])[]
 user.temp_buffer_patterns = {
