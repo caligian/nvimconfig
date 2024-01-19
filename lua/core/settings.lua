@@ -1,5 +1,5 @@
 --- @type string
-user.colorscheme = "darksolar"
+user.colorscheme = "zenburned"
 
 --- @type ({ft: string}|string|{pattern: string|string[]}|string[])[]
 user.temp_buffer_patterns = {
@@ -28,7 +28,7 @@ user.enable = {
   autocmds = true,
   commands = true,
   bookmarks = true,
-  buffergroups = true,
+  buffer_groups = true,
   filetypes = true,
   repl = true,
   plugins = true,
