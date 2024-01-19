@@ -200,7 +200,7 @@ function user.setup_defaults()
       Filetype.main()
     end
 
-    if user.enable.buffergroups then
+    if user.enable.buffer_groups then
       BufferGroup.main()
     end
 
