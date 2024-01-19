@@ -1,18 +1,38 @@
-local indentblankline = {}
+local indentblankline = {
+  config = {
+    indent = {char = '>' },
+    scope = {enabled = true, char = '>'},
+    whitespace = {
+      remove_blankline_trail = false,
+      highlight = {'IblWhitespace', 'Function', 'Label'},
+    }
+  },
+}
 
 function indentblankline.set_highlight()
   local normal = highlight "Normal"
+
   if not normal.guibg then
     return
   end
 
-  if is_dark(normal.guibg) then
-    normal.guifg = darken(normal.guibg, 20)
+  local cursor = highlight "Cursor" or {}
+  local cursorbg = cursor.guibg or "#000000"
+  local bg = normal.guibg
+  local scope
+  local fg
+
+  if is_dark(bg) then
+    fg = lighten(bg, 15)
+    scope = lighten(bg, 25)
   else
-    normal.guifg = lighten(normal.guibg, 20)
+    fg = darken(bg, 15)
+    scope = darken(bg, 25)
   end
 
-  highlightset("IblIndent", { guifg = normal.guifg })
+  highlightset("IblIndent", { guifg = fg })
+  highlightset("IblWhitespace", { guifg = cursorbg })
+  highlightset("IblScope", { guifg = scope })
 end
 
 indentblankline.autocmds = {
