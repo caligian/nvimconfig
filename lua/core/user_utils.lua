@@ -188,9 +188,6 @@ function user.setup_defaults()
     Plugin.main()
   end
 
-  user.plugins.colorscheme:setup()
-  user.plugins.statusline:setup()
-
   vim.schedule(function()
     if user.enable.autocmds then
       Autocmd.main()
@@ -236,7 +233,5 @@ function user.setup_defaults()
 
   vim.defer_fn(function ()
     Kbd.main()
-  end, 100)
+  end, 150)
 end
-
-
