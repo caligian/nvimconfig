@@ -19,7 +19,7 @@ return {
   },
 
   formatter = {
-    buffer = 'cat {path} | ' .. formatter_path .. ' -',
+    buffer = "cat {path} | " .. formatter_path .. " -",
     workspace = formatter_cmd .. " {path}",
     dir = formatter_cmd .. " {path}",
   },

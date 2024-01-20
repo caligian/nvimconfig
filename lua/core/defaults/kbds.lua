@@ -39,7 +39,7 @@ local withopts = function(overrides)
   return dict.lmerge(overrides, { opts })
 end
 
-return  {
+return {
   paste_above_cursor = {
     "n",
     "gp",

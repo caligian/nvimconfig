@@ -10,23 +10,22 @@ return {
   },
 
   stop_jobs = {
-    'ExitPre',
+    "ExitPre",
     {
-      pattern = '*',
-      callback = function ()
-        dict.each(user.jobs, function (_, job)
+      pattern = "*",
+      callback = function()
+        dict.each(user.jobs, function(_, job)
           job:close()
         end)
 
-        dict.each(user.repls, function (_, job)
+        dict.each(user.repls, function(_, job)
           job:stop()
         end)
 
-        dict.each(user.terminals, function (_, job)
+        dict.each(user.terminals, function(_, job)
           job:stop()
         end)
-      end
-    }
+      end,
+    },
   },
 }
-
