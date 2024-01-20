@@ -33,7 +33,7 @@ python.server = "pyright"
 
 python.compile = "python3 {path}"
 
-python.bo = {
+python.buf_opts = {
   shiftwidth = 4,
   tabstop = 4,
   expandtab = true,
