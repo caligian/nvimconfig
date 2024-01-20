@@ -13,13 +13,13 @@ local formatter_cmd = formatter_path
   }, " ")
 
 return {
-  bo = {
+  buf_opts = {
     shiftwidth = 2,
     tabstop = 2,
   },
 
   formatter = {
-    buffer = "cat {path} | " .. formatter_path .. " -",
+    buffer = "cat {path} | " .. formatter_cmd .. " -",
     workspace = formatter_cmd .. " {path}",
     dir = formatter_cmd .. " {path}",
   },

@@ -18,7 +18,7 @@ ocaml.formatter = {
   stdin = true,
 }
 
-ocaml.bo = {
+ocaml.buf_opts = {
   tabstop = 4,
   shiftwidth = 4,
 }

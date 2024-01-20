@@ -15,30 +15,29 @@ local function run_and_split(cmd, append_bufname)
 end
 
 go.mappings = {
-  opts = { prefix = "m", noremap = true, leader = true },
   clean = {
     "n",
     "<leader>mc",
     run_and_split "go clean",
-    { desc = "clean" },
+    { desc = "clean", noremap = true },
   },
   deps = {
     "n",
     "<leader>d",
     run_and_split "go get",
-    { desc = "fetch deps" },
+    { desc = "fetch deps", noremap = true },
   },
   list = {
     "n",
     "<leader>ml",
     run_and_split "go list",
-    { desc = "list modules/packages" },
+    { desc = "list modules/packages", noremap = true },
   },
   vet = {
     "n",
     "<leader>mv",
     run_and_split "go vet",
-    { desc = "vet source" },
+    { desc = "vet source", noremap =true },
   },
 }
 

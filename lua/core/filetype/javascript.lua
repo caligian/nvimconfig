@@ -6,7 +6,7 @@ js.repl = "node"
 
 js.server = "tsserver"
 
-js.bo = {
+js.buf_opts = {
   expandtab = true,
 }
 

@@ -2,7 +2,7 @@ local tex = {}
 
 tex.server = "texlab"
 
-tex.bo = {
+tex.buf_opts = {
   textwidth = 80,
   shiftwidth = 4,
   tabstop = 4,
