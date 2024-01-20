@@ -19,10 +19,9 @@ return {
   },
 
   formatter = {
-    stdin = true,
-    buffer = formatter_cmd .. " -",
-    workspace = { formatter_cmd .. " {path}" },
-    dir = { formatter_cmd .. " {path}" },
+    buffer = 'cat {path} | ' .. formatter_path .. ' -',
+    workspace = formatter_cmd .. " {path}",
+    dir = formatter_cmd .. " {path}",
   },
 
   compile = {
