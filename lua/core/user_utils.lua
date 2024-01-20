@@ -218,9 +218,9 @@ function user.setup_defaults()
 		end
 	end)
 
-	vim.schedule(function()
+	vim.defer_fn(function()
 		Kbd.main()
-	end)
+	end, 100)
 
 	vim.schedule(function()
 		if user.enable.commands then
