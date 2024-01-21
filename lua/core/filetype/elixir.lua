@@ -27,7 +27,7 @@ elixir.repl = {
 				end
 			end,
 			function()
-				return "iex -S phoenix"
+				return "iex"
 			end,
 		},
 		{

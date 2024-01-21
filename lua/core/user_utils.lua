@@ -188,12 +188,12 @@ function user.setup_defaults()
 		Plugin.main()
 	end
 
-	vim.schedule(function()
-		if user.enable.filetypes then
-			Filetype.main()
-		end
+  if user.enable.filetypes then
+    Filetype.main()
+  end
 
-		if user.enable.autocmds then
+	vim.schedule(function()
+    if user.enable.autocmds then
 			Autocmd.main()
 		end
 
@@ -224,9 +224,9 @@ function user.setup_defaults()
 				nvim.create.user_command(name, unpack(args))
 			end)
 		end
+  end)
 
-		vim.defer_fn(function()
-			Kbd.main()
-		end, 100)
-	end)
+  vim.defer_fn(function()
+    Kbd.main()
+  end, 100)
 end
