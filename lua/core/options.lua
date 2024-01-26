@@ -47,9 +47,9 @@ user.option = {
 }
 
 local function setopts()
-  if req2path "user.option" then
-    requirex "user.option"
-  end
+	if is_file(user.user_dir .. '/.options.lua') then
+		dict.merge(user.option, requirex('user.options') or {}) 
+	end
 
   for t, opts in pairs(user.option) do
     for k, v in pairs(opts) do

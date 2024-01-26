@@ -1,33 +1,21 @@
-local mod = {}
+local mod = user.telescope:module()
 
-function mod.delete(bufnr)
-  local _ = user.telescope()
-  local sels = _:selected(bufnr, true)
-
-  list.each(sels, function(sel)
-    print("rm -r", sel[1])
-    vim.fn.system { "rm", "-r", sel[1] }
-  end)
+function mod.multi_delete(sel)
+  vim.fn.system { "rm", "-r", sel[1] }
 end
 
-function mod.force_delete(bufnr)
-  local _ = user.telescope()
-  local sels = _:selected(bufnr)
-
-  list.each(sels, function(sel)
-    print("rm -rf", sel[1])
-    vim.fn.system { "rm", "-rf", sel[1] }
-  end)
+function mod.multi_force_delete(bufnr)
+  vim.fn.system { "rm", "-rf", sel[1] }
 end
 
-function mod.touch(bufnr)
-  local _ = user.telescope()
-  local sel = _:selected(bufnr)
+function mod.touch(sel)
   local cwd = sel.Path._cwd
   local fname = vim.fn.input "Filename % "
+
   if #fname == 0 then
     return
   end
+
   local isdir = fname:match "/$"
   fname = Path.join(cwd, fname)
 

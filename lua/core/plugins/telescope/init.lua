@@ -7,12 +7,12 @@ end
 
 local function picker(p, conf)
   return function()
-    require("telescope.builtin")[p](dict.merge(conf or {}, { getivy() }))
+    require("telescope.builtin")[p](dict.merge(conf or {}, getivy()))
   end
 end
 
 local function O(overrides)
-  return dict.merge(overrides, { { noremap = true, leader = true } })
+  return dict.merge(overrides, { noremap = true, leader = true })
 end
 
 M.mappings = {
@@ -204,8 +204,8 @@ M.config.extensions = {
     hijack_netrw = false,
     mappings = {
       n = {
-        x = file_browser_actions.delete,
-        X = file_browser_actions.force_delete,
+        x = file_browser_actions.multi_delete,
+        X = file_browser_actions.multi_force_delete,
         ["%"] = file_browser_actions.touch,
       },
     },
@@ -217,10 +217,10 @@ M.config.pickers = {
     show_all_buffers = true,
     mappings = {
       n = {
-        x = buffer_actions.bwipeout,
-        ["!"] = buffer_actions.nomodified,
-        w = buffer_actions.save,
-        r = buffer_actions.readonly,
+        x = buffer_actions.multi_bwipeout,
+        ["!"] = buffer_actions.multi_nomodified,
+        w = buffer_actions.multi_save,
+        r = buffer_actions.multi_readonly,
       },
     },
   },
@@ -228,7 +228,7 @@ M.config.pickers = {
     mappings = {
       n = {
         ["%"] = find_files_actions.touch,
-        x = find_files_actions.delete,
+        x = find_files_actions.multi_delete,
       },
     },
   },

@@ -1,47 +1,19 @@
-local mod = {}
+local mod = user.telescope:module()
 
-function mod.bwipeout(bufnr)
-  local _ = user.telescope()
-  local sel = _:selected(bufnr, true)
-
-  list.each(sel, function(x)
-    print("Wiping out buffer " .. x.bufnr)
-    vim.cmd("bwipeout! " .. x.bufnr)
-  end)
+function mod.multi_bwipeout(sel)
+  vim.cmd("bwipeout! " .. sel.bufnr)
 end
 
-function mod.nomodified(bufnr)
-  local _ = user.telescope()
-  local sels = _:selected(bufnr, true)
-
-  list.each(sels, function(sel)
-    print("Setting buffer status to nomodified: " .. vim.fn.bufname(sel.bufnr))
-    vim.api.nvim_buf_call(sel.bufnr, function()
-      vim.cmd "set nomodified"
-    end)
-  end)
+function mod.multi_nomodified(sel)
+  nvim.buf.set_option(sel.bufnr, 'modified', false)
 end
 
-function mod.save(bufnr)
-  local _ = user.telescope()
-  local sels = _:selected(bufnr, true)
-
-  list.each(sels, function()
-    print("Saving buffer " .. sel.bufnr)
-    local name = vim.fn.bufname(sel.bufnr)
-    vim.cmd("w " .. name)
-  end)
+function mod.multi_save(sel)
+  vim.cmd(':w! ' .. nvim.buf.get_name(sel.bufnr))
 end
 
-function mod.readonly(bufnr)
-  local _ = user.telescope()
-  local sels = _:selected(bufnr, true)
-  list.each(sels, function(sel)
-    print("Setting buffer to readonly: " .. vim.fn.bufname(sel.bufnr))
-    vim.api.nvim_buf_call(sel.bufnr, function()
-      vim.cmd "set nomodifiable"
-    end)
-  end)
+function mod.multi_readonly(sel)
+  nvim.buf.set_option(sel.bufnr, 'modifiable', false)
 end
 
 return mod

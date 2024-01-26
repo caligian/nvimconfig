@@ -77,7 +77,7 @@ cmp.config = {
     ["<C-f>"] = nvim_cmp.mapping.scroll_docs(4),
     ["<C-n>"] = nvim_cmp.mapping.select_next_item(),
     ["<C-p>"] = nvim_cmp.mapping.select_prev_item(),
-    ["<C-Space>"] = nvim_cmp.mapping.complete(),
+    ["<A-/>"] = nvim_cmp.mapping.complete(),
     ["<C-e>"] = nvim_cmp.mapping.abort(),
     ["<CR>"] = nvim_cmp.mapping.confirm { select = true },
   },
@@ -136,13 +136,11 @@ cmp.config = {
 
 function cmp:setup()
   cmp_zsh.setup { zshrc = true, filetypes = { "zsh" } }
-
   nvim_cmp.setup.cmdline("/", {
     sources = nvim_cmp.config.sources {
       { name = "nvim_lsp_document_symbol" },
     },
   })
-
   nvim_cmp.setup(self.config)
 end
 

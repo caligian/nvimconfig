@@ -22,7 +22,7 @@ colorscheme.config = {
     },
     setup = function(self, opts)
       opts = opts or {}
-      opts = dict.merge(copy(self.config), { opts })
+      opts = dict.merge(copy(self.config), opts)
       list.each(opts, function(key, value)
         vim.g[key] = value
       end)
@@ -70,7 +70,7 @@ colorscheme.config = {
     },
     setup = function(self, opts)
       opts = opts or {}
-      opts = dict.merge(copy(self.config), { opts })
+      opts = dict.merge(copy(self.config), opts)
       require("rose-pine").setup(opts)
     end,
   },
@@ -123,7 +123,7 @@ colorscheme.config = {
     },
     setup = function(self, opts)
       opts = opts or {}
-      opts = dict.merge(copy(self.config), { opts })
+      opts = dict.merge(copy(self.config), opts)
       require("tokyonight").setup(opts)
       vim.cmd ":color tokyonight"
     end,

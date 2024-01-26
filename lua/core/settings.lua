@@ -1,5 +1,5 @@
 --- @type string
-user.colorscheme = "oceanic"
+user.colorscheme = "cinnabar"
 
 --- @type ({ft: string}|string|{pattern: string|string[]}|string[])[]
 user.temp_buffer_patterns = {
@@ -40,6 +40,6 @@ user.enable = {
 -- provide options to toggle bookmarks, buffergroups
 -- same for repl
 
-if req2path "user.settings" then
+if is_file(user.user_dir .. '/settings.lua') then
   requirex "user.settings"
 end

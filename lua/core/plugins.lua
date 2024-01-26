@@ -53,6 +53,7 @@ local default = {
   colorscheme = {
     "sainnhe/everforest",
     dependencies = {
+      "vimoxide/vim-cinnabar",
       "rktjmp/lush.nvim",
       "rose-pine/neovim",
       "navarasu/onedark.nvim",
@@ -180,7 +181,7 @@ local default = {
       "MunifTanjim/nui.nvim",
     },
 
-    event = "BufReadPost",
+    event = "InsertEnter",
   },
 
   hop = {
@@ -197,7 +198,7 @@ local default = {
 
   cmp = {
     "hrsh7th/nvim-cmp",
-    event = "BufRead",
+    event = "BufReadPost",
     dependencies = {
       "onsails/lspkind.nvim",
       "L3MON4D3/LuaSnip",
@@ -243,10 +244,7 @@ local default = {
 
   lsp = {
     "neovim/nvim-lspconfig",
-    dependencies = {
-      "lukas-reineke/lsp-format.nvim",
-      { "folke/neodev.nvim", opts = {} },
-    },
+    dependencies = { "lukas-reineke/lsp-format.nvim" },
     event = "BufReadPost",
   },
 
@@ -261,11 +259,16 @@ local default = {
   },
 }
 
-if req2path "user.plugins" then
-  local spec = requirex "user.string"
-  if is_table(spec) then
-    dict.merge(default, { spec })
-  end
+if is_file(user.user_dir .. "/plugins.lua") then
+  return requirex("user.plugins", function(x)
+    if is_table(x) then
+      return dict.merge(default, x)
+    end
+  end, function()
+    return default
+  end)
 end
 
 return default
+
+

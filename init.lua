@@ -24,7 +24,7 @@ if Path.exists(user.paths.logs) then
   Path.delete(user.paths.logs)
 end
 
-local lsp_logs = Path.join(vim.fn.stdpath('data'), 'lsp.log')
+local lsp_logs = Path.join(vim.fn.stdpath "state", "lsp.log")
 if Path.exists(lsp_logs) then
   Path.rm(lsp_logs)
 end
