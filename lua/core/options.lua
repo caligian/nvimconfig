@@ -46,20 +46,9 @@ user.option = {
   },
 }
 
-local function setopts()
-	if is_file(user.user_dir .. '/.options.lua') then
-		dict.merge(user.option, requirex('user.options') or {}) 
-	end
 
   for t, opts in pairs(user.option) do
     for k, v in pairs(opts) do
       vim[t][k] = v
     end
   end
-end
-
-setopts()
-
-vim.api.nvim_create_user_command("ReloadOptions", function()
-  setopts()
-end, {})

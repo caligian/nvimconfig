@@ -15,28 +15,13 @@ vim.api.nvim_create_autocmd("BufEnter", {
 })
 
 require "nvim-utils" {
-  lazy = true,
-  setup_user_dirs = true,
-  setup_luarocks = true,
+  lazy = {enable = true},
+  luarocks = {enable = true},
 }
 
-if Path.exists(user.paths.logs) then
-  Path.delete(user.paths.logs)
+if Path.exists(user.log_path) then
+  Path.delete(user.log_path)
 end
-
-local lsp_logs = Path.join(vim.fn.stdpath "state", "lsp.log")
-if Path.exists(lsp_logs) then
-  Path.rm(lsp_logs)
-end
-
-nvim.create.autocmd({ "BufDelete" }, {
-  pattern = "*",
-  callback = function(opts)
-    if user.buffers[opts.buf] then
-      user.buffers[opts.buf] = nil
-    end
-  end,
-})
 
 -- Load the framework
 require "core"

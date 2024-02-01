@@ -1,5 +1,5 @@
 --- @type string
-user.colorscheme = "cinnabar"
+user.colorscheme = "material-darker"
 
 --- @type ({ft: string}|string|{pattern: string|string[]}|string[])[]
 user.temp_buffer_patterns = {
@@ -33,13 +33,3 @@ user.enable = {
   repl = true,
   plugins = true,
 }
-
---- TODO
--- revamp defaults
--- move applying defaults to user_utils.lua
--- provide options to toggle bookmarks, buffergroups
--- same for repl
-
-if is_file(user.user_dir .. '/settings.lua') then
-  requirex "user.settings"
-end

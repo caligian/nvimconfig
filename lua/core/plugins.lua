@@ -1,4 +1,4 @@
-local default = {
+return {
   statusline = {
     "nvim-lualine/lualine.nvim",
     priority = 1000,
@@ -258,17 +258,3 @@ local default = {
     ft = "elixir",
   },
 }
-
-if is_file(user.user_dir .. "/plugins.lua") then
-  return requirex("user.plugins", function(x)
-    if is_table(x) then
-      return dict.merge(default, x)
-    end
-  end, function()
-    return default
-  end)
-end
-
-return default
-
-

@@ -8,3 +8,4 @@ lua/doc/*
 lua/core/doc/*
 lua/copy-lua-utils
 config.ld
+lsp_servers/*

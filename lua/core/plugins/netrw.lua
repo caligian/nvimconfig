@@ -2,9 +2,9 @@ local netrw = {}
 
 netrw.config = {
   icons = {
-    symlink = "",
-    directory = "",
-    file = "",
+    symlink = "S",
+    directory = "D",
+    file = "F",
   },
   use_devicons = true,
   mappings = {},
