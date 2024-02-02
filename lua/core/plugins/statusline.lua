@@ -170,12 +170,11 @@ function statusline:setup_evil()
   ins_left {
     function()
       local bufnr = vim.fn.bufnr()
-      local groups = BufferGroup._buffers[bufnr]
+      local groups = user.buffers[bufnr]
       if not groups then
         return "<!>"
       end
-
-      return sprintf("<%s>", join(keys(groups), ","))
+      return sprintf("<%s>", join(keys(groups.buffer_groups), ","))
     end,
   }
 
@@ -327,6 +326,8 @@ function statusline:setup()
   if self.config.evil then
     self:setup_evil()
   else
+    local config = copy(self.config)
+    config.evil = false
     require("lualine").setup(self.config)
   end
 end
