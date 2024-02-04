@@ -1,7 +1,6 @@
 return {
   statusline = {
     "nvim-lualine/lualine.nvim",
-    priority = 1000,
   },
 
   neorg = {
@@ -37,7 +36,7 @@ return {
 
   signs = {
     "lewis6991/gitsigns.nvim",
-    event = "BufRead",
+    event = "InsertEnter",
   },
 
   align = {
@@ -47,7 +46,7 @@ return {
 
   suda = {
     "lambdalisue/suda.vim",
-    event = "BufRead",
+    event = "InsertEnter",
   },
 
   colorscheme = {
@@ -126,7 +125,7 @@ return {
 
   comment = {
     "tpope/vim-commentary",
-    event = "BufRead",
+    event = "InsertEnter",
   },
 
   fennel = {
@@ -217,6 +216,7 @@ return {
   fugitive = {
     "tpope/vim-fugitive",
     dependencies = { "tpope/vim-git" },
+    event = 'BufReadPost',
   },
 
   tagbar = {

@@ -235,12 +235,10 @@ M.config.pickers = {
 }
 
 function M:setup()
-  vim.schedule(function()
-    local ts = require "telescope"
-    ts.setup(M.config)
-    ts.load_extension "file_browser"
-    ts.load_extension "project"
-  end)
+  local ts = require "telescope"
+  ts.setup(M.config)
+  ts.load_extension "file_browser"
+  ts.load_extension "project"
 end
 
 return M
