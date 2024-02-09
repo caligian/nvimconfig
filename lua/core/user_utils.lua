@@ -1,4 +1,4 @@
-function user.enable_temp_buffers(overrides)
+function user.enable_temp_buffers()
   local temp_buffer_patterns = user.temp_buffer_patterns
     or {
       { pattern = { ".*nvim/.*doc.*txt" } },
@@ -8,8 +8,6 @@ function user.enable_temp_buffers(overrides)
       "*.local/share/nvim/*",
       { "text" },
     }
-
-  dict.merge(temp_buffer_patterns, overrides)
 
   local function set_mappings(buf)
     nvim.buf.set_keymap(buf, "n", "q", "", {
