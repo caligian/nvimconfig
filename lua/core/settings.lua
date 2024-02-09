@@ -1,5 +1,5 @@
 --- @type string
-user.colorscheme = "OceanicNext"
+user.colorscheme = "ayu"
 
 --- @type ({ft: string}|string|{pattern: string|string[]}|string[])[]
 user.temp_buffer_patterns = {
@@ -18,18 +18,4 @@ user.exclude_recent_buffer_filetypes = {
   netrw = true,
   [""] = true,
   tagbar = true,
-}
-
---- @enum
-user.enable = {
-  buffer_history = true,
-  temp_buffers = true,
-  mappings = true,
-  autocmds = true,
-  commands = true,
-  bookmarks = true,
-  buffer_groups = true,
-  filetypes = true,
-  repl = true,
-  plugins = true,
 }

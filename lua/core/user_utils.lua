@@ -1,8 +1,4 @@
 function user.enable_temp_buffers(overrides)
-  if not user.enable.temp_buffers then
-    return false
-  end
-
   local temp_buffer_patterns = user.temp_buffer_patterns
     or {
       { pattern = { ".*nvim/.*doc.*txt" } },
@@ -96,18 +92,11 @@ function user.enable_temp_buffers(overrides)
 end
 
 function user.enable_recent_buffers(overrides)
-  if not user.enable.buffer_history then
-    return false
-  end
-
   local recent_buffer_fts = user.exclude_recent_buffer_filetypes or {}
-
   dict.merge(recent_buffer_fts, overrides)
 
   user.recent_buffer = nil
-
   user.buffer_history_limit = 1000
-
   user.buffer_history = {
     add = function(self, buf)
       if #self > 1000 then
@@ -184,39 +173,23 @@ function user.enable_recent_buffers(overrides)
 end
 
 function user.setup_defaults()
-  if user.enable.plugins then
-    Plugin.main()
-  end
+  Plugin.main()
 
-  if user.enable.filetypes then
-    Filetype.main()
-  end
-
-  if user.enable.autocmds then
+  vim.defer_fn(function()
     Autocmd.main()
-  end
-
-  if user.enable.buffer_groups then
     BufferGroup.main()
-  end
-
-  if user.enable.bookmarks then
     Bookmark()
     Bookmark.set_mappings()
-  end
-
-  user.enable_temp_buffers()
-  user.enable_recent_buffers()
-
-  if user.enable.repl then
-    REPL.main()
-  end
-
-  if user.enable.commands then
+    user.enable_temp_buffers()
+    user.enable_recent_buffers()
     dict.each(require_config "commands" or {}, function(name, args)
       nvim.create.user_command(name, unpack(args))
     end)
-  end
+  end, 100)
 
-  Kbd.main()
+  vim.defer_fn(function()
+    Kbd.main()
+    Filetype.main()
+    REPL.main()
+  end, 100)
 end

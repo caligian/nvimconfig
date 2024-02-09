@@ -81,12 +81,12 @@ M.mappings = {
     O { desc = "Show buffers" },
   },
 
-  oldfiles = {
-    "n",
-    "fr",
-    picker "oldfiles",
-    O { desc = "Show recently opened files" },
-  },
+  -- oldfiles = {
+  --   "n",
+  --   "fr",
+  --   picker "oldfiles",
+  --   O { desc = "Show recently opened files" },
+  -- },
 
   man = {
     "n",
@@ -189,6 +189,15 @@ M.mappings = {
     end,
     O { desc = "Open file browser" },
   },
+
+  oldfiles = {
+    'n',
+    'fr',
+    function ()
+      require("telescope").extensions.frecency.frecency(getivy())
+    end,
+    O {desc = 'Recent files'}
+  }
 }
 
 local buffer_actions = require "core.plugins.telescope.actions.buffer"
@@ -239,6 +248,7 @@ function M:setup()
   ts.setup(M.config)
   ts.load_extension "file_browser"
   ts.load_extension "project"
+  ts.load_extension 'frecency'
 end
 
 return M

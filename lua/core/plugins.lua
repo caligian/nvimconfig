@@ -1,6 +1,7 @@
 return {
   statusline = {
     "nvim-lualine/lualine.nvim",
+    priority = 1000,
   },
 
   neorg = {
@@ -13,6 +14,7 @@ return {
   telescope = {
     "nvim-telescope/telescope.nvim",
     dependencies = {
+      "nvim-telescope/telescope-frecency.nvim",
       "nvim-telescope/telescope-project.nvim",
       "nvim-telescope/telescope-fzy-native.nvim",
       "nvim-telescope/telescope-file-browser.nvim",
@@ -51,6 +53,7 @@ return {
 
   colorscheme = {
     "sainnhe/everforest",
+    priority = 10000,
     dependencies = {
       "vimoxide/vim-cinnabar",
       "rktjmp/lush.nvim",
@@ -76,7 +79,6 @@ return {
       "mhartington/oceanic-next",
       "folke/tokyonight.nvim",
     },
-    priority = 3000,
   },
 
   vimtex = {
@@ -245,6 +247,7 @@ return {
   lsp = {
     "neovim/nvim-lspconfig",
     dependencies = { "lukas-reineke/lsp-format.nvim" },
+    event = 'BufReadPost',
   },
 
   undotree = {
