@@ -27,7 +27,7 @@ return {
     buffer = "lua {path}",
     workspace = 'luarocks --local build',
     dir = {
-      [os.getenv('HOME') .. "/Repos/nvim%-utils"] = "cd ../ && ./build",
+      [os.getenv('HOME') .. "/Repos/nvim%-utils"] = "cd ~/Repos/nvim-utils/ && ./build",
     }
   },
 
