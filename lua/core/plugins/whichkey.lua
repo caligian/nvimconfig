@@ -78,9 +78,7 @@ whichkey.config = {
 
 function whichkey:setup()
   local wk = require "which-key"
-
   wk.setup(whichkey.config)
-
   wk.register({
     f = { name = "File" },
     g = { name = "Git" },
@@ -97,7 +95,6 @@ function whichkey:setup()
     m = { name = "Filetype" },
     w = { name = "Windows" },
   }, { prefix = "<leader>" })
-
   wk.register({
     r = { name = "Single REPL" },
   }, { prefix = "<localleader>" })

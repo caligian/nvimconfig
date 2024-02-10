@@ -25,11 +25,10 @@ return {
 
   compile = {
     buffer = "lua {path}",
-    workspace = function(ws)
-      local kids = strsplit(vim.fn.glob(ws .. "/*.rockspec"), "\n")
-      local cmd = "luarocks --local build"
-      return cmd
-    end,
+    workspace = 'luarocks --local build',
+    dir = {
+      [os.getenv('HOME') .. "/Repos/nvim%-utils"] = "cd ../ && ./build",
+    }
   },
 
   repl = {
