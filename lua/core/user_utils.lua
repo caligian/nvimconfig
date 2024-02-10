@@ -191,6 +191,6 @@ function user.setup_defaults()
     REPL.main()
   end)
 
-  require 'nvim-utils.Font'
+  require 'nvim-utils.font'
 end
 
