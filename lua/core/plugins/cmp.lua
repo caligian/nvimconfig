@@ -106,26 +106,26 @@ cmp.config = {
       },
     },
   },
-  window = {
-    completion = nvim_cmp.config.window.bordered(),
-    documentation = nvim_cmp.config.window.bordered(),
-    scrollbar = "║",
+  -- window = {
+  --   completion = nvim_cmp.config.window.bordered(),
+  --   documentation = nvim_cmp.config.window.bordered(),
+  --   scrollbar = "║",
 
-    documentation = {
-      border = {
-        "╭",
-        "─",
-        "╮",
-        "│",
-        "╯",
-        "─",
-        "╰",
-        "│",
-      },
-      scrollbar = "|",
-      -- other options
-    },
-  },
+  --   documentation = {
+  --     border = {
+  --       "╭",
+  --       "─",
+  --       "╮",
+  --       "│",
+  --       "╯",
+  --       "─",
+  --       "╰",
+  --       "│",
+  --     },
+  --     scrollbar = "|",
+  --     -- other options
+  --   },
+  -- },
   formatting = {
     format = function(entry, vim_item)
       vim_item.menu = nil

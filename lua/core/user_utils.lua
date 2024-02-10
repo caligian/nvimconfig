@@ -173,7 +173,7 @@ end
 function user.setup_defaults()
   Plugin.main()
 
-  vim.defer_fn(function()
+  vim.schedule(function()
     Autocmd.main()
     BufferGroup.main()
     Bookmark()
@@ -183,11 +183,14 @@ function user.setup_defaults()
     dict.each(require_config "commands" or {}, function(name, args)
       nvim.create.user_command(name, unpack(args))
     end)
-  end, 100)
+  end)
 
-  vim.defer_fn(function()
-    Kbd.main()
+  vim.schedule(function()
     Filetype.main()
+    Kbd.main()
     REPL.main()
-  end, 100)
+  end)
+
+  require 'nvim-utils.Font'
 end
+

@@ -1,6 +1,9 @@
 vim.o.autochdir = true
 vim.o.showcmd = false
 vim.opt.shortmess:append "I"
+vim.opt.formatoptions:remove {'r', 'o'}
+vim.o.shell = 'bash'
+vim.o.shellcmdargs = '-l -c'
 
 vim.keymap.set("n", "<space>fv", ":w <bar> :luafile %<CR>", { noremap = true, desc = "source file" })
 

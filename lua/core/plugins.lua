@@ -247,7 +247,6 @@ return {
   lsp = {
     "neovim/nvim-lspconfig",
     dependencies = { "lukas-reineke/lsp-format.nvim" },
-    event = 'BufReadPost',
   },
 
   undotree = {

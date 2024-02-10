@@ -2,20 +2,19 @@ local data_dir = vim.fn.stdpath "data"
 
 user.option = {
   o = {
-    swapfile = false,
-    scrolloff = 5,
+    swapfile = true,
+    scrolloff = 20,
     number = true,
-    incsearch = true,
+    incsearch = false,
     hidden = false,
     relativenumber = true,
     showcmd = true,
     splitright = true,
     splitbelow = true,
-    cursorline = false,
-    updatetime = 300,
-    swapfile = false,
+    cursorline = true,
+    updatetime = 2000,
     foldenable = false,
-    timeoutlen = 500,
+    timeoutlen = 5000,
     showtabline = true,
     completeopt = "menu,menuone,noselect",
     mouse = "a",
@@ -35,7 +34,7 @@ user.option = {
     foldmethod = "indent",
     inccommand = "split",
     background = "dark",
-    guifont = "Liberation Mono:h11",
+    guifont = "Liberation Mono:h13",
     virtualedit = "onemore",
   },
   g = {
@@ -46,9 +45,8 @@ user.option = {
   },
 }
 
-
-  for t, opts in pairs(user.option) do
-    for k, v in pairs(opts) do
-      vim[t][k] = v
-    end
+for t, opts in pairs(user.option) do
+  for k, v in pairs(opts) do
+    vim[t][k] = v
   end
+end
