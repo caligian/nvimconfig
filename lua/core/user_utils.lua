@@ -1,3 +1,5 @@
+-- to be used with neovim
+
 function user.enable_temp_buffers()
   local temp_buffer_patterns = user.temp_buffer_patterns
     or {
@@ -72,12 +74,10 @@ function user.enable_temp_buffers()
     {
       { ft = is_string },
       set_ft_autocmd,
-      name = "filetype",
     },
     {
       { filetype = is_string },
       set_ft_autocmd,
-      name = "filetype",
     },
   }
 
@@ -183,14 +183,15 @@ function user.setup_defaults()
     dict.each(require_config "commands" or {}, function(name, args)
       nvim.create.user_command(name, unpack(args))
     end)
-  end, 200)
-
-  vim.defer_fn(function()
     Filetype.main()
     Kbd.main()
     REPL.main()
+    Template.main()
+    vim.notify('All configs have been loaded!')
   end, 200)
 
-  require 'nvim-utils.font'
+  if vim.fn.has 'gui' then
+    require 'nvim-utils.font'
+  end
 end
 

@@ -133,7 +133,7 @@ colorscheme.config = {
 function colorscheme:setup(name, config)
   local name = name or user.colorscheme
 
-  if is_callable(name) then
+  if is_method(name) then
     name(config)
   elseif is_string(name) then
     if self.config[name] then

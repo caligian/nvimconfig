@@ -12,3 +12,4 @@ lsp_servers/*
 lua/nvim-utils
 doc/*
 lazy-lock.json
+lua/lua-utils/*

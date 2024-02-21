@@ -11,7 +11,7 @@ dispatch.methods = {}
 --     local cmd = Filetype.get(vim.bo.filetype, action)
 --     if not cmd then
 --         return nil, 'no command found for ' .. bufnr
---     elseif is_callable(cmd) then
+--     elseif is_method(cmd) then
 --         cmd = cmd(bufnr)
 --     elseif is_string(cmd) then
 --         if not cmd:match "%%%%" then

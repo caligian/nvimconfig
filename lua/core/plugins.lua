@@ -246,7 +246,10 @@ return {
 
   lsp = {
     "neovim/nvim-lspconfig",
-    dependencies = { "lukas-reineke/lsp-format.nvim" },
+    dependencies = { 
+      "lukas-reineke/lsp-format.nvim", 
+      "ranjithshegde/ccls.nvim",
+    },
   },
 
   undotree = {
